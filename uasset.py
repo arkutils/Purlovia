@@ -2,72 +2,13 @@ import os
 import struct
 from types import SimpleNamespace as Bag
 
-from structex import Format, Type, Struct
 from hexutils import *
+from ue_format import *
 
 MAX_STRING_LEN = 2048
 ENDIAN = '<'
 
 asset_basepath = None
-
-
-class ImportTableItem(Struct):
-    _format = ENDIAN
-    package = Type.int64
-    klass = Type.int64
-    outer_index = Type.int32
-    name = Type.int64
-
-
-class Guid(Struct):
-    _format = ENDIAN
-    a = Type.uint32
-    b = Type.uint32
-    c = Type.uint32
-    d = Type.uint32
-
-
-class ExportTableItem(Struct):
-    _format = ENDIAN
-    klass = Type.int32
-    super = Type.int32
-    outer_index = Type.int32
-    name = Type.int64
-    object_flags = Type.uint32
-    serial_size = Type.uint32
-    serial_offset = Type.uint32
-    force_export = Type.bool32
-    not_for_client = Type.bool32
-    not_for_server = Type.bool32
-    guid = Type.Struct(Guid)
-    package_flags = Type.uint32
-    not_for_editor_game = Type.bool32
-
-
-class HeaderPart1(Struct):
-    _format = ENDIAN
-    tag = Type.uint32
-    legacy_ver = Type.int32
-    ue_ver = Type.int32
-    file_ver = Type.uint32
-    licensee_ver = Type.uint32
-    engine = Type.uint32
-    header_size = Type.uint32
-
-
-class ChunkPtr(Struct):
-    _format = ENDIAN
-    count = Type.uint32
-    offset = Type.uint32
-
-
-class HeaderTables(Struct):
-    _format = ENDIAN
-    package_flags = Type.uint32
-    names_chunk = Type.Struct(ChunkPtr)
-    exports_chunk = Type.Struct(ChunkPtr)
-    imports_chunk = Type.Struct(ChunkPtr)
-    depends_offset = Type.uint32
 
 
 def set_asset_path(basepath):
@@ -104,13 +45,6 @@ def get_chunk_count_and_offset(mem):
     return Bag(count=count, offset=offset)
 
 
-def decode_header(mem):
-    asset = Bag()
-    asset.summary = HeaderPart1(mem, 0x00)
-    asset.tables = HeaderTables(mem, 0x25)
-    return asset
-
-
 def parse_names_chunk(name_chunk, mem):
     namesArr = []
     offset = name_chunk.offset
@@ -122,8 +56,23 @@ def parse_names_chunk(name_chunk, mem):
     return namesArr
 
 
+def parse_array(mem, offset, count, struct_type):
+    result = []
+    for i in range(count):
+        item = struct_type(mem, offset)
+        result.append(item)
+        offset += len(item)
+
+    return result
+
+
 def decode_asset(mem):
-    asset = decode_header(mem)
+    asset = Bag()
+    asset.summary = HeaderPart1(mem, 0x00)
+    asset.tables = HeaderTables(mem, 0x25)
+
     asset.names = parse_names_chunk(asset.tables.names_chunk, mem)
+    asset.imports = parse_array(mem, asset.tables.imports_chunk.offset, asset.tables.imports_chunk.count, ImportTableItem)
+    asset.exports = parse_array(mem, asset.tables.exports_chunk.offset, asset.tables.exports_chunk.count, ExportTableItem)
 
     return asset
