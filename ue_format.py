@@ -37,7 +37,7 @@ class ExportTableItem(Struct):
     not_for_editor_game = Type.bool32
 
 
-class HeaderPart1(Struct):
+class HeaderTop(Struct):
     tag = Type.uint32
     legacy_ver = Type.int32
     ue_ver = Type.int32
@@ -53,3 +53,8 @@ class HeaderTables(Struct):
     exports_chunk = Type.Struct(ChunkPtr)
     imports_chunk = Type.Struct(ChunkPtr)
     depends_offset = Type.uint32
+
+class HeaderBottom(Struct):
+    string_assets = Type.Struct(ChunkPtr)
+    thumbnail_offset = Type.uint32
+    guid = Type.Struct(Guid)

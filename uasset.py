@@ -68,8 +68,9 @@ def parse_array(mem, offset, count, struct_type):
 
 def decode_asset(mem):
     asset = Bag()
-    asset.summary = HeaderPart1(mem, 0x00)
+    asset.summary = HeaderTop(mem, 0x00)
     asset.tables = HeaderTables(mem, 0x25)
+    asset.misc = HeaderBottom(mem, 0x45)
 
     asset.names = parse_names_chunk(asset.tables.names_chunk, mem)
     asset.imports = parse_array(mem, asset.tables.imports_chunk.offset, asset.tables.imports_chunk.count, ImportTableItem)
