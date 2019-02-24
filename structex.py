@@ -108,8 +108,6 @@ Type = Type()
 
 
 class MetaStruct(type):
-    __test__ = False
-
     def __init__(cls, name, bases, d):
         type.__init__(cls, name, bases, d)
         if hasattr(cls, '_struct_data'):  # Allow extending by inheritance
@@ -124,10 +122,13 @@ class MetaStruct(type):
         cls._struct_data += ''.join(str(v) for (k, v) in elems)
         cls._struct_info += elems
         cls._struct_size = struct.calcsize(cls._format + cls._struct_data)
+        cls.__len__ = lambda _: cls._struct_size
+
+    def __len__(self):
+        return self._struct_size
 
 
 class Struct(object, metaclass=MetaStruct):
-    __test__ = False
     """Represent a binary structure."""
     _format = Format.Native  # Default to native format, native size
     _struct_size = 0
@@ -155,6 +156,9 @@ class Struct(object, metaclass=MetaStruct):
 
     def _display(self):
         pass
+
+    def __len__(self):
+        return self._struct_size
 
     def _pack(self):
         return struct.pack(self._format + self._struct_data,
