@@ -15,8 +15,7 @@ KEY = bytes.fromhex('34 12 00 00') # opposite endian
 def files_in(path, ending=None, recurse=False):
   path = os.path.abspath(path)
 
-  pathlen = len(path)
-  for root, dirs, files in os.walk(path):
+  for root, _, files in os.walk(path):
     for name in files:
       if not ending or name.endswith(ending):
         yield os.path.join(root, name)

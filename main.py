@@ -16,7 +16,9 @@ if __name__ == '__main__':
 
   # UAsset Summary
   if True:
-    display_summary(asset)
+    print(asset.summary)
+    print(asset.tables)
+    pprint("")
 
   # UAsset Names
   if False:
@@ -25,9 +27,9 @@ if __name__ == '__main__':
   # UAsset Imports
   if False:
     # Each Import Entry is 28 bytes long
-    o = asset.chunks.imports.offset
-    print(f'\nImports: offset=0x{o:08X}, count={asset.chunks.imports.count}')
-    for i in range(asset.chunks.imports.count):
+    o = asset.tables.imports_chunk.offset
+    print(f'\nImports: offset=0x{o:08X}, count={asset.tables.imports_chunk.count}')
+    for i in range(asset.tables.imports_chunk.count):
       item = ImportTableItem(mem, o)
       print(f'{i:2}: {item}')
       print(asset.names[item.package], end=',')
@@ -38,11 +40,11 @@ if __name__ == '__main__':
     print(f'Chunk ends at offset: 0x{o:X}')
 
   # UAsset Exports
-  if True:
+  if False:
     # Each Export Entry might be 68 bytes (comparing like words)
-    o = asset.chunks.exports.offset
-    print(f'\nExports: offset=0x{o:08X}, count={asset.chunks.exports.count}')
-    for i in range(asset.chunks.exports.count):
+    o = asset.tables.exports_chunk.offset
+    print(f'\nExports: offset=0x{o:08X}, count={asset.tables.exports_chunk.count}')
+    for i in range(asset.tables.exports_chunk.count):
       item = ExportTableItem(mem, o)
       print(f'{i:2}: {item}')
       print(f'name={asset.names[item.name & 0xFFFF]}') # Note: clearing flags

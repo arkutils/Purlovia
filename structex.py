@@ -134,6 +134,9 @@ class MetaStruct(type):
 class Struct(object, metaclass=MetaStruct):
     """Represent a binary structure."""
     _format = Format.Native  # Default to native format, native size
+    _struct_size = 0
+    _struct_data = ''
+    _struct_info = []
 
     def __init__(self, _data=None, _offset=None, **kwargs):
         if _data is None:
@@ -154,6 +157,9 @@ class Struct(object, metaclass=MetaStruct):
     def at(cls, data, offset):
       data = data[offset:offset+cls._struct_size]
       return cls(data)
+
+    def _display(self):
+        pass
 
     def _pack(self):
         return struct.pack(self._format + self._struct_data, 

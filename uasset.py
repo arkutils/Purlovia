@@ -103,24 +103,8 @@ def get_chunk_count_and_offset(mem):
 
 def decode_header(mem):
   asset = Bag()
-  asset.tag, = struct.unpack_from('<I', mem, 0x00)
-  asset.legacy_ver, = struct.unpack_from('<i', mem, 0x04)
-  asset.file_ver, = struct.unpack_from('<I', mem, 0x0C)
-  asset.licensee_ver, = struct.unpack_from('<I', mem, 0x10)
-  asset.engine, = struct.unpack_from('<I', mem, 0x14)
-  asset.header_size, = struct.unpack_from('<I', mem, 0x18)
-  asset.package_flags, = struct.unpack_from('<I', mem, 0x25)
-  asset.chunks = Bag()
-  asset.chunks.names = get_chunk_count_and_offset(mem[0x29:])
-  asset.chunks.exports = get_chunk_count_and_offset(mem[0x31:])
-  asset.chunks.imports = get_chunk_count_and_offset(mem[0x39:])
-  asset.depends_offset, = struct.unpack_from('<I', mem, 0x41)
-  asset.guid = Bag()
-  asset.guid.a, = struct.unpack_from('<I', mem, 0x51)
-  asset.guid.b, = struct.unpack_from('<I', mem, 0x55)
-  asset.guid.c, = struct.unpack_from('<I', mem, 0x59)
-  asset.guid.d, = struct.unpack_from('<I', mem, 0x5D)
-  asset.bulk_data, = struct.unpack_from('<I', mem, 0x9B)
+  asset.summary = HeaderPart1(mem, 0x00)
+  asset.tables = HeaderTables(mem, 0x25)
   return asset
  
 def parse_names_chunk(name_chunk, mem):
@@ -135,32 +119,7 @@ def parse_names_chunk(name_chunk, mem):
 
 def decode_asset(mem):
   asset = decode_header(mem)
-  asset.names = parse_names_chunk(asset.chunks.names, mem)
+  asset.names = parse_names_chunk(asset.tables.names_chunk, mem)
 
   return asset
-
-def display_summary(asset):
-  print(f'Tag - {asset.tag}')
-  print(f'Legacy Ver. - {asset.legacy_ver}')
-  print(f'File Ver. - {asset.file_ver}')
-  print(f'Licensee Ver. - {asset.licensee_ver}')
-  print(f'Engine - {asset.engine}')
-  print()
-  print(f'Header Size - {asset.header_size}')
-  print(f'Package Flags - {asset.package_flags}')
-  print()
-  print(f'Name Count - {asset.chunks.names.count}')
-  print(f'Name Offset - 0x{asset.chunks.names.offset:08X}')
-  print(f'Import Count - {asset.chunks.imports.count}')
-  print(f'Import Offset - 0x{asset.chunks.imports.offset:08X}')
-  print(f'Export Count - {asset.chunks.exports.count}')
-  print(f'Export Offset - 0x{asset.chunks.exports.offset:08X}')
-  print(f'Depends Offset - 0x{asset.depends_offset:08X}')
-  print()
-  print(f'GUID A - {asset.guid.a}')
-  print(f'GUID B - {asset.guid.b}')
-  print(f'GUID C - {asset.guid.c}')
-  print(f'GUID D - {asset.guid.d}')
-  print()
-  print(f'Bulk Data Offset - 0x{asset.bulk_data:08X}')
-
+  
