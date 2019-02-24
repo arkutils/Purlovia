@@ -2,8 +2,9 @@
 from pprint import pprint
 from uasset import *
 set_asset_path(r'.')
-assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
+# assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
+assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
 
 #%% Load asset into memory
 mem = load_asset(assetname)
@@ -17,8 +18,10 @@ print("Decode complete")
 #%% UAsset Summary
 print(asset.summary)
 print(asset.tables)
+print(asset.misc)
 
 #%% Show names
+print('\nNames:')
 for i,name in enumerate(asset.names):
     print(f'{i:>4}: {name}')
 
@@ -34,7 +37,12 @@ for i, item in enumerate(asset.imports):
 print(f'\nExports: offset=0x{asset.tables.exports_chunk.offset:08X}, count={asset.tables.exports_chunk.count}')
 for i, item in enumerate(asset.exports):
     print(f'{i:2}: {item}')
-    print(f'name={asset.names[item.name & 0xFFFF]}')  # Note: clearing flags
+    klass_index = item.klass
+    if klass_index < 0:
+        klass_index = -klass_index - 1
+        klass_index = asset.imports[klass_index].name
+
+    print(f'    name={asset.names[item.name & 0xFFFF]} ({asset.names[klass_index]})')
 
 #%% Explore depends section - content unknown
 o = asset.tables.depends_offset
@@ -45,4 +53,11 @@ display_mem(mem[o+28:o+28*2], as_hex_bytes, as_int32s)
 
 
 #%% Peek into the values pointed to by exports
-print(len(HeaderPart1))
+e = asset.exports[2]
+print(e)
+print(f'name={asset.names[e.name & 0xFFFF]}')
+for o in range(e.serial_offset, e.serial_offset+92, 32):
+    display_mem(mem[o:o+32], as_hex_bytes, as_floats)
+
+
+#%%
