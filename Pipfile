@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 yapf = "*"
+rope = "*"
 
 [packages]
 pytest = "==4.3.0"
