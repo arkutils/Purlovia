@@ -66,4 +66,5 @@ for o in range(e.serial_offset, e.serial_offset+e.serial_size, 28):
 #%% Attempt to parse the blueprint export
 e = asset.exports[3]
 bp = parse_blueprint_export(mem, e, asset)
-pprint(bp)
+for entry in bp:
+    pprint(f'@[0x{entry["offset"]:08X}:0x{entry["end"]:08X}] ({entry["type_name"]}) {entry["name"]} = [{entry["index"]}:{entry["value"]}]', width=150)

@@ -84,14 +84,16 @@ def parse_blueprint_export(mem, export, asset):
     o = export.serial_offset
     end = o + export.serial_size
     while o + 6 * 4 < end:
+        offset = o
         field = BlueprintField(mem, o)
         if field.size == 0: field.size = 1
         value_offset = o + len(field)
         name = fetch_name(asset, field.name)
         type_name = fetch_name(asset, field.field_type)
-        value = parse_typed_field(mem, value_offset, type_name, field.size)
-        results.append(dict(name=name, index=field.index, value=value))
-        o += len(field) + field.size
+        value, new_offset = parse_typed_field(mem, value_offset, type_name, field.size, asset)
+        o = new_offset
+        results.append(dict(name=name, index=field.index, value=value, type_name=type_name, offset=offset, end=o))
+        print(f'@[0x{offset:08X}:0x{o:08X}] ({type_name}) {name} = [{field.index}:{value}]')
 
     return results
 
@@ -104,18 +106,29 @@ def fetch_name(asset, index):
 
     return asset.names[index]
 
+def parse_byte_value(mem, offset, asset):
+    name_index, index, sub_index, value = struct.unpack_from('<IIQB', mem, offset)
+    name = fetch_name(asset, name_index)
+    offset += 17
+    return dict(name=name, index=index, sub_index=sub_index, value=value), offset
 
-def parse_typed_field(mem, offset, type_name, size):
-    # We don't use size yet
+
+def parse_typed_field(mem, offset, type_name, size, asset):
     if type_name == 'ByteProperty':
-        return struct.unpack_from('<B', mem, offset)[0]
+        offset -= 8 # reset offset before the index
+        return parse_byte_value(mem, offset, asset)
     elif type_name == 'IntProperty':
-        return struct.unpack_from('<i', mem, offset)[0]
+        return struct.unpack_from('<i', mem, offset)[0], offset + 4
     elif type_name == 'BoolProperty':
-        return struct.unpack_from('<I', mem, offset)[0] != 0
+        return (struct.unpack_from('<I', mem, offset)[0] != 0), offset + 4
     elif type_name == 'FloatProperty':
-        return struct.unpack_from('<f', mem, offset)[0]
+        return struct.unpack_from('<f', mem, offset)[0], offset + 4
+    elif type_name == 'StructProperty':
+        print(bytes_to_hex(mem[offset:offset+size]))
+        for i in range(35):
+            index, trash = struct.unpack_from('<Ii', mem, offset)
+            print(fetch_name(asset, index))
+            offset += 8
 
-    return bytes_to_hex(mem[offset:offset+size])
+    return bytes_to_hex(mem[offset:offset+size]), 999999999
     raise ValueError(f"Unsupported type '{type_name}''")
-
