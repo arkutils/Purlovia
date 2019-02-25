@@ -77,3 +77,45 @@ def decode_asset(mem):
     asset.exports = parse_array(mem, asset.tables.exports_chunk.offset, asset.tables.exports_chunk.count, ExportTableItem)
 
     return asset
+
+
+def parse_blueprint_export(mem, export, asset):
+    results = []
+    o = export.serial_offset
+    end = o + export.serial_size
+    while o + 6 * 4 < end:
+        field = BlueprintField(mem, o)
+        if field.size == 0: field.size = 1
+        value_offset = o + len(field)
+        name = fetch_name(asset, field.name)
+        type_name = fetch_name(asset, field.field_type)
+        value = parse_typed_field(mem, value_offset, type_name, field.size)
+        results.append(dict(name=name, index=field.index, value=value))
+        o += len(field) + field.size
+
+    return results
+
+def fetch_name(asset, index):
+    if index & 0xFFFF0000:
+        print(f'Name ID with flags: 0x{index:08X} ({index})')
+        index = index & 0xFFFF
+    if index >= len(asset.names):
+        raise ValueError(f"Invalid name index 0x{index:08X} ({index})")
+
+    return asset.names[index]
+
+
+def parse_typed_field(mem, offset, type_name, size):
+    # We don't use size yet
+    if type_name == 'ByteProperty':
+        return struct.unpack_from('<B', mem, offset)[0]
+    elif type_name == 'IntProperty':
+        return struct.unpack_from('<i', mem, offset)[0]
+    elif type_name == 'BoolProperty':
+        return struct.unpack_from('<I', mem, offset)[0] != 0
+    elif type_name == 'FloatProperty':
+        return struct.unpack_from('<f', mem, offset)[0]
+
+    return bytes_to_hex(mem[offset:offset+size])
+    raise ValueError(f"Unsupported type '{type_name}''")
+

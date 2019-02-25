@@ -2,6 +2,7 @@ from structex import Format, Type, Struct
 
 Struct._format = '<'
 
+
 class Guid(Struct):
     a = Type.uint32
     b = Type.uint32
@@ -54,7 +55,17 @@ class HeaderTables(Struct):
     imports_chunk = Type.Struct(ChunkPtr)
     depends_offset = Type.uint32
 
+
 class HeaderBottom(Struct):
     string_assets = Type.Struct(ChunkPtr)
     thumbnail_offset = Type.uint32
     guid = Type.Struct(Guid)
+
+
+class BlueprintField(Struct):
+    name = Type.uint32
+    skip1 = Type.uint32
+    field_type = Type.uint32
+    skip2 = Type.uint32
+    size = Type.uint32
+    index = Type.uint32

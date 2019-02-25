@@ -1,10 +1,13 @@
+__test__ = False
+
 #%% Setup
 from pprint import pprint
 from uasset import *
 set_asset_path(r'.')
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
-assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
+# assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
+assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP'
 
 #%% Load asset into memory
 mem = load_asset(assetname)
@@ -53,11 +56,14 @@ display_mem(mem[o+28:o+28*2], as_hex_bytes, as_int32s)
 
 
 #%% Peek into the values pointed to by exports
-e = asset.exports[2]
+e = asset.exports[3]
 print(e)
 print(f'name={asset.names[e.name & 0xFFFF]}')
-for o in range(e.serial_offset, e.serial_offset+92, 32):
-    display_mem(mem[o:o+32], as_hex_bytes, as_floats)
+for o in range(e.serial_offset, e.serial_offset+e.serial_size, 28):
+    display_mem(mem[o:o+28], as_hex_bytes, as_floats)
 
 
-#%%
+#%% Attempt to parse the blueprint export
+e = asset.exports[3]
+bp = parse_blueprint_export(mem, e, asset)
+pprint(bp)
