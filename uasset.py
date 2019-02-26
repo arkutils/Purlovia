@@ -25,15 +25,25 @@ def convert_asset_name_to_path(name):
     return os.path.join(asset_basepath, *parts) + '.uasset'
 
 
-def load_asset(name):
-    filename = convert_asset_name_to_path(name)
+def load_asset_from_file(filename):
     print("Loading:", filename)
     mem = load_file_into_memory(filename)
     return mem
 
 
-def load_and_parse(filename):
-    mem = load_asset(filename)
+def load_asset(name):
+    filename = convert_asset_name_to_path(name)
+    return load_asset_from_file(filename)
+
+
+def load_and_parse(assetname):
+    mem = load_asset(assetname)
+    asset = decode_asset(mem)
+    return asset
+
+
+def load_and_parse_file(filename):
+    mem = load_asset_from_file(filename)
     asset = decode_asset(mem)
     return asset
 

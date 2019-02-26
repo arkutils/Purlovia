@@ -13,6 +13,7 @@
 # Game\Extinction\Dinos\Owl\Owl_Character_BP
 
 #%% Imports
+import os, glob
 from pprint import pprint
 import uasset
 uasset.set_asset_path(r'.')
@@ -32,3 +33,15 @@ pprint(species.props)
 combined_props = uasset.merge_properties(base, species)
 print('\nCombined properties:')
 pprint(combined_props, width=250)
+
+
+#%% All species
+basepath = r'K:\SteamLibrary\steamapps\common\ARK\ShooterGame'
+for mod in ('PrimalEarth', 'Extinction'):
+    path = os.path.join(basepath, 'Content', mod, 'CoreBlueprints')
+    for filename in glob.iglob(os.path.join(path, 'DinoCharacterStatusComponent_BP_*')):
+        speciesname = os.path.basename(filename.split(os.sep)[-1])[32:-7]
+        asset = uasset.load_and_parse_file(filename)
+        print(f'\n{speciesname}:')
+        pprint(asset.props, width=250)
+        print()
