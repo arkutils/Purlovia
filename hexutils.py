@@ -159,3 +159,13 @@ def load_file_into_memory(filename):
         data = f.read()
         mem = memoryview(data)
         return mem
+
+
+def first(seq, predicate):
+    try:
+        return next(x for x in seq if predicate(x))
+    except StopIteration:
+        return None
+
+def reinterpret_as_float(v):
+    return struct.unpack('<f', struct.pack('<I', v))[0]

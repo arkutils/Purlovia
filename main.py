@@ -2,6 +2,7 @@ __test__ = False
 
 #%% Setup
 from pprint import pprint
+from hexutils import *
 from uasset import *
 set_asset_path(r'.')
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
@@ -26,26 +27,22 @@ print(asset.misc)
 #%% Show names
 print('\nNames:')
 for i,name in enumerate(asset.names):
-    print(f'{i:>4}: {name}')
+    print(f'{i:>4}(0x{i:02X}): {name}')
 
 #%% Show imports
 print(f'\nImports: offset=0x{asset.tables.imports_chunk.offset:08X}, count={asset.tables.imports_chunk.count}')
 for i, item in enumerate(asset.imports):
-    print(f'{i:2}: {item}')
-    print(asset.names[item.package], end=',')
-    print(asset.names[item.klass], end=',')
-    print(asset.names[item.name])
+    print(f'{i:2}(0x{i:02X}): {item}')
+    print(fetch_name(asset, item.package), end=',')
+    print(fetch_name(asset, item.klass), end=',')
+    print(fetch_name(asset, item.name))
 
 #%% Show exports
 print(f'\nExports: offset=0x{asset.tables.exports_chunk.offset:08X}, count={asset.tables.exports_chunk.count}')
 for i, item in enumerate(asset.exports):
-    print(f'{i:2}: {item}')
-    klass_index = item.klass
-    if klass_index < 0:
-        klass_index = -klass_index - 1
-        klass_index = asset.imports[klass_index].name
-
-    print(f'    name={asset.names[item.name & 0xFFFF]} ({asset.names[klass_index]})')
+    print(f'{i:2}(0x{i:02X}): {item}')
+    klass_name = fetch_object_name(asset, item.klass)
+    print(f'    name={fetch_name(asset, item.name)} ({fetch_name(asset, klass_name)})')
 
 #%% Explore depends section - content unknown
 o = asset.tables.depends_offset
@@ -56,15 +53,26 @@ display_mem(mem[o+28:o+28*2], as_hex_bytes, as_int32s)
 
 
 #%% Peek into the values pointed to by exports
-e = asset.exports[3]
-print(e)
-print(f'name={asset.names[e.name & 0xFFFF]}')
-for o in range(e.serial_offset, e.serial_offset+e.serial_size, 28):
-    display_mem(mem[o:o+28], as_hex_bytes, as_floats)
+# e = asset.exports[3]
+# print(e)
+# print(f'name={fetch_name(asset, e.name)}')
+# for o in range(e.serial_offset, e.serial_offset+e.serial_size, 28):
+#     display_mem(mem[o:o+28], as_hex_bytes, as_floats)
 
 
 #%% Attempt to parse the blueprint export
-e = asset.exports[3]
+interesting_part = 'Default_'
+export_index = first(range(len(asset.exports)), lambda i: fetch_name(asset, asset.exports[i].name).startswith(interesting_part))
+# export_index = 3
+e = asset.exports[export_index]
+print(f'\nExport [{export_index}]: offset=0x{e.serial_offset:08X}, size=0x{e.serial_size:X} ({e.serial_size})')
+print('\n  '+str(e)+'\n')
+print(f'  name  = {fetch_name(asset, e.name)}')
+print(f'  class = {fetch_name(asset, fetch_object_name(asset, e.klass))}')
+print(f'  super = {fetch_name(asset, fetch_object_name(asset, e.super))}')
+print()
 bp = parse_blueprint_export(mem, e, asset)
 for entry in bp:
-    pprint(f'@[0x{entry["offset"]:08X}:0x{entry["end"]:08X}] ({entry["type_name"]}) {entry["name"]} = [{entry["index"]}:{entry["value"]}]', width=150)
+    # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
+    print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
+

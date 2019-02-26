@@ -30,7 +30,7 @@ class ExportTableItem(Struct):
     object_flags = Type.uint32
     serial_size = Type.uint32
     serial_offset = Type.uint32
-    force_export = Type.bool32
+    force_export = Type.bool32  # ExportFlags
     not_for_client = Type.bool32
     not_for_server = Type.bool32
     guid = Type.Struct(Guid)
@@ -63,9 +63,16 @@ class HeaderBottom(Struct):
 
 
 class BlueprintField(Struct):
-    name = Type.uint32
-    skip1 = Type.uint32
-    field_type = Type.uint32
-    skip2 = Type.uint32
+    name = Type.uint64
+    field_type = Type.uint64
     size = Type.uint32
     index = Type.uint32
+    # ...value
+
+
+class StructProperty(Struct):
+    name1_i = Type.int64
+    name2_i = Type.int64
+    type_name_i = Type.int64
+    count1_i = Type.int64
+    unknown_count_i = Type.int64

@@ -80,55 +80,92 @@ def decode_asset(mem):
 
 
 def parse_blueprint_export(mem, export, asset):
-    results = []
     o = export.serial_offset
     end = o + export.serial_size
-    while o + 6 * 4 < end:
-        offset = o
+    while o < end:
         field = BlueprintField(mem, o)
-        if field.size == 0: field.size = 1
         value_offset = o + len(field)
         name = fetch_name(asset, field.name)
         type_name = fetch_name(asset, field.field_type)
-        value, new_offset = parse_typed_field(mem, value_offset, type_name, field.size, asset)
-        o = new_offset
-        results.append(dict(name=name, index=field.index, value=value, type_name=type_name, offset=offset, end=o))
-        print(f'@[0x{offset:08X}:0x{o:08X}] ({type_name}) {name} = [{field.index}:{value}]')
+        print(field)
 
-    return results
+        value, new_offset = parse_typed_field(mem, value_offset, type_name, field.size, asset)
+
+        # print(f'@[0x{o:08X}:0x{new_offset-1:08X}] ({type_name}) {name} = [{field.index}:{value}]')
+        yield Bag(name=name, index=field.index, value=value, type_name=type_name, offset=o, end=new_offset - 1)
+        o = new_offset
+
 
 def fetch_name(asset, index):
+    if not type(index) == int:
+        return None
+
     if index & 0xFFFF0000:
         print(f'Name ID with flags: 0x{index:08X} ({index})')
         index = index & 0xFFFF
     if index >= len(asset.names):
+        return f'invalid_name_0x{index:X}'
         raise ValueError(f"Invalid name index 0x{index:08X} ({index})")
 
     return asset.names[index]
 
-def parse_byte_value(mem, offset, asset):
-    name_index, index, sub_index, value = struct.unpack_from('<IIQB', mem, offset)
-    name = fetch_name(asset, name_index)
-    offset += 17
-    return dict(name=name, index=index, sub_index=sub_index, value=value), offset
+
+def fetch_object_name(asset, index):
+    if not type(index) == int:
+        return None
+
+    try:
+        if index < 0:
+            index = -index - 1
+            return asset.imports[index].name
+        elif index > 0:
+            index += 1
+            return asset.exports[index].name
+    except IndexError:
+        return None
+
+    return None
 
 
 def parse_typed_field(mem, offset, type_name, size, asset):
-    if type_name == 'ByteProperty':
-        offset -= 8 # reset offset before the index
-        return parse_byte_value(mem, offset, asset)
-    elif type_name == 'IntProperty':
+    if type_name == 'IntProperty':
         return struct.unpack_from('<i', mem, offset)[0], offset + 4
+
     elif type_name == 'BoolProperty':
         return (struct.unpack_from('<I', mem, offset)[0] != 0), offset + 4
+
     elif type_name == 'FloatProperty':
         return struct.unpack_from('<f', mem, offset)[0], offset + 4
-    elif type_name == 'StructProperty':
-        print(bytes_to_hex(mem[offset:offset+size]))
-        for i in range(35):
-            index, trash = struct.unpack_from('<Ii', mem, offset)
-            print(fetch_name(asset, index))
-            offset += 8
 
-    return bytes_to_hex(mem[offset:offset+size]), 999999999
+    elif type_name == 'ByteProperty' or type_name == 'EnumProperty':
+        enum_name_index, value = struct.unpack_from('<QB', mem, offset)
+        enum_name = fetch_name(asset, enum_name_index)
+        if enum_name == 'None':
+            return value, offset + 9
+        else:
+            return (value, enum_name), offset + 9
+
+    elif type_name == 'StructProperty':
+        print(f'Struct contents @ 0x{offset:08x}, count=0x{size:X}')
+
+        # for m in range(offset, offset+size, 16):
+        #     display_mem(mem[m:m+16], as_hex_bytes, as_int32s)
+
+        # for o in range(offset, offset+size*8, 4):
+        #     v, = struct.unpack_from('<i', mem, o)
+        #     if v:
+        #         print(f'0x{o:08X}: {v}, name={fetch_name(asset, v)}, object={fetch_name(asset, fetch_object_name(asset, v))}, float={reinterpret_as_float(v)}')
+        #     else:
+        #         print(f'0x{o:08X}: {v}')
+
+        # parse_struct_field(mem, offset, size, asset)
+
+        return '<struct>', offset + size
+        # return bytes_to_hex(mem[offset:offset + size]), offset+size
+
+    return bytes_to_hex(mem[offset:offset + size]), 999999999
     raise ValueError(f"Unsupported type '{type_name}''")
+
+
+def parse_struct_field(mem, offset, size, asset):
+    pass
