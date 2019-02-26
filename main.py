@@ -5,10 +5,19 @@ from pprint import pprint
 from hexutils import *
 from uasset import *
 set_asset_path(r'.')
-# assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
+
+assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Rex'
+# assetname = r'Game\Extinction\CoreBlueprints\DinoCharacterStatusComponent_BP_Gacha'
+# assetname = r'Game\Extinction\CoreBlueprints\DinoCharacterStatusComponent_BP_Owl'
+# assetname = r'Game\PrimalEarth\Dinos\Argentavis\Argent_Character_BP'
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
-# assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
-assetname = r'Game\PrimalEarth\CoreBlueprints/DinoCharacterStatusComponent_BP'
+# assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
+# assetname = r'Game\PrimalEarth\Dinos\Rex\Rex_Character_BP'
+# assetname = r'Game\Extinction\Dinos\Gacha\Gacha_Character_BP'
+# assetname = r'Game\Extinction\Dinos\Owl\Owl_Character_BP'
 
 #%% Load asset into memory
 mem = load_asset(assetname)
@@ -75,4 +84,5 @@ bp = parse_blueprint_export(mem, e, asset)
 for entry in bp:
     # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
     print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
+    # print(f'  {entry.type_name:<15} | {entry.name}[{entry.index}] = {entry.value}')
 

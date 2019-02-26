@@ -179,5 +179,5 @@ def parse_typed_field(mem, offset, type_name, size, asset):
 
 def parse_struct_field(mem, offset, size, asset):
     item = StructProperty(mem, offset)
-    print(f'{fetch_name(asset, item.owner_name_i)}({fetch_name(asset, item.item_name_i)}=({fetch_name(asset, item.type2_name_i)}) {item.value1}, ...)')
+    #print(f'{fetch_name(asset, item.owner_name_i)}({fetch_name(asset, item.item_name_i)}=({fetch_name(asset, item.type2_name_i)}) {item.value1}, ...)')
     return item
