@@ -1,13 +1,11 @@
-__test__ = False
-
 #%% Setup
 from pprint import pprint
 from hexutils import *
 from uasset import *
 set_asset_path(r'.')
 
-assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
-# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
+assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo'
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Rex'
 # assetname = r'Game\Extinction\CoreBlueprints\DinoCharacterStatusComponent_BP_Gacha'
@@ -70,19 +68,26 @@ display_mem(mem[o+28:o+28*2], as_hex_bytes, as_int32s)
 
 
 #%% Attempt to parse the blueprint export
-interesting_part = 'Default_'
-export_index = first(range(len(asset.exports)), lambda i: fetch_name(asset, asset.exports[i].name).startswith(interesting_part))
-# export_index = 3
-e = asset.exports[export_index]
-print(f'\nExport [{export_index}]: offset=0x{e.serial_offset:08X}, size=0x{e.serial_size:X} ({e.serial_size})')
+# e = asset.exports[3]
+e = find_default_property_export(asset)
+print(f'\nExport properties: offset=0x{e.serial_offset:08X}, size=0x{e.serial_size:X} ({e.serial_size})')
 print('\n  '+str(e)+'\n')
 print(f'  name  = {fetch_name(asset, e.name)}')
 print(f'  class = {fetch_name(asset, fetch_object_name(asset, e.klass))}')
 print(f'  super = {fetch_name(asset, fetch_object_name(asset, e.super))}')
 print()
-bp = parse_blueprint_export(mem, e, asset)
-for entry in bp:
+# props = parse_blueprint_export(mem, e, asset)
+props = asset.raw_props
+for entry in props:
     # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
     print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
     # print(f'  {entry.type_name:<15} | {entry.name}[{entry.index}] = {entry.value}')
 
+
+#%% Show the clean properties only
+print(f'Clean properties:')
+pprint(asset.props)
+# for prop in asset.props:
+#     print(f'{prop.name}[{prop.index}] = {prop.value}')
+
+#%%

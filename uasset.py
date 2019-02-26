@@ -1,7 +1,10 @@
 import os
 import struct
+from copy import deepcopy
+from collections import defaultdict
 from types import SimpleNamespace as Bag
 
+from dict_utils import merge
 from hexutils import *
 from ue_format import *
 
@@ -27,6 +30,12 @@ def load_asset(name):
     print("Loading:", filename)
     mem = load_file_into_memory(filename)
     return mem
+
+
+def load_and_parse(filename):
+    mem = load_asset(filename)
+    asset = decode_asset(mem)
+    return asset
 
 
 def parse_string(mem):
@@ -75,6 +84,11 @@ def decode_asset(mem):
     asset.names = parse_names_chunk(asset.tables.names_chunk, mem)
     asset.imports = parse_array(mem, asset.tables.imports_chunk.offset, asset.tables.imports_chunk.count, ImportTableItem)
     asset.exports = parse_array(mem, asset.tables.exports_chunk.offset, asset.tables.exports_chunk.count, ExportTableItem)
+
+    prop_export = find_default_property_export(asset)
+    if prop_export:
+        asset.raw_props = list(parse_blueprint_export(mem, prop_export, asset))
+        asset.props = get_clean_properties(asset)
 
     return asset
 
@@ -155,7 +169,7 @@ def parse_typed_field(mem, offset, type_name, size, asset):
             return value_name, offset + size + 8
         else:
             print(f"Unsupported ByteProperty size of {size}")
-            return '<unsupported>', offset + size + 8 # a guess
+            return '<unsupported>', offset + size + 8  # a guess
 
     elif type_name == 'StructProperty':
         # print(f'Struct contents @ 0x{offset:08x}, count=0x{size:X}')
@@ -181,3 +195,27 @@ def parse_struct_field(mem, offset, size, asset):
     item = StructProperty(mem, offset)
     #print(f'{fetch_name(asset, item.owner_name_i)}({fetch_name(asset, item.item_name_i)}=({fetch_name(asset, item.type2_name_i)}) {item.value1}, ...)')
     return item
+
+
+def find_default_property_export(asset):
+    interesting_part = 'Default_'
+    for export in asset.exports:
+        name = fetch_name(asset, export.name)
+        if name.startswith('Default_') and name.endswith('_C'):
+            print('Using export: ' + name)
+            return export
+
+
+def get_clean_properties(asset):
+    tree = defaultdict(dict)
+    for prop in asset.raw_props:
+        if type(prop.value) in (float, int, str):
+            tree[prop.name][prop.index] = prop.value
+
+    return dict(tree)
+
+
+def merge_properties(base, extra):
+    base_props = deepcopy(base.props)
+    result = merge(base_props, extra.props)
+    return result
