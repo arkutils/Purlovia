@@ -210,7 +210,10 @@ def get_clean_properties(asset):
     tree = defaultdict(dict)
     for prop in asset.raw_props:
         if type(prop.value) in (float, int, str):
-            tree[prop.name][prop.index] = prop.value
+            value = prop.value
+            if type(prop.value) == float:
+                value = round(value, 6)
+            tree[prop.name][prop.index] = value
 
     return dict(tree)
 

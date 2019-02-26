@@ -20,15 +20,15 @@ uasset.set_asset_path(r'.')
 
 #%% Load base properties
 base = uasset.load_and_parse('Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP')
-print('\Base properties:')
-pprint(base.props)
+# print('\Base properties:')
+# pprint(base.props)
 
 #%% Load species properties
 species = uasset.load_and_parse('Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo')
-print('\Species properties:')
+print('\nSpecies properties:')
 pprint(species.props)
 
 #%% Try merge species properties into base ones
 combined_props = uasset.merge_properties(base, species)
 print('\nCombined properties:')
-pprint(combined_props)
+pprint(combined_props, width=250)
