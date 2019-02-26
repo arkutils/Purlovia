@@ -71,8 +71,11 @@ class BlueprintField(Struct):
 
 
 class StructProperty(Struct):
-    name1_i = Type.int64
-    name2_i = Type.int64
-    type_name_i = Type.int64
-    count1_i = Type.int64
-    unknown_count_i = Type.int64
+    owner_name_i = Type.int64
+
+    item_name_i = Type.int64
+    type1_name_i = Type.int64  # always ArrayProperty?
+    count1 = Type.int64  # ???
+    type2_name_i = Type.int64  # actual type of first field
+    count2 = Type.int32  # count of first field - only seen 1 so far
+    value1 = Type.float  # TEST ONLY - shouldn't be hardcoded

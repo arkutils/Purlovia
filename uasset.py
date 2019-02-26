@@ -87,7 +87,10 @@ def parse_blueprint_export(mem, export, asset):
         value_offset = o + len(field)
         name = fetch_name(asset, field.name)
         type_name = fetch_name(asset, field.field_type)
-        print(field)
+        if name == 'None':
+            return
+
+        # print(field)
 
         value, new_offset = parse_typed_field(mem, value_offset, type_name, field.size, asset)
 
@@ -132,21 +135,30 @@ def parse_typed_field(mem, offset, type_name, size, asset):
         return struct.unpack_from('<i', mem, offset)[0], offset + 4
 
     elif type_name == 'BoolProperty':
-        return (struct.unpack_from('<I', mem, offset)[0] != 0), offset + 4
+        return (struct.unpack_from('<B', mem, offset)[0] != 0), offset + 1
 
     elif type_name == 'FloatProperty':
         return struct.unpack_from('<f', mem, offset)[0], offset + 4
 
     elif type_name == 'ByteProperty' or type_name == 'EnumProperty':
-        enum_name_index, value = struct.unpack_from('<QB', mem, offset)
-        enum_name = fetch_name(asset, enum_name_index)
-        if enum_name == 'None':
-            return value, offset + 9
+        if size == 1:
+            enum_name_index, value = struct.unpack_from('<QB', mem, offset)
+            enum_name = fetch_name(asset, enum_name_index)
+            if enum_name == 'None':
+                return value, offset + size + 8
+            else:
+                return (value, enum_name), offset + size + 8
+        elif size == 8:
+            enum_name_index, value_name_index = struct.unpack_from('<QQ', mem, offset)
+            enum_name = fetch_name(asset, enum_name_index)
+            value_name = fetch_name(asset, value_name_index)
+            return value_name, offset + size + 8
         else:
-            return (value, enum_name), offset + 9
+            print(f"Unsupported ByteProperty size of {size}")
+            return '<unsupported>', offset + size + 8 # a guess
 
     elif type_name == 'StructProperty':
-        print(f'Struct contents @ 0x{offset:08x}, count=0x{size:X}')
+        # print(f'Struct contents @ 0x{offset:08x}, count=0x{size:X}')
 
         # for m in range(offset, offset+size, 16):
         #     display_mem(mem[m:m+16], as_hex_bytes, as_int32s)
@@ -158,14 +170,14 @@ def parse_typed_field(mem, offset, type_name, size, asset):
         #     else:
         #         print(f'0x{o:08X}: {v}')
 
-        # parse_struct_field(mem, offset, size, asset)
-
-        return '<struct>', offset + size
-        # return bytes_to_hex(mem[offset:offset + size]), offset+size
+        item = parse_struct_field(mem, offset, size, asset)
+        return item, offset + size + 8
 
     return bytes_to_hex(mem[offset:offset + size]), 999999999
     raise ValueError(f"Unsupported type '{type_name}''")
 
 
 def parse_struct_field(mem, offset, size, asset):
-    pass
+    item = StructProperty(mem, offset)
+    print(f'{fetch_name(asset, item.owner_name_i)}({fetch_name(asset, item.item_name_i)}=({fetch_name(asset, item.type2_name_i)}) {item.value1}, ...)')
+    return item
