@@ -93,14 +93,18 @@ def fetch_name(asset, index):
     if not type(index) == int:
         return None
 
-    if index & 0xFFFF0000:
-        print(f'Name ID with flags: 0x{index:08X} ({index})')
-        index = index & 0xFFFF
+    extra = index >> 32
+    flags = (index >> 24) & 0xFF  # we don't use these yet
+    index = index & 0xFFFFFF
     if index >= len(asset.names):
         return f'invalid_name_0x{index:X}'
         raise ValueError(f"Invalid name index 0x{index:08X} ({index})")
 
-    return asset.names[index]
+    name = asset.names[index]
+    if extra:
+        name = name + '_' + str(extra - 1)
+
+    return name
 
 
 def fetch_object_name(asset, index):
