@@ -1,5 +1,4 @@
 import struct
-from hexutils import bytes_to_hex
 
 
 class Format(object):

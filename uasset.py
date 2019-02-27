@@ -5,47 +5,11 @@ from collections import defaultdict
 from types import SimpleNamespace as Bag
 
 from dict_utils import merge
-from hexutils import *
-from ue_format import *
+
+import ue_format
+import hexutils
 
 MAX_STRING_LEN = 2048
-ENDIAN = '<'
-
-asset_basepath = None
-
-
-def set_asset_path(basepath):
-    global asset_basepath
-    asset_basepath = basepath
-
-
-def convert_asset_name_to_path(name):
-    parts = name.split('\\')
-    if parts[0].lower() == 'game': parts[0] = 'Content'
-    return os.path.join(asset_basepath, *parts) + '.uasset'
-
-
-def load_asset_from_file(filename):
-    print("Loading:", filename)
-    mem = load_file_into_memory(filename)
-    return mem
-
-
-def load_asset(name):
-    filename = convert_asset_name_to_path(name)
-    return load_asset_from_file(filename)
-
-
-def load_and_parse(assetname):
-    mem = load_asset(assetname)
-    asset = decode_asset(mem)
-    return asset
-
-
-def load_and_parse_file(filename):
-    mem = load_asset_from_file(filename)
-    asset = decode_asset(mem)
-    return asset
 
 
 def parse_string(mem):
@@ -87,13 +51,15 @@ def parse_array(mem, offset, count, struct_type):
 
 def decode_asset(mem):
     asset = Bag()
-    asset.summary = HeaderTop(mem, 0x00)
-    asset.tables = HeaderTables(mem, 0x25)
-    asset.misc = HeaderBottom(mem, 0x45)
+    asset.summary = ue_format.HeaderTop(mem, 0x00)
+    asset.tables = ue_format.HeaderTables(mem, 0x25)
+    asset.misc = ue_format.HeaderBottom(mem, 0x45)
 
     asset.names = parse_names_chunk(asset.tables.names_chunk, mem)
-    asset.imports = parse_array(mem, asset.tables.imports_chunk.offset, asset.tables.imports_chunk.count, ImportTableItem)
-    asset.exports = parse_array(mem, asset.tables.exports_chunk.offset, asset.tables.exports_chunk.count, ExportTableItem)
+    asset.imports = parse_array(mem, asset.tables.imports_chunk.offset, asset.tables.imports_chunk.count,
+                                ue_format.ImportTableItem)
+    asset.exports = parse_array(mem, asset.tables.exports_chunk.offset, asset.tables.exports_chunk.count,
+                                ue_format.ExportTableItem)
 
     prop_export = find_default_property_export(asset)
     if prop_export:
@@ -107,7 +73,7 @@ def parse_blueprint_export(mem, export, asset):
     o = export.serial_offset
     end = o + export.serial_size
     while o < end:
-        field = BlueprintField(mem, o)
+        field = ue_format.BlueprintField(mem, o)
         value_offset = o + len(field)
         name = fetch_name(asset, field.name)
         type_name = fetch_name(asset, field.field_type)
@@ -138,16 +104,24 @@ def fetch_name(asset, index):
 
 
 def fetch_object_name(asset, index):
+    obj = fetch_object(asset, index)
+    if obj:
+        return fetch_name(asset, obj.name)
+    else:
+        return None
+
+
+def fetch_object(asset, index):
     if not type(index) == int:
         return None
 
     try:
         if index < 0:
-            index = -index - 1
-            return asset.imports[index].name
+            index = -(index - 1)
+            return asset.imports[index]
         elif index > 0:
             index += 1
-            return asset.exports[index].name
+            return asset.exports[index]
     except IndexError:
         return None
 
@@ -197,12 +171,12 @@ def parse_typed_field(mem, offset, type_name, size, asset):
         item = parse_struct_field(mem, offset, size, asset)
         return item, offset + size + 8
 
-    return bytes_to_hex(mem[offset:offset + size]), 999999999
+    return hexutils.bytes_to_hex(mem[offset:offset + size]), 999999999
     raise ValueError(f"Unsupported type '{type_name}''")
 
 
 def parse_struct_field(mem, offset, size, asset):
-    item = StructProperty(mem, offset)
+    item = ue_format.StructProperty(mem, offset)
     #print(f'{fetch_name(asset, item.owner_name_i)}({fetch_name(asset, item.item_name_i)}=({fetch_name(asset, item.type2_name_i)}) {item.value1}, ...)')
     return item
 
@@ -212,7 +186,8 @@ def find_default_property_export(asset):
     for export in asset.exports:
         name = fetch_name(asset, export.name)
         if name.startswith('Default_') and name.endswith('_C'):
-            print('Using export: ' + name)
+            # print('Using export: ' + name)
+            asset.default_export = export
             return export
 
 
@@ -232,3 +207,16 @@ def merge_properties(base, extra):
     base_props = deepcopy(base.props)
     result = merge(base_props, extra.props)
     return result
+
+
+def find_external_source_of_export(asset, export):
+    imp = find_import_for_export(asset, export)
+    return fetch_name(asset, imp.package)
+
+
+def find_import_for_export(asset, export):
+    if type(export) == ue_format.ImportTableItem:
+        return export
+
+    klass = fetch_object(asset, export.klass)
+    return find_import_for_export(asset, klass)
