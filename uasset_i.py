@@ -3,7 +3,7 @@ from pprint import pprint
 import hexutils, uasset, loader
 
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
-assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo'
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Rex'
 # assetname = r'Game\Extinction\CoreBlueprints\DinoCharacterStatusComponent_BP_Gacha'
@@ -12,11 +12,15 @@ assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Ar
 # assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_FlyerRide'
 
 # assetname = r'Game\PrimalEarth\Dinos\Argentavis\Argent_Character_BP'
+# assetname = r'Game\PrimalEarth\Dinos\Argentavis\Argentavis'
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
-# assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
-# assetname = r'Game\PrimalEarth\Dinos\Rex\Rex_Character_BP'
+assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
+# assetname = r'Game\PrimalEarth\Dinos\Rex\Rex_Character_BP' 
 # assetname = r'Game\Extinction\Dinos\Gacha\Gacha_Character_BP'
 # assetname = r'Game\Extinction\Dinos\Owl\Owl_Character_BP'
+# assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\DinoCharacterStatusComponent_BP_Wyvern'
+# assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\Wyvern_Character_BP_Base'
+# assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\Wyvern_Character_BP_Fire'
 
 #%% Load asset into memory
 mem = loader.load_raw_asset(assetname)
@@ -98,3 +102,46 @@ print('\nParent asset: ' + parent_name)
 #%% See if dependency loading works
 # loader.ensure_dependencies(asset)
 
+##%% Pretty Import/Export w/ Class name
+# Example Printout:
+# -----------------
+# {asset_path}\{package_name}
+# 
+# Imports:
+#    ({import.class_name}) {import.package_name} || {import.name}
+# 
+# Exports:
+#    ({import.class_name}) {import.super_name} || {import.name}
+#       ({prop.type_name}) {prop.name}[{prop.index}] = {prop.value}
+# 
+# print(loader.clean_asset_name(assetname))
+#
+# #%% Pretty Print [Names]
+# print("\nNames:")
+# for name in asset.names:
+#     print(f'   {name}')
+# 
+# #%% Pretty Print [Imports]
+# print("\nImports:")
+# for entry in asset.imports:
+#     # if uasset.fetch_object_name(asset, entry.klass) == "BlueprintGeneratedClass":
+#     print(f'  ({uasset.fetch_name(asset, entry.klass)})', end = " ")
+#     print(f'{uasset.fetch_name(asset, entry.package)} ||', end = " ")
+#     print(f'{uasset.fetch_name(asset, entry.name)}')
+#
+# #%% Pretty Print [Exports (Properties)]
+# print("\nExports:")
+# for entry in asset.exports:
+#     # if uasset.fetch_object_name(asset, entry.klass) == "BlueprintGeneratedClass":
+#     print(f'  ({uasset.fetch_object_name(asset, entry.klass)})', end = " ")
+#     if entry.super_index:
+#         print(f'{uasset.fetch_name(asset, entry.name)} || ', end = " ")
+#     print(f'{uasset.fetch_name(asset, entry.name)}')
+#     # for prop in entry.prop:
+#     #     print(f'      ({prop.type_name})', end = " ")
+#     #     print(f'{prop.name}[{prop.index}]', end = " ")
+#     #     if prop.value.count > 1:
+#     #         for i, value in enumerate(prop.value):
+#     #             print(f'                    [{i}] {value})
+#     #     else:
+#     #         print(f'{prop.value}')

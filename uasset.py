@@ -181,6 +181,21 @@ def parse_typed_field(mem, offset, type_name, size, asset):
 
         item = parse_struct_field(mem, offset, size, asset)
         return item, offset + size + 8
+        
+    # Probably should loop but don't have enough cases yet
+    elif type_name == 'ArrayProperty':
+        inner_type = fetch_name(asset, struct.unpack_from('Q', mem, offset)[0])
+        size, value = struct.unpack_from('<Ii', mem, offset + 8)
+        rtn_val = [inner_type, fetch_object_name(asset, value)]
+        return rtn_val, offset + 16
+
+    elif type_name == 'StrProperty':
+        string, used = parse_string(mem[offset:])
+        return string, offset + used
+
+    elif type_name == 'ObjectProperty':
+        obj_index, = struct.unpack_from('<I', mem, offset)
+        return fetch_object_name(asset, obj_index), offset + size
 
     return hexutils.bytes_to_hex(mem[offset:offset + size]), 999999999
     raise ValueError(f"Unsupported type '{type_name}''")
