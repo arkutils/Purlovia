@@ -8,6 +8,7 @@ from dict_utils import merge
 
 import ue_format
 import hexutils
+from hexutils import as_hex_bytes, as_floats, as_hex_int32s, as_hex_uint32s, as_int32s, as_int8s, as_uint32s
 
 MAX_STRING_LEN = 2048
 
@@ -73,18 +74,20 @@ def parse_blueprint_export(mem, export, asset):
     o = export.serial_offset
     end = o + export.serial_size
     while o < end:
-        field = ue_format.BlueprintField(mem, o)
-        value_offset = o + len(field)
-        name = fetch_name(asset, field.name)
-        type_name = fetch_name(asset, field.field_type)
+        # Fetch just the name first and check if it's the terminator
+        name_i, = struct.unpack_from('<Q', mem, o)
+        name = fetch_name(asset, name_i)
         if name == 'None':
             return
 
-        # print(field)
+        # Parse the common header
+        field = ue_format.BlueprintField(mem, o)
+        value_offset = o + len(field)
+        type_name = fetch_name(asset, field.field_type)
 
+        # Parsed the value part
         value, new_offset = parse_typed_field(mem, value_offset, type_name, field.size, asset)
 
-        # print(f'@[0x{o:08X}:0x{new_offset-1:08X}] ({type_name}) {name} = [{field.index}:{value}]')
         yield Bag(name=name, index=field.index, value=value, type_name=type_name, offset=o, end=new_offset - 1)
         o = new_offset
 
@@ -166,25 +169,17 @@ def parse_typed_field(mem, offset, type_name, size, asset):
             print(f"Unsupported ByteProperty size of {size}")
             return '<unsupported>', offset + size + 8  # a guess
 
+    elif type_name == 'NameProperty':
+        name_index, = struct.unpack_from('<Q', mem, offset)
+        return fetch_name(asset, name_index), offset + 8
+
     elif type_name == 'StructProperty':
-        # print(f'Struct contents @ 0x{offset:08x}, count=0x{size:X}')
-
-        # for m in range(offset, offset+size, 16):
-        #     display_mem(mem[m:m+16], as_hex_bytes, as_int32s)
-
-        # for o in range(offset, offset+size*8, 4):
-        #     v, = struct.unpack_from('<i', mem, o)
-        #     if v:
-        #         print(f'0x{o:08X}: {v}, name={fetch_name(asset, v)}, object={fetch_name(asset, fetch_object_name(asset, v))}, float={reinterpret_as_float(v)}')
-        #     else:
-        #         print(f'0x{o:08X}: {v}')
-
         item = parse_struct_field(mem, offset, size, asset)
         return item, offset + size + 8
-        
-    # Probably should loop but don't have enough cases yet
+
     elif type_name == 'ArrayProperty':
-        inner_type = fetch_name(asset, struct.unpack_from('Q', mem, offset)[0])
+        # Probably should loop but don't have enough cases yet
+        inner_type = fetch_name(asset, struct.unpack_from('<Q', mem, offset)[0])
         size, value = struct.unpack_from('<Ii', mem, offset + 8)
         rtn_val = [inner_type, fetch_object_name(asset, value)]
         return rtn_val, offset + 16
@@ -197,8 +192,8 @@ def parse_typed_field(mem, offset, type_name, size, asset):
         obj_index, = struct.unpack_from('<I', mem, offset)
         return fetch_object_name(asset, obj_index), offset + size
 
-    return hexutils.bytes_to_hex(mem[offset:offset + size]), 999999999
-    raise ValueError(f"Unsupported type '{type_name}''")
+    hexutils.display_mem(mem[offset:offset + 32], as_hex_bytes, as_int32s)
+    raise ValueError(f"Unsupported type '{type_name}")
 
 
 def parse_struct_field(mem, offset, size, asset):
@@ -240,22 +235,29 @@ def find_external_source_of_export(asset, export):
     return fetch_name(asset, imp.package)
 
 
-def find_import_for_export(asset, obj):
+def find_import_for_export(asset, obj, isImport=False):
+    isImport = type(obj) == ue_format.ImportTableItem
+
     print('-----')
     print('object name =', fetch_name(asset, obj.name))
-    if hasattr(obj, 'super'): print('object super =', fetch_object_name(asset, obj.super))
-    if hasattr(obj, 'package'): print('object package =', fetch_name(asset, obj.package))
+    for field in ('klass', 'super', 'package'):
+        if hasattr(obj, field):
+            value = getattr(obj, field)
+            if isImport:
+                print(f'{field} = {fetch_name(asset, value)} (name)')
+            else:
+                print(f'{field} = {fetch_object_name(asset, value)} ({explain_obj_id(value)})')
 
-    if type(obj) == ue_format.ImportTableItem:
-        print('object klass =', fetch_name(asset, obj.klass))
+    if isImport:
         return obj
 
-    print('object klass =', fetch_object_name(asset, obj.klass))
     klass_name = fetch_object_name(asset, obj.klass)
 
     if klass_name and klass_name.startswith('Blueprint'):
+        print("...using super as parent")
         parent = fetch_object(asset, obj.super)
     else:
+        print("...using class as parent")
         parent = fetch_object(asset, obj.klass)
 
     print('parent =', parent)

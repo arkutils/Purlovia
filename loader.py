@@ -56,6 +56,8 @@ def convert_asset_name_to_path(name):
 
 def load_raw_asset_from_file(filename):
     print("Loading file:", filename)
+    if not os.path.isabs(filename):
+        filename = os.path.join(_asset_basepath, filename)
     mem = hexutils.load_file_into_memory(filename)
     return mem
 

@@ -15,19 +15,17 @@ import hexutils, uasset, loader
 # assetname = r'Game\PrimalEarth\Dinos\Argentavis\Argentavis'
 # assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
 assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
-# assetname = r'Game\PrimalEarth\Dinos\Rex\Rex_Character_BP' 
+# assetname = r'Game\PrimalEarth\Dinos\Rex\Rex_Character_BP'
 # assetname = r'Game\Extinction\Dinos\Gacha\Gacha_Character_BP'
 # assetname = r'Game\Extinction\Dinos\Owl\Owl_Character_BP'
 # assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\DinoCharacterStatusComponent_BP_Wyvern'
 # assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\Wyvern_Character_BP_Base'
 # assetname = r'Game\\ScorchedEarth\Dinos\Wyvern\Wyvern_Character_BP_Fire'
 
-#%% Load asset into memory
-mem = loader.load_raw_asset(assetname)
-if mem[0] != 0xC1:  # This happens if you view the binary file in the editor!
-    raise ValueError(f"File corrupt again :( Got 0x{mem[0]:02X} not 0xC1")
+# assetname = "Game\ScorchedEarth\Dinos\Wyvern\DinoCharacterStatusComponent_BP_MegaWyvern"
 
-#%% Decode
+#%% Load and decode
+mem = loader.load_raw_asset(assetname)
 asset = uasset.decode_asset(mem)
 print("Decode complete")
 
@@ -58,6 +56,12 @@ for i, item in enumerate(asset.exports):
     print(f'    name={uasset.fetch_name(asset, item.name)}')
     print(f'    class={uasset.fetch_object_name(asset, item.klass)} ({uasset.explain_obj_id(item.klass)})')
     print(f'    super={uasset.fetch_object_name(asset, item.super)} ({uasset.explain_obj_id(item.super)})')
+    props = uasset.parse_blueprint_export(mem, item, asset)
+    # props = asset.raw_props
+    for entry in props:
+        # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
+        print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
+        # print(f'  {entry.type_name:<15} | {entry.name}[{entry.index}] = {entry.value}')
 
 #%% Explore depends section - content unknown
 # o = asset.tables.depends_offset
@@ -74,24 +78,24 @@ for i, item in enumerate(asset.exports):
 #     display_mem(mem[o:o+28], as_hex_bytes, as_floats)
 
 #%% Attempt to parse the blueprint export
-# e = asset.exports[3]
-e = uasset.find_default_property_export(asset)
-print(f'\nExport properties: offset=0x{e.serial_offset:08X}, size=0x{e.serial_size:X} ({e.serial_size})')
-print('\n  ' + str(e) + '\n')
-print(f'  name  = {uasset.fetch_name(asset, e.name)}')
-print(f'  class = {uasset.fetch_object_name(asset, e.klass)}')
-print(f'  super = {uasset.fetch_object_name(asset, e.super)}')
-print()
-# props = parse_blueprint_export(mem, e, asset)
-props = asset.raw_props
-for entry in props:
-    # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
-    print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
-    # print(f'  {entry.type_name:<15} | {entry.name}[{entry.index}] = {entry.value}')
+# e = asset.exports[1]
+# # e = uasset.find_default_property_export(asset)
+# print(f'\nExport properties: offset=0x{e.serial_offset:08X}, size=0x{e.serial_size:X} ({e.serial_size})')
+# print('\n  ' + str(e) + '\n')
+# print(f'  name  = {uasset.fetch_name(asset, e.name)}')
+# print(f'  class = {uasset.fetch_object_name(asset, e.klass)}')
+# print(f'  super = {uasset.fetch_object_name(asset, e.super)}')
+# print()
+# props = uasset.parse_blueprint_export(mem, e, asset)
+# # props = asset.raw_props
+# for entry in props:
+#     # print(f'{entry.name}[{entry.index}] = ({entry.type_name}) {entry.value}')
+#     print(f'@[0x{entry.offset:08X}:0x{entry.end:08X}] ({entry.type_name}) {entry.name}[{entry.index}] = {entry.value}')
+#     # print(f'  {entry.type_name:<15} | {entry.name}[{entry.index}] = {entry.value}')
 
 #%% Show the clean properties only
 print(f'Clean properties:')
-pprint(asset.props)
+pprint(asset.props, width=250)
 # for prop in asset.props:
 #     print(f'{prop.name}[{prop.index}] = {prop.value}')
 
@@ -106,21 +110,21 @@ print('\nParent asset: ' + parent_name)
 # Example Printout:
 # -----------------
 # {asset_path}\{package_name}
-# 
+#
 # Imports:
 #    ({import.class_name}) {import.package_name} || {import.name}
-# 
+#
 # Exports:
 #    ({import.class_name}) {import.super_name} || {import.name}
 #       ({prop.type_name}) {prop.name}[{prop.index}] = {prop.value}
-# 
+#
 # print(loader.clean_asset_name(assetname))
 #
 # #%% Pretty Print [Names]
 # print("\nNames:")
 # for name in asset.names:
 #     print(f'   {name}')
-# 
+#
 # #%% Pretty Print [Imports]
 # print("\nImports:")
 # for entry in asset.imports:
