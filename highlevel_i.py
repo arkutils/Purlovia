@@ -11,6 +11,9 @@ species_list = (
         'Rex',
         'Baryonyx',
         'Tuso',
+        'IceJumper',
+        'Spider_Hard',
+        'BoaFrill',
     )),
     ('Extinction', (
         'Owl',

@@ -121,15 +121,22 @@ def fetch_object(asset, index):
 
     try:
         if index < 0:
-            index = -(index - 1)
-            return asset.imports[index]
+            return asset.imports[-index - 1]
         elif index > 0:
-            index += 1
-            return asset.exports[index]
+            return asset.exports[index - 1]
     except IndexError:
         return None
 
     return None
+
+
+def explain_obj_id(index):
+    if index == 0:
+        return '0'
+    elif index < 0:
+        return f'import {-index - 1}'
+    else:
+        return f'export {index - 1}'
 
 
 def parse_typed_field(mem, offset, type_name, size, asset):
@@ -218,9 +225,28 @@ def find_external_source_of_export(asset, export):
     return fetch_name(asset, imp.package)
 
 
-def find_import_for_export(asset, export):
-    if type(export) == ue_format.ImportTableItem:
-        return export
+def find_import_for_export(asset, obj):
+    print('-----')
+    print('object name =', fetch_name(asset, obj.name))
+    if hasattr(obj, 'super'): print('object super =', fetch_object_name(asset, obj.super))
+    if hasattr(obj, 'package'): print('object package =', fetch_name(asset, obj.package))
 
-    klass = fetch_object(asset, export.klass)
-    return find_import_for_export(asset, klass)
+    if type(obj) == ue_format.ImportTableItem:
+        print('object klass =', fetch_name(asset, obj.klass))
+        return obj
+
+    print('object klass =', fetch_object_name(asset, obj.klass))
+    klass_name = fetch_object_name(asset, obj.klass)
+
+    if klass_name and klass_name.startswith('Blueprint'):
+        parent = fetch_object(asset, obj.super)
+    else:
+        parent = fetch_object(asset, obj.klass)
+
+    print('parent =', parent)
+    # if fetch_name(asset, parent.name).startswith('Blueprint'):
+    #     print('...switched to super')
+    #     parent = fetch_object(asset, obj.super)
+    #     print('super name =',fetch_name(asset, parent.name))
+
+    return find_import_for_export(asset, parent)

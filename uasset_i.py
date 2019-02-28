@@ -41,17 +41,19 @@ for i, name in enumerate(asset.names):
 print(f'\nImports: offset=0x{asset.tables.imports_chunk.offset:08X}, count={asset.tables.imports_chunk.count}')
 for i, item in enumerate(asset.imports):
     print(f'{i:2}(0x{i:02X}): {item}')
-    print(uasset.fetch_name(asset, item.package), end=',')
-    print(uasset.fetch_name(asset, item.klass), end=',')
-    print(uasset.fetch_name(asset, item.name))
+    # print(f'{i:2}(0x{i:02X}):')
+    print(f'    name={uasset.fetch_name(asset, item.name)}')
+    print(f'    class={uasset.fetch_name(asset, item.klass)}')
+    print(f'    package={uasset.fetch_name(asset, item.package)}')
 
 #%% Show exports
 print(f'\nExports: offset=0x{asset.tables.exports_chunk.offset:08X}, count={asset.tables.exports_chunk.count}')
 for i, item in enumerate(asset.exports):
     print(f'{i:2}(0x{i:02X}): {item}')
+    # print(f'{i:2}(0x{i:02X}):')
     print(f'    name={uasset.fetch_name(asset, item.name)}')
-    if item.klass: print(f'    class={uasset.fetch_object_name(asset, item.klass)}')
-    if item.super: print(f'    super={uasset.fetch_object_name(asset, item.super)}')
+    print(f'    class={uasset.fetch_object_name(asset, item.klass)} ({uasset.explain_obj_id(item.klass)})')
+    print(f'    super={uasset.fetch_object_name(asset, item.super)} ({uasset.explain_obj_id(item.super)})')
 
 #%% Explore depends section - content unknown
 # o = asset.tables.depends_offset
@@ -94,4 +96,5 @@ parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
 print('\nParent asset: ' + parent_name)
 
 #%% See if dependency loading works
-loader.ensure_dependencies(asset)
+# loader.ensure_dependencies(asset)
+
