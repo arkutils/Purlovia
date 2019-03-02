@@ -19,6 +19,12 @@ class MemoryStream(object):
     def __len__(self):
         return self.size
 
+    def readInt8(self):
+        return self._read('b')
+
+    def readUInt8(self):
+        return self._read('B')
+
     def readBool8(self):
         return not not self._read('B')
 

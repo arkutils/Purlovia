@@ -37,6 +37,7 @@ class UAsset(UEBase):
         # These tables are not included in the field list so they're not included in pretty printing
         # TODO: Include chunk ends by using other chunk start locations
         self.names = self._parseTable(self.names_chunk, String)
+        self._findNoneName()
         self.imports = self._parseTable(self.imports_chunk, ImportTableItem)
         self.exports = self._parseTable(self.exports_chunk, ExportTableItem)
 
@@ -49,12 +50,13 @@ class UAsset(UEBase):
 
     def getName(self, index):
         '''Get a name for the given index.'''
+        names = self.names
         assert index is not None
-        assert self.names
+        assert names is not None
         extraIndex = index >> 32
         flags = index & 0xFF000000
         index = index & 0xFFFFFF
-        name = self.names[index]
+        name = names[index]
         # TODO: Do something with extraIndex
         return name
 
@@ -75,6 +77,16 @@ class UAsset(UEBase):
         table = Table(self, stream).deserialise(itemType, chunk.count)
         return table
 
+    def _findNoneName(self):
+        target = self.none_string.value
+        for i,name in enumerate(self.names):
+            if name.value == target:
+                self.none_index = i
+                return
+
+        raise RuntimeError("Could not find None string entry")
+
+
 
 class ImportTableItem(UEBase):
     def _deserialise(self):
@@ -88,7 +100,7 @@ class ImportTableItem(UEBase):
 
     def _repr_pretty_(self, p, cycle):
         if cycle:
-            p.text('Import(...)')
+            p.text('Import(<cyclic>)')
         else:
             p.text(f'Import({self.package.value}::{self.name.value} ({self.klass.value}))')
 

@@ -58,7 +58,7 @@ class Table(UEBase):
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
             if cycle:
-                p.text(self.__class__.__name__ + '(...)')
+                p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
             with p.group(4, self.__class__.__name__ + '(', ')'):
@@ -84,7 +84,7 @@ class String(UEBase):
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             if cycle:
-                p.text(f'String(...)')
+                p.text(f'String(<cyclic>)')
                 return
 
             p.text(self.value)
@@ -94,9 +94,6 @@ class ChunkPtr(UEBase):
     def _deserialise(self):
         self._newField('count', self.stream.readUInt32())
         self._newField('offset', self.stream.readUInt32())
-
-    def __str__(self):
-        return f'{self.__class__.__name__}(count={self.count}, offset={self.offset})'
 
 
 class Guid(UEBase):
@@ -112,6 +109,19 @@ class NameIndex(UEBase):
 
     def link(self):
         self._newField('value', self.asset.getName(self.index))
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            cls = self.__class__.__name__
+            if cycle:
+                p.text(f'{cls}(<cyclic>)')
+                return
+
+            if 'value' in self.field_values:
+                p.pretty(self.value)
+            else:
+                p.text(f'{cls}(index={self.index})')
 
 
 class ObjectIndex(UEBase):

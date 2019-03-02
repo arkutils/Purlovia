@@ -25,7 +25,9 @@ class UEBase(object):
             raise RuntimeError(f'Deserialise called twice for "{self.__class__.__name__}"')
 
         self.is_serialised = True
+        self.start_offset = self.stream.offset
         self._deserialise(*args, **kwargs)
+        self.end_offset = self.stream.offset
 
         return self
 
@@ -79,7 +81,7 @@ class UEBase(object):
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
             if cycle:
-                p.text(self.__class__.__name__ + '(...)')
+                p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
             fields = self.display_fields or self.field_order

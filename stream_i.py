@@ -5,8 +5,7 @@ from ue.asset import UAsset
 import uasset
 import loader
 
-
-assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo'
+assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
 filename = loader.convert_asset_name_to_path(assetname)
 
 #%% Load and decode
@@ -19,19 +18,13 @@ print('Linking...')
 asset.link()
 print('Decoding complete.')
 
-#%% Demo display system
-print('\nImport chunk offset/count:')
-pprint(asset.imports_chunk)
-print('\nExport chunk offset/count:')
-pprint(asset.exports_chunk)
-
 #%% More display demos
-print('\nName 0:')
-pprint(asset.getName(0))
-print('\nImport 0:')
-pprint(asset.imports[0])
-print('\nExport 0:')
-pprint(asset.exports[0])
+print('\nNames:')
+pprint(asset.names)
+print('\nImports:')
+pprint(asset.imports)
+print('\nExports:')
+pprint(asset.exports)
 
 #%%
 print('\nExport 3 properties:')

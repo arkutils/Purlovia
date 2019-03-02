@@ -18,15 +18,20 @@ class PropertyTable(UEBase):
 
     def _deserialise(self):
         values = []
+        self._newField('values', values)
 
         while self.stream.offset < (self.stream.end - 8):
-            value = self._parseField()
+            start_offset = self.stream.offset
+            try:
+                value = self._parseField()
+            except:
+                values.append(f'<failed to read entry at 0x{start_offset:08X}>')
+                break
             if value is None:
                 break
             values.append(value)
 
         self._newField('count', len(values))
-        self._newField('values', values)
 
     def link(self):
         '''Override link to link all table entries.'''
@@ -41,8 +46,7 @@ class PropertyTable(UEBase):
 
         # Check for a None name here - that's the terminator
         name = NameIndex(self).deserialise()
-        name.link()
-        if name.value.value == self.asset.none_string.value:
+        if name.index == self.asset.none_index:
             return None
 
         # Reset back to the saved offset and read just the property header
@@ -75,7 +79,7 @@ class PropertyTable(UEBase):
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
             if cycle:
-                p.text(self.__class__.__name__ + '(...)')
+                p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
             with p.group(4, self.__class__.__name__ + '(', ')'):
@@ -96,6 +100,20 @@ class Property(UEBase):
         self._newField('size', self.stream.readUInt32())
         self._newField('index', self.stream.readUInt32())
 
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Cleanly wrappable display in Jupyter.'''
+            cls = self.__class__.__name__
+            if cycle:
+                p.text(cls + '(<cyclic>)')
+                return
+
+            p.pretty(self.name)
+            p.text(f'[{self.index}] = ({cls}) ')
+            with p.group(4):
+                p.pretty(self.value)
+
 
 class FloatProperty(Property):
     def _deserialise(self):
@@ -115,6 +133,38 @@ class BoolProperty(Property):
         self._newField('value', self.stream.readBool8())
 
 
+class ByteProperty(Property):  # With optional enum type
+    def _deserialise(self):
+        super()._deserialise()
+        self._newField('enum', NameIndex(self))
+        if self.size == 1:
+            self._newField('value', self.stream.readUInt8())
+        elif self.size == 8:
+            self._newField('value', NameIndex(self))
+        else:
+            self._newField('value', '<skipped bytes>')
+            self.stream.offset += size
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Cleanly wrappable display in Jupyter.'''
+            cls = self.__class__.__name__
+            if cycle:
+                p.text(cls + '(<cyclic>)')
+                return
+
+            p.pretty(self.name)
+            if self.enum.index == self.asset.none_index:
+                p.text(f'[{self.index}] = ({cls}) ')
+                p.pretty(self.value)
+            else:
+                p.text(f'[{self.index}] = ({cls}) (')
+                p.pretty(self.enum)
+                p.text(') ')
+                p.pretty(self.value)
+
+
 class ObjectProperty(Property):
     def _deserialise(self):
         super()._deserialise()
@@ -127,7 +177,7 @@ class StructProperty(Property):
     def _deserialise(self):
         super()._deserialise()
         self._newField('field_type', NameIndex(self))
-        self.stream.offset += self.size + 8
+        self.stream.offset += self.size
         self._newField('value', '<skipped struct>')
 
 
@@ -144,6 +194,7 @@ class ArrayProperty(Property):
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'BoolProperty': BoolProperty,
+    'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
     'ObjectProperty': ObjectProperty,
     'StructProperty': StructProperty,
