@@ -29,11 +29,17 @@ pprint(asset.exports)
 #%%
 print('\nExport 3 properties:')
 e = asset.exports[3]
-# e.deserialise_properties()
 pprint(e.properties)
 
 #%%
 print('\nExport 4 properties:')
 e = asset.exports[4]
-# e.deserialise_properties()
 pprint(e.properties)
+
+#%% Try to discover inheritnce
+# Find a Default__ export
+# for export in asset.exports:
+#     if not str(export.name).startswith('Default__'):
+#         continue
+
+#     pprint(export.name)

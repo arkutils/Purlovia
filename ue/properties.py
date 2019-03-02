@@ -1,3 +1,4 @@
+import sys
 from typing import Type
 
 from stream import MemoryStream
@@ -24,7 +25,9 @@ class PropertyTable(UEBase):
             start_offset = self.stream.offset
             try:
                 value = self._parseField()
-            except:
+            except Exception as ex:
+                print("!*!*!*!*!*! EXCEPTION DURING PARSING !*!*!*!*!*!")
+                pprint(ex)
                 values.append(f'<failed to read entry at 0x{start_offset:08X}>')
                 break
             if value is None:
@@ -33,9 +36,9 @@ class PropertyTable(UEBase):
 
         self._newField('count', len(values))
 
-    def link(self):
+    def _link(self):
         '''Override link to link all table entries.'''
-        super().link()
+        super()._link()
         for value in self.values:
             if isinstance(value, UEBase):
                 value.link()
@@ -49,17 +52,9 @@ class PropertyTable(UEBase):
         if name.index == self.asset.none_index:
             return None
 
-        # Reset back to the saved offset and read just the property header
+        # Reset back to the saved offset and read the whole property
         self.stream.offset = saved_offset
-        tmp_value = Property(self).deserialise()
-        tmp_value.link()
-
-        # Get the actual property type
-        propertyType = getPropertyType(tmp_value.type.value.value)
-
-        # Decode from the saved offset again, this time using the correct property type
-        self.stream.offset = saved_offset
-        value = propertyType(self).deserialise()
+        value = Property(self).deserialise()
         value.link()
 
         return value
@@ -91,8 +86,8 @@ class PropertyTable(UEBase):
                     p.pretty(value)
 
 
-class Property(UEBase):
-    display_fields = ['name', 'index', 'value']
+class PropertyHeader(UEBase):
+    display_fields = ['name', 'index']
 
     def _deserialise(self):
         self._newField('name', NameIndex(self))
@@ -100,46 +95,95 @@ class Property(UEBase):
         self._newField('size', self.stream.readUInt32())
         self._newField('index', self.stream.readUInt32())
 
+
+class Property(UEBase):
+    def _deserialise(self):
+        self._newField('header', PropertyHeader(self))
+        self.header.link()  # safe to link as all imports/exports are completed
+        propertyType = getPropertyType(self.header.type.value.value)
+        self._newField('value', propertyType(self), self.header.size)
+        self.value.link()  # safe to link as all imports/exports are completed
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Clean property format: Name[index] = (type) value'''
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.pretty(self.header.name)
+            p.text('[')
+            p.pretty(self.header.index)
+            p.text('] = (')
+            p.pretty(self.header.type)
+            p.text(') ')
+            # p.breakable()
+            p.pretty(self.value)
+
+
+class FloatProperty(UEBase):
+    def _deserialise(self, size):
+        # Read once as a float
+        saved_offset = self.stream.offset
+        self._newField('value', self.stream.readFloat())
+
+        # Read again as plain bytes for exact exporting
+        self.stream.offset = saved_offset
+        self._newField('bytes', self.stream.readBytes(4))
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Rounded float with inexact notifier.'''
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            value = self.value
+            rounded = round(value, 6)
+            inexact = abs(value - rounded) >= sys.float_info.epsilon
+            p.text(str(rounded))
+            if inexact:
+                p.text(' (inexact)')
+
+
+class IntProperty(UEBase):
+    def _deserialise(self, size):
+        self._newField('value', self.stream.readInt32())
+
     if support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
-            cls = self.__class__.__name__
             if cycle:
-                p.text(cls + '(<cyclic>)')
+                p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
-            p.pretty(self.name)
-            p.text(f'[{self.index}] = ({cls}) ')
-            with p.group(4):
-                p.pretty(self.value)
+            p.pretty(self.value)
 
 
-class FloatProperty(Property):
-    def _deserialise(self):
-        super()._deserialise()
-        self._newField('value', self.stream.readFloat())
-
-
-class IntProperty(Property):
-    def _deserialise(self):
-        super()._deserialise()
-        self._newField('value', self.stream.readInt32())
-
-
-class BoolProperty(Property):
-    def _deserialise(self):
-        super()._deserialise()
+class BoolProperty(UEBase):
+    def _deserialise(self, size):
         self._newField('value', self.stream.readBool8())
 
+    if support_pretty:
 
-class ByteProperty(Property):  # With optional enum type
-    def _deserialise(self):
-        super()._deserialise()
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Cleanly wrappable display in Jupyter.'''
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.pretty(self.value)
+
+
+class ByteProperty(UEBase):  # With optional enum type
+    def _deserialise(self, size):
         self._newField('enum', NameIndex(self))
-        if self.size == 1:
+        if size == 1:
             self._newField('value', self.stream.readUInt8())
-        elif self.size == 8:
+        elif size == 8:
             self._newField('value', NameIndex(self))
         else:
             self._newField('value', '<skipped bytes>')
@@ -149,45 +193,35 @@ class ByteProperty(Property):  # With optional enum type
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
-            cls = self.__class__.__name__
             if cycle:
-                p.text(cls + '(<cyclic>)')
+                p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
-            p.pretty(self.name)
             if self.enum.index == self.asset.none_index:
-                p.text(f'[{self.index}] = ({cls}) ')
                 p.pretty(self.value)
             else:
-                p.text(f'[{self.index}] = ({cls}) (')
+                p.text('(')
                 p.pretty(self.enum)
                 p.text(') ')
                 p.pretty(self.value)
 
 
-class ObjectProperty(Property):
-    def _deserialise(self):
-        super()._deserialise()
+class ObjectProperty(UEBase):
+    def _deserialise(self, size):
         self._newField('value', ObjectIndex(self))
 
 
-class StructProperty(Property):
-    display_fields = ['name', 'index', 'value', 'field_type']
-
-    def _deserialise(self):
-        super()._deserialise()
+class StructProperty(UEBase):
+    def _deserialise(self, size):
         self._newField('field_type', NameIndex(self))
-        self.stream.offset += self.size
+        self.stream.offset += size
         self._newField('value', '<skipped struct>')
 
 
-class ArrayProperty(Property):
-    display_fields = ['name', 'index', 'value', 'field_type']
-
-    def _deserialise(self):
-        super()._deserialise()
+class ArrayProperty(UEBase):
+    def _deserialise(self, size):
         self._newField('field_type', NameIndex(self))
-        self.stream.offset += self.size + 8
+        self.stream.offset += size + 8
         self._newField('value', '<skipped array>')
 
 

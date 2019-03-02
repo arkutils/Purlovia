@@ -36,9 +36,9 @@ class Table(UEBase):
         self._newField('values', values)
         return self
 
-    def link(self):
+    def _link(self):
         '''Override link to link all table entries.'''
-        super().link()
+        super()._link()
         for value in self.values:
             if isinstance(value, UEBase):
                 value.link()
@@ -78,7 +78,7 @@ class String(UEBase):
         self._newField('value', self.stream.readTerminatedString(self.size))
 
     def __str__(self):
-        return f'{self.value}'
+        return self.value
 
     if support_pretty:
 
@@ -107,7 +107,7 @@ class NameIndex(UEBase):
         # Get the index but don't look up the actual value until the link phase
         self._newField('index', self.stream.readUInt64())
 
-    def link(self):
+    def _link(self):
         self._newField('value', self.asset.getName(self.index))
 
     if support_pretty:
@@ -122,6 +122,10 @@ class NameIndex(UEBase):
                 p.pretty(self.value)
             else:
                 p.text(f'{cls}(index={self.index})')
+
+    def __str__(self):
+        assert self.is_linked, "Cannot extract a string before a NameIndex is linked"
+        return str(self.value)
 
 
 class ObjectIndex(UEBase):
@@ -140,7 +144,7 @@ class ObjectIndex(UEBase):
 
         self._newField('used_index', self.used_index)
 
-    def link(self):
+    def _link(self):
         # Look up the import/export in the asset tables now they're completed
         if self.kind == 'import':
             source = self.asset.imports

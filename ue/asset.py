@@ -37,14 +37,14 @@ class UAsset(UEBase):
         # These tables are not included in the field list so they're not included in pretty printing
         # TODO: Include chunk ends by using other chunk start locations
         self.names = self._parseTable(self.names_chunk, String)
-        self._findNoneName()
         self.imports = self._parseTable(self.imports_chunk, ImportTableItem)
         self.exports = self._parseTable(self.exports_chunk, ExportTableItem)
 
-    def link(self):
+    def _link(self):
         '''Override linking phase to support hidden table fields.'''
-        super().link()
+        super()._link()
         self.names.link()
+        self._findNoneName()
         self.imports.link()
         self.exports.link()
 
@@ -79,13 +79,12 @@ class UAsset(UEBase):
 
     def _findNoneName(self):
         target = self.none_string.value
-        for i,name in enumerate(self.names):
+        for i, name in enumerate(self.names):
             if name.value == target:
                 self.none_index = i
                 return
 
         raise RuntimeError("Could not find None string entry")
-
 
 
 class ImportTableItem(UEBase):
@@ -123,10 +122,10 @@ class ExportTableItem(UEBase):
         self._newField('package_flags', self.stream.readUInt32())
         self._newField('not_for_editor_game', self.stream.readBool32())
 
-    def link(self):
-        # We defer deserialising the properties until all imports/exports are defined
+    def _link(self):
+        # We defered deserialising the properties until all imports/exports were defined
         stream = MemoryStream(self.stream, self.serial_offset, self.serial_size)
         self._newField('properties', PropertyTable(self, stream))
 
         # This link will also link all properties within
-        super().link()
+        super()._link()

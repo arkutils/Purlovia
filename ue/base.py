@@ -18,16 +18,25 @@ class UEBase(object):
         self.field_order = []
         self.is_serialised = False
         self.is_linked = False
+        self.start_offset = None
+        self.end_offset = None
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if 'link' in vars(cls):
+            raise TypeError('Cannot override "link"')
+        if 'deserialise' in vars(cls):
+            raise TypeError('Cannot override "deserialise"')
 
     def deserialise(self, *args, **kwargs):
         if self.is_serialised:
             # return
             raise RuntimeError(f'Deserialise called twice for "{self.__class__.__name__}"')
 
-        self.is_serialised = True
         self.start_offset = self.stream.offset
         self._deserialise(*args, **kwargs)
         self.end_offset = self.stream.offset
+        self.is_serialised = True
 
         return self
 
@@ -35,8 +44,8 @@ class UEBase(object):
         if self.is_linked:
             return
 
-        self.is_linked = True
         self._link()
+        self.is_linked = True
 
         return self
 
