@@ -37,6 +37,9 @@ class MemoryStream(object):
     def readInt64(self):
         return self._read('q')
 
+    def readFloat(self):
+        return self._read('f')
+
     def readBytes(self, count):
         if self.offset + count > self.end:
             raise EOFError("End of stream")
@@ -52,7 +55,7 @@ class MemoryStream(object):
     def _read(self, fmt, count=None):
         size = struct.calcsize(fmt)
         if self.offset + size > self.end:
-            raise EOFError("End of stream")
+            raise EOFError("End of stream at offset " + str(self.offset))
 
         if count == None or count == 1:
             value, = struct.unpack_from('<' + fmt, self.mem, self.offset)

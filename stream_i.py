@@ -34,3 +34,13 @@ print('\nExport 0:')
 pprint(asset.exports[0])
 
 #%%
+print('\nExport 3 properties:')
+e = asset.exports[3]
+# e.deserialise_properties()
+pprint(e.properties)
+
+#%%
+print('\nExport 4 properties:')
+e = asset.exports[4]
+# e.deserialise_properties()
+pprint(e.properties)

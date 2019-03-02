@@ -22,7 +22,8 @@ __all__ = (
 class Table(UEBase):
     display_fields = ['itemType', 'count', 'values']
 
-    def deserialise(self, itemType: Type[UEBase], count: int):
+    def _deserialise(self, itemType: Type[UEBase], count: int):
+        assert count is not None
         assert issubclass(itemType, UEBase), f'Table item type must be UEBase'
 
         values = []
@@ -45,7 +46,7 @@ class Table(UEBase):
     def __getitem__(self, index: int):
         '''Provide access using the index via the table[index] syntax.'''
         if self.values is None:
-            raise RuntimeError("Table not deserialised before read")
+            raise RuntimeError('Table not deserialised before read')
 
         return self.values[index]
 
@@ -72,53 +73,49 @@ class Table(UEBase):
 class String(UEBase):
     display_fields = ('value', )
 
-    def deserialise(self):
+    def _deserialise(self):
         self._newField('size', self.stream.readUInt32())
         self._newField('value', self.stream.readTerminatedString(self.size))
-        return self
 
     def __str__(self):
-        return f'"{self.value}"'
+        return f'{self.value}'
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(f'String(...)')
+                return
+
+            p.text(self.value)
 
 
 class ChunkPtr(UEBase):
-    def deserialise(self):
+    def _deserialise(self):
         self._newField('count', self.stream.readUInt32())
         self._newField('offset', self.stream.readUInt32())
-        return self
 
     def __str__(self):
         return f'{self.__class__.__name__}(count={self.count}, offset={self.offset})'
 
 
 class Guid(UEBase):
-    def deserialise(self):
+    def _deserialise(self):
         raw_bytes = self.stream.readBytes(16)
         self._newField('value', uuid.UUID(bytes_le=raw_bytes))
-        return self
 
 
 class NameIndex(UEBase):
-    def deserialise(self):
+    def _deserialise(self):
         # Get the index but don't look up the actual value until the link phase
         self._newField('index', self.stream.readUInt64())
-        return self
 
     def link(self):
         self._newField('value', self.asset.getName(self.index))
 
-    # def _repr_pretty_(self, p, cycle):
-    #     if cycle:
-    #         p.text(f'{self.__class__.__name__}({self.index})')
-    #     else:
-    #         p.text(f'{self.index}: "{self.value}"')
-
-    # def __str__(self):
-    #     return f'{self.index}:"{self.value}"'
-
 
 class ObjectIndex(UEBase):
-    def deserialise(self):
+    def _deserialise(self):
         # Calculate the indexes but don't look up the actual import/export until the link phase
         self._newField('index', self.stream.readInt32())
         if self.index < 0:
@@ -132,7 +129,6 @@ class ObjectIndex(UEBase):
             self.kind = 'none'
 
         self._newField('used_index', self.used_index)
-        return self
 
     def link(self):
         # Look up the import/export in the asset tables now they're completed
@@ -152,11 +148,14 @@ class ObjectIndex(UEBase):
 
         self._newField('value', value)
 
-    # def __str__(self):
-    #     return f'{self.__class__.__name__}("{self.value}" [{self.kind} {self.used_index}])'
+    if support_pretty:
 
-    # def _repr_pretty_(self, p, cycle):
-    #     if cycle:
-    #         p.text('ObjectIndex(...)')
-    #     else:
-    #         p.text(str(self))
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(f'ObjectIndex(index={self.index})')
+                return
+
+            with p.group(4, self.__class__.__name__ + '(', ')'):
+                p.text(str(self.index) + ",")
+                p.breakable()
+                p.pretty(self.value)

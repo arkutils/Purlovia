@@ -10,37 +10,56 @@ from stream import MemoryStream
 class UEBase(object):
     display_fields = None
 
-    def __init__(self, ownerOrStream, asset=None):
-        if isinstance(ownerOrStream, UEBase):
-            self.stream = ownerOrStream.stream
-            self.asset = ownerOrStream.asset
-        elif isinstance(ownerOrStream, MemoryStream):
-            self.stream = ownerOrStream
-            self.asset = asset
-        else:
-            raise TypeError(f'Invalid item passed to UEBase constructor (a {type(ownerOrStream)})')
-
+    def __init__(self, owner, stream=None):
+        assert owner is not None, "Owner must be specified"
+        self.stream = stream or owner.stream
+        self.asset = owner.asset
         self.field_values = {}
         self.field_order = []
+        self.is_serialised = False
+        self.is_linked = False
 
     def deserialise(self, *args, **kwargs):
-        raise NotImplementedError(f'Type "{self.__class__.__name__}" must implement a deserialise operation')
+        if self.is_serialised:
+            # return
+            raise RuntimeError(f'Deserialise called twice for "{self.__class__.__name__}"')
+
+        self.is_serialised = True
+        self._deserialise(*args, **kwargs)
+
+        return self
 
     def link(self):
+        if self.is_linked:
+            return
+
+        self.is_linked = True
+        self._link()
+
+        return self
+
+    def _deserialise(self, *args, **kwargs):
+        raise NotImplementedError(f'Type "{self.__class__.__name__}" must implement a parse operation')
+
+    def _link(self):
         '''Link all known fields.'''
         if len(self.field_values) == 0:
             return
-        for name,value in self.field_values.items():
+
+        for name, value in self.field_values.items():
             if isinstance(value, UEBase):
                 value.link()
 
-    def _newField(self, name: str, value):
+    def _newField(self, name: str, value, *extraArgs):
         '''Internal method used by subclasses to define new fields.'''
         if name in self.field_order:
             raise NameError(f'Field "{name}" is already defined')
 
         self.field_order.append(name)
         self.field_values[name] = value
+
+        if isinstance(value, UEBase) and not value.is_serialised:
+            value.deserialise(*extraArgs)
 
     def __getattr__(self, name: str):
         '''Override property accessor to allow reading of defined fields.'''
