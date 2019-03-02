@@ -211,8 +211,12 @@ class StringProperty(UEBase):
     display_fields = ['value']
 
     def _deserialise(self, *args):
-        self._newField('size', self.stream.readUInt32())
-        self._newField('value', self.stream.readTerminatedString(self.size))
+        self._newField('size', self.stream.readInt32())
+        if self.size >= 0:
+            self._newField('value', self.stream.readTerminatedString(self.size))
+        else:
+            self.size = -self.size
+            self._newField('value', self.stream.readTerminatedWideString(self.size))
 
     def __str__(self):
         return str(self.value)
@@ -281,9 +285,59 @@ class StructProperty(UEBase):
 
 class ArrayProperty(UEBase):
     def _deserialise(self, size):
+        assert size > 4, "Array size is required"
+
         self._newField('field_type', NameIndex(self))
-        self.stream.offset += size
-        self._newField('value', '<skipped array>')
+        self.field_type.link()
+        saved_offset = self.stream.offset
+        self._newField('count', self.stream.readUInt32())
+
+        propertyType = None
+        try:
+            propertyType = getPropertyType(str(self.field_type))
+        except TypeError:
+            pass
+
+        if propertyType == None or str(self.field_type) == 'StructProperty':
+            self.stream.offset = saved_offset + size
+            self._newField('value', f'<unsupported field type {self.field_type}')
+            return
+
+        values = []
+        self._newField('values', values)
+
+        field_size = (size-4) // self.count
+        end = saved_offset + size
+        # print("First field:", self.stream.offset)
+        # print("Field size:", field_size, self.field_type)
+        # print("End:", end)
+        while self.stream.offset < end:
+            # print("Field:", self.stream.offset)
+            value = propertyType(self)
+            value.deserialise(field_size)
+            value.link()
+            values.append(value)
+
+        self.stream.offset = saved_offset + size
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            '''Cleanly wrappable display in Jupyter.'''
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            with p.group(4, self.__class__.__name__ + '(', ')'):
+                p.text(f'count={self.count}')
+                if 'values' in self.field_values:
+                    for idx, value in enumerate(self.values):
+                        p.text(',')
+                        p.breakable()
+                        p.text(f'0x{idx:04X} ({idx:<4}): ')
+                        p.pretty(value)
+                else:
+                    p.text(', ' + str(self.value))
 
 
 TYPE_MAP = {
@@ -293,6 +347,7 @@ TYPE_MAP = {
     'IntProperty': IntProperty,
     'Guid': Guid,
     'NameProperty': NameProperty,
+    'StrProperty': StringProperty,
     'StringProperty': StringProperty,
     'ObjectProperty': ObjectProperty,
     'StructProperty': StructProperty,

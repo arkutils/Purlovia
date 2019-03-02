@@ -16,7 +16,9 @@ class UEBase(object):
         self.asset = owner.asset
         self.field_values = {}
         self.field_order = []
+        self.is_serialising = False
         self.is_serialised = False
+        self.is_linking = False
         self.is_linked = False
         self.start_offset = None
         self.end_offset = None
@@ -29,22 +31,29 @@ class UEBase(object):
             raise TypeError('Cannot override "deserialise"')
 
     def deserialise(self, *args, **kwargs):
+        if self.is_serialising:
+            return
+
         if self.is_serialised:
             # return
             raise RuntimeError(f'Deserialise called twice for "{self.__class__.__name__}"')
 
         self.start_offset = self.stream.offset
+        self.is_serialising = True
         self._deserialise(*args, **kwargs)
         self.end_offset = self.stream.offset - 1
+        self.is_serialising = False
         self.is_serialised = True
 
         return self
 
     def link(self):
-        if self.is_linked:
+        if self.is_linked or self.is_linking:
             return
 
+        self.is_linking = True
         self._link()
+        self.is_linking = False
         self.is_linked = True
 
         return self
@@ -57,9 +66,16 @@ class UEBase(object):
         if len(self.field_values) == 0:
             return
 
-        for name, value in self.field_values.items():
+        self._linkValues(self.field_values.values())
+
+    def _linkValues(self, values):
+        for value in values:
             if isinstance(value, UEBase):
                 value.link()
+            elif isinstance(value, (list, tuple)):
+                self._linkValues(value)
+            elif isinstance(value, dict):
+                self._linkValues(value.values())
 
     def _newField(self, name: str, value, *extraArgs):
         '''Internal method used by subclasses to define new fields.'''

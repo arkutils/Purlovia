@@ -58,6 +58,11 @@ class MemoryStream(object):
         value = bytes(raw_bytes[:-1]).decode(encoding)
         return value
 
+    def readTerminatedWideString(self, size):
+        raw_bytes = self.readBytes(size * 2)
+        value = bytes(raw_bytes[:-2]).decode('utf-16-le')
+        return value
+
     def _read(self, fmt, count=None):
         size = struct.calcsize(fmt)
         if self.offset + size > self.end:

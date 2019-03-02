@@ -5,7 +5,36 @@ from ue.asset import UAsset
 import uasset
 import loader
 
-assetname = r'Game\PrimalEarth\CoreBlueprints\Dino_Character_BP'
+# AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)
+# PlayerLevelEngramPointsSP, PlayerLevelEngramPoints,
+# To checkout:
+#   StatusValueModifierDescriptions (array of structs, unreadable)
+#   StatusValueDefinitions (unsupported struct x 12)
+#   StatusStateDefinitions (unsupported struct x 13...maybe not useful)
+# ...are server and single-player default mults in here???
+# assetname = r'Game\PrimalEarth\CoreBlueprints\COREMEDIA_PrimalGameData_BP'
+
+# assetname = r'Game\PrimalEarth\CoreBlueprints\PrimalGlobalsBlueprint'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\BASE_PrimalGameData_BP' # master item/engram table
+# assetname = r'Game\PrimalEarth\CoreBlueprints\PrimalGameData_BP' # post-processing effects
+# assetname = r'Game\PrimalEarth\CoreBlueprints\PrimalPlayerDataBP' # not useful
+# assetname = r'Game\PrimalEarth\CoreBlueprints\PrimalPlayerDataBP_Base' # player data - ascention
+# assetname = r'Game\Aberration\CoreBlueprints\DinoCharacterStatusComponent_BP_MoleRat'
+
+assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP'
+# assetname = r'Game\PrimalEarth\Dinos\Dodo\Dodo_Character_BP_Aberrant'
+# assetname = r'Game\Extinction\Dinos\Owl\Owl_Character_BP'
+# assetname = r'Game\Extinction\Dinos\Owl\DinoSettings_Carnivore_Large_Owl'
+# assetname = r'Game\Aberration\Dinos\MoleRat\MoleRat_Character_BP'
+
+# assetname = r'Game\PrimalEarth\CoreBlueprints\Dino_Character_BP'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\Dino_Character_BP_Pack'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoColorSet_Dodo'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Dodo'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_Argent'
+# assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP_FlyerRide'
+
 filename = loader.convert_asset_name_to_path(assetname)
 
 #%% Load and decode
@@ -27,7 +56,7 @@ print('Decoding complete.')
 # pprint(asset.exports)
 
 #%%
-for i,export in enumerate(asset.exports):
+for i, export in enumerate(asset.exports):
     print(f'\nExport {i}:')
     pprint(export)
     pprint(export.properties)

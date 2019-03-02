@@ -48,6 +48,9 @@ class UAsset(UEBase):
         self.imports.link()
         self.exports.link()
 
+        for export in self.exports:
+            export.deserialise_properties()
+
     def getName(self, index):
         '''Get a name for the given index.'''
         names = self.names
@@ -122,10 +125,11 @@ class ExportTableItem(UEBase):
         self._newField('package_flags', self.stream.readUInt32())
         self._newField('not_for_editor_game', self.stream.readBool32())
 
-    def _link(self):
-        # We defered deserialising the properties until all imports/exports were defined
+    def deserialise_properties(self):
+        if 'properties' in self.field_values:
+            raise RuntimeError('Attempt to deserialise properties more than once')
+
+        # We deferred deserialising the properties until all imports/exports were defined
         stream = MemoryStream(self.stream, self.serial_offset, self.serial_size)
         self._newField('properties', PropertyTable(self, stream))
-
-        # This link will also link all properties within
-        super()._link()
+        self.properties.link()
