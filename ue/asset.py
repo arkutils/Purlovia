@@ -1,7 +1,7 @@
 from stream import MemoryStream
 from .base import UEBase
 from .coretypes import *
-from .properties import PropertyTable
+from .properties import PropertyTable, StringProperty, Guid
 
 
 class UAsset(UEBase):
@@ -19,7 +19,7 @@ class UAsset(UEBase):
         self._newField('licensee_ver', self.stream.readUInt32())
         self._newField('engine', self.stream.readUInt32())
         self._newField('header_size', self.stream.readUInt32())
-        self._newField('none_string', String(self))
+        self._newField('none_string', StringProperty(self))
         self._newField('package_flags', self.stream.readUInt32())
 
         # Chunk offsets
@@ -36,7 +36,7 @@ class UAsset(UEBase):
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
         # TODO: Include chunk ends by using other chunk start locations
-        self.names = self._parseTable(self.names_chunk, String)
+        self.names = self._parseTable(self.names_chunk, StringProperty)
         self.imports = self._parseTable(self.imports_chunk, ImportTableItem)
         self.exports = self._parseTable(self.exports_chunk, ExportTableItem)
 
@@ -105,7 +105,7 @@ class ImportTableItem(UEBase):
 
 
 class ExportTableItem(UEBase):
-    display_fields = ('name', 'klass', 'super', 'outer_index', 'serial_offset')
+    display_fields = ('name', 'klass', 'super', 'outer_index')
 
     def _deserialise(self):
         self._newField('klass', ObjectIndex(self))

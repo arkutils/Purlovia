@@ -1,4 +1,3 @@
-import uuid
 from typing import Type
 
 try:
@@ -11,9 +10,7 @@ from .base import UEBase
 
 __all__ = (
     'Table',
-    'String',
     'ChunkPtr',
-    'Guid',
     'NameIndex',
     'ObjectIndex',
 )
@@ -70,36 +67,10 @@ class Table(UEBase):
                     p.pretty(value)
 
 
-class String(UEBase):
-    display_fields = ('value', )
-
-    def _deserialise(self):
-        self._newField('size', self.stream.readUInt32())
-        self._newField('value', self.stream.readTerminatedString(self.size))
-
-    def __str__(self):
-        return self.value
-
-    if support_pretty:
-
-        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
-            if cycle:
-                p.text(f'String(<cyclic>)')
-                return
-
-            p.text(self.value)
-
-
 class ChunkPtr(UEBase):
     def _deserialise(self):
         self._newField('count', self.stream.readUInt32())
         self._newField('offset', self.stream.readUInt32())
-
-
-class Guid(UEBase):
-    def _deserialise(self):
-        raw_bytes = self.stream.readBytes(16)
-        self._newField('value', uuid.UUID(bytes_le=raw_bytes))
 
 
 class NameIndex(UEBase):
@@ -129,6 +100,8 @@ class NameIndex(UEBase):
 
 
 class ObjectIndex(UEBase):
+    display_fields = ['index', 'value']
+
     def _deserialise(self):
         # Calculate the indexes but don't look up the actual import/export until the link phase
         self._newField('index', self.stream.readInt32())
@@ -162,6 +135,10 @@ class ObjectIndex(UEBase):
 
         self._newField('value', value)
 
+    def __str__(self):
+        assert self.is_linked
+        return str(self.value)
+
     if support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -170,6 +147,5 @@ class ObjectIndex(UEBase):
                 return
 
             with p.group(4, self.__class__.__name__ + '(', ')'):
-                p.text(str(self.index) + ",")
-                p.breakable()
+                p.text(str(self.index) + ", ")
                 p.pretty(self.value)

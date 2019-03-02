@@ -35,7 +35,7 @@ class UEBase(object):
 
         self.start_offset = self.stream.offset
         self._deserialise(*args, **kwargs)
-        self.end_offset = self.stream.offset
+        self.end_offset = self.stream.offset - 1
         self.is_serialised = True
 
         return self

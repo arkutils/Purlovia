@@ -5,7 +5,7 @@ from ue.asset import UAsset
 import uasset
 import loader
 
-assetname = r'Game\PrimalEarth\CoreBlueprints\DinoCharacterStatusComponent_BP'
+assetname = r'Game\PrimalEarth\CoreBlueprints\Dino_Character_BP'
 filename = loader.convert_asset_name_to_path(assetname)
 
 #%% Load and decode
@@ -19,22 +19,18 @@ asset.link()
 print('Decoding complete.')
 
 #%% More display demos
-print('\nNames:')
-pprint(asset.names)
-print('\nImports:')
-pprint(asset.imports)
-print('\nExports:')
-pprint(asset.exports)
+# print('\nNames:')
+# pprint(asset.names)
+# print('\nImports:')
+# pprint(asset.imports)
+# print('\nExports:')
+# pprint(asset.exports)
 
 #%%
-print('\nExport 3 properties:')
-e = asset.exports[3]
-pprint(e.properties)
-
-#%%
-print('\nExport 4 properties:')
-e = asset.exports[4]
-pprint(e.properties)
+for i,export in enumerate(asset.exports):
+    print(f'\nExport {i}:')
+    pprint(export)
+    pprint(export.properties)
 
 #%% Try to discover inheritnce
 # Find a Default__ export
