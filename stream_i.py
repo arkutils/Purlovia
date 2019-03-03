@@ -3,7 +3,6 @@ from interactive_utils import *
 from stream import MemoryStream
 from ue.base import UEBase
 from ue.asset import UAsset
-import uasset
 import loader
 
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)

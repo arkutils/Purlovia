@@ -7,17 +7,17 @@ from types import SimpleNamespace as Bag
 
 from dict_utils import merge
 
-import hexutils, uasset
+import hexutils
 
 _asset_basepath = None
-_loaded_assets = {}
+# _loaded_assets = {}
 
 __all__ = [
-    'get_asset',
-    'wipe_assets',
-    'ensure_dependencies',
+    # 'get_asset',
+    # 'wipe_assets',
+    # 'ensure_dependencies',
     'load_raw_asset_from_file',
-    'load_and_parse_file',
+    # 'load_and_parse_file',
     'load_raw_asset',
 ]
 
@@ -70,53 +70,53 @@ def load_raw_asset(name):
     return mem
 
 
-def load_and_parse_file(filename):
-    mem = load_raw_asset_from_file(filename)
-    asset = uasset.decode_asset(mem)
-    return asset
+# def load_and_parse_file(filename):
+#     mem = load_raw_asset_from_file(filename)
+#     asset = uasset.decode_asset(mem)
+#     return asset
 
 
-def get_asset(name):
-    name = clean_asset_name(name)
-    try:
-        return _loaded_assets[name]
-    except KeyError:
-        pass
+# def get_asset(name):
+#     name = clean_asset_name(name)
+#     try:
+#         return _loaded_assets[name]
+#     except KeyError:
+#         pass
 
-    mem = load_raw_asset(name)
-    asset = uasset.decode_asset(mem)
-    asset.name = name
-    _loaded_assets[name] = asset
-    return asset
-
-
-def wipe_assets():
-    global _loaded_assets
-    _loaded_assets.clear()
+#     mem = load_raw_asset(name)
+#     asset = uasset.decode_asset(mem)
+#     asset.name = name
+#     _loaded_assets[name] = asset
+#     return asset
 
 
-def ensure_dependencies(asset):
-    parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
-    if parent_name and 'UObject' not in parent_name:
-        parent = get_asset(parent_name)
-        ensure_dependencies(parent)
+# def wipe_assets():
+#     global _loaded_assets
+#     _loaded_assets.clear()
 
 
-def merged_properties(asset):
-    classes = [asset]
-    while True:
-        parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
-        if not parent_name or 'UObject' in parent_name:
-            break
-        parent = get_asset(parent_name)
-        classes.append(parent)
-        asset = parent
+# def ensure_dependencies(asset):
+#     parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
+#     if parent_name and 'UObject' not in parent_name:
+#         parent = get_asset(parent_name)
+#         ensure_dependencies(parent)
 
-    combined_props = {}
-    for cls in reversed(classes):
-        merge(combined_props, cls.props)
 
-    return combined_props
+# def merged_properties(asset):
+#     classes = [asset]
+#     while True:
+#         parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
+#         if not parent_name or 'UObject' in parent_name:
+#             break
+#         parent = get_asset(parent_name)
+#         classes.append(parent)
+#         asset = parent
+
+#     combined_props = {}
+#     for cls in reversed(classes):
+#         merge(combined_props, cls.props)
+
+#     return combined_props
 
 
 # This happens once when the module is first loaded
