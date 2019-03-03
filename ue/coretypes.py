@@ -26,11 +26,13 @@ class Table(UEBase):
         values = []
         for i in range(count):
             value = itemType(self).deserialise()
+            value.table_index = i
             values.append(value)
 
         self._newField('itemType', itemType)
         self._newField('count', count)
         self._newField('values', values)
+
         return self
 
     def _link(self):
@@ -80,6 +82,14 @@ class NameIndex(UEBase):
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
+        self.value.register_user(self.parent or self)
+
+    def __eq__(self, other):
+        return self.index == other.index
+
+    def __str__(self):
+        assert self.is_linked, "Cannot extract a string before a NameIndex is linked"
+        return str(self.value)
 
     if support_pretty:
 
@@ -93,10 +103,6 @@ class NameIndex(UEBase):
                 p.pretty(self.value)
             else:
                 p.text(f'{cls}(index={self.index})')
-
-    def __str__(self):
-        assert self.is_linked, "Cannot extract a string before a NameIndex is linked"
-        return str(self.value)
 
 
 class ObjectIndex(UEBase):
@@ -132,8 +138,15 @@ class ObjectIndex(UEBase):
                 value = 'out_of_bounds_index_' + str(self.used_index)
             else:
                 value = source[self.used_index]
+                value.register_user(self)
 
         self._newField('value', value)
+
+    def __hash__(self):
+        return super().__hash__()
+
+    def __eq__(self, other):
+        return self.index == other.index
 
     def __str__(self):
         assert self.is_linked

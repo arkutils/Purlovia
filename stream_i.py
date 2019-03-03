@@ -1,6 +1,7 @@
 #%% Setup
 from interactive_utils import *
 from stream import MemoryStream
+from ue.base import UEBase
 from ue.asset import UAsset
 import uasset
 import loader
@@ -56,15 +57,13 @@ print('Decoding complete.')
 # pprint(asset.exports)
 
 #%%
-for i, export in enumerate(asset.exports):
-    print(f'\nExport {i}:')
-    pprint(export)
-    pprint(export.properties)
+# for i, export in enumerate(asset.exports):
+#     print(f'\nExport {i}:')
+#     pprint(export)
+#     pprint(export.properties)
 
-#%% Try to discover inheritnce
-# Find a Default__ export
-# for export in asset.exports:
-#     if not str(export.name).startswith('Default__'):
-#         continue
-
-#     pprint(export.name)
+#%% Try to discover inheritance
+print('\nParent package:')
+default_export = asset.findDefaultExport()
+parent_pkg = asset.findParentPackageForExport(default_export)
+print(parent_pkg)

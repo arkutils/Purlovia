@@ -218,6 +218,12 @@ class StringProperty(UEBase):
             self.size = -self.size
             self._newField('value', self.stream.readTerminatedWideString(self.size))
 
+        # References to this item
+        self.users = set()
+
+    def register_user(self, user):
+        self.users.add(user)
+
     def __str__(self):
         return str(self.value)
 
@@ -248,7 +254,7 @@ class StructProperty(UEBase):
         while self.stream.offset < end - 4:
             type_name = NameIndex(self)
             type_name.deserialise()
-            if type_name == self.asset.none_index:
+            if type_name.index == self.asset.none_index:
                 break
 
             type_name.link()

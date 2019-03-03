@@ -14,6 +14,7 @@ class UEBase(object):
         assert owner is not None, "Owner must be specified"
         self.stream = stream or owner.stream
         self.asset = owner.asset
+        self.parent = owner if owner is not owner.asset else None
         self.field_values = {}
         self.field_order = []
         self.is_serialising = False
@@ -87,6 +88,10 @@ class UEBase(object):
 
         if isinstance(value, UEBase) and not value.is_serialised:
             value.deserialise(*extraArgs)
+
+    def __hash__(self):
+        id = hash((self.start_offset, self.end_offset))
+        return id
 
     def __getattr__(self, name: str):
         '''Override property accessor to allow reading of defined fields.'''

@@ -75,6 +75,21 @@ class UAsset(UEBase):
 
         return None
 
+    def findDefaultExport(self, part='Default__'):
+        indexes = ( i for i,export in enumerate(self.exports) if str(export.name).startswith(part) )
+        index = next(indexes, None)
+        if index is None or index >= len(self.exports):
+            return
+        export = self.exports[index]
+        return export
+
+    def findParentPackageForExport(self, de):
+        dec = de.klass.value
+        decs = dec.super.value
+        decsi = next( imp for imp in self.imports if imp.klass == decs.name )
+        decsip = str(decsi.package)
+        return decsip
+
     def _parseTable(self, chunk, itemType):
         stream = MemoryStream(self.stream, chunk.offset)
         table = Table(self, stream).deserialise(itemType, chunk.count)
@@ -96,6 +111,12 @@ class ImportTableItem(UEBase):
         self._newField('klass', NameIndex(self))
         self._newField('outer_index', self.stream.readInt32())
         self._newField('name', NameIndex(self))
+
+        # References to this item
+        self.users = set()
+
+    def register_user(self, user):
+        self.users.add(user)
 
     def __str__(self):
         return f'Import({self.package}::{self.name} ({self.klass})'
@@ -124,6 +145,12 @@ class ExportTableItem(UEBase):
         self._newField('guid', Guid(self))
         self._newField('package_flags', self.stream.readUInt32())
         self._newField('not_for_editor_game', self.stream.readBool32())
+
+        # References to this item
+        self.users = set()
+
+    def register_user(self, user):
+        self.users.add(user)
 
     def deserialise_properties(self):
         if 'properties' in self.field_values:
