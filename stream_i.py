@@ -66,3 +66,9 @@ print('\nParent package:')
 default_export = asset.findDefaultExport()
 parent_pkg = asset.findParentPackageForExport(default_export)
 print(parent_pkg)
+
+#%% Try to discover sub-components
+print('\nSub-component packages:')
+pprint(list(asset.findSubComponents()))
+
+#%%

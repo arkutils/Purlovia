@@ -85,10 +85,23 @@ class UAsset(UEBase):
 
     def findParentPackageForExport(self, de):
         dec = de.klass.value
-        decs = dec.super.value
+        decs = dec.super.value or dec.klass.value
         decsi = next( imp for imp in self.imports if imp.klass == decs.name )
         decsip = str(decsi.package)
         return decsip
+
+    def findSubComponents(self, exportType='SCS_Node', pkgPrefix='/Game'):
+        for i,export in enumerate(self.exports):
+            if str(export.name) != exportType: continue
+            p1 = export.properties[0]
+            if str(p1.header.type) != 'ObjectProperty': continue
+            imp = p1.value.value.value.klass.value
+            if str(imp.klass) != 'BlueprintGeneratedClass': continue
+            component_name = str(imp.name)
+            if component_name.endswith('_C'):
+                component_name = component_name[:-2]
+            found_pkg = next(( name for name in self.names if component_name in str(name) and str(name).startswith(pkgPrefix) ), None)
+            yield found_pkg
 
     def _parseTable(self, chunk, itemType):
         stream = MemoryStream(self.stream, chunk.offset)
