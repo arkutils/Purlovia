@@ -5,5 +5,7 @@ ark_names_map = '''
     TamingMaxStatMultipliers = Tm
     TamingMaxStatAdditions = Ta
     AmountMaxGainedPerLevelUpValue = Iw
+    AmountMaxGainedPerLevelUpValueTamed = Id
+    TamedBaseHealthMultiplier = TBHM
 '''
 ark_names_map = [tuple(field.strip() for field in line.split('=')) for line in ark_names_map.split('\n') if line.strip()]
