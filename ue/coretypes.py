@@ -84,6 +84,8 @@ class NameIndex(UEBase):
         self._newField('value', self.asset.getName(self.index))
         self.value.register_user(self.parent or self)
 
+    __hash__ = UEBase.__hash__
+
     def __eq__(self, other):
         return self.index == other.index
 

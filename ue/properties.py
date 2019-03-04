@@ -114,6 +114,9 @@ class Property(UEBase):
             self._newField('value', f'<unsupported type {str(self.header.type)}>')
             self.stream.offset += self.header.size
 
+    def __str__(self):
+        return f'{self.header.name}[{self.header.index}] = {self.value}'
+
     if support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):

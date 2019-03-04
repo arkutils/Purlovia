@@ -5,6 +5,11 @@ from .properties import PropertyTable, StringProperty, Guid
 
 
 class UAsset(UEBase):
+    display_fields = [
+        'tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'engine', 'header_size', 'none_string', 'package_flags',
+        'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets', 'thumbnail_offset', 'guid'
+    ]
+
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
         self.asset = self
@@ -36,9 +41,9 @@ class UAsset(UEBase):
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
         # TODO: Include chunk ends by using other chunk start locations
-        self.names = self._parseTable(self.names_chunk, StringProperty)
-        self.imports = self._parseTable(self.imports_chunk, ImportTableItem)
-        self.exports = self._parseTable(self.exports_chunk, ExportTableItem)
+        self._newField('names', self._parseTable(self.names_chunk, StringProperty))
+        self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
+        self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
@@ -76,7 +81,7 @@ class UAsset(UEBase):
         return None
 
     def findDefaultExport(self, part='Default__'):
-        indexes = ( i for i,export in enumerate(self.exports) if str(export.name).startswith(part) )
+        indexes = (i for i, export in enumerate(self.exports) if str(export.name).startswith(part))
         index = next(indexes, None)
         if index is None or index >= len(self.exports):
             return
@@ -86,12 +91,12 @@ class UAsset(UEBase):
     def findParentPackageForExport(self, de):
         dec = de.klass.value
         decs = dec.super.value or dec.klass.value
-        decsi = next( imp for imp in self.imports if imp.klass == decs.name )
+        decsi = next(imp for imp in self.imports if imp.klass == decs.name)
         decsip = str(decsi.package)
         return decsip
 
     def findSubComponents(self, exportType='SCS_Node', pkgPrefix='/Game'):
-        for i,export in enumerate(self.exports):
+        for i, export in enumerate(self.exports):
             if str(export.name) != exportType: continue
             p1 = export.properties[0]
             if str(p1.header.type) != 'ObjectProperty': continue
@@ -100,7 +105,8 @@ class UAsset(UEBase):
             component_name = str(imp.name)
             if component_name.endswith('_C'):
                 component_name = component_name[:-2]
-            found_pkg = next(( name for name in self.names if component_name in str(name) and str(name).startswith(pkgPrefix) ), None)
+            found_pkg = next((name for name in self.names if component_name in str(name) and str(name).startswith(pkgPrefix)),
+                             None)
             yield found_pkg
 
     def _parseTable(self, chunk, itemType):
