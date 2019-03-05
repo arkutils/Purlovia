@@ -20,7 +20,7 @@ LEAF_TYPES = (
 
 
 def create_ui():
-    global root,tree
+    global root, tree
 
     # Window
     root = Tk()
@@ -37,7 +37,7 @@ def create_ui():
     frame.rowconfigure(0, weight=1)
 
     # The tree view
-    tree = ttk.Treeview(frame, columns=('type', 'value')) # , selectmode='none'
+    tree = ttk.Treeview(frame, columns=('type', 'value'))  # , selectmode='none'
     tree.grid(column=0, row=0, sticky=(N, W, E, S))
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
@@ -74,6 +74,7 @@ def on_tree_open(evt: EventType):
 
 
 def node_id(node, parentId=None):
+    '''Create a string ID for a node.'''
     if isinstance(node, UEBase):
         newId = str(id(node))
         if parentId:
@@ -90,16 +91,16 @@ def has_children(value):
     valueType = type_name(value)
     if valueType in LEAF_TYPES:
         return False
-    if isinstance(value, UEBase) or type(value) == list: # isinstance(value, Iterable)
+    if isinstance(value, UEBase) or type(value) == list:  # isinstance(value, Iterable)
         return True
     return False
 
 
 def get_node_iterator(node):
     if isinstance(node, list):
-        return ( (f'0x{i:X} ({i})', value) for i,value in enumerate(node) )
+        return ((f'0x{i:X} ({i})', value) for i, value in enumerate(node))
     if isinstance(node, UEBase):
-        return ( (name,node.field_values[name]) for name in getattr(node, 'field_order', None) or node.field_values.keys() )
+        return ((name, node.field_values[name]) for name in getattr(node, 'field_order', None) or node.field_values.keys())
     raise TypeError("Invalid node type for iterator")
 
 
@@ -118,10 +119,9 @@ def add_asset_to_root(asset):
 def insert_fields_for_node(parentId):
     node = treenodes[parentId]
     fields = get_node_iterator(node)
-    for name,value in fields:
+    for name, value in fields:
         typeName = str(type(value).__name__)
-        newId =  node_id(value, parentId)
-        itemId = tree.insert(parentId, 'end', newId, text=name, values=(typeName, str(value)))
+        newId = node_id(value, parentId)
         if has_children(value):
             treenodes[itemId] = value
             add_placeholder_node(itemId)
@@ -138,7 +138,8 @@ def load_asset(assetname):
 
     add_asset_to_root(asset)
 
+
 create_ui()
-assetname = sys.argv[1] if len(sys.argv)>1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+assetname = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
 load_asset(assetname)
 root.mainloop()

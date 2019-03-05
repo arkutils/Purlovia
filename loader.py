@@ -75,7 +75,6 @@ def load_raw_asset(name):
 #     asset = uasset.decode_asset(mem)
 #     return asset
 
-
 # def get_asset(name):
 #     name = clean_asset_name(name)
 #     try:
@@ -89,18 +88,15 @@ def load_raw_asset(name):
 #     _loaded_assets[name] = asset
 #     return asset
 
-
 # def wipe_assets():
 #     global _loaded_assets
 #     _loaded_assets.clear()
-
 
 # def ensure_dependencies(asset):
 #     parent_name = uasset.find_external_source_of_export(asset, asset.default_export)
 #     if parent_name and 'UObject' not in parent_name:
 #         parent = get_asset(parent_name)
 #         ensure_dependencies(parent)
-
 
 # def merged_properties(asset):
 #     classes = [asset]
@@ -117,7 +113,6 @@ def load_raw_asset(name):
 #         merge(combined_props, cls.props)
 
 #     return combined_props
-
 
 # This happens once when the module is first loaded
 load_config()

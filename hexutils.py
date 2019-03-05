@@ -167,5 +167,6 @@ def first(seq, predicate):
     except StopIteration:
         return None
 
+
 def reinterpret_as_float(v):
     return struct.unpack('<f', struct.pack('<I', v))[0]
