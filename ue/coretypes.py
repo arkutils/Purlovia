@@ -17,6 +17,8 @@ __all__ = (
 
 
 class Table(UEBase):
+    string_format = '{count} x {itemType.__name__}'
+    skip_level_browser_field = 'values'
     display_fields = ['itemType', 'count', 'values']
 
     def _deserialise(self, itemType: Type[UEBase], count: int):
@@ -76,6 +78,8 @@ class ChunkPtr(UEBase):
 
 
 class NameIndex(UEBase):
+    main_field = 'value'
+
     def _deserialise(self):
         # Get the index but don't look up the actual value until the link phase
         self._newField('index', self.stream.readUInt64())
@@ -88,10 +92,6 @@ class NameIndex(UEBase):
 
     def __eq__(self, other):
         return self.index == other.index
-
-    def __str__(self):
-        assert self.is_linked, "Cannot extract a string before a NameIndex is linked"
-        return str(self.value)
 
     if support_pretty:
 
@@ -108,6 +108,7 @@ class NameIndex(UEBase):
 
 
 class ObjectIndex(UEBase):
+    main_field = 'value'
     display_fields = ['index', 'value']
 
     def _deserialise(self):
@@ -149,10 +150,6 @@ class ObjectIndex(UEBase):
 
     def __eq__(self, other):
         return self.index == other.index
-
-    def __str__(self):
-        assert self.is_linked
-        return str(self.value)
 
     if support_pretty:
 

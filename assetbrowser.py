@@ -41,13 +41,22 @@ def create_ui():
     tree.grid(column=0, row=0, sticky=(N, W, E, S))
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
+    tree.column('#0', stretch=0)
     tree.heading('type', text='Type')
     tree.heading('value', text='Value')
-    tree.column('type', width=90, stretch=False, anchor='e')
+    tree.column('type', width=110, stretch=False, anchor='e')
     tree.column('value', anchor='w')
 
+    # Styles for some different types
+    # https://lospec.com/palette-list/island-joy-16
+    tree.tag_configure('int', foreground='#cb4d68')
+    tree.tag_configure('bool', foreground='#393457')
+    tree.tag_configure('Guid', foreground='#1e8875')
+    tree.tag_configure('NameIndex', foreground='#11adc1')
+    tree.tag_configure('StringProperty', foreground='#11adc1')
+    tree.tag_configure('Property', foreground='#393457')
+
     # Support virtual tree items with the 'placeholdered' tag
-    # tree.tag_configure('placeholdered', foreground='#808080')
     tree.tag_bind('placeholdered', '<<TreeviewOpen>>', on_tree_open)
 
     # Scroll bar to control the treeview
@@ -84,6 +93,7 @@ def node_id(node, parentId=None):
 
 
 def type_name(value):
+    '''Retuen the type of a value as a string.'''
     return str(type(value).__name__)
 
 
@@ -105,8 +115,13 @@ def get_node_iterator(node):
 
 
 def add_placeholder_node(itemId):
-    # dummy node added to anythng that should be able to open, before it's contents have been inserted
-    tree.item(itemId, tags=('placeholdered', ))
+    # Add a tag to specifiy this node as having a placeholder (so it will raise an event when opened)
+    tags = tree.item(itemId)['tags']
+    if not hasattr(tags, 'append'): tags = [tags]
+    tags.append('placeholdered')
+    tree.item(itemId, tags=tags)
+
+    # Add a dummy node to it so it look slike it can be opened
     placeholderId = tree.insert(itemId, 'end', itemId + '_placeholder', text='<virtual tree placeholder>')
 
 
@@ -116,12 +131,23 @@ def add_asset_to_root(asset):
     add_placeholder_node(itemId)
 
 
+def get_value_as_string(value):
+    if isinstance(value, list): return f'{len(value)} entries'
+    if isinstance(value, type): return value.__name__
+    return str(value)
+
+
 def insert_fields_for_node(parentId):
     node = treenodes[parentId]
+    skip_level_name = getattr(node, 'skip_level_browser_field', None)
+    if skip_level_name:
+        node = node.field_values.get(skip_level_name, node)
     fields = get_node_iterator(node)
     for name, value in fields:
         typeName = str(type(value).__name__)
         newId = node_id(value, parentId)
+        strValue = get_value_as_string(value)
+        itemId = tree.insert(parentId, 'end', newId, text=name, values=(typeName, strValue), tags=(typeName, ))
         if has_children(value):
             treenodes[itemId] = value
             add_placeholder_node(itemId)

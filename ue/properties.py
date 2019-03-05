@@ -16,7 +16,9 @@ from .base import UEBase
 
 
 class PropertyTable(UEBase):
+    string_format = '{count} entries'
     display_fields = ['values']
+    skip_level_browser_field = 'values'
 
     def _deserialise(self):
         values = []
@@ -24,13 +26,7 @@ class PropertyTable(UEBase):
 
         while self.stream.offset < (self.stream.end - 8):
             start_offset = self.stream.offset
-            # try:
             value = self._parseField()
-            # except Exception as ex:
-            #     print("!*!*!*!*!*! EXCEPTION DURING PARSING !*!*!*!*!*!")
-            #     pprint(ex)
-            #     values.append(f'<failed to read entry at 0x{start_offset:08X}>')
-            #     break
             if value is None:
                 break
             values.append(value)
@@ -98,6 +94,8 @@ class PropertyHeader(UEBase):
 
 
 class Property(UEBase):
+    string_format = '{header.name}[{header.index}] = {value}'
+
     def _deserialise(self):
         self._newField('header', PropertyHeader(self))
         self.header.link()  # safe to link as all imports/exports are completed
@@ -113,9 +111,6 @@ class Property(UEBase):
         else:
             self._newField('value', f'<unsupported type {str(self.header.type)}>')
             self.stream.offset += self.header.size
-
-    def __str__(self):
-        return f'{self.header.name}[{self.header.index}] = {self.value}'
 
     if support_pretty:
 
@@ -201,16 +196,15 @@ class ObjectProperty(UEBase):
 
 
 class NameProperty(UEBase):
+    main_field = 'value'
     display_fields = ['value']
 
     def _deserialise(self, size):
         self._newField('value', NameIndex(self))
 
-    def __str__(self):
-        return str(self.value)
-
 
 class StringProperty(UEBase):
+    main_field = 'value'
     display_fields = ['value']
 
     def _deserialise(self, *args):
@@ -226,9 +220,6 @@ class StringProperty(UEBase):
 
     def register_user(self, user):
         self.users.add(user)
-
-    def __str__(self):
-        return str(self.value)
 
     if support_pretty:
 

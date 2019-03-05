@@ -8,7 +8,10 @@ from stream import MemoryStream
 
 
 class UEBase(object):
+    main_field = None
+    string_format = None
     display_fields = None
+    skip_level_field = None
 
     def __init__(self, owner, stream=None):
         assert owner is not None, "Owner must be specified"
@@ -102,6 +105,12 @@ class UEBase(object):
 
     def __str__(self):
         '''Override string conversion to show defined fields.'''
+        if self.string_format:
+            return self.string_format.format(**self.field_values)
+
+        if self.main_field:
+            return str(self.field_values.get(self.main_field, f'<uninitialised {self.__class__.__name__}'))
+
         fields = self.display_fields or self.field_order
         fields_txt = ', '.join(str(self.field_values[name]) for name in fields)
         return f'{self.__class__.__name__}({fields_txt})'

@@ -125,6 +125,8 @@ class UAsset(UEBase):
 
 
 class ImportTableItem(UEBase):
+    string_format = '{package}::{name} ({klass})'
+
     def _deserialise(self):
         self._newField('package', NameIndex(self))
         self._newField('klass', NameIndex(self))
@@ -137,9 +139,6 @@ class ImportTableItem(UEBase):
     def register_user(self, user):
         self.users.add(user)
 
-    def __str__(self):
-        return f'Import({self.package}::{self.name} ({self.klass})'
-
     def _repr_pretty_(self, p, cycle):
         if cycle:
             p.text('Import(<cyclic>)')
@@ -148,6 +147,7 @@ class ImportTableItem(UEBase):
 
 
 class ExportTableItem(UEBase):
+    string_format = '{name} ({klass}) [{super}]'
     display_fields = ('name', 'klass', 'super', 'outer_index')
 
     def _deserialise(self):
