@@ -42,9 +42,9 @@ def create_ui():
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
     tree.column('#0', stretch=0)
-    tree.column(assetlist[-1], anchor='e')
     for i, assetname in enumerate(assetlist):
         tree.heading(i, text=assetname)
+        tree.column(i, anchor='c')
 
     # Scroll bar to control the treeview
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
