@@ -107,7 +107,7 @@ class UAsset(UEBase):
                 component_name = component_name[:-2]
             found_pkg = next((name for name in self.names if component_name in str(name) and str(name).startswith(pkgPrefix)),
                              None)
-            yield found_pkg
+            yield str(found_pkg)
 
     def _parseTable(self, chunk, itemType):
         stream = MemoryStream(self.stream, chunk.offset)

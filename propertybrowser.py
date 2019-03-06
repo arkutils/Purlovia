@@ -62,8 +62,8 @@ def get_value_as_string(value):
     if isinstance(value, list): return f'{len(value)} entries'
     if isinstance(value, type): return value.__name__
     if isinstance(value, StructProperty): return '<struct>'
-    if isinstance(value, Property) or hasattr(value, 'value'): return get_value_as_string(value.value)
     if isinstance(value, FloatProperty): return value.rounded
+    if isinstance(value, Property) or hasattr(value, 'value'): return get_value_as_string(value.value)
     if value is None: return ''
     return str(value)
 
@@ -87,7 +87,13 @@ def load_asset(assetname):
     if not default_export: return
     record_properties(default_export.properties, small_assetname)
 
-    # Load the parent asset, if we have one
+    # Look for sub-components and recurse into them
+    components = asset.findSubComponents()
+    for component in components:
+        if component.strip('/').startswith('Game'):
+            load_asset(component)
+
+    # Load the parent asset and recurse into it
     parent_pkg = asset.findParentPackageForExport(default_export)
     if parent_pkg and parent_pkg.strip('/').startswith('Game'):
         load_asset(parent_pkg)
