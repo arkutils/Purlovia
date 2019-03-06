@@ -15,8 +15,8 @@ tree = None
 
 assetlist = []
 
-# propertyvalues[propname][assetname] = value
-propertyvalues = defaultdict(lambda: defaultdict(lambda: None))
+# propertyvalues[propname][index][assetname] = value
+propertyvalues = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
 
 
 def create_ui():
@@ -37,15 +37,19 @@ def create_ui():
     frame.rowconfigure(0, weight=1)
 
     # The tree view
-    tree = ttk.Treeview(frame, columns=assetlist)
+    tree = ttk.Treeview(frame, columns=['name', 'index'] + assetlist)
     tree.grid(column=0, row=0, sticky='nsew')
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
-    tree.column('#0', stretch=0, width=340)
+    tree.column('#0', stretch=0, width=0)
+    tree.column('name', stretch=0, width=320)
+    tree.column('index', stretch=0, width=36)
+    tree.heading('name', text='Name')
+    tree.heading('index', text='Index')
     for i, assetname in enumerate(assetlist):
         smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr')
-        tree.heading(i, text=smallname)
-        tree.column(i, anchor='w')
+        tree.heading(i + 2, text=smallname)
+        tree.column(i + 2, width=60, stretch=1, anchor='w')
 
     # Scroll bar to control the treeview
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
@@ -110,15 +114,15 @@ def record_properties(properties, assetname):
     assetlist.append(assetname)
     for prop in properties:
         if should_filter_out(prop): continue
-        propname = f'{prop.header.name}[{prop.header.index}]'
         value = get_value_as_string(prop)
-        propertyvalues[propname][assetname] = value
+        propertyvalues[str(prop.header.name)][prop.header.index][assetname] = value
 
 
 def fill_property_grid():
-    for propname, propvalues in propertyvalues.items():
-        assetvalues = [propvalues[assetname] or '' for assetname in assetlist]
-        tree.insert('', 'end', text=propname, values=assetvalues)
+    for propname, propvalues in sorted(propertyvalues.items(), key=lambda p: p[0]):
+        for index, values in sorted(propvalues.items(), key=lambda p: p[0]):
+            assetvalues = [values[assetname] or '' for assetname in assetlist]
+            tree.insert('', 'end', text=propname, values=[propname, index] + assetvalues)
 
 
 mainasset = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
