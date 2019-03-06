@@ -45,7 +45,7 @@ def create_ui():
     for i, assetname in enumerate(assetlist):
         smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr')
         tree.heading(i, text=smallname)
-        tree.column(i, anchor='c')
+        tree.column(i, anchor='w')
 
     # Scroll bar to control the treeview
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
@@ -62,9 +62,8 @@ def get_value_as_string(value):
     if isinstance(value, list): return f'{len(value)} entries'
     if isinstance(value, type): return value.__name__
     if isinstance(value, StructProperty): return '<struct>'
-    if isinstance(value, Property): return get_value_as_string(value.value)
+    if isinstance(value, Property) or hasattr(value, 'value'): return get_value_as_string(value.value)
     if isinstance(value, FloatProperty): return value.rounded
-    if hasattr(value, 'value'): return getattr(value, 'value')
     if value is None: return ''
     return str(value)
 
