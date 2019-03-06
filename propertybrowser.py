@@ -42,14 +42,17 @@ def create_ui():
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
     tree.column('#0', stretch=0, width=0)
-    tree.column('name', stretch=0, width=320)
-    tree.column('index', stretch=0, width=36)
+    tree.column('name', stretch=0, width=320, anchor='e')
+    tree.column('index', stretch=0, width=36, anchor='c')
     tree.heading('name', text='Name')
     tree.heading('index', text='Index')
     for i, assetname in enumerate(assetlist):
-        smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr')
+        smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr').replace('_BP', '')
         tree.heading(i + 2, text=smallname)
         tree.column(i + 2, width=60, stretch=1, anchor='w')
+
+    # Simple styling
+    tree.tag_configure('odd', background='#e0e0e0')
 
     # Scroll bar to control the treeview
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
@@ -119,10 +122,12 @@ def record_properties(properties, assetname):
 
 
 def fill_property_grid():
+    odd = False
     for propname, propvalues in sorted(propertyvalues.items(), key=lambda p: p[0]):
         for index, values in sorted(propvalues.items(), key=lambda p: p[0]):
             assetvalues = [values[assetname] or '' for assetname in assetlist]
-            tree.insert('', 'end', text=propname, values=[propname, index] + assetvalues)
+            tree.insert('', 'end', text=propname, values=[propname, index] + assetvalues, tags=('odd' if odd else 'even', ))
+            odd = not odd
 
 
 mainasset = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
