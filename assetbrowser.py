@@ -1,5 +1,5 @@
 import sys
-from tkinter import *
+from tkinter import Tk, EventType
 from tkinter import ttk
 from collections.abc import Iterable
 
@@ -24,7 +24,7 @@ def create_ui():
 
     # Window
     root = Tk()
-    root.title("Asset Browser")
+    root.title("Asset Browser : "+assetname)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.minsize(width=600, height=400)
@@ -32,13 +32,13 @@ def create_ui():
 
     # Grid-based layout frame
     frame = ttk.Frame(root, padding="6 6 6 6")
-    frame.grid(column=0, row=0, sticky=(N, W, E, S))
+    frame.grid(column=0, row=0, sticky='nsew')
     frame.columnconfigure(0, weight=1)
     frame.rowconfigure(0, weight=1)
 
     # The tree view
-    tree = ttk.Treeview(frame, columns=('type', 'value'))  # , selectmode='none'
-    tree.grid(column=0, row=0, sticky=(N, W, E, S))
+    tree = ttk.Treeview(frame, columns=('type', 'value'))
+    tree.grid(column=0, row=0, sticky='nsew')
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
     tree.column('#0', stretch=0)
@@ -165,7 +165,7 @@ def load_asset(assetname):
     add_asset_to_root(asset)
 
 
-create_ui()
 assetname = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+create_ui()
 load_asset(assetname)
 root.mainloop()
