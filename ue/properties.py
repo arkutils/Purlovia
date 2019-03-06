@@ -144,6 +144,7 @@ class FloatProperty(UEBase):
         rounded = round(value, 6)
         inexact = abs(value - rounded) >= sys.float_info.epsilon
         text = str(rounded)
+        self._newField('rounded', text)
         if inexact:
             text += ' (inexact)'
         self._newField('textual', text)
