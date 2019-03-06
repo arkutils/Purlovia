@@ -7,16 +7,16 @@ from collections import defaultdict
 from stream import MemoryStream
 from ue.base import UEBase
 from ue.asset import UAsset
-from ue.properties import Property
+from ue.properties import Property, FloatProperty, StructProperty
 import loader
 
 root = None
 tree = None
 
 assetlist = []
-propertyvalues = defaultdict(lambda: defaultdict(lambda: None))
 
 # propertyvalues[propname][assetname] = value
+propertyvalues = defaultdict(lambda: defaultdict(lambda: None))
 
 
 def create_ui():
@@ -41,9 +41,10 @@ def create_ui():
     tree.grid(column=0, row=0, sticky='nsew')
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
-    tree.column('#0', stretch=0)
+    tree.column('#0', stretch=0, width=340)
     for i, assetname in enumerate(assetlist):
-        tree.heading(i, text=assetname)
+        smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr')
+        tree.heading(i, text=smallname)
         tree.column(i, anchor='c')
 
     # Scroll bar to control the treeview
@@ -60,7 +61,10 @@ def type_name(value):
 def get_value_as_string(value):
     if isinstance(value, list): return f'{len(value)} entries'
     if isinstance(value, type): return value.__name__
-    if isinstance(value, Property): return str(value.value)
+    if isinstance(value, StructProperty): return '<struct>'
+    if isinstance(value, Property): return get_value_as_string(value.value)
+    if isinstance(value, FloatProperty): return value.rounded
+    if hasattr(value, 'value'): return getattr(value, 'value')
     if value is None: return ''
     return str(value)
 
@@ -90,9 +94,17 @@ def load_asset(assetname):
         load_asset(parent_pkg)
 
 
+def should_filter_out(prop):
+    proptype = str(prop.header.type)
+    if proptype == 'StructProperty': return True
+    if proptype == 'ArrayProperty': return True
+    if proptype == 'ObjectProperty': return True
+
+
 def record_properties(properties, assetname):
     assetlist.append(assetname)
     for prop in properties:
+        if should_filter_out(prop): continue
         propname = f'{prop.header.name}[{prop.header.index}]'
         value = get_value_as_string(prop)
         propertyvalues[propname][assetname] = value
