@@ -130,7 +130,7 @@ class ImportTableItem(UEBase):
     def _deserialise(self):
         self._newField('package', NameIndex(self))
         self._newField('klass', NameIndex(self))
-        self._newField('outer_index', self.stream.readInt32())
+        self._newField('outer_index', ObjectIndex(self))
         self._newField('name', NameIndex(self))
 
         # References to this item
@@ -153,7 +153,7 @@ class ExportTableItem(UEBase):
     def _deserialise(self):
         self._newField('klass', ObjectIndex(self))
         self._newField('super', ObjectIndex(self))
-        self._newField('outer_index', self.stream.readInt32())
+        self._newField('outer_index', ObjectIndex(self))
         self._newField('name', NameIndex(self))
         self._newField('object_flags', self.stream.readUInt32())
         self._newField('serial_size', self.stream.readUInt32())
