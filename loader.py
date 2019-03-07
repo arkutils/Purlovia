@@ -8,6 +8,7 @@ from types import SimpleNamespace as Bag
 from dict_utils import merge
 
 import hexutils
+import mods
 
 _asset_basepath = None
 # _loaded_assets = {}
@@ -49,7 +50,10 @@ def clean_asset_name(name):
 def convert_asset_name_to_path(name):
     name = clean_asset_name(name)
     parts = name.split('/')
-    if parts[0].lower() == 'game': parts[0] = 'Content'
+    if parts[0].lower() == 'game':
+        parts[0] = 'Content'
+    if len(parts) > 2 and parts[1].lower() == 'mods' and not parts[2].isnumeric():
+        parts[2] = mods.getModNumberFromName(parts[2])
     fullname = os.path.join(_asset_basepath, *parts) + '.uasset'
     return fullname
 
