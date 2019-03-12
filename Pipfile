@@ -8,7 +8,7 @@ yapf = "*"
 rope = "*"
 
 [packages]
-pytest = "==4.3.0"
+pytest = "*"
 jupyter = "*"
 
 [requires]
