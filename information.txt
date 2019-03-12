@@ -13,6 +13,25 @@ http://www.gildor.org/smf/index.php/topic,2740.msg28187.html#msg28187
  - 0x1234 8byte reference in Ark UAssets
 
 
+Stats:
+
+00  Health
+01  Stamina
+02  Torpidity
+03  Oxygen
+04  Food
+05  Water
+06  Temperature
+07  Weight
+08  Melee Damage
+09  Movement Speed
+10  Fortitude
+11  Crafting Skill
+
+
+Field meanings:
+
+CanLevelUpValue - set to zero for fly speed, for example
 
 
 Structs:
@@ -59,7 +78,7 @@ Example:
 0x0000001C (uint32) - PackageGroupStringLength (5)
 0x00000020 (char[5]) - PackageGroup ("None/0")
 0x00000025 (uint32) - PackageFlags (0x80000000)
-0x00000029 (uint32) - NameCount 
+0x00000029 (uint32) - NameCount
 0x0000002D (uint32) - NameOffset (0x000000AB)
 0x00000031 (uint32) - ExportCount
 0x00000035 (uint32) - ExportOffset

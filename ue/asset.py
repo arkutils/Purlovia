@@ -1,4 +1,4 @@
-from stream import MemoryStream
+from .stream import MemoryStream
 from .base import UEBase
 from .coretypes import *
 from .properties import PropertyTable, StringProperty, Guid

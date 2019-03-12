@@ -4,7 +4,7 @@ try:
 except ImportError:
     support_pretty = False
 
-from stream import MemoryStream
+from .stream import MemoryStream
 
 
 class UEBase(object):

@@ -1,9 +1,8 @@
 #%% Setup
 from interactive_utils import *
-from stream import MemoryStream
 from ue.base import UEBase
 from ue.asset import UAsset
-import loader
+from ue.loader import AssetLoader
 
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)
 # PlayerLevelEngramPointsSP, PlayerLevelEngramPoints,
@@ -41,16 +40,11 @@ assetname = r'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
 # assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
 # assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
-filename = loader.convert_asset_name_to_path(assetname)
+# assetname = r'Game/ClassicFlyers/Dinos/Ptero/Ptreo_Character_BP'
 
-#%% Load and decode
-mem = loader.load_raw_asset_from_file(filename)
-stream = MemoryStream(mem, 0, len(mem))
-asset = UAsset(stream)
-print('Deserialising...')
-asset.deserialise()
-print('Linking...')
-asset.link()
+loader = AssetLoader()
+# filename = loader.convert_asset_name_to_path(assetname)
+asset = loader[assetname]
 print('Decoding complete.')
 
 #%% More display demos

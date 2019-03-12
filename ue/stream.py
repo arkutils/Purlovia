@@ -1,5 +1,7 @@
 import struct
 
+__all__ = ('MemoryStream', )
+
 
 class MemoryStream(object):
     def __init__(self, memOrStream, offset=None, size=None):

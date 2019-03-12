@@ -1,12 +1,10 @@
-import sys
+import os, sys
 from tkinter import Tk, EventType
 from tkinter import ttk
 from collections.abc import Iterable
 
-from stream import MemoryStream
 from ue.base import UEBase
-from ue.asset import UAsset
-import loader
+from ue.loader import AssetLoader
 
 root = None
 tree = None
@@ -24,7 +22,7 @@ def create_ui():
 
     # Window
     root = Tk()
-    root.title("Asset Browser : "+assetname)
+    root.title("Asset Browser : " + assetname)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.minsize(width=600, height=400)
@@ -154,18 +152,13 @@ def insert_fields_for_node(parentId):
 
 
 def load_asset(assetname):
-    filename = loader.convert_asset_name_to_path(assetname)
-    mem = loader.load_raw_asset_from_file(filename)
-    stream = MemoryStream(mem, 0, len(mem))
-    asset = UAsset(stream)
-    asset.name = assetname.split('/')[-1]
-    asset.deserialise()
-    asset.link()
-
+    loader = AssetLoader()
+    asset = loader[assetname]
     add_asset_to_root(asset)
 
 
-assetname = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
-create_ui()
-load_asset(assetname)
-root.mainloop()
+if __name__ == '__main__':
+    assetname = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+    create_ui()
+    load_asset(assetname)
+    root.mainloop()

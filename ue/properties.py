@@ -2,17 +2,15 @@ import sys
 import uuid
 from typing import Type
 
-from stream import MemoryStream
-from .base import UEBase
-from .coretypes import *
-
 try:
     from IPython.lib.pretty import PrettyPrinter, pprint
     support_pretty = True
 except ImportError:
     support_pretty = False
 
+from .stream import MemoryStream
 from .base import UEBase
+from .coretypes import *
 
 
 class PropertyTable(UEBase):

@@ -4,11 +4,9 @@ from tkinter import ttk, filedialog
 from collections.abc import Iterable
 from collections import defaultdict
 
-from stream import MemoryStream
 from ue.base import UEBase
-from ue.asset import UAsset
+from ue.loader import AssetLoader
 from ue.properties import Property, FloatProperty, StructProperty
-import loader
 
 root = None
 tree = None
@@ -76,16 +74,9 @@ def get_value_as_string(value):
 
 
 def load_asset(assetname):
+    loader = AssetLoader()
     assetname = loader.clean_asset_name(assetname)
-    print('Loading:', assetname)
-
-    filename = loader.convert_asset_name_to_path(assetname)
-    mem = loader.load_raw_asset_from_file(filename)
-    stream = MemoryStream(mem, 0, len(mem))
-    asset = UAsset(stream)
-    asset.name = assetname.split('/')[-1]
-    asset.deserialise()
-    asset.link()
+    asset = loader[assetname]
 
     small_assetname = assetname.split('/')[-1]
 
@@ -130,8 +121,9 @@ def fill_property_grid():
             odd = not odd
 
 
-mainasset = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
-load_asset(mainasset)
-create_ui()
-fill_property_grid()
-root.mainloop()
+if __name__ == '__main__':
+    mainasset = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+    load_asset(mainasset)
+    create_ui()
+    fill_property_grid()
+    root.mainloop()
