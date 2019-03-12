@@ -22,7 +22,6 @@ def create_ui():
 
     # Window
     root = Tk()
-    root.title("Asset Browser : " + assetname)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.minsize(width=600, height=400)
@@ -91,7 +90,7 @@ def node_id(node, parentId=None):
 
 
 def type_name(value):
-    '''Retuen the type of a value as a string.'''
+    '''Return the type of a value as a string.'''
     return str(type(value).__name__)
 
 
@@ -152,13 +151,25 @@ def insert_fields_for_node(parentId):
 
 
 def load_asset(assetname):
-    loader = AssetLoader()
+    assetname = loader.clean_asset_name(assetname)
+    root.title("Asset Browser : " + assetname)
     asset = loader[assetname]
     add_asset_to_root(asset)
 
 
 if __name__ == '__main__':
-    assetname = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+    global loader
+    loader = AssetLoader()
+
+    assetname = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
+
+    if not assetname:
+        from tkinter import filedialog
+        assetname = filedialog.askopenfilename(
+            title='Select asset file...',
+            filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
+            initialdir=loader.asset_path)
+
     load_asset(assetname)
     root.mainloop()

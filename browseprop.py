@@ -18,48 +18,18 @@ propertyvalues = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: Non
 
 
 def create_ui():
-    global root, tree
+    global root
 
     # Window
     root = Tk()
-    root.title("Property Browser : " + mainasset)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.minsize(width=600, height=400)
     root.geometry('1000x800')
 
-    # Grid-based layout frame
-    frame = ttk.Frame(root, padding="6 6 6 6")
-    frame.grid(column=0, row=0, sticky='nsew')
-    frame.columnconfigure(0, weight=1)
-    frame.rowconfigure(0, weight=1)
-
-    # The tree view
-    tree = ttk.Treeview(frame, columns=['name', 'index'] + assetlist)
-    tree.grid(column=0, row=0, sticky='nsew')
-    tree.columnconfigure(0, weight=1)
-    tree.rowconfigure(0, weight=1)
-    tree.column('#0', stretch=0, width=0)
-    tree.column('name', stretch=0, width=320, anchor='e')
-    tree.column('index', stretch=0, width=36, anchor='c')
-    tree.heading('name', text='Name')
-    tree.heading('index', text='Index')
-    for i, assetname in enumerate(assetlist):
-        smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr').replace('_BP', '')
-        tree.heading(i + 2, text=smallname)
-        tree.column(i + 2, width=60, stretch=1, anchor='w')
-
-    # Simple styling
-    tree.tag_configure('odd', background='#e0e0e0')
-
-    # Scroll bar to control the treeview
-    vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-    vsb.grid(row=0, column=1, sticky='nse')
-    tree.configure(yscrollcommand=vsb.set)
-
 
 def type_name(value):
-    '''Retuen the type of a value as a string.'''
+    '''Return the type of a value as a string.'''
     return str(type(value).__name__)
 
 
@@ -74,7 +44,6 @@ def get_value_as_string(value):
 
 
 def load_asset(assetname):
-    loader = AssetLoader()
     assetname = loader.clean_asset_name(assetname)
     asset = loader[assetname]
 
@@ -113,6 +82,37 @@ def record_properties(properties, assetname):
 
 
 def fill_property_grid():
+    global tree
+
+    # Grid-based layout frame
+    frame = ttk.Frame(root, padding="6 6 6 6")
+    frame.grid(column=0, row=0, sticky='nsew')
+    frame.columnconfigure(0, weight=1)
+    frame.rowconfigure(0, weight=1)
+
+    # The tree view
+    tree = ttk.Treeview(frame, columns=['name', 'index'] + assetlist)
+    tree.grid(column=0, row=0, sticky='nsew')
+    tree.columnconfigure(0, weight=1)
+    tree.rowconfigure(0, weight=1)
+    tree.column('#0', stretch=0, width=0)
+    tree.column('name', stretch=0, width=320, anchor='e')
+    tree.column('index', stretch=0, width=36, anchor='c')
+    tree.heading('name', text='Name')
+    tree.heading('index', text='Index')
+
+    # Simple styling
+    tree.tag_configure('odd', background='#e0e0e0')
+
+    # Scroll bar to control the treeview
+    vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    vsb.grid(row=0, column=1, sticky='nse')
+    tree.configure(yscrollcommand=vsb.set)
+    for i, assetname in enumerate(assetlist):
+        smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr').replace('_BP', '')
+        tree.heading(i + 2, text=smallname)
+        tree.column(i + 2, width=60, stretch=1, anchor='w')
+
     odd = False
     for propname, propvalues in sorted(propertyvalues.items(), key=lambda p: p[0]):
         for index, values in sorted(propvalues.items(), key=lambda p: p[0]):
@@ -122,8 +122,20 @@ def fill_property_grid():
 
 
 if __name__ == '__main__':
-    mainasset = sys.argv[1] if len(sys.argv) > 1 else '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
-    load_asset(mainasset)
+    global loader
+    loader = AssetLoader()
+
+    mainasset = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
+
+    if not mainasset:
+        from tkinter import filedialog
+        mainasset = filedialog.askopenfilename(
+            title='Select asset file...',
+            filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
+            initialdir=loader.asset_path)
+
+    root.title("Property Browser : " + mainasset)
+    load_asset(mainasset)
     fill_property_grid()
     root.mainloop()
