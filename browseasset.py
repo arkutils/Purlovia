@@ -136,7 +136,7 @@ def get_value_as_string(value):
 
 def insert_fields_for_node(parentId):
     node = treenodes[parentId]
-    skip_level_name = getattr(node, 'skip_level_browser_field', None)
+    skip_level_name = getattr(node, 'skip_level_field', None)
     if skip_level_name:
         node = node.field_values.get(skip_level_name, node)
     fields = get_node_iterator(node)

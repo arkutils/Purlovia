@@ -3,7 +3,7 @@ import uuid
 from typing import Type
 
 try:
-    from IPython.lib.pretty import PrettyPrinter, pprint
+    from IPython.lib.pretty import PrettyPrinter, pprint, pretty
     support_pretty = True
 except ImportError:
     support_pretty = False
@@ -16,7 +16,7 @@ from .coretypes import *
 class PropertyTable(UEBase):
     string_format = '{count} entries'
     display_fields = ['values']
-    skip_level_browser_field = 'values'
+    skip_level_field = 'values'
 
     def _deserialise(self):
         values = []
@@ -126,6 +126,7 @@ class Property(UEBase):
 
 
 class FloatProperty(UEBase):
+    main_field = 'textual'
     display_fields = ['textual']
 
     def _deserialise(self, size):
@@ -149,12 +150,15 @@ class FloatProperty(UEBase):
 
 
 class IntProperty(UEBase):
+    string_format = '(int) {value}'
+    main_field = 'value'
+
     def _deserialise(self, size):
         self._newField('value', self.stream.readInt32())
 
 
 class BoolProperty(UEBase):
-    display_fields = ['value']
+    main_field = 'value'
 
     def _deserialise(self, size):
         self._newField('value', self.stream.readBool8())
@@ -207,7 +211,6 @@ class NameProperty(UEBase):
 
 class StringProperty(UEBase):
     main_field = 'value'
-    display_fields = ['value']
 
     def _deserialise(self, *args):
         self._newField('size', self.stream.readInt32())
@@ -223,18 +226,9 @@ class StringProperty(UEBase):
     def register_user(self, user):
         self.users.add(user)
 
-    if support_pretty:
-
-        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
-            if cycle:
-                p.text(f'{self.__class__.__name__}(<cyclic>)')
-                return
-
-            p.text(f'"{self.value}"')
-
 
 class Guid(UEBase):
-    display_fields = ['value']
+    main_field = 'value'
 
     def _deserialise(self, *args):
         raw_bytes = self.stream.readBytes(16)
@@ -242,6 +236,8 @@ class Guid(UEBase):
 
 
 class StructEntry(UEBase):
+    string_format = '{name} = ({type}) {value}'
+
     def _deserialise(self):
         self._newField('name', NameIndex(self))
         self._newField('type', NameIndex(self))
@@ -249,60 +245,99 @@ class StructEntry(UEBase):
 
         self.name.link()
         self.type.link()
-        print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
+        # print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
 
         propertyType = getPropertyType(str(self.type))
-        self._newField('value', propertyType(self), self.length)
-        self.value.link()
-        print(f'      ', str(self.value))
+        self._newField('value', '<not yet defined>')
+        self.field_values['value'] = propertyType(self)
+        self.field_values['value'].deserialise(self.length)
+        self.field_values['value'].link()
+        # print(f'      ', str(self.value))
+
+
+NAMES_THAT_ARE_STRUCTS = (
+    'BodyInstance',
+    'Color',
+    'ColorSetDefinition',
+    'DecalData',
+    'LevelExperienceRamp',
+    'LinearColor',
+    'NavAgentProperties',
+    'PlayerCharacterGenderDefinition',
+    'PrimalCharacterStatusStateDefinition',
+    'PrimalCharacterStatusStateThresholds',
+    'PrimalCharacterStatusValueDefinition',
+    'PrimalEquipmentDefinition',
+    'PrimalItemDefinition',
+    'PrimalItemStatDefinition',
+    'RichCurve',
+    'Rotator',
+    'StringAssetReference',
+    'Transform',
+    'Vector',
+    'Vector2D',
+    'WeightedObjectList',
+)
 
 
 class StructProperty(UEBase):
+    skip_level_field = 'values'
+
     def _deserialise(self, size):
         values = []
         self._newField('values', values)
-        print(f'Struct @ {self.start_offset}, size={size}')
+        self._newField('count', 0)
+        # print(f'Struct @ {self.start_offset}, size={size}')
 
-        # end = self.stream.offset + size
-        while True:  #self.stream.offset < end - 4:
+        while True:
             type_or_name = NameIndex(self)
             type_or_name.deserialise()
             if type_or_name.index == self.asset.none_index:
-                print('Struct exiting at None')
                 break
 
+            self.count += 1
+
             type_or_name.link()
-            print(f'  Struct entry @ {self.stream.offset-8}, type={type_or_name}')
+
+            if str(type_or_name) in NAMES_THAT_ARE_STRUCTS:
+                self.stream.offset = self.start_offset + 8 + size
+                return
 
             propertyType = None
             try:
                 propertyType = getPropertyType(str(type_or_name))
             except TypeError:
-                # # Abort unhandled types
-                # self.values.append(f'<unhandled type {type_name}>')
-                # break
                 pass
 
             if propertyType:
                 # This struct has a recognisable struct type and its data should be immediiately following
-                print(f'  Assuming a type')
+                # print(f'  Assuming a type')
                 value = propertyType(self)
                 values.append(value)
                 value.deserialise(None)  # we don't have any size information
-
-                # Safely skip to the end of the struct regardless of whether we could decode it
-                # self.stream.offset = self.start_offset + 8 + size
             else:
                 # Then type_of_name was (hopefully) a name and we get the real property type next
-                print(f'  Name assumed')
+                # print(f'  Struct entry @ {self.stream.offset-8}, type={type_or_name}')
+                # print(f'  Name assumed')
 
                 # Rewind and read a StructEntry
                 self.stream.offset -= 8
-                value = StructEntry(self)
-                values.append(value)
-                value.deserialise()
+                try:
+                    value = StructEntry(self)
+                    value.deserialise()
+                    values.append(value)
+                except Exception as err:
+                    values.append(f'<exception during decoding of struct entry for type_or_name "{type_or_name}">')
+                    print(f'Failed to decode struct entry @ {self.start_offset} with type: {type_or_name}')
+                    if support_pretty: pprint(err)
+                    self.stream.offset = self.start_offset + 8 + size
+                    return
 
-        print('Struct done')
+    def __str__(self):
+        if self.values and len(self.values) == 1:
+            return pretty(self.values[0])
+
+        return f'{self.count} entries'
 
     if support_pretty:
 
@@ -317,18 +352,20 @@ class StructProperty(UEBase):
                     if idx:
                         p.text(',')
                         p.breakable()
-                    # p.text(f'0x{idx:04X} ({idx:<4}): ')
                     p.pretty(value)
 
 
 class ArrayProperty(UEBase):
     def _deserialise(self, size):
-        assert size > 4, "Array size is required"
+        assert size >= 4, "Array size is required"
 
         self._newField('field_type', NameIndex(self))
         self.field_type.link()
         saved_offset = self.stream.offset
         self._newField('count', self.stream.readUInt32())
+
+        if self.count <= 0:
+            return
 
         propertyType = None
         try:
@@ -346,15 +383,21 @@ class ArrayProperty(UEBase):
 
         field_size = (size-4) // self.count  # don't know if we can use this
         end = saved_offset + size
-        print(f'Array @ {self.start_offset}, size={size}, count={self.count}, '
-              f'calculated field size={field_size}, field type={self.field_type}')
+        # print(f'Array @ {self.start_offset}, size={size}, count={self.count}, '
+        #       f'calculated field size={field_size}, field type={self.field_type}')
 
         while self.stream.offset < end:
-            print("  Array entry @", self.stream.offset)
+            # print("  Array entry @", self.stream.offset)
             value = propertyType(self)
-            values.append(value)
-            value.deserialise(field_size)
-            value.link()
+            try:
+                value.deserialise(field_size)
+                value.link()
+                values.append(value)
+            except Exception as err:
+                values.append('<exception during decoding of array element>')
+                if support_pretty: pprint(err)
+                self.stream.offset = saved_offset + size
+                return
 
         self.stream.offset = saved_offset + size
 

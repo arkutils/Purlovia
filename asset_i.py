@@ -13,37 +13,37 @@ from ue.properties import *
 #   StatusValueDefinitions (unsupported struct x 12)
 #   StatusStateDefinitions (unsupported struct x 13...maybe not useful)
 # ...are server and single-player default mults in here???
-# assetname = r'Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
+assetname = 'Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 
-# assetname = r'Game/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP' # master item/engram table
-# assetname = r'Game/PrimalEarth/CoreBlueprints/PrimalGameData_BP' # post-processing effects
-# assetname = r'Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP' # not useful
-# assetname = r'Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP_Base' # player data - ascention
-# assetname = r'Game/Aberration/CoreBlueprints/DinoCharacterStatusComponent_BP_MoleRat'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint'  # !*!*! DECODE ERROR
+# assetname = 'Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP'  # master item/engram table
+# assetname = 'Game/PrimalEarth/CoreBlueprints/PrimalGameData_BP'  # post-processing effects
+# assetname = 'Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP'  # not useful
+# assetname = 'Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP_Base'  # player data - ascention
+# assetname = 'Game/Aberration/CoreBlueprints/DinoCharacterStatusComponent_BP_MoleRat'
 
-# assetname = r'Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
-# assetname = r'Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant'
-# assetname = r'Game/Extinction/Dinos/Owl/Owl_Character_BP'
-# assetname = r'Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
-# assetname = r'Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP'
-# assetname = r'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
-# assetname = r'Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP'
-# assetname = r'Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP'
+# assetname = 'Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
+# assetname = 'Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant'
+# assetname = 'Game/Extinction/Dinos/Owl/Owl_Character_BP'
+# assetname = 'Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
+# assetname = 'Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP'
+# assetname = 'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
+# assetname = 'Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP'
+# assetname = 'Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP'
 
-# assetname = r'Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoColorSet_Dodo'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_FlyerRide'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Diplodocus'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
-# assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoColorSet_Dodo'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Dodo'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Argent'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_FlyerRide'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Diplodocus'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
-assetname = r'Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
-assetname = r'Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers.uasset'
+# assetname = 'Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
+# assetname = 'Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
 
 loader = AssetLoader()
 # filename = loader.convert_asset_name_to_path(assetname)

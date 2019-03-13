@@ -18,7 +18,7 @@ __all__ = (
 
 class Table(UEBase):
     string_format = '{count} x {itemType.__name__}'
-    skip_level_browser_field = 'values'
+    skip_level_field = 'values'
     display_fields = ['itemType', 'count', 'values']
 
     def _deserialise(self, itemType: Type[UEBase], count: int):

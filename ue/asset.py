@@ -64,8 +64,8 @@ class UAsset(UEBase):
         assert names is not None
 
         extraIndex = index >> 32
-        flags = index & 0xFF000000
-        clean_index = index & 0xFFFFFF
+        flags = index & 0xFFF00000
+        clean_index = index & 0xFFFFF
 
         try:
             name = names[clean_index]
