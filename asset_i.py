@@ -13,7 +13,7 @@ from ue.properties import *
 #   StatusValueDefinitions (unsupported struct x 12)
 #   StatusStateDefinitions (unsupported struct x 13...maybe not useful)
 # ...are server and single-player default mults in here???
-assetname = 'Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
+# assetname = 'Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 
 # assetname = 'Game/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint'  # !*!*! DECODE ERROR
 # assetname = 'Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP'  # master item/engram table
@@ -43,7 +43,7 @@ assetname = 'Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 # assetname = 'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
 # assetname = 'Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
-# assetname = 'Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
+assetname = 'Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
 
 loader = AssetLoader()
 # filename = loader.convert_asset_name_to_path(assetname)
@@ -74,8 +74,8 @@ print(parent_pkg)
 print('\nSub-component packages:')
 pprint(list(asset.findSubComponents()))
 
-#%%
-print('\nMod AdditionalDinoEntries:')
+#%% Mod info
+print('\nMod extra dino entries:')
 new_entries = next((prop.value for prop in default_export.properties if str(prop.header.name) == 'AdditionalDinoEntries'), None)
 if not new_entries:
     print('-not found-')
@@ -83,6 +83,24 @@ else:
     for entry in new_entries.values:
         print(f'    {str(entry.value.value.outer_index.value.name)}')
 
-print('\nMod Remap_NPC:')
+print('\nMod remapped NPCs:')
 remap_entries = next((prop.value for prop in default_export.properties if str(prop.header.name) == 'Remap_NPC'), None)
-pprint(remap_entries)
+if not remap_entries:
+    print('-not found-')
+else:
+    for entry in remap_entries.values:
+        fromPkg = str(entry.values[0].value.value.value.outer_index.value.name)
+        toPkg = str(entry.values[1].value.value.value.outer_index.value.name)
+        print(f'  {fromPkg} -> {toPkg}')
+
+print('\nMod spawner species references (unfiltered):')
+remap_spawners = next(
+    (prop.value for prop in default_export.properties if str(prop.header.name) == 'GlobalNPCRandomSpawnClassWeights'), None)
+if not remap_spawners:
+    print('-not found-')
+else:
+    species = list(
+        set(
+            sum(([str(toClass.value.value.outer_index.value.name) for toClass in spawner.values[1].value.values]
+                 for spawner in remap_spawners.values), [])))
+    pprint(species)
