@@ -150,7 +150,10 @@ class ImportTableItem(UEBase):
         if cycle:
             p.text('Import(<cyclic>)')
         else:
-            p.text(f'Import({self.outer_index.value.name}::{self.name.value} ({self.package.value}::{self.klass.value}))')
+            if self.outer_index.value:
+                p.text(f'Import({self.outer_index.value.name}::{self.name.value} ({self.package.value}::{self.klass.value}))')
+            else:
+                p.text(f'Import({self.name.value} ({self.package.value}::{self.klass.value}))')
 
 
 class ExportTableItem(UEBase):
