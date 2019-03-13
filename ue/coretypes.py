@@ -82,7 +82,7 @@ class NameIndex(UEBase):
 
     def _deserialise(self):
         # Get the index but don't look up the actual value until the link phase
-        self._newField('index', self.stream.readUInt64())
+        self._newField('index', self.stream.readUInt64())  # name indexes are 64-bit and unsigned
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
@@ -110,10 +110,11 @@ class NameIndex(UEBase):
 class ObjectIndex(UEBase):
     main_field = 'value'
     display_fields = ['index', 'value']
+    skip_level_field = 'value'
 
     def _deserialise(self):
         # Calculate the indexes but don't look up the actual import/export until the link phase
-        self._newField('index', self.stream.readInt32())
+        self._newField('index', self.stream.readInt32())  # object indexes are 32-bit and signed
         if self.index < 0:
             self.used_index = -self.index - 1
             self.kind = 'import'
@@ -151,13 +152,13 @@ class ObjectIndex(UEBase):
     def __eq__(self, other):
         return self.index == other.index
 
-    if support_pretty:
+    # if support_pretty:
 
-        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
-            if cycle:
-                p.text(f'ObjectIndex(index={self.index})')
-                return
+    #     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+    #         if cycle:
+    #             p.text(f'ObjectIndex(index={self.index})')
+    #             return
 
-            with p.group(4, self.__class__.__name__ + '(', ')'):
-                p.text(str(self.index) + ", ")
-                p.pretty(self.value)
+    #         with p.group(4, self.__class__.__name__ + '(', ')'):
+    #             p.text(str(self.index) + ", ")
+    #             p.pretty(self.value)

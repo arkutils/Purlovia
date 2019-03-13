@@ -60,12 +60,19 @@ class UAsset(UEBase):
         '''Get a name for the given index.'''
         names = self.names
         assert index is not None
+        assert type(index) == int
         assert names is not None
+
         extraIndex = index >> 32
         flags = index & 0xFF000000
-        index = index & 0xFFFFFF
-        name = names[index]
-        # TODO: Do something with extraIndex
+        clean_index = index & 0xFFFFFF
+
+        try:
+            name = names[clean_index]
+        except IndexError as err:
+            raise IndexError(f'Invalid name index 0x{index:08X} ({index})') from err
+
+        # TODO: Do something with extraIndex?
         return name
 
     def getObject(self, index):
@@ -125,7 +132,7 @@ class UAsset(UEBase):
 
 
 class ImportTableItem(UEBase):
-    string_format = '{package}::{name} ({klass})'
+    string_format = '{outer_index}::{name} ({package}::{klass})'
 
     def _deserialise(self):
         self._newField('package', NameIndex(self))
@@ -143,7 +150,7 @@ class ImportTableItem(UEBase):
         if cycle:
             p.text('Import(<cyclic>)')
         else:
-            p.text(f'Import({self.package.value}::{self.name.value} ({self.klass.value}))')
+            p.text(f'Import({self.outer_index.value.name}::{self.name.value} ({self.package.value}::{self.klass.value}))')
 
 
 class ExportTableItem(UEBase):

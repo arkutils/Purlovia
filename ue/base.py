@@ -123,6 +123,10 @@ class UEBase(object):
                 p.text(self.__class__.__name__ + '(<cyclic>)')
                 return
 
+            if self.skip_level_field:
+                p.pretty(getattr(self, self.skip_level_field))
+                return
+
             fields = self.display_fields or self.field_order
             with p.group(4, self.__class__.__name__ + '(', ')'):
                 if len(fields) > 1:

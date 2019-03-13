@@ -190,6 +190,9 @@ class ByteProperty(UEBase):  # With optional enum type
 
 
 class ObjectProperty(UEBase):
+    main_field = 'value'
+    skip_level_field = 'value'
+
     def _deserialise(self, size):
         self._newField('value', ObjectIndex(self))
 
@@ -227,7 +230,7 @@ class StringProperty(UEBase):
                 p.text(f'{self.__class__.__name__}(<cyclic>)')
                 return
 
-            p.text(self.value)
+            p.text(f'"{self.value}"')
 
 
 class Guid(UEBase):
@@ -238,32 +241,68 @@ class Guid(UEBase):
         self._newField('value', str(uuid.UUID(bytes_le=raw_bytes)))
 
 
+class StructEntry(UEBase):
+    def _deserialise(self):
+        self._newField('name', NameIndex(self))
+        self._newField('type', NameIndex(self))
+        self._newField('length', self.stream.readInt64())
+
+        self.name.link()
+        self.type.link()
+        print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
+
+        propertyType = getPropertyType(str(self.type))
+        self._newField('value', propertyType(self), self.length)
+        self.value.link()
+        print(f'      ', str(self.value))
+
+
 class StructProperty(UEBase):
     def _deserialise(self, size):
         values = []
         self._newField('values', values)
+        print(f'Struct @ {self.start_offset}, size={size}')
 
-        end = self.stream.offset + size
-        while self.stream.offset < end - 4:
-            type_name = NameIndex(self)
-            type_name.deserialise()
-            if type_name.index == self.asset.none_index:
+        # end = self.stream.offset + size
+        while True:  #self.stream.offset < end - 4:
+            type_or_name = NameIndex(self)
+            type_or_name.deserialise()
+            if type_or_name.index == self.asset.none_index:
+                print('Struct exiting at None')
                 break
 
-            type_name.link()
+            type_or_name.link()
+            print(f'  Struct entry @ {self.stream.offset-8}, type={type_or_name}')
+
+            propertyType = None
             try:
-                propertyType = getPropertyType(str(type_name))
+                propertyType = getPropertyType(str(type_or_name))
             except TypeError:
-                # Abort unhandled types
-                self.values.append(f'<unhandled type {type_name}>')
-                break
+                # # Abort unhandled types
+                # self.values.append(f'<unhandled type {type_name}>')
+                # break
+                pass
 
-            value = propertyType(self)
-            value.deserialise()
-            values.append(value)
+            if propertyType:
+                # This struct has a recognisable struct type and its data should be immediiately following
+                print(f'  Assuming a type')
+                value = propertyType(self)
+                values.append(value)
+                value.deserialise(None)  # we don't have any size information
 
-        # Safely skip to the end of the struct regardless of whether we could decode it
-        self.stream.offset = self.start_offset + 8 + size
+                # Safely skip to the end of the struct regardless of whether we could decode it
+                # self.stream.offset = self.start_offset + 8 + size
+            else:
+                # Then type_of_name was (hopefully) a name and we get the real property type next
+                print(f'  Name assumed')
+
+                # Rewind and read a StructEntry
+                self.stream.offset -= 8
+                value = StructEntry(self)
+                values.append(value)
+                value.deserialise()
+
+        print('Struct done')
 
     if support_pretty:
 
@@ -297,25 +336,25 @@ class ArrayProperty(UEBase):
         except TypeError:
             pass
 
-        if propertyType == None or str(self.field_type) == 'StructProperty':
+        if propertyType == None:  # or str(self.field_type) == 'StructProperty':
             self.stream.offset = saved_offset + size
-            self._newField('value', f'<unsupported field type {self.field_type}')
+            self._newField('value', f'<unsupported field type {self.field_type}>')
             return
 
         values = []
         self._newField('values', values)
 
-        field_size = (size-4) // self.count
+        field_size = (size-4) // self.count  # don't know if we can use this
         end = saved_offset + size
-        # print("First field:", self.stream.offset)
-        # print("Field size:", field_size, self.field_type)
-        # print("End:", end)
+        print(f'Array @ {self.start_offset}, size={size}, count={self.count}, '
+              f'calculated field size={field_size}, field type={self.field_type}')
+
         while self.stream.offset < end:
-            # print("Field:", self.stream.offset)
+            print("  Array entry @", self.stream.offset)
             value = propertyType(self)
+            values.append(value)
             value.deserialise(field_size)
             value.link()
-            values.append(value)
 
         self.stream.offset = saved_offset + size
 
@@ -362,7 +401,7 @@ def getPropertyType(typeName: str):
 
 
 # Types to export from this module
-__all__ = tuple(TYPE_MAP.keys()) + (
+__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + (
     'getPropertyType',
     'PropertyTable',
 )

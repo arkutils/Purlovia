@@ -3,6 +3,8 @@ from interactive_utils import *
 from ue.base import UEBase
 from ue.asset import UAsset
 from ue.loader import AssetLoader
+from ue.stream import MemoryStream
+from ue.properties import *
 
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)
 # PlayerLevelEngramPointsSP, PlayerLevelEngramPoints,
@@ -25,7 +27,7 @@ from ue.loader import AssetLoader
 # assetname = r'Game/Extinction/Dinos/Owl/Owl_Character_BP'
 # assetname = r'Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
 # assetname = r'Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP'
-assetname = r'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
+# assetname = r'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
 # assetname = r'Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP'
 # assetname = r'Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP'
 
@@ -40,7 +42,8 @@ assetname = r'Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
 # assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
 # assetname = r'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
-# assetname = r'Game/ClassicFlyers/Dinos/Ptero/Ptreo_Character_BP'
+assetname = r'Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
+assetname = r'Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers.uasset'
 
 loader = AssetLoader()
 # filename = loader.convert_asset_name_to_path(assetname)
@@ -72,3 +75,14 @@ print('\nSub-component packages:')
 pprint(list(asset.findSubComponents()))
 
 #%%
+print('\nMod AdditionalDinoEntries:')
+new_entries = next((prop.value for prop in default_export.properties if str(prop.header.name) == 'AdditionalDinoEntries'), None)
+if not new_entries:
+    print('-not found-')
+else:
+    for entry in new_entries.values:
+        print(f'    {str(entry.value.value.outer_index.value.name)}')
+
+print('\nMod Remap_NPC:')
+remap_entries = next((prop.value for prop in default_export.properties if str(prop.header.name) == 'Remap_NPC'), None)
+pprint(remap_entries)
