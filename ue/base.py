@@ -127,6 +127,10 @@ class UEBase(object):
                 p.pretty(getattr(self, self.skip_level_field))
                 return
 
+            if self.main_field:
+                p.pretty(getattr(self, self.main_field))
+                return
+
             fields = self.display_fields or self.field_order
             with p.group(4, self.__class__.__name__ + '(', ')'):
                 if len(fields) > 1:

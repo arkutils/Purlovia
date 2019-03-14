@@ -81,7 +81,7 @@ if not new_entries:
     print('-not found-')
 else:
     for entry in new_entries.values:
-        print(f'    {str(entry.value.value.outer_index.value.name)}')
+        print(f'    {str(entry.value.value.namespace.value.name)}')
 
 print('\nMod remapped NPCs:')
 remap_entries = next((prop.value for prop in default_export.properties if str(prop.header.name) == 'Remap_NPC'), None)
@@ -89,8 +89,8 @@ if not remap_entries:
     print('-not found-')
 else:
     for entry in remap_entries.values:
-        fromPkg = str(entry.values[0].value.value.value.outer_index.value.name)
-        toPkg = str(entry.values[1].value.value.value.outer_index.value.name)
+        fromPkg = str(entry.values[0].value.value.value.namespace.value.name)
+        toPkg = str(entry.values[1].value.value.value.namespace.value.name)
         print(f'  {fromPkg} -> {toPkg}')
 
 print('\nMod spawner species references (unfiltered):')
@@ -101,6 +101,6 @@ if not remap_spawners:
 else:
     species = list(
         set(
-            sum(([str(toClass.value.value.outer_index.value.name) for toClass in spawner.values[1].value.values]
+            sum(([str(toClass.value.value.namespace.value.name) for toClass in spawner.values[1].value.values]
                  for spawner in remap_spawners.values), [])))
     pprint(species)

@@ -132,13 +132,11 @@ class UAsset(UEBase):
 
 
 class ImportTableItem(UEBase):
-    string_format = '{outer_index}::{name} ({package}::{klass})'
-
     def _deserialise(self):
-        self._newField('package', NameIndex(self))
-        self._newField('klass', NameIndex(self))
-        self._newField('outer_index', ObjectIndex(self))
-        self._newField('name', NameIndex(self))
+        self._newField('package', NameIndex(self))  # item type/class namespace
+        self._newField('klass', NameIndex(self))  # item type/class
+        self._newField('namespace', ObjectIndex(self))  # item namespace
+        self._newField('name', NameIndex(self))  # item name
 
         # References to this item
         self.users = set()
@@ -150,21 +148,32 @@ class ImportTableItem(UEBase):
         if cycle:
             p.text('Import(<cyclic>)')
         else:
-            if self.outer_index.value:
-                p.text(f'Import({self.outer_index.value.name}::{self.name.value} ({self.package.value}::{self.klass.value}))')
+            # item = get_namespaced_name(self.namespace, self.name)
+            parent = get_name(self.klass, 'class')
+            pkg = get_name(self.namespace)
+            if pkg:
+                p.text(f'Import({self.name} ({parent}) from {pkg})')
             else:
-                p.text(f'Import({self.name.value} ({self.package.value}::{self.klass.value}))')
+                p.text(f'Import({self.name} ({parent})')
+
+    def __str__(self):
+        parent = get_name(self.klass, 'class')
+        pkg = get_name(self.namespace)
+        if pkg:
+            return f'{self.name} ({parent}) from {pkg}'
+        else:
+            return f'{self.name} ({parent})'
 
 
 class ExportTableItem(UEBase):
     string_format = '{name} ({klass}) [{super}]'
-    display_fields = ('name', 'klass', 'super', 'outer_index')
+    display_fields = ('name', 'namespace', 'klass', 'super')
 
     def _deserialise(self):
-        self._newField('klass', ObjectIndex(self))
-        self._newField('super', ObjectIndex(self))
-        self._newField('outer_index', ObjectIndex(self))
-        self._newField('name', NameIndex(self))
+        self._newField('klass', ObjectIndex(self))  # item type/class
+        self._newField('super', ObjectIndex(self))  # item type/class namespace
+        self._newField('namespace', ObjectIndex(self))  # item namespace
+        self._newField('name', NameIndex(self))  # item name
         self._newField('object_flags', self.stream.readUInt32())
         self._newField('serial_size', self.stream.readUInt32())
         self._newField('serial_offset', self.stream.readUInt32())
@@ -189,3 +198,41 @@ class ExportTableItem(UEBase):
         stream = MemoryStream(self.stream, self.serial_offset, self.serial_size)
         self._newField('properties', PropertyTable(self, stream))
         self.properties.link()
+
+    def __str__(self):
+        parent = get_name(self.super)
+        cls = get_name(self.klass, 'class')
+        pkg = get_name(self.namespace)
+
+        result = str(self.name)
+        if cls:
+            result += f' [{cls}]'
+        if parent:
+            result += f' ({parent})'
+        if pkg:
+            result += ' from ' + pkg
+
+        return result
+
+
+def get_namespaced_name(ns, name):
+    ns = get_name(ns, None)
+    name = get_name(name, '<unknown>')
+    if ns:
+        return f'{ns}::{name}'
+    else:
+        return name
+
+
+def get_name(obj, fallback=None):
+    if obj is None:
+        return fallback
+    elif obj.__class__.__name__ in ('NameIndex', 'StringProperty'):
+        value = str(obj)
+        return fallback if value == 'None' else value
+    elif obj.__class__.__name__ in ('ObjectIndex', ):
+        return get_name(obj.value, fallback)
+    elif obj.__class__.__name__ in ('ImportTableItem', 'ExportTableItem'):
+        return get_name(obj.name, fallback)
+    else:
+        return fallback
