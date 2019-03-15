@@ -10,6 +10,7 @@ rope = "*"
 [packages]
 pytest = "*"
 jupyter = "*"
+pygments = "*"
 
 [requires]
 python_version = "3.7"
