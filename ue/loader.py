@@ -32,6 +32,8 @@ class AssetLoader:
         if name.lower().startswith('content'):
             name = 'Game' + name[7:]
 
+        name = '/' + name
+
         return name
 
     def wipe_cache(self):
@@ -40,11 +42,10 @@ class AssetLoader:
     def convert_asset_name_to_path(self, name: str):
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
-        parts = name.split('/')
+        parts = name.strip('/').split('/')
 
         # Convert mod names to numbers
         if len(parts) > 2 and parts[1].lower() == 'mods' and not parts[2].isnumeric():
-            print(f'Mod name "{parts[2]}" -> number {self.mods_names_to_numbers[parts[2]]}')
             parts[2] = self.mods_names_to_numbers[parts[2]]
 
         # Game is replaced with Content
@@ -53,6 +54,19 @@ class AssetLoader:
 
         fullname = os.path.join(self.asset_path, *parts) + '.uasset'
         return fullname
+
+    def get_mod_name(self, assetname):
+        assert assetname is not None
+        assetname = self.clean_asset_name(assetname)
+        parts = assetname.strip('/').split('/')
+        if len(parts) < 3:
+            return None
+        if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
+            return None
+        mod = parts[2]
+        if mod.isnumeric():
+            mod = self.mods_numbers_to_names[mod]
+        return mod
 
     def _set_asset_path(self, path):
         self.asset_path = path
@@ -83,10 +97,12 @@ class AssetLoader:
         mem = self._load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(stream)
+        asset.loader = self
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
         asset.deserialise()
         asset.link()
+        asset.default_export = asset.findDefaultExport()
         self.cache[assetname] = asset
         return asset
 

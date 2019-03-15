@@ -111,7 +111,7 @@ def fill_property_grid():
     for i, assetname in enumerate(assetlist):
         smallname = assetname.replace('DinoCharacterStatusComponent', 'DCSC').replace('Character', 'Chr').replace('_BP', '')
         tree.heading(i + 2, text=smallname)
-        tree.column(i + 2, width=60, stretch=1, anchor='w')
+        tree.column(i + 2, width=60, stretch=1, anchor='c')
 
     odd = False
     for propname, propvalues in sorted(propertyvalues.items(), key=lambda p: p[0]):

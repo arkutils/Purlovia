@@ -144,6 +144,7 @@ class FloatProperty(UEBase):
         inexact = abs(value - rounded) >= sys.float_info.epsilon
         text = str(rounded)
         self._newField('rounded', text)
+        self._newField('rounded_value', rounded)
         if inexact:
             text += ' (inexact)'
         self._newField('textual', text)
@@ -365,6 +366,7 @@ class ArrayProperty(UEBase):
         self._newField('count', self.stream.readUInt32())
 
         if self.count <= 0:
+            self._newField('values', [])
             return
 
         propertyType = None

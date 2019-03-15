@@ -21,51 +21,51 @@ class MemoryStream(object):
     def __len__(self):
         return self.size
 
-    def readInt8(self):
+    def readInt8(self) -> int:
         return self._read('b')
 
-    def readUInt8(self):
+    def readUInt8(self) -> int:
         return self._read('B')
 
-    def readBool8(self):
+    def readBool8(self) -> bool:
         return not not self._read('B')
 
-    def readBool32(self):
+    def readBool32(self) -> bool:
         return not not self._read('I')
 
-    def readUInt32(self):
+    def readUInt32(self) -> int:
         return self._read('I')
 
-    def readInt32(self):
+    def readInt32(self) -> int:
         return self._read('i')
 
-    def readUInt64(self):
+    def readUInt64(self) -> int:
         return self._read('Q')
 
-    def readInt64(self):
+    def readInt64(self) -> int:
         return self._read('q')
 
-    def readFloat(self):
+    def readFloat(self) -> float:
         return self._read('f')
 
-    def readBytes(self, count):
+    def readBytes(self, count: int) -> bytes:
         if self.offset + count > self.end:
             raise EOFError("End of stream")
         raw_bytes = bytes(self.mem[self.offset:self.offset + count])
         self.offset += count
         return raw_bytes
 
-    def readTerminatedString(self, size, encoding='utf8'):
+    def readTerminatedString(self, size: int, encoding='utf8'):
         raw_bytes = self.readBytes(size)
         value = bytes(raw_bytes[:-1]).decode(encoding)
         return value
 
-    def readTerminatedWideString(self, size):
+    def readTerminatedWideString(self, size: int):
         raw_bytes = self.readBytes(size * 2)
         value = bytes(raw_bytes[:-2]).decode('utf-16-le')
         return value
 
-    def _read(self, fmt, count=None):
+    def _read(self, fmt, count: int = None):
         size = struct.calcsize(fmt)
         if self.offset + size > self.end:
             raise EOFError("End of stream at offset " + str(self.offset))

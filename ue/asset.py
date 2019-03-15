@@ -1,5 +1,6 @@
 from .stream import MemoryStream
 from .base import UEBase
+from .utils import get_clean_name, get_clean_namespaced_name
 from .coretypes import *
 from .properties import PropertyTable, StringProperty, Guid
 
@@ -148,17 +149,16 @@ class ImportTableItem(UEBase):
         if cycle:
             p.text('Import(<cyclic>)')
         else:
-            # item = get_namespaced_name(self.namespace, self.name)
-            parent = get_name(self.klass, 'class')
-            pkg = get_name(self.namespace)
+            parent = get_clean_name(self.klass, 'class')
+            pkg = get_clean_name(self.namespace)
             if pkg:
                 p.text(f'Import({self.name} ({parent}) from {pkg})')
             else:
                 p.text(f'Import({self.name} ({parent})')
 
     def __str__(self):
-        parent = get_name(self.klass, 'class')
-        pkg = get_name(self.namespace)
+        parent = get_clean_name(self.klass, 'class')
+        pkg = get_clean_name(self.namespace)
         if pkg:
             return f'{self.name} ({parent}) from {pkg}'
         else:
@@ -200,9 +200,9 @@ class ExportTableItem(UEBase):
         self.properties.link()
 
     def __str__(self):
-        parent = get_name(self.super)
-        cls = get_name(self.klass, 'class')
-        pkg = get_name(self.namespace)
+        parent = get_clean_name(self.super)
+        cls = get_clean_name(self.klass, 'class')
+        pkg = get_clean_name(self.namespace)
 
         result = str(self.name)
         if cls:
@@ -213,26 +213,3 @@ class ExportTableItem(UEBase):
             result += ' from ' + pkg
 
         return result
-
-
-def get_namespaced_name(ns, name):
-    ns = get_name(ns, None)
-    name = get_name(name, '<unknown>')
-    if ns:
-        return f'{ns}::{name}'
-    else:
-        return name
-
-
-def get_name(obj, fallback=None):
-    if obj is None:
-        return fallback
-    elif obj.__class__.__name__ in ('NameIndex', 'StringProperty'):
-        value = str(obj)
-        return fallback if value == 'None' else value
-    elif obj.__class__.__name__ in ('ObjectIndex', ):
-        return get_name(obj.value, fallback)
-    elif obj.__class__.__name__ in ('ImportTableItem', 'ExportTableItem'):
-        return get_name(obj.name, fallback)
-    else:
-        return fallback

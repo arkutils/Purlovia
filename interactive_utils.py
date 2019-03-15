@@ -39,3 +39,10 @@ def configure_ipython_width():
 
 configure_ipython_width()
 del configure_ipython_width
+
+
+def printjson(obj):
+    import pygments, json
+    formatted = obj if isinstance(obj, str) else json.dumps(obj, indent=4)
+    out = pygments.highlight(formatted, pygments.lexers.JsonLexer(), pygments.formatters.TerminalFormatter())
+    print(out)
