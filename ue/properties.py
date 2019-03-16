@@ -261,6 +261,7 @@ NAMES_THAT_ARE_STRUCTS = (
     'Color',
     'ColorSetDefinition',
     'DecalData',
+    'HUDElement',
     'LevelExperienceRamp',
     'LinearColor',
     'NavAgentProperties',

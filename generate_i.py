@@ -20,33 +20,37 @@ from ark.export_asb_values import values_for_species
 loader = AssetLoader()
 
 #%% Gather properties from a mod
+# # Discover all species from the given mod, and convert/output them all
+# mod_name = 'ClassicFlyers'
+# # mod_name = 'SSFlyers' # doesn't work yet
+
+# # TODO: We need to discover these details from mod.info and modmeta.info as they vary in format
+# mod_number = loader.mods_names_to_numbers[mod_name]
+# mod_top_level = f'/Game/Mods/{mod_number}/PrimalGameData_BP_{mod_name}'  # not constant!
+# print(f'\nLoading {mod_name} ({mod_number}): {mod_top_level}\n')
+# asset = loader[mod_top_level]
+# species_data = ark.mod.load_all_species(asset)
+
+#%% Convert/output just a single core species for comparison purposes
 if 'mod_name' in vars(): del mod_name
+load_species = (
+    '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
+    '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
+    '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
 
-if True:
-    # Attempt to discover all species from the given mod, and convert/output them all
-    mod_name = 'ClassicFlyers'
-    # mod_name = 'SSFlyers' # doesn't work yet
-
-    # TODO: We need to discover these details from mod.info and modmeta.info as they vary in format
-    mod_number = loader.mods_names_to_numbers[mod_name]
-    mod_top_level = f'/Game/Mods/{mod_number}/PrimalGameData_BP_{mod_name}'  # not constant!
-
-    print(f'\nLoading {mod_name} ({mod_number}): {mod_top_level}\n')
-    asset = loader[mod_top_level]
-    species_data = ark.mod.load_all_species(asset)
-else:
-    # Convert/output just a single core species for comparison purposes
-    core_creature = '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP'
-    print(f'\nLoading single character: {core_creature}\n')
-    asset = loader[core_creature]
+    # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
+)
+print(f'\nLoading specific species...\n')
+species_data = []
+for pkgname in load_species:
+    asset = loader[pkgname]
     props = ark.properties.gather_properties(asset)
-    species_data = [(asset, props)]
+    species_data.append((asset, props))
 
-#%% Show what we got
+#%% Show which species we're processing
 print(f'\nFound species:')
-pprint([v['DescriptiveName'][0][-1] for a, v in species_data])
-
-# pprint([(a.assetname, v['DescriptiveName'][0][-1], dict(v['MaxStatusValues'])) for a, v in species_data])
+for a, v in species_data:
+    print(f'{str(v["DescriptiveName"][0][-1]):>20}: {a.assetname}')
 
 #%% Translate properties for export
 values = dict()
@@ -57,7 +61,6 @@ for asset, props in species_data:
     species_values = values_for_species(asset, props)
     values['species'].append(species_values)
 
-# printjson(values)
 if 'mod_name' in vars():
     import os.path
     json_output = json.dumps(values)
@@ -66,4 +69,5 @@ if 'mod_name' in vars():
     with open(filename, 'w') as f:
         f.write(json_output)
 else:
+    # pprint(values)
     printjson(values)

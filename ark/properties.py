@@ -32,10 +32,14 @@ def gather_properties(asset: UAsset, props=None):
 
 
 def clean_value(value):
-    if value is None or isinstance(value, (int, float, str, bool)):
+    if value is None or isinstance(value, (int, str, bool)):
+        return value
+    if isinstance(value, float) and value == int(value):
+        return int(value)
+    if isinstance(value, float):
         return value
     if value.__class__.__name__ == 'FloatProperty':
-        return value.rounded_value
+        return clean_value(value.rounded_value)
     if value.__class__.__name__ in ('StringProperty', 'NameIndex'):
         return get_clean_name(value)
     if value.__class__.__name__ in ('ByteProperty', 'IntProperty'):
@@ -47,4 +51,6 @@ def stat_value(props, name, index, fallback):
     values = props[name][index]
     if values:
         return clean_value(values[-1])
-    return fallback
+    if isinstance(fallback, (list, tuple)):
+        fallback = fallback[index]
+    return clean_value(fallback)
