@@ -41,15 +41,12 @@ load_species = (
     '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
     '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
     '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
-
     '/Game/Aberration/Dinos/Crab/Crab_Character_BP',
     '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
     '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
-
     '/Game/ScorchedEarth/Dinos/Jerboa/Jerboa_Character_BP',
     '/Game/ScorchedEarth/Dinos/Phoenix/Phoenix_Character_BP',
     '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
-
     '/Game/Extinction/Dinos/GasBag/GasBags_Character_BP',
     '/Game/Extinction/Dinos/IceJumper/IceJumper_Character_BP',
     '/Game/Extinction/Dinos/Owl/Owl_Character_BP',
