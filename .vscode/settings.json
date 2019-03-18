@@ -10,5 +10,6 @@
     "python.unitTest.promptToConfigure": false,
     "[python]": {
         "editor.formatOnSave": true
-    }
+    },
+    "python.jediEnabled": false
 }
