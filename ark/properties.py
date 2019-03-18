@@ -42,7 +42,7 @@ def clean_value(value):
         return clean_value(value.rounded_value)
     if value.__class__.__name__ in ('StringProperty', 'NameIndex'):
         return get_clean_name(value)
-    if value.__class__.__name__ in ('ByteProperty', 'IntProperty'):
+    if value.__class__.__name__ in ('ByteProperty', 'IntProperty', 'BoolProperty'):
         return value.value
     raise ValueError("Don't know how to handle a " + value.__class__.__name__)
 

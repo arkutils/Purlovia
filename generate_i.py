@@ -37,6 +37,11 @@ load_species = (
     '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
     '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
     '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
+    '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant',
+    '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
+    '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
+    '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
+    '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
 
     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 )
