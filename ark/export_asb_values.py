@@ -25,14 +25,20 @@ from ark.properties import stat_value
 
 # TBHM  TamedBaseHealthMultiplier
 
-BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
-IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
+# Tuples are immutable, thanks. :unamused:
+BASE_VALUES = [100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0]
+IW_VALUES = [0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+IMPRINT_VALUES = [0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0]
 
 remove_default_values = True  # TODO: probably set to False for production runs
 
 
 def values_for_species(asset: UAsset, props):
+    # Not pretty, but works. Maybe work in a better solution?
+    if props['TheMaxTorporIncreasePerBaseLevel'][0]:
+        IW_VALUES[2] = props['TheMaxTorporIncreasePerBaseLevel'][0][0]
+    else:
+        IW_VALUES[2] = 0.06
     name = stat_value(props, 'DescriptiveName', 0, None)
     bp = asset.assetname + '.' + asset.assetname.split('/')[-1]  # nasty
 
@@ -55,6 +61,7 @@ def values_for_species(asset: UAsset, props):
     doesntUseOxygen = (stat_value(props, 'bCanSuffocate', 0, True) == False)
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1.0)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1.0) * ETBHM
+    
     if TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
     if noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
