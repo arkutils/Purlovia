@@ -25,20 +25,18 @@ from ark.properties import stat_value
 
 # TBHM  TamedBaseHealthMultiplier
 
-# Tuples are immutable, thanks. :unamused:
-BASE_VALUES = [100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0]
-IW_VALUES = [0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-IMPRINT_VALUES = [0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0]
+BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
+IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
 remove_default_values = True  # TODO: probably set to False for production runs
 
 
 def values_for_species(asset: UAsset, props):
-    # Not pretty, but works. Maybe work in a better solution?
-    if props['TheMaxTorporIncreasePerBaseLevel'][0]:
-        IW_VALUES[2] = props['TheMaxTorporIncreasePerBaseLevel'][0][0]
-    else:
-        IW_VALUES[2] = 0.06
+    # Create a temporary set of Iw defaults, overriding torpor with TheMaxTorporIncreasePerBaseLevel or 0.06
+    iw_values = list(IW_VALUES)
+    iw_values[2] = stat_value(props, 'TheMaxTorporIncreasePerBaseLevel', 0, 0.06)
+
     name = stat_value(props, 'DescriptiveName', 0, None)
     bp = asset.assetname + '.' + asset.assetname.split('/')[-1]  # nasty
 
@@ -50,7 +48,7 @@ def values_for_species(asset: UAsset, props):
 
         stat_data = [
             stat_value(props, 'MaxStatusValues', ark_index, BASE_VALUES) + add_one,
-            stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, IW_VALUES),
+            stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, iw_values),
             stat_value(props, 'AmountMaxGainedPerLevelUpValueTamed', ark_index, 0.0) * hp_mult,
             stat_value(props, 'TamingMaxStatAdditions', ark_index, 0.0),
             stat_value(props, 'TamingMaxStatMultipliers', ark_index, 0.0),
@@ -61,7 +59,7 @@ def values_for_species(asset: UAsset, props):
     doesntUseOxygen = (stat_value(props, 'bCanSuffocate', 0, True) == False)
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1.0)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1.0) * ETBHM
-    
+
     if TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
     if noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
