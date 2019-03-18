@@ -26,6 +26,10 @@ from ark.properties import stat_value
 # TBHM  TamedBaseHealthMultiplier
 
 BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
+IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
+
+remove_default_values = True  # TODO: probably set to False for production runs
 
 
 def values_for_species(asset: UAsset, props):
@@ -36,19 +40,21 @@ def values_for_species(asset: UAsset, props):
     species['statsRaw'] = list()
     for asb_index, ark_index in enumerate((0, 1, 3, 4, 7, 8, 9, 2)):
         add_one = 1 if ark_index == 8 or ark_index == 9 else 0
-        # hp_mult = 1
         hp_mult = 1.35 if ark_index == 0 else 1
 
         stat_data = [
             stat_value(props, 'MaxStatusValues', ark_index, BASE_VALUES) + add_one,
-            stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, 0.0),
+            stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, IW_VALUES),
             stat_value(props, 'AmountMaxGainedPerLevelUpValueTamed', ark_index, 0.0) * hp_mult,
             stat_value(props, 'TamingMaxStatAdditions', ark_index, 0.0),
             stat_value(props, 'TamingMaxStatMultipliers', ark_index, 0.0),
         ]
         species['statsRaw'].append(stat_data)
 
-    species['NoImprintingForSpeed'] = not stat_value(props, 'CanLevelUpValue', 9, True)
-    species['TamedBaseHealthMultiplier'] = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1.0)
+    noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
+    ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1.0)
+    TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1.0) * ETBHM
+    if TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
+    if noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
 
     return species
