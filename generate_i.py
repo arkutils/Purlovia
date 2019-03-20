@@ -5,6 +5,7 @@ from interactive_utils import *
 
 import json
 from collections import defaultdict
+from deepdiff import DeepDiff
 
 from ue.base import UEBase
 from ue.asset import UAsset
@@ -53,17 +54,41 @@ load_species = (
 
     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 )
-print(f'\nLoading specific species...\n')
+print(f'\nDecoding specific species...\n')
 species_data = []
 for pkgname in load_species:
     asset = loader[pkgname]
     props = ark.properties.gather_properties(asset)
     species_data.append((asset, props))
 
+#%% Gather expected resutls from original ASB values files
+if hasattr(vars(), 'mod_name'):
+    asb_values_filename = mod_name.lower() + ".json"
+else:
+    asb_values_filename = "values.json"
+expected_values_json = json.load(open(os.path.join('asb_json', asb_values_filename)))
+expected_values = dict()
+expected_values['ver'] = expected_values_json['ver']
+expected_values['species'] = list()
+expected_species_data = dict((species['name'], species) for species in expected_values_json['species'])
+for v in expected_species_data.values():
+    if 'breeding' in v: del v['breeding']
+    if 'colors' in v: del v['colors']
+    if 'taming' in v: del v['taming']
+    if 'immobilizedBy' in v: del v['immobilizedBy']
+    if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
+
 #%% Show which species we're processing
 print(f'\nFound species:')
-for a, v in species_data:
-    print(f'{str(v["DescriptiveName"][0][-1]):>20}: {a.assetname}')
+for i, (a, v) in enumerate(species_data):
+    name = str(v["DescriptiveName"][0][-1])
+    print(f'{i:>3} {name:>20}: {a.assetname}')
+
+    # Record the expected data for this species
+    try:
+        expected_values['species'].append(expected_species_data[name])
+    except:
+        print(f'ASB data not found for species: {name} ({a.assetname})')
 
 #%% Translate properties for export
 values = dict()
@@ -74,6 +99,12 @@ for asset, props in species_data:
     species_values = values_for_species(asset, props)
     values['species'].append(species_values)
 
+#%% Show diff from ASB expected values
+print(f'\nDifferences:')
+diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"})
+pprint(diff)
+
+#%% Write output
 if 'mod_name' in vars():
     import os.path
     json_output = json.dumps(values)
@@ -83,4 +114,5 @@ if 'mod_name' in vars():
         f.write(json_output)
 else:
     # pprint(values)
-    printjson(values)
+    # printjson(values)
+    pass
