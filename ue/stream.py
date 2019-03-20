@@ -48,6 +48,9 @@ class MemoryStream(object):
     def readFloat(self) -> float:
         return self._read('f')
 
+    def readDouble(self) -> float:
+        return self._read('d')
+
     def readBytes(self, count: int) -> bytes:
         if self.offset + count > self.end:
             raise EOFError("End of stream")

@@ -150,6 +150,31 @@ class FloatProperty(UEBase):
         self._newField('textual', text)
 
 
+class DoubleProperty(UEBase):
+    main_field = 'textual'
+    display_fields = ['textual']
+
+    def _deserialise(self, size):
+        # Read once as a float
+        saved_offset = self.stream.offset
+        self._newField('value', self.stream.readDouble())
+
+        # Read again as plain bytes for exact exporting
+        self.stream.offset = saved_offset
+        self._newField('bytes', self.stream.readBytes(8))
+
+        # Make a rounded textual version with (inexact) if required
+        value = self.value
+        rounded = round(value, 8)
+        inexact = abs(value - rounded) >= sys.float_info.epsilon
+        text = str(rounded)
+        self._newField('rounded', text)
+        self._newField('rounded_value', rounded)
+        if inexact:
+            text += ' (inexact)'
+        self._newField('textual', text)
+
+
 class IntProperty(UEBase):
     string_format = '(int) {value}'
     main_field = 'value'
@@ -426,6 +451,7 @@ class ArrayProperty(UEBase):
 
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
+    'DoubleProperty': DoubleProperty,
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
