@@ -20,7 +20,7 @@ from ark.export_asb_values import values_for_species
 
 loader = AssetLoader()
 
-#%% Gather properties from a mod
+#%% CHOOSE ONE: Gather properties from a mod
 # # Discover all species from the given mod, and convert/output them all
 # mod_name = 'ClassicFlyers'
 # # mod_name = 'SSFlyers' # doesn't work yet
@@ -32,29 +32,40 @@ loader = AssetLoader()
 # asset = loader[mod_top_level]
 # species_data = ark.mod.load_all_species(asset)
 
-#%% Convert/output just a single core species for comparison purposes
-if 'mod_name' in vars(): del mod_name
-load_species = (
-    '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
-    '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
-    '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
-    '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant',
-    '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
-    '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
-    '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
-    '/Game/Aberration/Dinos/Crab/Crab_Character_BP',
-    '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
-    '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
-    '/Game/ScorchedEarth/Dinos/Jerboa/Jerboa_Character_BP',
-    '/Game/ScorchedEarth/Dinos/Phoenix/Phoenix_Character_BP',
-    '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
-    '/Game/Extinction/Dinos/GasBag/GasBags_Character_BP',
-    '/Game/Extinction/Dinos/IceJumper/IceJumper_Character_BP',
-    '/Game/Extinction/Dinos/Owl/Owl_Character_BP',
+#%% CHOOSE ONE: Convert/output specific species for comparison purposes
+# if 'mod_name' in vars(): del mod_name
+# load_species = (
+#     '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant',
+#     '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
+#     '/Game/Aberration/Dinos/Crab/Crab_Character_BP',
+#     '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
+#     '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
+#     '/Game/ScorchedEarth/Dinos/Jerboa/Jerboa_Character_BP',
+#     '/Game/ScorchedEarth/Dinos/Phoenix/Phoenix_Character_BP',
+#     '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
+#     '/Game/Extinction/Dinos/GasBag/GasBags_Character_BP',
+#     '/Game/Extinction/Dinos/IceJumper/IceJumper_Character_BP',
+#     '/Game/Extinction/Dinos/Owl/Owl_Character_BP',
 
-    # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
-)
-print(f'\nDecoding specific species...\n')
+#     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
+# )
+# print(f'\nDecoding specific species...\n')
+# species_data = []
+# for pkgname in load_species:
+#     asset = loader[pkgname]
+#     props = ark.properties.gather_properties(asset)
+#     species_data.append((asset, props))
+
+#%% CHOOSE ONE: Gather species list from existing ASB values.json
+if 'mod_name' in vars(): del mod_name
+value_json = json.load(open(os.path.join('asb_json', 'values.json')))
+load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
+print(f'\nDecoding all values.json species...\n')
 species_data = []
 for pkgname in load_species:
     asset = loader[pkgname]
@@ -70,7 +81,7 @@ expected_values_json = json.load(open(os.path.join('asb_json', asb_values_filena
 expected_values = dict()
 expected_values['ver'] = expected_values_json['ver']
 expected_values['species'] = list()
-expected_species_data = dict((species['name'], species) for species in expected_values_json['species'])
+expected_species_data = dict((species['blueprintPath'].split('.')[0], species) for species in expected_values_json['species'])
 for v in expected_species_data.values():
     if 'breeding' in v: del v['breeding']
     if 'colors' in v: del v['colors']
@@ -86,7 +97,7 @@ for i, (a, v) in enumerate(species_data):
 
     # Record the expected data for this species
     try:
-        expected_values['species'].append(expected_species_data[name])
+        expected_values['species'].append(expected_species_data[a.assetname])
     except:
         print(f'ASB data not found for species: {name} ({a.assetname})')
 
