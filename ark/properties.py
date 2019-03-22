@@ -31,7 +31,7 @@ def gather_properties(asset: UAsset, props=None):
     return props
 
 
-def clean_value(value):
+def clean_value(value, fallback=None):
     if value is None or isinstance(value, (int, str, bool)):
         return value
     if isinstance(value, float) and value == int(value):
@@ -44,6 +44,26 @@ def clean_value(value):
         return get_clean_name(value)
     if value.__class__.__name__ in ('ByteProperty', 'IntProperty', 'BoolProperty'):
         return value.value
+    if fallback:
+        return fallback
+    raise ValueError("Don't know how to handle a " + value.__class__.__name__)
+
+
+def clean_value_str(value, fallback=None):
+    if value is None or isinstance(value, (int, str, bool)):
+        return str(value)
+    if isinstance(value, float) and value == int(value):
+        return str(int(value))
+    if isinstance(value, float):
+        return str(value)
+    if value.__class__.__name__ == 'FloatProperty':
+        return clean_value_str(value.rounded_value)
+    if value.__class__.__name__ in ('StringProperty', 'NameIndex'):
+        return get_clean_name(value)
+    if value.__class__.__name__ in ('ByteProperty', 'IntProperty', 'BoolProperty'):
+        return str(value.value)
+    if fallback:
+        return fallback
     raise ValueError("Don't know how to handle a " + value.__class__.__name__)
 
 
@@ -54,3 +74,13 @@ def stat_value(props, name, index, fallback):
     if isinstance(fallback, (list, tuple)):
         fallback = fallback[index]
     return clean_value(fallback)
+
+
+def flatten(props):
+    result = dict((pk, dict((ik, iv[-1]) for ik, iv in pv.items())) for pk, pv in props.items())
+    return result
+
+
+def flatten_to_strings(props):
+    result = dict((pk, dict((ik, clean_value_str(iv[-1], '<snip>')) for ik, iv in pv.items())) for pk, pv in props.items())
+    return result

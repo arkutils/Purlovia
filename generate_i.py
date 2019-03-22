@@ -156,3 +156,16 @@ else:
     # pprint(values)
     # printjson(values)
     pass
+
+
+#%% Example diffing two assets
+def prep_props_for(assetname):
+    asset = loader[assetname]
+    merged_props = ark.properties.gather_properties(asset)
+    simplified = ark.properties.flatten_to_strings(merged_props)
+    return simplified
+
+
+a = prep_props_for('Game/PrimalEarth/Dinos/Raptor/Raptor_Character_BP')
+b = prep_props_for('Game/PrimalEarth/Dinos/Titanosaur/Titanosaur_Character_BP')
+pprint(DeepDiff(a, b))
