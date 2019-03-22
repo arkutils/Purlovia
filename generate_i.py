@@ -90,10 +90,12 @@ for v in expected_species_data.values():
     if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
 
 #%% Show which species we're processing
-print(f'\nFound species:')
+# print(f'\nFound species:')
+species_names = []
 for i, (a, v) in enumerate(species_data):
     name = str(v["DescriptiveName"][0][-1])
-    print(f'{i:>3} {name:>20}: {a.assetname}')
+    species_names.append(name.replace(' ', ''))
+    # print(f'{i:>3} {name:>20}: {a.assetname}')
 
     # Record the expected data for this species
     try:
@@ -111,9 +113,36 @@ for asset, props in species_data:
     values['species'].append(species_values)
 
 #%% Show diff from ASB expected values
+stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
+stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
+
+
+def replace_name(match):
+    return f'{species_names[int(match.group(1))]}'
+
+
+def replace_stat(match):
+    return f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
+
+
+def clean_diff_output(diff):
+    import re
+    speciesRe = re.compile(f"root\['species'\]\[(\d+)\]")
+    statRe = re.compile(f"statsRaw\[(\d+)\]\[(\d+)\]")
+    diff = speciesRe.sub(replace_name, diff)
+    diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
+    diff = statRe.sub(replace_stat, diff)
+    diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
+    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\1 -> \2', diff)
+    return diff
+
+
 print(f'\nDifferences:')
 diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"})
-pprint(diff)
+diff = pretty(diff, max_width=130)
+diff = clean_diff_output(diff)
+print(diff)
+# pprint(diff)
 
 #%% Write output
 if 'mod_name' in vars():
