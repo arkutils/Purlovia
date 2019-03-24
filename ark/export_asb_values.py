@@ -56,7 +56,10 @@ def values_for_species(asset: UAsset, props):
         species['statsRaw'].append(stat_data)
 
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
-    doesntUseOxygen = (stat_value(props, 'bCanSuffocate', 0, True) == False)
+    usesOxyWild = stat_value(props, 'bCanSuffocate', 0, True)
+    usesOxyTamed = stat_value(props, 'bCanSuffocateIfTamed', 0, usesOxyWild)
+    forceOxy = stat_value(props, 'bForceGainOxygen', 0, False)
+    doesntUseOxygen = not (usesOxyTamed or forceOxy)
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1.0)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1.0) * ETBHM
 
