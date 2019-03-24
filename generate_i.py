@@ -127,8 +127,8 @@ def replace_stat(match):
 
 def clean_diff_output(diff):
     import re
-    speciesRe = re.compile(f"root\['species'\]\[(\d+)\]")
-    statRe = re.compile(f"statsRaw\[(\d+)\]\[(\d+)\]")
+    speciesRe = re.compile(r"root\['species'\]\[(\d+)\]")
+    statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
     diff = speciesRe.sub(replace_name, diff)
     diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
     diff = statRe.sub(replace_stat, diff)
@@ -157,15 +157,13 @@ else:
     # printjson(values)
     pass
 
-
 #%% Example diffing two assets
-def prep_props_for(assetname):
-    asset = loader[assetname]
-    merged_props = ark.properties.gather_properties(asset)
-    simplified = ark.properties.flatten_to_strings(merged_props)
-    return simplified
+# def prep_props_for(assetname):
+#     asset = loader[assetname]
+#     merged_props = ark.properties.gather_properties(asset)
+#     simplified = ark.properties.flatten_to_strings(merged_props)
+#     return simplified
 
-
-a = prep_props_for('Game/PrimalEarth/Dinos/Raptor/Raptor_Character_BP')
-b = prep_props_for('Game/PrimalEarth/Dinos/Titanosaur/Titanosaur_Character_BP')
-pprint(DeepDiff(a, b))
+# a = prep_props_for('Game/PrimalEarth/Dinos/Beaver/Beaver_Character_BP')
+# b = prep_props_for('Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP')
+# pprint(DeepDiff(a, b))
