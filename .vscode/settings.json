@@ -11,5 +11,6 @@
     "[python]": {
         "editor.formatOnSave": true
     },
-    "python.jediEnabled": false
+    "python.jediEnabled": false,
+    "python.formatting.provider": "yapf"
 }
