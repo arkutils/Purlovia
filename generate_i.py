@@ -133,7 +133,7 @@ def clean_diff_output(diff):
     diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
     diff = statRe.sub(replace_stat, diff)
     diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
-    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\1 -> \2', diff)
+    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
     return diff
 
 
