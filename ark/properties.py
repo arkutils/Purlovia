@@ -4,7 +4,12 @@ from ue.asset import UAsset
 from ue.utils import get_clean_name
 
 
-def gather_properties(asset: UAsset, props=None):
+def gather_properties(asset: UAsset, props=None, report=False, depth=0):
+    assert asset is not None
+    if report:
+        indent = '  ' * depth
+        print(indent + asset.name)
+
     if props is None:
         props = defaultdict(lambda: defaultdict(lambda: list()))
 
@@ -12,12 +17,12 @@ def gather_properties(asset: UAsset, props=None):
     parentpkgname = asset.findParentPackageForExport(asset.default_export)
     if parentpkgname and not parentpkgname.strip('/').lower().startswith('script'):
         parentpkg = asset.loader[parentpkgname]
-        gather_properties(parentpkg, props)
+        gather_properties(parentpkg, props, report=report, depth=depth + 1)
 
     # Gather content from sub-components first so we can override later
     for subpkgname in asset.findSubComponents():
         subpkg = asset.loader[subpkgname]
-        gather_properties(subpkg, props)
+        gather_properties(subpkg, props, report=report, depth=depth + 1)
 
     if not asset.default_export or not asset.default_export.properties:
         return
