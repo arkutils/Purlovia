@@ -14,7 +14,7 @@ def get_clean_name(obj: UEBase, fallback: str = None) -> str:
     if obj is None:
         return fallback
     elif obj.__class__.__name__ in ('NameIndex', 'StringProperty'):
-        value = str(obj)
+        value = str(obj).strip()
         return fallback if value == 'None' else value
     elif obj.__class__.__name__ in ('ObjectIndex', 'ObjectProperty'):
         return get_clean_name(obj.value, fallback)
