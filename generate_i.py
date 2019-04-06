@@ -18,6 +18,22 @@ import ark.mod
 import ark.properties
 from ark.export_asb_values import values_for_species
 
+replace_name = lambda match: f'{species_names[int(match.group(1))]}'
+replace_stat = lambda match: f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
+
+
+def clean_diff_output(diff):
+    import re
+    speciesRe = re.compile(r"root\['species'\]\[(\d+)\]")
+    statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
+    diff = speciesRe.sub(replace_name, diff)
+    diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
+    diff = statRe.sub(replace_stat, diff)
+    diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
+    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
+    return diff
+
+
 loader = AssetLoader()
 
 #%% CHOOSE ONE: Gather properties from a mod
@@ -32,25 +48,32 @@ loader = AssetLoader()
 # asset = loader[mod_top_level]
 # species_data = ark.mod.load_all_species(asset)
 
-#%% CHOOSE ONE: Convert/output specific species for comparison purposes
+# %% CHOOSE ONE: Convert/output specific species for comparison purposes
 # if 'mod_name' in vars(): del mod_name
 # load_species = (
-#     '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
-#     '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
-#     '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
-#     '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant',
-#     '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
-#     '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
-#     '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
-#     '/Game/Aberration/Dinos/Crab/Crab_Character_BP',
-#     '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
-#     '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
-#     '/Game/ScorchedEarth/Dinos/Jerboa/Jerboa_Character_BP',
-#     '/Game/ScorchedEarth/Dinos/Phoenix/Phoenix_Character_BP',
-#     '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
-#     '/Game/Extinction/Dinos/GasBag/GasBags_Character_BP',
-#     '/Game/Extinction/Dinos/IceJumper/IceJumper_Character_BP',
-#     '/Game/Extinction/Dinos/Owl/Owl_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant',
+#     # '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP',
+#     # '/Game/Aberration/Dinos/Crab/Crab_Character_BP',
+#     # '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
+#     # '/Game/Aberration/Dinos/MoleRat/MoleRat_Character_BP',
+#     # '/Game/ScorchedEarth/Dinos/Jerboa/Jerboa_Character_BP',
+#     # '/Game/ScorchedEarth/Dinos/Phoenix/Phoenix_Character_BP',
+#     # '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
+#     # '/Game/Extinction/Dinos/GasBag/GasBags_Character_BP',
+#     # '/Game/Extinction/Dinos/IceJumper/IceJumper_Character_BP',
+#     # '/Game/Extinction/Dinos/Owl/Owl_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Quetzalcoatlus/BionicQuetz_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Thylacoleo/Thylacoleo_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Quetzalcoatlus/Quetz_Character_BP',
+#     # '/Game/PrimalEarth/Dinos/Griffin/Griffin_Character_BP',
+#     '/Game/PrimalEarth/Dinos/Compy/Compy_Character_BP',
+#     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP',
+#     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP_Aberrant',
 
 #     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 # )
@@ -95,7 +118,7 @@ species_names = []
 for i, (a, v) in enumerate(species_data):
     name = str(v["DescriptiveName"][0][-1])
     species_names.append(name.replace(' ', ''))
-    # print(f'{i:>3} {name:>20}: {a.assetname}')
+    print(f'{i:>3} {name:>20}: {a.assetname}')
 
     # Record the expected data for this species
     try:
@@ -116,29 +139,8 @@ for asset, props in species_data:
 stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
 stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
 
-
-def replace_name(match):
-    return f'{species_names[int(match.group(1))]}'
-
-
-def replace_stat(match):
-    return f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
-
-
-def clean_diff_output(diff):
-    import re
-    speciesRe = re.compile(r"root\['species'\]\[(\d+)\]")
-    statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
-    diff = speciesRe.sub(replace_name, diff)
-    diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
-    diff = statRe.sub(replace_stat, diff)
-    diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
-    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
-    return diff
-
-
 print(f'\nDifferences:')
-diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"})
+diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, significant_digits=8, exclude_paths={"root['ver']"})
 diff = pretty(diff, max_width=130)
 diff = clean_diff_output(diff)
 print(diff)
