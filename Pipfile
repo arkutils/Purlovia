@@ -12,6 +12,7 @@ pytest = "*"
 jupyter = "*"
 pygments = "*"
 deepdiff = "*"
+deprecated = "*"
 
 [requires]
 python_version = "3.7"

@@ -4,6 +4,8 @@ from configparser import ConfigParser
 from .stream import MemoryStream
 from .asset import UAsset
 
+from ark.asset import findComponentExports
+
 __all__ = ('AssetLoader', )
 
 
@@ -102,7 +104,11 @@ class AssetLoader:
         asset.name = assetname.split('/')[-1]
         asset.deserialise()
         asset.link()
-        asset.default_export = asset.findDefaultExport()
+        exports = list(findComponentExports(asset))
+        if len(exports) > 1:
+            import warnings
+            warnings.warn(f'Found more than one component in {assetname}!')
+        asset.default_export = exports[0]
         self.cache[assetname] = asset
         return asset
 

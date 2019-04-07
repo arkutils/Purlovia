@@ -1,26 +1,29 @@
 from ue.loader import AssetLoader
 from ue.asset import UAsset
 from ue.utils import *
+from ark.asset import findComponentExports
 
 from .properties import gather_properties
 
 
 def get_mod_remapped_spawners(asset: UAsset):
-    remap_spawners = get_property(asset.default_export, 'GlobalNPCRandomSpawnClassWeights')
-    if not remap_spawners: return
-    for entry in remap_spawners.values:
-        fromPkg = get_clean_name(entry.values[0].value.value.value.namespace)
-        toPkgs = [get_clean_name(toPkg.value.value.namespace) for toPkg in entry.values[1].value.values]
-        yield (fromPkg, toPkgs)
+    for export in findComponentExports(asset):
+        remap_spawners = get_property(export, 'GlobalNPCRandomSpawnClassWeights')
+        if not remap_spawners: return
+        for entry in remap_spawners.values:
+            fromPkg = get_clean_name(entry.values[0].value.value.value.namespace)
+            toPkgs = [get_clean_name(toPkg.value.value.namespace) for toPkg in entry.values[1].value.values]
+            yield (fromPkg, toPkgs)
 
 
 def get_mod_remapped_npcs(asset: UAsset):
-    remap_entries = get_property(asset.default_export, 'Remap_NPC')
-    if not remap_entries: return
-    for entry in remap_entries.values:
-        fromPkg = str(entry.values[0].value.value.value.namespace.value.name)
-        toPkg = str(entry.values[1].value.value.value.namespace.value.name)
-        yield (fromPkg, toPkg)
+    for export in findComponentExports(asset):
+        remap_entries = get_property(export, 'Remap_NPC')
+        if not remap_entries: return
+        for entry in remap_entries.values:
+            fromPkg = str(entry.values[0].value.value.value.namespace.value.name)
+            toPkg = str(entry.values[1].value.value.value.namespace.value.name)
+            yield (fromPkg, toPkg)
 
 
 def get_species_from_mod(asset: UAsset, loader: AssetLoader = None) -> list:

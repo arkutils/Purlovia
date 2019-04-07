@@ -2,6 +2,14 @@ from collections import defaultdict
 
 from ue.asset import UAsset
 from ue.utils import get_clean_name
+import ark.asset
+
+
+def extract_properties_from_export(export, props):
+    for prop in export.properties.values:
+        propname = get_clean_name(prop.header.name)
+        propindex = prop.header.index or 0
+        props[propname][propindex].append(prop.value)
 
 
 def gather_properties(asset: UAsset, props=None, report=False, depth=0):
@@ -13,25 +21,19 @@ def gather_properties(asset: UAsset, props=None, report=False, depth=0):
     if props is None:
         props = defaultdict(lambda: defaultdict(lambda: list()))
 
-    # Gather content from parent class
-    parentpkgname = asset.findParentPackageForExport(asset.default_export)
-    if parentpkgname and not parentpkgname.strip('/').lower().startswith('script'):
-        parentpkg = asset.loader[parentpkgname]
-        gather_properties(parentpkg, props, report=report, depth=depth + 1)
+    # Gather content from all dependencies first : component parents, sub-component parents
+    for parentpkgname in ark.asset.findDependencies(asset):
+        if parentpkgname and not parentpkgname.strip('/').lower().startswith('script'):
+            parentpkg = asset.loader[parentpkgname]
+            gather_properties(parentpkg, props, report=report, depth=depth + 1)
 
-    # Gather content from sub-components first so we can override later
-    for subpkgname in asset.findSubComponents():
-        subpkg = asset.loader[subpkgname]
-        gather_properties(subpkg, props, report=report, depth=depth + 1)
+    # Gather content from components
+    for component in ark.asset.findComponentExports(asset):
+        extract_properties_from_export(component, props)
 
-    if not asset.default_export or not asset.default_export.properties:
-        return
-
-    # Insert another entry into props for each property here
-    for prop in asset.default_export.properties.values:
-        propname = get_clean_name(prop.header.name)
-        propindex = prop.header.index or 0
-        props[propname][propindex].append(prop.value)
+    # Gather conents from sub-components
+    for subcomponent in ark.asset.findSubComponents(asset):
+        extract_properties_from_export(subcomponent, props)
 
     return props
 

@@ -1,3 +1,5 @@
+from deprecated import deprecated
+
 from .stream import MemoryStream
 from .base import UEBase
 from .utils import get_clean_name, get_clean_namespaced_name
@@ -88,6 +90,7 @@ class UAsset(UEBase):
 
         return None
 
+    @deprecated(reason="Use methods in ark.asset instead")
     def findDefaultExport(self, part='Default__'):
         indexes = (i for i, export in enumerate(self.exports) if str(export.name).startswith(part))
         index = next(indexes, None)
@@ -96,6 +99,7 @@ class UAsset(UEBase):
         export = self.exports[index]
         return export
 
+    @deprecated(reason="Use methods in ark.asset instead")
     def findParentPackageForExport(self, de):
         dec = de.klass.value
         decs = dec.super.value or dec.klass.value
@@ -103,6 +107,7 @@ class UAsset(UEBase):
         decsip = str(decsi.package)
         return decsip
 
+    @deprecated(reason="Use methods in ark.asset instead")
     def findSubComponents(self, exportType='SCS_Node', pkgPrefix='/Game'):
         for i, export in enumerate(self.exports):
             if str(export.name) != exportType: continue

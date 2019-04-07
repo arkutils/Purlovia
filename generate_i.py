@@ -74,6 +74,7 @@ loader = AssetLoader()
 #     '/Game/PrimalEarth/Dinos/Compy/Compy_Character_BP',
 #     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP',
 #     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP_Aberrant',
+#     '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP',
 
 #     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 # )

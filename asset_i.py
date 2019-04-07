@@ -9,6 +9,7 @@ from ue.stream import MemoryStream
 from ue.utils import *
 from ue.properties import *
 import ark.mod
+import ark.asset
 
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)
 # PlayerLevelEngramPointsSP, PlayerLevelEngramPoints,
@@ -34,6 +35,7 @@ import ark.mod
 # assetname = '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP'
+assetname = '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP'
 
 # assetname = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack'
@@ -47,7 +49,7 @@ import ark.mod
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
 # assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
-assetname = '/Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
+# assetname = '/Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
 
 loader = AssetLoader()
 # filename = loader.convert_asset_name_to_path(assetname)
@@ -71,14 +73,16 @@ print('Decoding complete.')
 #%% Try to discover inheritance
 print('\nParent package:')
 if asset.default_export:
-    parent_pkg = asset.findParentPackageForExport(asset.default_export)
+    parent_pkg = ark.asset.findParentPackage(asset.default_export)
     print(parent_pkg)
 else:
     print('-not found-')
 
 #%% Try to discover sub-components
-print('\nSub-component packages:')
-pprint(list(asset.findSubComponents()))
+print('\nComponents:')
+pprint(list(export.name for export in ark.asset.findComponentExports(asset)))
+print('\nSub-components:')
+pprint(list(export.name for export in ark.asset.findSubComponents(asset)))
 
 #%% Mod info
 print('\nMod adds species:')
