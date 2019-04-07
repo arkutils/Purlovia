@@ -65,6 +65,10 @@ def values_for_species(asset: UAsset, props):
             stat_value(props, 'TamingMaxStatAdditions', ark_index, 0.0),
             stat_value(props, 'TamingMaxStatMultipliers', ark_index, 0.0),
         ]
+
+        # Round to 6dp like existing values creator
+        stat_data = [round(value, 6) for value in stat_data]
+
         species['statsRaw'].append(stat_data)
 
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
