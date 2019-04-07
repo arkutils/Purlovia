@@ -7,6 +7,7 @@ from collections import defaultdict
 from ue.base import UEBase
 from ue.loader import AssetLoader
 from ue.properties import Property, FloatProperty, StructProperty
+import ark.asset
 
 root = None
 tree = None
@@ -44,26 +45,23 @@ def get_value_as_string(value):
 
 
 def load_asset(assetname):
+    if not assetname.strip('/').startswith('Game'):
+        return
+
     assetname = loader.clean_asset_name(assetname)
     asset = loader[assetname]
 
-    small_assetname = assetname.split('/')[-1]
+    # Take properties and overrides from each sub-component recursively
+    for component in ark.asset.findSubComponents(asset):
+        componentname = ark.asset.findParentPackage(component.klass.value)
+        record_properties(component.properties, '+' + componentname.split('/')[-1])
+        load_asset(componentname)
 
-    # Look for the default export and record its properties
-    default_export = asset.findDefaultExport()
-    if not default_export: return
-    record_properties(default_export.properties, small_assetname)
-
-    # Look for sub-components and recurse into them
-    components = asset.findSubComponents()
-    for component in components:
-        if component.strip('/').startswith('Game'):
-            load_asset(component)
-
-    # Load the parent asset and recurse into it
-    parent_pkg = asset.findParentPackageForExport(default_export)
-    if parent_pkg and parent_pkg.strip('/').startswith('Game'):
-        load_asset(parent_pkg)
+    # Take properties and overrides from each component recursively
+    for component in ark.asset.findComponentExports(asset):
+        record_properties(component.properties, assetname.split('/')[-1])
+        parentpkg = ark.asset.findParentPackage(component.klass.value)
+        load_asset(parentpkg)
 
 
 def should_filter_out(prop):
@@ -74,6 +72,8 @@ def should_filter_out(prop):
 
 
 def record_properties(properties, assetname):
+    if len(properties) < 1:
+        return
     assetlist.append(assetname)
     for prop in properties:
         if should_filter_out(prop): continue
