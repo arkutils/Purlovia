@@ -141,7 +141,7 @@ stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor
 stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
 
 print(f'\nDifferences:')
-diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, significant_digits=8, exclude_paths={"root['ver']"})
+diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"})
 diff = pretty(diff, max_width=130)
 diff = clean_diff_output(diff)
 print(diff)
