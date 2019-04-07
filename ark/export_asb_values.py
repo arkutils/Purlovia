@@ -34,7 +34,6 @@ NAME_CHANGES = {
 BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
 IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
-CAN_LEVEL_VALUES = (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 EXTRA_MULTS_VALUES = (1.35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 remove_default_values = True  # TODO: probably set to False for production runs
@@ -55,7 +54,7 @@ def values_for_species(asset: UAsset, props):
     species['statsRaw'] = list()
     for asb_index, ark_index in enumerate((0, 1, 3, 4, 7, 8, 9, 2)):
         add_one = 1 if ark_index == 8 or ark_index == 9 else 0
-        zero_mult = stat_value(props, 'CanLevelUpValue', ark_index, CAN_LEVEL_VALUES)
+        zero_mult = stat_value(props, 'CanLevelUpValue', ark_index, 1)
         ETHM = stat_value(props, 'ExtraTamedHealthMultiplier', ark_index, EXTRA_MULTS_VALUES)
 
         stat_data = [
