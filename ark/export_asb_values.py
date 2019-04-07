@@ -25,6 +25,12 @@ from ark.properties import stat_value
 
 # TBHM  TamedBaseHealthMultiplier
 
+NAME_CHANGES = {
+    'Dire Bear': 'Direbear',
+    'Ichthyosaurus': 'Ichthy',
+    'Paraceratherium': 'Paracer',
+}
+
 BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
 IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
@@ -40,6 +46,9 @@ def values_for_species(asset: UAsset, props):
 
     name = stat_value(props, 'DescriptiveName', 0, None)
     bp = asset.assetname + '.' + asset.assetname.split('/')[-1]  # nasty
+
+    # Replace names to match ASB's hardcoding of specific species
+    name = NAME_CHANGES.get(name, name)
 
     species = dict(name=name, blueprintPath=bp)
     species['statsRaw'] = list()
