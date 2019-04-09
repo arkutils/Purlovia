@@ -97,10 +97,11 @@ for pkgname in load_species:
     species_data.append((asset, props))
 
 #%% Gather expected resutls from original ASB values files
-if hasattr(vars(), 'mod_name'):
+if 'mod_name' in vars():
     asb_values_filename = mod_name.lower() + ".json"
 else:
     asb_values_filename = "values.json"
+print(f"\nReading expected data from: {asb_values_filename}")
 expected_values_json = json.load(open(os.path.join('asb_json', asb_values_filename)))
 expected_values = dict()
 expected_values['ver'] = expected_values_json['ver']
@@ -114,7 +115,7 @@ for v in expected_species_data.values():
     if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
 
 #%% Show which species we're processing
-# print(f'\nFound species:')
+print(f'\nFound species:')
 species_names = []
 for i, (a, v) in enumerate(species_data):
     name = str(v["DescriptiveName"][0][-1])
@@ -132,8 +133,10 @@ values = dict()
 values['ver'] = "!*!*! don't know where to get this !*!*!"
 values['species'] = list()
 
+all_props = 'mod_name' in vars()
+
 for asset, props in species_data:
-    species_values = values_for_species(asset, props)
+    species_values = values_for_species(asset, props, all=all_props)
     values['species'].append(species_values)
 
 #%% Show diff from ASB expected values

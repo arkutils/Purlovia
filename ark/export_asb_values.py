@@ -39,7 +39,7 @@ EXTRA_MULTS_VALUES = (1.35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 remove_default_values = True  # TODO: probably set to False for production runs
 
 
-def values_for_species(asset: UAsset, props):
+def values_for_species(asset: UAsset, props, all=False):
     # Create a temporary set of Iw defaults, overriding torpor with TheMaxTorporIncreasePerBaseLevel or 0.06
     iw_values = list(IW_VALUES)
     iw_values[2] = stat_value(props, 'TheMaxTorporIncreasePerBaseLevel', 0, 0.06)
@@ -78,8 +78,8 @@ def values_for_species(asset: UAsset, props):
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
-    if TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
-    if noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
-    if doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
+    if all or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
+    if all or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
+    if all or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
 
     return species
