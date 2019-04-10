@@ -10,7 +10,7 @@ def loader():
 
 def test_clean_asset_name(loader):
     assert loader.clean_asset_name('/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_FlyerRide') == \
-        'Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_FlyerRide'
+        '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_FlyerRide'
 
 
 def test_convert_asset_name_to_path(loader):
