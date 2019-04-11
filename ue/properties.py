@@ -282,13 +282,16 @@ class StructEntry(UEBase):
 
 
 ARK_DEFINED_STRUCTS = (
+    'AttenuationSettings',
     'BodyInstance',
-    'Color',
+    'CollisionResponse',
     'ColorSetDefinition',
     'DecalData',
     'HUDElement',
+    'InputChord',
+    'KAggregateGeom',
     'LevelExperienceRamp',
-    'LinearColor',
+    'MultiUseEntry',
     'NavAgentProperties',
     'PlayerCharacterGenderDefinition',
     'PrimalCharacterStatusStateDefinition',
@@ -297,7 +300,11 @@ ARK_DEFINED_STRUCTS = (
     'PrimalEquipmentDefinition',
     'PrimalItemDefinition',
     'PrimalItemStatDefinition',
+    'ProjectileArc',
+    'SingleAnimationPlayData',
+    'StatusValueModifierDescription',
     'StringAssetReference',
+    'WalkableSlopeOverride',
     'WeightedObjectList',
 )
 
@@ -308,11 +315,9 @@ STRUCTS_TO_IGNORE = (
     'LinearColor',
     'RichCurve',
     'Rotator',
-    'StringAssetReference',
     'Transform',
     'Vector',
     'Vector2D',
-    'WeightedObjectList',
 )
 
 
