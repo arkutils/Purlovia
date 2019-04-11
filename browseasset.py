@@ -150,11 +150,11 @@ def insert_fields_for_node(parentId):
             add_placeholder_node(itemId)
 
 
-def load_asset(assetname):
+def load_asset(assetname, loader):
     assetname = loader.clean_asset_name(assetname)
-    root.title("Asset Browser : " + assetname)
+    # root.title("Asset Browser : " + assetname)
     asset = loader[assetname]
-    add_asset_to_root(asset)
+    # add_asset_to_root(asset)
 
 
 if __name__ == '__main__':
@@ -171,5 +171,5 @@ if __name__ == '__main__':
             filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
             initialdir=loader.asset_path)
 
-    load_asset(assetname)
+    load_asset(assetname, loader)
     root.mainloop()
