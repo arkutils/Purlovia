@@ -281,7 +281,7 @@ class StructEntry(UEBase):
         # print(f'      ', str(self.value))
 
 
-NAMES_THAT_ARE_STRUCTS = (
+ARK_DEFINED_STRUCTS = (
     'BodyInstance',
     'Color',
     'ColorSetDefinition',
@@ -297,6 +297,15 @@ NAMES_THAT_ARE_STRUCTS = (
     'PrimalEquipmentDefinition',
     'PrimalItemDefinition',
     'PrimalItemStatDefinition',
+    'StringAssetReference',
+    'WeightedObjectList',
+)
+
+STRUCTS_TO_IGNORE = (
+    'Anchors',
+    'Color',
+    'DinoSetup',
+    'LinearColor',
     'RichCurve',
     'Rotator',
     'StringAssetReference',
@@ -326,7 +335,10 @@ class StructProperty(UEBase):
 
             type_or_name.link()
 
-            if str(type_or_name) in NAMES_THAT_ARE_STRUCTS:
+            if str(type_or_name) in ARK_DEFINED_STRUCTS:
+                self.stream.offset += 8
+
+            if str(type_or_name) in STRUCTS_TO_IGNORE:
                 self.stream.offset = self.start_offset + 8 + size
                 return
 
