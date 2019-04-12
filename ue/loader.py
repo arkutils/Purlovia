@@ -26,7 +26,6 @@ class AssetLoader:
         # Remove asset_path, if present
         if name.lower().startswith(self.normalised_asset_path):
             name = name[len(self.normalised_asset_path):]
-            print('Stripped basepath:', name)
 
         name = name.strip('/')
 

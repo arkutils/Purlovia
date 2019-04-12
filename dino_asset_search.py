@@ -1,28 +1,22 @@
-import re
 import os
 
-from browseasset import *
+from ue.loader import AssetLoader
 
-PATH = r"G:\Programs\Steam\steamapps\common\ARK\ShooterGame\Content"
 
-if __name__ == '__main__':
-    global loader
+def main():
     loader = AssetLoader()
 
     count = 0
-    for path, dirs, files in os.walk(PATH):
+    for path, dirs, files in os.walk(loader.asset_path):
         for filename in files:
-            if filename[-7:] != '.uasset':
-                continue
-            if not '_Character_BP' in filename:
-                continue
+            if filename.endswith('.uasset') and '_Character_BP' in filename:
+                fullpath = os.path.join(path, filename)
+                asset = loader[fullpath]
 
-            fullpath = os.path.join(path, filename)
+                count += 1
+                if count % 10 == 0:
+                    input()
 
-            # print(fullpath)
-            load_asset(fullpath, loader)
 
-            count += 1
-            if count is 10:
-                count = 0
-                os.system("pause")
+if __name__ == '__main__':
+    main()

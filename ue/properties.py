@@ -340,12 +340,12 @@ class StructProperty(UEBase):
 
             type_or_name.link()
 
-            if str(type_or_name) in ARK_DEFINED_STRUCTS:
-                self.stream.offset += 8
-
             if str(type_or_name) in STRUCTS_TO_IGNORE:
                 self.stream.offset = self.start_offset + 8 + size
                 return
+
+            if str(type_or_name) in ARK_DEFINED_STRUCTS:
+                self.stream.offset += 8
 
             propertyType = None
             try:
@@ -490,7 +490,4 @@ def getPropertyType(typeName: str):
 
 
 # Types to export from this module
-__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + (
-    'getPropertyType',
-    'PropertyTable',
-)
+__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable')
