@@ -27,12 +27,17 @@ class AssetLoader:
         if name.lower().startswith(self.normalised_asset_path):
             name = name[len(self.normalised_asset_path):]
 
-        name = name.strip('/')
+        parts = name.strip('/').split('/')
+
+        # Convert mod names to numbers
+        if len(parts) > 2 and parts[1].lower() == 'mods' and parts[2].isnumeric():
+            parts[2] = self.mods_numbers_to_names[parts[2]]
 
         # Change Content back to name, for cache consistency
-        if name.lower().startswith('content'):
-            name = 'Game' + name[7:]
+        if len(parts) and parts[0].lower() == 'content':
+            parts[0] = 'Game'
 
+        name = '/'.join(parts)
         name = '/' + name
 
         return name
@@ -40,7 +45,7 @@ class AssetLoader:
     def wipe_cache(self):
         self.cache = dict()
 
-    def convert_asset_name_to_path(self, name: str):
+    def convert_asset_name_to_path(self, name: str, partial=False):
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
         parts = name.strip('/').split('/')
@@ -53,7 +58,10 @@ class AssetLoader:
         if len(parts) and parts[0].lower() == 'game':
             parts[0] = 'Content'
 
-        fullname = os.path.join(self.asset_path, *parts) + '.uasset'
+        fullname = os.path.join(self.asset_path, *parts)
+        if not partial:
+            fullname += '.uasset'
+
         return fullname
 
     def get_mod_name(self, assetname):
@@ -68,6 +76,24 @@ class AssetLoader:
         if mod.isnumeric():
             mod = self.mods_numbers_to_names[mod]
         return mod
+
+    def find_assetnames(self, regex, toppath='/', exclude=None):
+        import re
+        toppath = self.convert_asset_name_to_path(toppath, partial=True)
+        for path, dirs, files in os.walk(toppath):
+            for filename in files:
+                fullpath = os.path.join(path, filename)
+                name, ext = os.path.splitext(fullpath)
+
+                if not ext.lower() == '.uasset': continue
+                match = re.match(regex, name)
+                if not match: continue
+                if exclude:
+                    exclude_match = re.match(exclude, name)
+                    if exclude_match: continue
+
+                assetname = self.clean_asset_name(fullpath)
+                yield assetname
 
     def _set_asset_path(self, path):
         self.asset_path = path
