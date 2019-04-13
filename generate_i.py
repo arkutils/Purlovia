@@ -173,3 +173,26 @@ else:
 # a = prep_props_for('Game/PrimalEarth/Dinos/Beaver/Beaver_Character_BP')
 # b = prep_props_for('Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP')
 # pprint(DeepDiff(a, b))
+
+# %% Check for overlaps between Character and DCSC properties
+# print('\nChecking for overlapping properties:')
+# for asset, props in species_data:
+#     assetname = asset.assetname.split('/')[-1]
+#     for name, indexed in props.items():
+#         # print(name, end='')
+#         for i, values in indexed.items():
+#             if not isinstance(values, (StringProperty, IntProperty, BoolProperty, FloatProperty)):
+#                 continue
+#             typename = None
+#             for v in values:
+#                 name = v.asset.assetname.split('/')[-1]
+#                 if 'StatusComponent' in name:
+#                     name = 'DCSC'
+#                 elif '_Character_' in name:
+#                     name = 'Chr'
+
+#                 if typename and name != typename:
+#                     print(f'{assetname}.{name}[{i}] = {pretty(values)}')
+
+#                 typename = typename or name
+# print('Done')
