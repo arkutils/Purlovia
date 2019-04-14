@@ -4,6 +4,7 @@
 from interactive_utils import *
 
 import json
+from datetime import datetime
 from collections import defaultdict
 from deepdiff import DeepDiff
 
@@ -39,11 +40,15 @@ loader = AssetLoader()
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
 # Discover all species from the given mod, and convert/output them all
 mod_name = 'Primal_Fear'
-# mod_name = 'SSFlyers'
+# mod_name = 'SSFlyer'
+# mod_name = 'ClassicFlyers'
+# mod_name = 'Gaia'
+# mod_name = 'AE'
 mod_number = loader.mods_names_to_numbers[mod_name]
 print(f'\nLoading {mod_name} ({mod_number})\n')
 species_data = []
-all_assetnames = loader.find_assetnames(r'.*(_Character|Character_).*', f'/Game/Mods/{mod_name}', exclude=r'.*(_Base|Base_).*')
+all_assetnames = loader.find_assetnames(
+    r'.*(_Character|Character_).*BP.*', f'/Game/Mods/{mod_name}', exclude=r'.*(_Base|Base_).*')
 for assetname in all_assetnames:
     asset = loader[assetname]
     props = ark.mod.gather_properties(asset)
@@ -144,7 +149,7 @@ for assetname in all_assetnames:
 
 #%% Translate properties for export
 values = dict()
-values['ver'] = "!*!*! don't know where to get this !*!*!"
+values['ver'] = datetime.utcnow().isoformat()
 values['species'] = list()
 
 all_props = 'mod_name' in vars()

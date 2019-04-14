@@ -10,9 +10,10 @@ __all__ = ('AssetLoader', )
 
 
 class AssetLoader:
-    def __init__(self, configpath: str = '.'):
+    def __init__(self, configpath: str = '.', quiet=False):
         self.cache = dict()
         self.configpath = configpath
+        self.quiet = quiet
         self._load_user_config()
         self._load_mods_config()
 
@@ -77,6 +78,21 @@ class AssetLoader:
             mod = self.mods_numbers_to_names[mod]
         return mod
 
+    def get_mod_descriptive_name(self, assetname):
+        assert assetname is not None
+        assetname = self.clean_asset_name(assetname)
+        parts = assetname.strip('/').split('/')
+        if len(parts) < 3:
+            return None
+        if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
+            return None
+        mod = parts[2]
+        id = mod
+        if not mod.isnumeric():
+            id = self.mods_names_to_numbers[mod]
+        description = self.mods_numbers_to_descriptions.get(id, mod)
+        return description
+
     def find_assetnames(self, regex, toppath='/', exclude=None):
         import re
         toppath = self.convert_asset_name_to_path(toppath, partial=True)
@@ -100,7 +116,7 @@ class AssetLoader:
 
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
-        print("Loading file:", filename)
+        if not self.quiet: print("Loading file:", filename)
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
         mem = load_file_into_memory(filename)
@@ -109,7 +125,7 @@ class AssetLoader:
     def _load_raw_asset(self, name: str):
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
-        print("Loading asset:", name)
+        if not self.quiet: print("Loading asset:", name)
         filename = self.convert_asset_name_to_path(name)
         mem = load_file_into_memory(filename)
         return mem
@@ -133,7 +149,7 @@ class AssetLoader:
         if len(exports) > 1:
             import warnings
             warnings.warn(f'Found more than one component in {assetname}!')
-        asset.default_export = exports[0]
+        asset.default_export = exports[0] if len(exports) else None
         self.cache[assetname] = asset
         return asset
 
@@ -141,7 +157,7 @@ class AssetLoader:
         config = ConfigParser()
         config.read(os.path.join(self.configpath, 'user.ini'))
         asset_path = config.get('parser', 'assetpath', fallback='.')
-        print("Using asset path: " + asset_path)
+        if not self.quiet: print("Using asset path: " + asset_path)
         self.asset_path = asset_path
         self.normalised_asset_path = asset_path.lower().replace('\\', '/').lstrip('/')
 
@@ -149,8 +165,9 @@ class AssetLoader:
         config = ConfigParser(inline_comment_prefixes='#;')
         config.optionxform = lambda v: v  # keep exact base of mod names, please
         config.read(os.path.join(self.configpath, 'mods.ini'))
-        self.mods_names_to_numbers = dict(config['mods'])
-        self.mods_numbers_to_names = dict(reversed(kvp) for kvp in config['mods'].items())
+        self.mods_numbers_to_names = dict(config['ids'])
+        self.mods_names_to_numbers = dict(reversed(kvp) for kvp in config['ids'].items())
+        self.mods_numbers_to_descriptions = dict(config['names'])
 
 
 def load_file_into_memory(filename):
