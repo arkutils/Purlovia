@@ -6,7 +6,7 @@ from .asset import UAsset
 
 from ark.asset import findComponentExports
 
-__all__ = ('AssetLoader', )
+__all__ = ('AssetLoader', 'load_file_into_memory')
 
 
 class AssetLoader:

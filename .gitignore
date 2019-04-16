@@ -1,5 +1,6 @@
 user.ini
 output/
+steamcmd/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
