@@ -6,6 +6,8 @@ from .utils import get_clean_name, get_clean_namespaced_name
 from .coretypes import *
 from .properties import PropertyTable, StringProperty, Guid
 
+dbg_getName = 0
+
 
 class UAsset(UEBase):
     display_fields = [
@@ -75,7 +77,7 @@ class UAsset(UEBase):
         except IndexError as err:
             raise IndexError(f'Invalid name index 0x{index:08X} ({index})') from err
 
-        if flags or extraIndex:
+        if (flags or extraIndex) and dbg_getName:
             print(f'getName for "{name}" ignoring flags 0x{flags:08X} and extraIndex 0x{extraIndex:08X}')
 
         # TODO: Do something with extraIndex?

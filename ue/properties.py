@@ -13,6 +13,8 @@ from .stream import MemoryStream
 from .base import UEBase
 from .coretypes import *
 
+dbg_structs = 0
+
 
 class PropertyTable(UEBase):
     string_format = '{count} entries'
@@ -272,14 +274,16 @@ class StructEntry(UEBase):
 
         self.name.link()
         self.type.link()
-        # print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
+        if dbg_structs > 1:
+            print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
 
         propertyType = getPropertyType(str(self.type))
         self._newField('value', '<not yet defined>')
         self.field_values['value'] = propertyType(self)
         self.field_values['value'].deserialise(self.length)
         self.field_values['value'].link()
-        # print(f'      ', str(self.value))
+        if dbg_structs > 1:
+            print(f'     = ', str(self.value))
 
 
 # Still to investigate
@@ -312,14 +316,16 @@ def decode_type_or_name(type_or_name: NameIndex):
         return None, None, None
     type_or_name.link()
 
-    # print(f'  Entry "{type_or_name}"')
+    if dbg_structs > 1:
+        print(f'  Entry "{type_or_name}"')
 
     name = str(type_or_name)
 
     # Is it a supported type?
     propertyType = getPropertyType(str(type_or_name), throw=False)
     if propertyType:
-        # print(f'  ...is a supported type')
+        if dbg_structs > 2:
+            print(f'  ...is a supported type')
         return name, propertyType, None
 
     name = str(type_or_name)
@@ -327,16 +333,19 @@ def decode_type_or_name(type_or_name: NameIndex):
     # Is it skippable?
     known_length = SKIPPABLE_STRUCTS.get(name, None)
     if known_length is not None:
-        # print(f'  ...is skippable')
+        if dbg_structs > 2:
+            print(f'  ...is skippable')
         return name, None, known_length
 
     # Is it known as a fixed length struct but without a length?
     if name in STRUCT_TYPES_TO_ABORT_ON:
-        # print(f'  ...is an unsupported unskippable struct type')
+        if dbg_structs > 2:
+            print(f'  ...is an unsupported unskippable struct type')
         return name, None, float('NaN')
 
     # Then treat it as just a name
-    # print(f'  ...is not a name we recognise')
+    if dbg_structs > 2:
+        print(f'  ...is not a name we recognise')
     return name, None, None
 
 
@@ -353,12 +362,13 @@ class StructProperty(UEBase):
             # The first field may be the name or type... work out how to deal with it
             type_or_name = NameIndex(self)
             name, propertyType, skipLength = decode_type_or_name(type_or_name)
-            print(f'Struct @ {self.start_offset}, size={size}: ' +
-                  f'name={name}, type={propertyType.__name__ if propertyType else ""}, len={skipLength}')
+            if dbg_structs:
+                print(f'Struct @ {self.start_offset}, size={size}: ' +
+                      f'name={name}, type={propertyType.__name__ if propertyType else ""}, len={skipLength}')
 
             # It is a type we have a class for
             if propertyType:
-                # print(f'  Recognised type: {name}')
+                if dbg_structs > 1: print(f'  Recognised type: {name}')
                 value = propertyType(self)
                 values.append(value)
                 value.deserialise(None)  # we don't have any size information
@@ -370,11 +380,11 @@ class StructProperty(UEBase):
             # It is a fixed-length type we have a length for
             if skipLength is not None:
                 if math.isnan(skipLength):
-                    # print(f'  Recognised as unskippable and unsupported!!! Struct parsing terminated...')
+                    if dbg_structs > 1: print(f'  Recognised as unskippable and unsupported!!! Struct parsing terminated...')
                     self.stream.offset = self.start_offset + size + 8
                     return
                 else:
-                    # print(f'  Recognised as skippable: {skipLength} bytes')
+                    if dbg_structs > 1: print(f'  Recognised as skippable: {skipLength} bytes')
                     values.append(f'<skipped {name} ({skipLength} bytes)>')
                     self.stream.offset += skipLength
                     return
@@ -386,7 +396,8 @@ class StructProperty(UEBase):
             self._newField('name', name)
         else:
             self._newField('inArray', True)
-            # print(f'Struct @ {self.start_offset}, size={size}: No name (inside array)')
+            if dbg_structs:
+                print(f'Struct @ {self.start_offset}, size={size}: No name (inside array)')
 
         # If we got here, this struct is a property-bag type
         # print(f'  Assuming list of StructEntries')
