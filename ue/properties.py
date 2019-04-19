@@ -1,4 +1,5 @@
 import sys
+import math
 import uuid
 from typing import Type
 
@@ -129,7 +130,7 @@ class FloatProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         # Read once as a float
         saved_offset = self.stream.offset
         self._newField('value', self.stream.readFloat())
@@ -154,7 +155,7 @@ class DoubleProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         # Read once as a float
         saved_offset = self.stream.offset
         self._newField('value', self.stream.readDouble())
@@ -179,14 +180,14 @@ class IntProperty(UEBase):
     string_format = '(int) {value}'
     main_field = 'value'
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         self._newField('value', self.stream.readInt32())
 
 
 class BoolProperty(UEBase):
     main_field = 'value'
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         self._newField('value', self.stream.readBool8())
 
 
@@ -223,7 +224,7 @@ class ObjectProperty(UEBase):
     main_field = 'value'
     skip_level_field = 'value'
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         self._newField('value', ObjectIndex(self))
 
 
@@ -231,7 +232,7 @@ class NameProperty(UEBase):
     main_field = 'value'
     display_fields = ['value']
 
-    def _deserialise(self, size):
+    def _deserialise(self, size=None):
         self._newField('value', NameIndex(self))
 
 
@@ -281,44 +282,62 @@ class StructEntry(UEBase):
         # print(f'      ', str(self.value))
 
 
-ARK_DEFINED_STRUCTS = (
-    'AttenuationSettings',
-    'BodyInstance',
-    'CollisionResponse',
-    'ColorSetDefinition',
-    'DecalData',
-    'HUDElement',
-    'InputChord',
-    'KAggregateGeom',
-    'LevelExperienceRamp',
-    'MultiUseEntry',
-    'NavAgentProperties',
-    'PlayerCharacterGenderDefinition',
-    'PrimalCharacterStatusStateDefinition',
-    'PrimalCharacterStatusStateThresholds',
-    'PrimalCharacterStatusValueDefinition',
-    'PrimalEquipmentDefinition',
-    'PrimalItemDefinition',
-    'PrimalItemStatDefinition',
-    'ProjectileArc',
-    'SingleAnimationPlayData',
-    'StatusValueModifierDescription',
-    'StringAssetReference',
-    'WalkableSlopeOverride',
-    'WeightedObjectList',
-)
+# Still to investigate
+# STRUCTS_TO_IGNORE = (
+#     'Anchors',
+#     'DinoSetup',
+#     'RichCurve',
+# )
 
-STRUCTS_TO_IGNORE = (
-    'Anchors',
-    'Color',
-    'DinoSetup',
-    'LinearColor',
-    'RichCurve',
-    'Rotator',
-    'Transform',
-    'Vector',
-    'Vector2D',
-)
+STRUCT_TYPES_TO_ABORT_ON = (
+    # name of struct to ignore
+    'Transform', )
+
+SKIPPABLE_STRUCTS = {
+    # 'name': byte length
+    'Vector': 12,
+    'Vector2D': 8,
+    'Rotator': 12,
+    'Quat': 16,
+    'Color': 4,
+    'LinearColor': 16,
+    # 'Transform': 4*4 + 3*4 + 3*4,
+}
+
+
+def decode_type_or_name(type_or_name: NameIndex):
+    '''Decode a name as either a supported type, a length of an unsupported but skippable type, or a simple name.'''
+    type_or_name.deserialise()
+    if type_or_name.index == type_or_name.asset.none_index:
+        return None, None, None
+    type_or_name.link()
+
+    # print(f'  Entry "{type_or_name}"')
+
+    name = str(type_or_name)
+
+    # Is it a supported type?
+    propertyType = getPropertyType(str(type_or_name), throw=False)
+    if propertyType:
+        # print(f'  ...is a supported type')
+        return name, propertyType, None
+
+    name = str(type_or_name)
+
+    # Is it skippable?
+    known_length = SKIPPABLE_STRUCTS.get(name, None)
+    if known_length is not None:
+        # print(f'  ...is skippable')
+        return name, None, known_length
+
+    # Is it known as a fixed length struct but without a length?
+    if name in STRUCT_TYPES_TO_ABORT_ON:
+        # print(f'  ...is an unsupported unskippable struct type')
+        return name, None, float('NaN')
+
+    # Then treat it as just a name
+    # print(f'  ...is not a name we recognise')
+    return name, None, None
 
 
 class StructProperty(UEBase):
@@ -328,54 +347,63 @@ class StructProperty(UEBase):
         values = []
         self._newField('values', values)
         self._newField('count', 0)
-        # print(f'Struct @ {self.start_offset}, size={size}')
 
-        while True:
+        # Only process the struct name / type if we're not inside an array
+        if not self.is_inside_array:
+            # The first field may be the name or type... work out how to deal with it
             type_or_name = NameIndex(self)
-            type_or_name.deserialise()
-            if type_or_name.index == self.asset.none_index:
-                break
+            name, propertyType, skipLength = decode_type_or_name(type_or_name)
+            print(f'Struct @ {self.start_offset}, size={size}: ' +
+                  f'name={name}, type={propertyType.__name__ if propertyType else ""}, len={skipLength}')
 
-            self.count += 1
-
-            type_or_name.link()
-
-            if str(type_or_name) in STRUCTS_TO_IGNORE:
-                self.stream.offset = self.start_offset + 8 + size
-                return
-
-            if str(type_or_name) in ARK_DEFINED_STRUCTS:
-                self.stream.offset += 8
-
-            propertyType = None
-            try:
-                propertyType = getPropertyType(str(type_or_name))
-            except TypeError:
-                pass
-
+            # It is a type we have a class for
             if propertyType:
-                # This struct has a recognisable struct type and its data should be immediiately following
-                # print(f'  Assuming a type')
+                # print(f'  Recognised type: {name}')
                 value = propertyType(self)
                 values.append(value)
                 value.deserialise(None)  # we don't have any size information
-            else:
-                # Then type_of_name was (hopefully) a name and we get the real property type next
-                # print(f'  Struct entry @ {self.stream.offset-8}, type={type_or_name}')
-                # print(f'  Name assumed')
 
-                # Rewind and read a StructEntry
-                self.stream.offset -= 8
-                try:
-                    value = StructEntry(self)
-                    value.deserialise()
-                    values.append(value)
-                except Exception as err:
-                    values.append(f'<exception during decoding of struct entry for type_or_name "{type_or_name}">')
-                    print(f'Failed to decode struct entry @ {self.start_offset} with type: {type_or_name}')
-                    if support_pretty: pprint(err)
-                    self.stream.offset = self.start_offset + 8 + size
+                # This should be the end of the struct
+                # TODO: Look for examples where this isn't the end
+                return
+
+            # It is a fixed-length type we have a length for
+            if skipLength is not None:
+                if math.isnan(skipLength):
+                    # print(f'  Recognised as unskippable and unsupported!!! Struct parsing terminated...')
+                    self.stream.offset = self.start_offset + size + 8
                     return
+                else:
+                    # print(f'  Recognised as skippable: {skipLength} bytes')
+                    values.append(f'<skipped {name} ({skipLength} bytes)>')
+                    self.stream.offset += skipLength
+                    return
+
+            # It is the terminator
+            if name is None:
+                return
+
+            self._newField('name', name)
+        else:
+            self._newField('inArray', True)
+            # print(f'Struct @ {self.start_offset}, size={size}: No name (inside array)')
+
+        # If we got here, this struct is a property-bag type
+        # print(f'  Assuming list of StructEntries')
+        while True:
+            # Peek the name and terminate on None
+            saved_offset = self.stream.offset
+            type_or_name = NameIndex(self)
+            type_or_name.deserialise()
+            if type_or_name.index == self.asset.none_index:
+                return
+            self.stream.offset = saved_offset
+
+            # Decode the entry
+            value = StructEntry(self)
+            value.deserialise()
+            values.append(value)
+            self.field_values['count'] += 1
 
     def __str__(self):
         if self.values and len(self.values) == 1:
@@ -435,6 +463,7 @@ class ArrayProperty(UEBase):
             # print("  Array entry @", self.stream.offset)
             value = propertyType(self)
             try:
+                value.is_inside_array = True
                 value.deserialise(field_size)
                 value.link()
                 values.append(value)
@@ -466,27 +495,84 @@ class ArrayProperty(UEBase):
                     p.text(', ' + str(self.value))
 
 
+class Vector(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('x', FloatProperty(self))
+        self._newField('y', FloatProperty(self))
+        self._newField('z', FloatProperty(self))
+
+
+class Vector2D(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('x', FloatProperty(self))
+        self._newField('y', FloatProperty(self))
+
+
+class Rotator(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('a', FloatProperty(self))
+        self._newField('b', FloatProperty(self))
+        self._newField('c', FloatProperty(self))
+
+
+class Quat(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('w', FloatProperty(self))
+        self._newField('x', FloatProperty(self))
+        self._newField('y', FloatProperty(self))
+        self._newField('z', FloatProperty(self))
+
+
+class Transform(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('rotation', Quat(self))
+        self._newField('translation', Vector(self))
+        self._newField('scale', Vector(self))
+
+
+class Color(UEBase):
+    string_format = '#{rgba:08X}'
+
+    def _deserialise(self, size=None):
+        self._newField('rgba', self.stream.readUInt32())
+
+
+class LinearColor(UEBase):
+    def _deserialise(self, size=None):
+        self._newField('r', FloatProperty(self))
+        self._newField('g', FloatProperty(self))
+        self._newField('b', FloatProperty(self))
+        self._newField('a', FloatProperty(self))
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
-    'Guid': Guid,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,
     'ObjectProperty': ObjectProperty,
     'StructProperty': StructProperty,
     'ArrayProperty': ArrayProperty,
+    'Guid': Guid,
+    'Vector': Vector,
+    'Vector2D': Vector2D,
+    'Rotator': Rotator,
+    'Quat': Quat,
+    'Color': Color,
+    'LinearColor': LinearColor,
+    # 'Transform': Transform, # no worky
 }
 
 
-def getPropertyType(typeName: str):
-    try:
-        return TYPE_MAP[typeName]
-    except KeyError as err:
-        raise TypeError(f'Unsupported property type "{typeName}"') from err
+def getPropertyType(typeName: str, throw=True):
+    result = TYPE_MAP.get(typeName, None)
+    if throw and result is None:
+        raise TypeError(f'Unsupported property type "{typeName}"')
+    return result
 
 
 # Types to export from this module

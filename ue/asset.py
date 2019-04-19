@@ -75,6 +75,9 @@ class UAsset(UEBase):
         except IndexError as err:
             raise IndexError(f'Invalid name index 0x{index:08X} ({index})') from err
 
+        if flags or extraIndex:
+            print(f'getName for "{name}" ignoring flags 0x{flags:08X} and extraIndex 0x{extraIndex:08X}')
+
         # TODO: Do something with extraIndex?
         return name
 

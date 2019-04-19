@@ -24,6 +24,7 @@ class UEBase(object):
         self.is_serialised = False
         self.is_linking = False
         self.is_linked = False
+        self.is_inside_array = False
         self.start_offset = None
         self.end_offset = None
 
@@ -129,6 +130,10 @@ class UEBase(object):
 
             if self.main_field:
                 p.pretty(getattr(self, self.main_field))
+                return
+
+            if self.string_format:
+                p.pretty(self.string_format.format(**self.field_values))
                 return
 
             fields = self.display_fields or self.field_order

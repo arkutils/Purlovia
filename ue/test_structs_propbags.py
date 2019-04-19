@@ -9,6 +9,7 @@ DEFAULT_COLORS = dict(
             'Black', 'Dark Green', 'Dark Red'))
 
 
+@pytest.mark.uses_copyright_material
 def test_DinoColorSetGeneric():
     asset = load_asset('PrimalEarth/CoreBlueprints/DinoColorSetGeneric')
     props = asset.default_export.properties
@@ -20,6 +21,7 @@ def test_DinoColorSetGeneric():
     assert colors[4] == DEFAULT_COLORS
 
 
+@pytest.mark.uses_copyright_material
 def test_DinoColorSet_Baryonyx():
     asset = load_asset('PrimalEarth/CoreBlueprints/DinoColorSet_Baryonyx')
     props = asset.default_export.properties
@@ -36,6 +38,7 @@ def test_DinoColorSet_Baryonyx():
     assert colors[5]['values'][0] == 'BigFoot0' and colors[5]['values'][-1] == 'Light Grey'
 
 
+@pytest.mark.uses_copyright_material
 def test_DinoColorSet_PolarBear():
     asset = load_asset('PrimalEarth/CoreBlueprints/DinoColorSet_PolarBear')
     props = asset.default_export.properties
@@ -48,6 +51,7 @@ def test_DinoColorSet_PolarBear():
     assert colors[5] == dict(name=None, values=('White', ))
 
 
+@pytest.mark.uses_copyright_material
 def test_DinoColorSet_Raptor_Corrupt():
     asset = load_asset('Extinction/Dinos/Corrupt/DinoColorSet_Raptor_Corrupt')
     props = asset.default_export.properties
@@ -65,6 +69,7 @@ def test_DinoColorSet_Raptor_Corrupt():
     assert colors[5]['values'][0] == 'Light Orange' and colors[5]['values'][-1] == 'DragonFire'
 
 
+@pytest.mark.uses_copyright_material
 def test_DinoColorSet_Apex__PrimalFear():
     asset = load_asset('Mods/839162288/ColorSets/DinoColorSet_Apex')
     props = asset.default_export.properties
