@@ -8,6 +8,7 @@ from ue.utils import *
 from ue.properties import *
 import ark.mod
 import ark.asset
+from ark.properties import stat_value
 
 # Equation References: https://ark.gamepedia.com/DevKit
 
@@ -20,7 +21,6 @@ assetname = '/Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP'
 
 loader = AssetLoader()
 character_asset = loader[assetname]
-
 character_props = ark.mod.gather_properties(character_asset)
 
 #%% Get the colorsets for both genders
@@ -40,11 +40,14 @@ male_colorset_props['ColorSetDefinitions'][0][-1]
 # female_colorset_props['ColorSetDefinitions'][0][-1]
 
 #%% Get the taming data for the species
-print(character_props['RequiredTameAffinity'][0][-1])
-print(character_props['RequiredTameAffinityPerBaseLevel'][0][-1])
-print(character_props['TameIneffectivenessByAffinity'][0][-1])
-print(character_props['TamingIneffectivenessModifierIncreaseByDamagePercent'][0][-1])
-print(character_props['DamageTypeAdjusters'][0][-1])
+print('\nTaming:\n')
+print(f'requiredTameAffinity: {stat_value(character_props, "RequiredTameAffinity", 0)}')
+print(f'requiredtameaffinityperbaselevel: {stat_value(character_props, "RequiredTameAffinityPerBaseLevel", 0)}')
+print(f'tameIneffectivenessByAffinity: {stat_value(character_props, "TameIneffectivenessByAffinity", 0)}')
+print(
+    f'tamingIneffectivenessModifierIncreaseByDamagePercent: {stat_value(character_props, "TamingIneffectivenessModifierIncreaseByDamagePercent", 0)}'
+)
+print(f'damageTypeAdjusters: {pretty(character_props["DamageTypeAdjusters"][0][-1])}')
 
 #%% Get the breeding data for the species
 # Determines if a species is breedable (most likely anyways) :shrug:
@@ -63,16 +66,12 @@ if character_props['bUseBabyGestation']:
     #   it isn't showing up in the properties inherited, but there are other properties
     #   that we need to add to the file as well.
     # Values verified through DevKit, not the binary
-    gestation_speed = 0.000035
-    if character_props['BabyGestationSpeed'][0]:
-        gestation_speed = character_props['BabyGestationSpeed'][0][-1].value
-    extra_gestation_speed_m = 1.0
-    if character_props['ExtraBabyGestationSpeedMultiplier'][0]:
-        extra_gestation_speed_m = character_props['ExtraBabyGestationSpeedMultiplier'][0][-1].value
+
+    gestation_speed = stat_value(character_props, 'BabyGestationSpeed', 0, 0.000035)
+    extra_gestation_speed_m = stat_value(character_props, 'ExtraBabyGestationSpeedMultiplier', 0, 1.0)
     gestation_time = 1 / gestation_speed / extra_gestation_speed_m
 
-    print(f'gestationTime: {gestation_time}')
-    print(f'incubationTime: {incubation_time}')
+    print('\nGestation:\n')
 
 elif character_props['FertilizedEggItemsToSpawn'][0]:
     # In the blueprint of the fertilized egg PrimalItemConsumable_Egg_…_Fertilized:
@@ -82,36 +81,34 @@ elif character_props['FertilizedEggItemsToSpawn'][0]:
     fert_egg_props = ark.mod.gather_properties(fert_egg_asset)
 
     # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
-    egg_decay = fert_egg_props['EggLoseDurabilityPerSecond'][0][-1].value
-    extra_egg_decay_m = fert_egg_props['ExtraEggLoseDurabilityPerSecondMultiplier'][0][-1].value
+    egg_decay = stat_value(fert_egg_props, 'EggLoseDurabilityPerSecond', 0)
+    extra_egg_decay_m = stat_value(fert_egg_props, 'ExtraEggLoseDurabilityPerSecondMultiplier', 0)
     incubation_time = 100 / egg_decay / extra_egg_decay_m
 
-    print(f'gestationTime: {gestation_time}')
-    print(f'incubationTime: {incubation_time}')
-
-    min_temp = fert_egg_props['EggMinTemperature'][0][-1].value
+    print('\nEggs:\n')
+    min_temp = stat_value(fert_egg_props, 'EggMinTemperature', 0)
     print(f'eggTempMin: {min_temp}')
-    max_temp = fert_egg_props['EggMaxTemperature'][0][-1].value
+    max_temp = stat_value(fert_egg_props, 'EggMaxTemperature', 0)
     print(f'eggTempMax: {max_temp}')
 
+print(f'gestationTime: {gestation_time}')
+print(f'incubationTime: {incubation_time}')
+
+print('\nRaising:\n')
 # 'maturationTime' = 1 / (Baby Age Speed × Extra Baby Age Speed Multiplier)
-baby_age_speed = character_props['BabyAgeSpeed'][0][-1].value
-extra_baby_age_speed_m = character_props['ExtraBabyAgeSpeedMultiplier'][0][-1].value
+baby_age_speed = stat_value(character_props, 'BabyAgeSpeed', 0)
+extra_baby_age_speed_m = stat_value(character_props, 'ExtraBabyAgeSpeedMultiplier', 0)
 mature_time = 1 / baby_age_speed / extra_baby_age_speed_m
 print(f'maturationTime: {mature_time}')
 
 # Not included in most Character assets (inherited from the Primal Dino Character asset)
 # 'matingCooldownMin' (default: 64800.0)
-min_mating_cooldown = 64800.0
-if character_props['NewFemaleMinTimeBetweenMating']:
-    min_mating_cooldown = character_props['NewFemaleMinTimeBetweenMating'][0][-1]
+min_mating_cooldown = stat_value(character_props, 'NewFemaleMinTimeBetweenMating', 0, 64800.0)
 print(f'matingCooldownMin: {min_mating_cooldown}')
 
 # Not included in most Character assets (inherited from the Primal Dino Character asset)
 # 'matingCooldownMax' (default: 172800.0)
-max_mating_cooldown = 172800.0
-if character_props['NewFemaleMaxTimeBetweenMating']:
-    min_mating_cooldown = character_props['NewFemaleMaxTimeBetweenMating'][0][-1]
+max_mating_cooldown = stat_value(character_props, 'NewFemaleMaxTimeBetweenMating', 0, 172800.0)
 print(f'matingCooldownMax: {max_mating_cooldown}')
 
 ###############################

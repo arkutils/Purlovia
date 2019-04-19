@@ -74,7 +74,7 @@ def clean_value_str(value, fallback=None):
     raise ValueError("Don't know how to handle a " + value.__class__.__name__)
 
 
-def stat_value(props, name, index, fallback):
+def stat_value(props, name, index, fallback=None):
     values = props[name][index]
     if values:
         return clean_value(values[-1])
