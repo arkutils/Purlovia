@@ -2,7 +2,9 @@ import os.path
 from configparser import ConfigParser
 
 from .stream import MemoryStream
-from .asset import UAsset
+from .asset import UAsset, ImportTableItem, ExportTableItem
+from .base import UEBase
+from .properties import ObjectProperty, ObjectIndex, Property
 
 from ark.asset import findComponentExports
 
@@ -110,6 +112,18 @@ class AssetLoader:
 
                 assetname = self.clean_asset_name(fullpath)
                 yield assetname
+
+    def load_related(self, obj: UEBase):
+        if isinstance(obj, Property):
+            return self.load_related(obj.value)
+        if isinstance(obj, ObjectProperty):
+            return self.load_related(obj.value.value)
+        if isinstance(obj, ImportTableItem):
+            assetname = str(obj.namespace.value.name.value)
+            loader = obj.asset.loader
+            asset = loader[assetname]
+            return asset
+        raise ValueError("Invalid type")
 
     def _set_asset_path(self, path):
         self.asset_path = path

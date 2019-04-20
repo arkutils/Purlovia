@@ -27,11 +27,8 @@ character_props = ark.mod.gather_properties(character_asset)
 # character_props['ColorizationIntensity'][0][-1]
 # character_props['bUseColorization'][0][-1]
 
-male_colorset = character_props['RandomColorSetsMale'][0][-1]
-# female_colorset = character_props['RandomColorSetsFemale'][0][-1]
-
-male_colorset_asset = loader[str(male_colorset.value.value.namespace.value.name)]
-# female_colorset_asset = loader[str(female_colorset.value.value.namespace.value.name)]
+male_colorset_asset = loader.load_related(character_props['RandomColorSetsMale'][0][-1])
+# female_colorset_asset = loader.load_related(character_props['RandomColorSetsFemale'][0][-1])
 
 male_colorset_props = ark.mod.gather_properties(male_colorset_asset)
 # female_colorset_props = ark.mod.gather_properties(female_colorset_asset)
@@ -76,8 +73,7 @@ if character_props['bUseBabyGestation']:
 elif character_props['FertilizedEggItemsToSpawn'][0]:
     # In the blueprint of the fertilized egg PrimalItemConsumable_Egg_…_Fertilized:
     # Usually an array(?) but ASB only supports 1 fertilized egg
-    fert_egg = character_props['FertilizedEggItemsToSpawn'][0][-1].values[0]
-    fert_egg_asset = loader[str(fert_egg.value.value.namespace.value.name)]
+    fert_egg_asset = loader.load_related(character_props['FertilizedEggItemsToSpawn'][0][-1].values[0])
     fert_egg_props = ark.mod.gather_properties(fert_egg_asset)
 
     # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
