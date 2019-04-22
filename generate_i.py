@@ -29,30 +29,30 @@ def clean_diff_output(diff):
     statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
     diff = speciesRe.sub(replace_name, diff)
     diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
-    diff = statRe.sub(replace_stat, diff)
-    diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
-    diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
+    # diff = statRe.sub(replace_stat, diff)
+    # diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
+    # diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
     return diff
 
 
 loader = AssetLoader()
 
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
-# Discover all species from the given mod, and convert/output them all
-mod_name = 'Primal_Fear'
-# mod_name = 'SSFlyer'
-# mod_name = 'ClassicFlyers'
-# mod_name = 'Gaia'
-# mod_name = 'AE'
-mod_number = loader.mods_names_to_numbers[mod_name]
-print(f'\nLoading {mod_name} ({mod_number})\n')
-species_data = []
-all_assetnames = loader.find_assetnames(
-    r'.*(_Character|Character_).*BP.*', f'/Game/Mods/{mod_name}', exclude=r'.*(_Base|Base_).*')
-for assetname in all_assetnames:
-    asset = loader[assetname]
-    props = ark.mod.gather_properties(asset)
-    species_data.append((asset, props))
+# # Discover all species from the given mod, and convert/output them all
+# mod_name = 'Primal_Fear'
+# # mod_name = 'SSFlyer'
+# # mod_name = 'ClassicFlyers'
+# # mod_name = 'Gaia'
+# # mod_name = 'AE'
+# mod_number = loader.mods_names_to_numbers[mod_name]
+# print(f'\nLoading {mod_name} ({mod_number})\n')
+# species_data = []
+# all_assetnames = loader.find_assetnames(
+#     r'.*(_Character|Character_).*BP.*', f'/Game/Mods/{mod_name}', exclude=r'.*(_Base|Base_).*')
+# for assetname in all_assetnames:
+#     asset = loader[assetname]
+#     props = ark.mod.gather_properties(asset)
+#     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather properties from a mod and try to discover the list of species from spawn regions
 # # Discover all species from the given mod, and convert/output them all
@@ -94,6 +94,7 @@ for assetname in all_assetnames:
 #     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP',
 #     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP_Aberrant',
 #     '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP',
+#     '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombieFire',
 
 #     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 # )
@@ -105,15 +106,15 @@ for assetname in all_assetnames:
 #     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather species list from existing ASB values.json
-# if 'mod_name' in vars(): del mod_name
-# value_json = json.load(open(os.path.join('asb_json', 'values.json')))
-# load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
-# print(f'\nDecoding all values.json species...\n')
-# species_data = []
-# for pkgname in load_species:
-#     asset = loader[pkgname]
-#     props = ark.properties.gather_properties(asset)
-#     species_data.append((asset, props))
+if 'mod_name' in vars(): del mod_name
+value_json = json.load(open(os.path.join('asb_json', 'values.json')))
+load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
+print(f'\nDecoding all values.json species...\n')
+species_data = []
+for pkgname in load_species:
+    asset = loader[pkgname]
+    props = ark.properties.gather_properties(asset)
+    species_data.append((asset, props))
 
 #%% Gather expected resutls from original ASB values files
 # if 'mod_name' in vars():
@@ -127,7 +128,6 @@ for assetname in all_assetnames:
 # expected_values['species'] = list()
 # expected_species_data = dict((species['blueprintPath'].split('.')[0], species) for species in expected_values_json['species'])
 # for v in expected_species_data.values():
-#     if 'breeding' in v: del v['breeding']
 #     if 'colors' in v: del v['colors']
 #     if 'taming' in v: del v['taming']
 #     if 'immobilizedBy' in v: del v['immobilizedBy']
@@ -159,15 +159,15 @@ for asset, props in species_data:
     values['species'].append(species_values)
 
 #%% Show diff from ASB expected values
-# stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
-# stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
+stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
+stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
 
-# print(f'\nDifferences:')
-# diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"})
-# diff = pretty(diff, max_width=130)
-# diff = clean_diff_output(diff)
-# print(diff)
-# # pprint(diff)
+print(f'\nDifferences:')
+diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"}, significant_digits=2)
+diff = pretty(diff, max_width=130)
+diff = clean_diff_output(diff)
+print(diff)
+# pprint(diff)
 
 #%% Write output
 if 'mod_name' in vars():
@@ -180,7 +180,12 @@ if 'mod_name' in vars():
 else:
     # pprint(values)
     # printjson(values)
-    pass
+    import os.path
+    json_output = json.dumps(values)
+    filename = os.path.join('output', 'values.json')
+    print(f'\nOutputting to: {filename}')
+    with open(filename, 'w') as f:
+        f.write(json_output)
 
 #%% Example diffing two assets
 # def prep_props_for(assetname):

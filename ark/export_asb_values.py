@@ -1,5 +1,6 @@
 from ue.asset import UAsset
 from ark.properties import stat_value
+import ark.mod
 
 #                    Ark   ASB
 # Health              0     0
@@ -51,6 +52,8 @@ def values_for_species(asset: UAsset, props, all=False):
     name = NAME_CHANGES.get(name, name)
 
     species = dict(name=name, blueprintPath=bp)
+
+    # statsRaw data
     species['statsRaw'] = list()
     for asb_index, ark_index in enumerate((0, 1, 3, 4, 7, 8, 9, 2)):
         add_one = 1 if ark_index == 8 or ark_index == 9 else 0
@@ -70,6 +73,48 @@ def values_for_species(asset: UAsset, props, all=False):
 
         species['statsRaw'].append(stat_data)
 
+    # breeding data
+    breeding_data = dict()
+    breeding_data['gestationTime'] = 0
+    breeding_data['incubationTime'] = 0
+
+    gestation_breeding = stat_value(props, 'bUseBabyGestation', 0, False)
+    has_eggs = False
+    if props['FertilizedEggItemsToSpawn'][0] and props['FertilizedEggItemsToSpawn'][0][-1].values:
+        eggs = list(filter(lambda v: v and str(v) != 'None', props['FertilizedEggItemsToSpawn'][0][-1].values))
+        has_eggs = not not eggs
+
+    if gestation_breeding:
+        gestation_speed = stat_value(props, 'BabyGestationSpeed', 0, 0.000035)
+        extra_gestation_speed_m = stat_value(props, 'ExtraBabyGestationSpeedMultiplier', 0, 1.0)
+
+        # 'gestationTime' = 1 / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplie)
+        breeding_data['gestationTime'] = 1 / gestation_speed / extra_gestation_speed_m
+
+    elif has_eggs:
+        fert_egg_asset = asset.loader.load_related(eggs[0])
+        fert_egg_props = ark.mod.gather_properties(fert_egg_asset)
+        egg_decay = stat_value(fert_egg_props, 'EggLoseDurabilityPerSecond', 0, 1)
+        extra_egg_decay_m = stat_value(fert_egg_props, 'ExtraEggLoseDurabilityPerSecondMultiplier', 0, 1)
+
+        # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
+        breeding_data['incubationTime'] = 100 / egg_decay / extra_egg_decay_m
+        breeding_data['eggTempMin'] = stat_value(fert_egg_props, 'EggMinTemperature', 0)
+        breeding_data['eggTempMax'] = stat_value(fert_egg_props, 'EggMaxTemperature', 0)
+
+    # 'maturationTime' = 1 / (Baby Age Speed × Extra Baby Age Speed Multiplier)
+    baby_age_speed = stat_value(props, 'BabyAgeSpeed', 0, 1)
+    extra_baby_age_speed_m = stat_value(props, 'ExtraBabyAgeSpeedMultiplier', 0, 1)
+
+    breeding_data['maturationTime'] = 1 / baby_age_speed / extra_baby_age_speed_m
+    breeding_data[f'matingCooldownMin'] = stat_value(props, 'NewFemaleMinTimeBetweenMating', 0, 64800.0)
+    breeding_data[f'matingCooldownMax'] = stat_value(props, 'NewFemaleMaxTimeBetweenMating', 0, 172800.0)
+
+    # Should not apply for future support of mods like S+ that allow all creatures to mate
+    if stat_value(props, 'bCanHaveBaby', 0, False):
+        species['breeding'] = breeding_data
+
+    # misc data
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
     usesOxyWild = stat_value(props, 'bCanSuffocate', 0, True)
     usesOxyTamed = stat_value(props, 'bCanSuffocateIfTamed', 0, usesOxyWild)
