@@ -3,14 +3,15 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true
     },
-    "python.unitTest.pyTestArgs": [],
-    "python.unitTest.unittestEnabled": false,
-    "python.unitTest.nosetestsEnabled": false,
-    "python.unitTest.pyTestEnabled": false,
-    "python.unitTest.promptToConfigure": false,
+    "python.testing.pyTestArgs": [],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pyTestEnabled": false,
+    "python.testing.promptToConfigure": false,
     "[python]": {
         "editor.formatOnSave": true
     },
     "python.jediEnabled": false,
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "yapf",
+    "git.ignoreLimitWarning": true
 }
