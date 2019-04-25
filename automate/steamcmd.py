@@ -3,7 +3,14 @@ import platform
 import urllib.request
 import zipfile
 import tarfile
+import logging
 import subprocess
+'''
+Adapted from the pysteamcmd library, which has an MIT license.
+'''
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class SteamcmdException(Exception):
@@ -83,9 +90,6 @@ class Steamcmd(object):
                 self._extract_steamcmd()
             except SteamcmdException as e:
                 return e
-        else:
-            raise SteamcmdException('Steamcmd is already installed. Reinstall is not necessary.' 'Use force=True to override.')
-        return
 
     def install_gamefiles(self, gameid, game_install_dir, user='anonymous', password=None, validate=False):
         """
@@ -143,14 +147,20 @@ class Steamcmd(object):
             raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")
 
 
+__all__ = [
+    'SteamcmdException',
+    'Steamcmd',
+]
+
 if __name__ == '__main__':
     data_path = os.path.abspath(os.path.join('.', 'livedata'))
     steamcmd_path = os.path.join(data_path, 'steamcmd')
     game_path = os.path.join(data_path, 'game')
+    print()
 
     os.makedirs(steamcmd_path, exist_ok=True)
     os.makedirs(game_path, exist_ok=True)
 
     steamcmd = Steamcmd(steamcmd_path)
-    steamcmd.install_gamefiles(376030, game_path)
-    steamcmd.install_workshopfiles(346110, 895711211, game_path)
+    # steamcmd.install_gamefiles(376030, game_path)
+    steamcmd.install_workshopfiles(346110, 1125442531, game_path)
