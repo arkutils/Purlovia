@@ -13,13 +13,40 @@ from ark.properties import stat_value
 # Equation References: https://ark.gamepedia.com/DevKit
 
 # assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
-# Note the Polar Bear's Asset path (Character is missing)
 # assetname = '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Polar_Bear/Polar_Bear'
 # assetname = '/Game/PrimalEarth/Dinos/Direbear/Direbear_Character_BP'
-assetname = '/Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP'
-# assetname = '/Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP'
+assetname = '/Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP'
+
+
+def create_dict(prop):
+    return dict((str(v.name), v.value) for v in prop.values)
+
+
+# Using rounded as it matches the export file values
+def get_lcolor(color):
+    return [color[0].r.rounded, color[0].g.rounded, color[0].b.rounded, color[0].a.rounded]
+
+
+def get_color_defs(asset):
+    props = ark.mod.gather_properties(asset)
+
+    color_defs = []
+    for color_def in props['ColorDefinitions'][0][-1].values:
+        color_dict = create_dict(color_def)
+        color_defs.append([str(color_dict['ColorName']), get_lcolor(color_dict['ColorValue'].values)])
+    return color_defs
+
 
 loader = AssetLoader()
+
+# Get Colors
+core_media = loader['/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP']
+#%%
+color_defs = get_color_defs(core_media)
+# print()
+# pprint(color_defs)
+
 character_asset = loader[assetname]
 character_props = ark.mod.gather_properties(character_asset)
 
@@ -42,25 +69,24 @@ else:
     for i, region in enumerate(default_color_regions):
         prevent_region = stat_value(character_props, 'PreventColorizationRegions', i, region)
         color = dict()
-        color_names = []
+        color_ids = []
 
         if prevent_region:
             color['name'] = 'null'
         else:
-            color_set_defs = male_colorset_props['ColorSetDefinitions'][i][-1]
+            color_set_defs = create_dict(male_colorset_props['ColorSetDefinitions'][i][-1])
 
-            # Color Set has a Region Name
-            if str(color_set_defs.values[0].name) == 'RegionName':
-                color['name'] = str(color_set_defs.values[0].value)
-            else:
+            try:
+                color['name'] = str(color_set_defs['RegionName'])
+            except:
                 color['name'] = 'No Name Available'
 
-            if str(color_set_defs.values[-1].name) == 'ColorEntryNames':
-                for color_name in color_set_defs.values[-1].value.values:
-                    if str(color_name) not in color_names:
-                        color_names.append(str(color_name))
+            for color_name in color_set_defs['ColorEntryNames'].values:
+                color_id = [c_def[0] for c_def in color_defs].index(str(color_name)) + 1
+                if str(color_id) not in color_ids:
+                    color_ids.append(color_id)
 
-        color['colorIds'] = color_names
+        color['colorIds'] = color_ids
         colors.append(color)
 
     pprint(colors)
