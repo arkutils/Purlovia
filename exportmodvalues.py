@@ -4,7 +4,11 @@ import json
 from datetime import datetime
 from collections import defaultdict
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import ark.mod
+from automate.ark import readModData
 from ark.export_asb_values import values_for_species
 from ue.loader import AssetLoader
 
@@ -41,9 +45,9 @@ def parse(mod_name: str, modid: int, loader: AssetLoader):
     return species_data
 
 
-def convert(species_data: list, modid: str):
+def convert(species_data: list, modid: str, version: str):
     values = dict()
-    values['ver'] = datetime.utcnow().isoformat()
+    values['ver'] = version
     values['modid'] = modid
     values['species'] = list()
 
@@ -56,7 +60,7 @@ def convert(species_data: list, modid: str):
 
 def output(name: str, values: dict):
     filename = os.path.join(args.outdir, f'{name.lower()}.json')
-    log(f' -> {filename}')
+    log(f' -> {filename} [version {values["ver"]}]')
     with open(filename, 'w') as f:
         json.dump(values, fp=f)
 
@@ -68,31 +72,41 @@ def parse_mod_args():
 
 
 def grab_mod_info(mod_list, loader: AssetLoader):
-    mod_names = dict()
+    mod_info = dict()
     for modid in mod_list:
-        mod_name = loader.mods_numbers_to_names.get(modid)
-        long_name = loader.mods_numbers_to_descriptions.get(modid, mod_name)
-        mod_names[modid] = (mod_name, long_name)
-    return mod_names
+        mod_data = readModData(loader.asset_path, modid)
+        long_name = loader.mods_numbers_to_descriptions.get(modid, mod_data['name'])
+        mod_data['descriptive_name'] = long_name
+        mod_info[modid] = mod_data
+    return mod_info
 
 
-def do_convertions(requests, mod_names, loader: AssetLoader):
+def do_convertions(requests, mod_info, loader: AssetLoader):
     for request in requests:
-        modids = '+'.join(str(modid) for modid in request)
-        name = '+'.join(mod_names[modid][1] for modid in request)
-        species_data = sum((parse(mod_names[modid][0], modid, loader) for modid in request), [])
-        values = convert(species_data, modids)
-        output(name, values)
+        infos = dict((modid, mod_info[modid]) for modid in request)
+        modids_string = '+'.join(str(modid) for modid in request)
+        longname_string = '+'.join(infos[modid].get('descriptive_name', infos[modid]['name']) for modid in request)
+        version_string = str(max(infos[modid]['version'] for modid in request)) + '.0'
+        species_data = sum((parse(infos[modid]['name'], modid, loader) for modid in request), [])
+        values = convert(species_data, modids_string, version_string)
+        output(longname_string, values)
 
 
 def create_parser():
     import argparse
     parser = argparse.ArgumentParser(description="Export mod data for ASB in values.json format.")
-    parser.add_argument(
-        'mods', metavar='MODID', type=str, nargs='+', help='ID of a mod to export (can appear multiple times, use + to combine)')
+    parser.add_argument('mods',
+                        metavar='MODID',
+                        type=str,
+                        nargs='+',
+                        help='ID of a mod to export (can appear multiple times, use + to combine)')
     parser.add_argument('-o', dest='outdir', default='mods', help='directory to save the output(s) into (default: mods)')
-    parser.add_argument(
-        '-c', dest='createdir', action='store_const', const=True, default=False, help='create \'outdir\' if it doesn\'t exist')
+    parser.add_argument('-c',
+                        dest='createdir',
+                        action='store_const',
+                        const=True,
+                        default=False,
+                        help='create \'outdir\' if it doesn\'t exist')
     parser.add_argument('-q', dest='quiet', action='store_const', const=True, default=False, help='quieten normal output')
     return parser
 
@@ -120,8 +134,8 @@ def main():
     loader = AssetLoader(quiet=args.quiet)
 
     requests, mod_list = parse_mod_args()
-    mod_names = grab_mod_info(mod_list, loader)
-    do_convertions(requests, mod_names, loader)
+    mod_info = grab_mod_info(mod_list, loader)
+    do_convertions(requests, mod_info, loader)
 
 
 if __name__ == '__main__':

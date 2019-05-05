@@ -1,5 +1,7 @@
 #%% Setup
 from interactive_utils import *
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 from automate.ark import ArkSteamManager
 
@@ -10,12 +12,12 @@ arkman = ArkSteamManager(data_path)
 arkman.ensureSteamCmd()
 
 #%% Update game
-gamever = arkman.ensureGameUpdated()
+gamever = arkman.ensureGameUpdated(skipInstall=False)
 print(f'\nGame:\n')
 print(f'Version: {gamever}')
 print(f'Content path: {arkman.getContentPath()}')
 
 #%% Update mods
-modvers = arkman.ensureModsUpdated([839162288, 1356703358, 895711211])
+modvers = arkman.ensureModsUpdated([1373744537, 1090809604], skipInstall=False)
 print(f'\nMods:\n')
 pprint(modvers)

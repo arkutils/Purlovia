@@ -1,14 +1,17 @@
 import math
+import json
 import shutil
 import os.path
 import logging
 from typing import Dict
 
 from .steamcmd import Steamcmd
-from .modutils import unpackModFile, readACFFile
+from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
 
 ARK_SERVER_APP_ID = 376030
 ARK_MAIN_APP_ID = 346110
+
+MODDATA_FILENAME = '_moddata.json'
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -20,6 +23,7 @@ class ArkSteamManager:
         self.basepath = basepath
         self.steamcmd_path = os.path.join(basepath, 'steamcmd')
         self.gamedata_path = os.path.join(basepath, 'game')
+        self.asset_path = os.path.join(self.gamedata_path, 'ShooterGame', 'Content')
         self.steamcmd = Steamcmd(self.steamcmd_path)
 
     def ensureSteamCmd(self):
@@ -27,33 +31,37 @@ class ArkSteamManager:
         os.makedirs(self.steamcmd_path, exist_ok=True)
         self.steamcmd.install()
 
-    def ensureGameUpdated(self) -> str:
+    def ensureGameUpdated(self, skipInstall=False) -> str:
         """Install/update the game and return its version string."""
         logger.info(f'Ensuring Ark is installed and up to date')
         os.makedirs(self.gamedata_path, exist_ok=True)
-        self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+        if not skipInstall:
+            self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
         verFile = os.path.join(self.gamedata_path, 'version.txt')
         with open(verFile) as f:
             version = f.read().strip()
         return version
 
-    def ensureModsUpdated(self, modids, previousVersions: Dict[str, str] = None, skipInstall=False) -> Dict[str, str]:
+    def ensureModsUpdated(self, modids, skipInstall=False) -> Dict[str, Dict]:
         """
         Install/update the listed mods and return a dict of their versions.
 
         :param modids: List of mod IDs to work on.
-        :param previousVersions: (Optional) Dict of previous versions, consisting of modid -> version pairs.
-        :return: Dict of mod versions, consisting of modid -> version pairs.
+        :return: Dict of mod data for the given modids.
         """
         logger.info(f'Ensuring mods are installed and up to date')
 
         modids = tuple(str(modid) for modid in modids)
-        previousVersions = dict((modid, int(version)) for modid, version in (previousVersions or dict()).items())
 
         workshopFile = os.path.join(self.gamedata_path, 'steamapps', 'workshop', f'appworkshop_{ARK_MAIN_APP_ID}.acf')
         workshopData = readACFFile(workshopFile) if os.path.isfile(workshopFile) else None
 
-        # TODO: Gather installed versions from a marker file in each installed mod's directory
+        # Gather existing moddata files
+        old_moddata = dict()
+        for modid in modids:
+            moddata = readModData(self.asset_path, modid)
+            if moddata:
+                old_moddata[modid] = moddata
 
         # Update mods using steamcmd
         if not skipInstall:
@@ -62,34 +70,71 @@ class ArkSteamManager:
                 self.steamcmd.install_workshopfiles(str(ARK_MAIN_APP_ID), modid, self.gamedata_path)
 
         # Collection version numbers from workshop data file
-        newVersions = getModVersions(self.gamedata_path, modids)
+        newVersions = getSteamModVersions(self.gamedata_path, modids)
 
         # Unpack mods which have updated versions
         for modid in modids:
-            oldVersion = previousVersions.get(modid, -math.inf)
+            oldVersion = int(old_moddata[modid]['version']) if modid in old_moddata else -math.inf
             newVersion = newVersions.get(modid, None)
-            assert newVersion is not None, LookupError(f"Unable to find version for installed mod {modid}")
+            assert newVersion, LookupError(f"Unable to find version for installed mod {modid}")
             if newVersion > oldVersion:
                 logger.info(f'Unpacking mod {modid}')
                 unpackMod(self.gamedata_path, modid)
             else:
                 logger.debug(f'Skipping unchanged mod {modid}')
 
-        return newVersions
+        # Extract and save mod data
+        all_moddata = dict()
+        for modid in modids:
+            moddata = gatherModInfo(self.asset_path, modid)
+            moddata['version'] = str(newVersions[modid])
+            moddata_path = os.path.join(self.asset_path, 'Mods', modid, MODDATA_FILENAME)
+            with open(moddata_path, 'w') as f:
+                json.dump(moddata, f, indent='\t')
+
+            all_moddata[modid] = moddata
+
+        return all_moddata
 
     def getContentPath(self) -> str:
         '''Return the Content directory of the game.'''
-        content = os.path.join(self.gamedata_path, 'ShooterGame', 'Content')
-        return content
+        return self.asset_path
 
 
-def getModVersions(game_path, modids) -> Dict[str, int]:
+def getSteamModVersions(game_path, modids) -> Dict[str, int]:
     '''Collect version numbers for each of the specified mods.'''
     filename = os.path.join(game_path, 'steamapps', 'workshop', f'appworkshop_{ARK_MAIN_APP_ID}.acf')
     data = readACFFile(filename)
     details = data['AppWorkshop']['WorkshopItemDetails']
     newModVersions = dict((modid, int(details[modid]['timeupdated'])) for modid in modids)
     return newModVersions
+
+
+def gatherModInfo(asset_path, modid) -> Dict:
+    '''Gather information from mod.info and modmeta.info and collate into an info structure.'''
+    modpath = os.path.join(asset_path, 'Content', 'Mods', str(modid))
+
+    modinfo = readModInfo(os.path.join(modpath, 'mod.info'))
+    modmetainfo = readModMetaInfo(os.path.join(modpath, 'modmeta.info'))
+
+    moddata = dict()
+    moddata['id'] = str(modid)
+    moddata['name'] = modinfo['modname']
+    moddata['maps'] = modinfo['maps']
+    return moddata
+
+
+def readModData(asset_path, modid) -> Dict:
+    moddata_path = os.path.join(asset_path, 'Content', 'Mods', modid, MODDATA_FILENAME)
+    logger.info(f'Loading mod {modid} metadata')
+    if not os.path.isfile(moddata_path):
+        logger.debug(f'Couldn\'t find mod data at "{moddata_path}"')
+        return None
+
+    with open(moddata_path, 'r') as f:
+        moddata = json.load(f)
+
+    return moddata
 
 
 def unpackMod(game_path, modid) -> str:
@@ -122,4 +167,6 @@ def unpackMod(game_path, modid) -> str:
 
 __all__ = [
     'ArkSteamManager',
+    'getModVersions',
+    'readModData',
 ]
