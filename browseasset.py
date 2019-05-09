@@ -6,6 +6,8 @@ from collections.abc import Iterable
 from ue.base import UEBase
 from ue.loader import AssetLoader
 
+from automate.ark import ArkSteamManager
+
 root = None
 tree = None
 treenodes = {}
@@ -158,18 +160,18 @@ def load_asset(assetname):
 
 
 if __name__ == '__main__':
-    global loader
-    loader = AssetLoader()
+    global arkman, loader
+    arkman = ArkSteamManager(skipInstall=True)
+    loader = arkman.createLoader()
 
     assetname = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
 
     if not assetname:
         from tkinter import filedialog
-        assetname = filedialog.askopenfilename(
-            title='Select asset file...',
-            filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
-            initialdir=loader.asset_path)
+        assetname = filedialog.askopenfilename(title='Select asset file...',
+                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
+                                               initialdir=loader.asset_path)
 
     load_asset(assetname)
     root.mainloop()

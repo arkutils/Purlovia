@@ -3,7 +3,10 @@
 #%% Setup
 from interactive_utils import *
 
+import re
 import json
+import os.path
+from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 from deepdiff import DeepDiff
@@ -18,13 +21,17 @@ from ue.properties import *
 import ark.mod
 import ark.properties
 from ark.export_asb_values import values_for_species
+from automate.ark import ArkSteamManager, readModData
+
+arkman = ArkSteamManager('./livedata', skipInstall=True)
+loader = arkman.createLoader()
 
 replace_name = lambda match: f'{species_names[int(match.group(1))]}'
 replace_stat = lambda match: f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
 
 
+#%% Helpers
 def clean_diff_output(diff):
-    import re
     speciesRe = re.compile(r"root\['species'\]\[(\d+)\]")
     statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
     diff = speciesRe.sub(replace_name, diff)
@@ -35,36 +42,44 @@ def clean_diff_output(diff):
     return diff
 
 
-loader = AssetLoader()
+joinLinesRe = re.compile(r"\[\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+)\n\s*\]",
+                         re.MULTILINE)
+
+
+def format_json(data, pretty=False):
+    json_string = json.dumps(data, indent=('\t' if pretty else None))
+    if pretty:
+        json_string = re.sub(joinLinesRe, r"[ \1, \2, \3, \4, \5 ]", json_string)
+    return json_string
+
+
+def save_as_json(data, filename, pretty=False):
+    print(f'Outputting to: {filename}')
+    json_string = format_json(data, pretty)
+    with open(filename, 'w') as f:
+        f.write(json_string)
+
 
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
-# # Discover all species from the given mod, and convert/output them all
-# mod_name = 'Primal_Fear'
-# # mod_name = 'SSFlyer'
-# # mod_name = 'ClassicFlyers'
-# # mod_name = 'Gaia'
-# # mod_name = 'AE'
-# mod_number = loader.mods_names_to_numbers[mod_name]
-# print(f'\nLoading {mod_name} ({mod_number})\n')
-# species_data = []
-# all_assetnames = loader.find_assetnames(
-#     r'.*(_Character|Character_).*BP.*', f'/Game/Mods/{mod_name}', exclude=r'.*(_Base|Base_).*')
-# for assetname in all_assetnames:
-#     asset = loader[assetname]
-#     props = ark.mod.gather_properties(asset)
-#     species_data.append((asset, props))
+# Discover all species from the given mod, and convert/output them all
+mod_name = 'ClassicFlyers'  # Primal_Fear SSFlyers Gaia AE
+mod_number = loader.modresolver.get_id_from_name(mod_name)
+print(f'\nLoading {mod_name} ({mod_number})\n')
+species_data = []
+all_assetnames = loader.find_assetnames(r'.*(_Character|Character_).*BP.*',
+                                        f'/Game/Mods/{mod_name}',
+                                        exclude=r'.*(_Base|Base_).*')
+for assetname in all_assetnames:
+    asset = loader[assetname]
+    props = ark.mod.gather_properties(asset)
+    species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather properties from a mod and try to discover the list of species from spawn regions
 # # Discover all species from the given mod, and convert/output them all
-# # mod_name = 'ClassicFlyers'
-# mod_name = 'Primal_Fear'
-# # mod_name = 'SSFlyers' # doesn't work yet
-
-# # TODO: We need to discover these details from mod.info and modmeta.info as they vary in format
-# mod_number = loader.mods_names_to_numbers[mod_name]
-# mod_top_level = f'/Game/Mods/{mod_number}/PrimalGameData_BP_{mod_name}'  # not constant!
-# print(f'\nLoading {mod_name} ({mod_number}): {mod_top_level}\n')
-# asset = loader[mod_top_level]
+# mod_name = 'ClassicFlyers'  # Primal_Fear SSFlyers Gaia AE
+# modid = loader.modresolver.get_id_from_name(mod_name)
+# mod_data = readModData(loader.asset_path, modid)
+# asset = loader[mod_data['package']]
 # species_data = ark.mod.load_all_species(asset)
 
 # %% CHOOSE ONE: Convert/output specific species for comparison purposes
@@ -106,46 +121,47 @@ loader = AssetLoader()
 #     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather species list from existing ASB values.json
-if 'mod_name' in vars(): del mod_name
-value_json = json.load(open(os.path.join('asb_json', 'values.json')))
-load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
-print(f'\nDecoding all values.json species...\n')
-species_data = []
-for pkgname in load_species:
-    asset = loader[pkgname]
-    props = ark.properties.gather_properties(asset)
-    species_data.append((asset, props))
+# if 'mod_name' in vars(): del mod_name
+# value_json = json.load(open(os.path.join('asb_json', 'values.json')))
+# load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
+# print(f'\nDecoding all values.json species...\n')
+# species_data = []
+# for pkgname in load_species:
+#     asset = loader[pkgname]
+#     props = ark.properties.gather_properties(asset)
+#     species_data.append((asset, props))
 
 #%% Gather expected resutls from original ASB values files
-# if 'mod_name' in vars():
-#     asb_values_filename = mod_name.lower() + ".json"
-# else:
-#     asb_values_filename = "values.json"
-# print(f"\nReading expected data from: {asb_values_filename}")
-# expected_values_json = json.load(open(os.path.join('asb_json', asb_values_filename)))
-# expected_values = dict()
-# expected_values['ver'] = expected_values_json['ver']
-# expected_values['species'] = list()
-# expected_species_data = dict((species['blueprintPath'].split('.')[0], species) for species in expected_values_json['species'])
-# for v in expected_species_data.values():
-#     if 'colors' in v: del v['colors']
-#     if 'taming' in v: del v['taming']
-#     if 'immobilizedBy' in v: del v['immobilizedBy']
-#     if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
+if 'mod_name' in vars():
+    asb_values_filename = mod_name.lower() + ".json"
+else:
+    asb_values_filename = "values.json"
+print(f"\nReading expected data from: {asb_values_filename}")
+expected_values_json = json.load(open(os.path.join('asb_json', asb_values_filename)))
+expected_values = dict()
+expected_values['ver'] = expected_values_json['ver']
+expected_values['species'] = list()
+expected_species_data = dict((species['blueprintPath'].split('.')[0], species) for species in expected_values_json['species'])
+for v in expected_species_data.values():
+    if 'colors' in v: del v['colors']
+    if 'taming' in v: del v['taming']
+    if 'immobilizedBy' in v: del v['immobilizedBy']
+    if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
 
 #%% Show which species we're processing
-# print(f'\nFound species:')
-# species_names = []
-# for i, (a, v) in enumerate(species_data):
-#     name = str(v["DescriptiveName"][0][-1])
-#     species_names.append(name.replace(' ', ''))
-#     print(f'{i:>3} {name:>20}: {a.assetname}')
+print(f'\nFound species:')
+species_names = []
+for i, (a, v) in enumerate(species_data):
+    name = str(v["DescriptiveName"][0][-1])
+    species_names.append(name.replace(' ', ''))
+    print(f'{i:>3} {name:>20}: {a.assetname}')
 
-#     # Record the expected data for this species
-#     try:
-#         expected_values['species'].append(expected_species_data[a.assetname])
-#     except:
-#         print(f'ASB data not found for species: {name} ({a.assetname})')
+    # Record the expected data for this species
+    try:
+        expected_values['species'].append(expected_species_data[a.assetname])
+    except:
+        # print(f'ASB data not found for species: {name} ({a.assetname})')
+        pass
 
 #%% Translate properties for export
 values = dict()
@@ -155,37 +171,29 @@ values['species'] = list()
 all_props = 'mod_name' in vars()
 
 for asset, props in species_data:
-    species_values = values_for_species(asset, props, all=all_props)
+    species_values = values_for_species(asset, props, all=all_props, fullStats=True)
     values['species'].append(species_values)
 
 #%% Show diff from ASB expected values
-stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
-stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
+# stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor')
+# stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
 
-print(f'\nDifferences:')
-diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"}, significant_digits=2)
-diff = pretty(diff, max_width=130)
-diff = clean_diff_output(diff)
-print(diff)
-# pprint(diff)
+# print(f'\nDifferences:')
+# diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"}, significant_digits=2)
+# diff = pretty(diff, max_width=130)
+# diff = clean_diff_output(diff)
+# print(diff)
+# # pprint(diff)
 
 #%% Write output
 if 'mod_name' in vars():
-    import os.path
-    json_output = json.dumps(values)
-    filename = os.path.join('output', f'{mod_name.lower()}.json')
-    print(f'\nOutputting to: {filename}')
-    with open(filename, 'w') as f:
-        f.write(json_output)
+    filename = Path('.') / 'output' / f'{mod_name.lower()}.json'
+    save_as_json(values, filename, pretty=True)
 else:
     # pprint(values)
     # printjson(values)
-    import os.path
-    json_output = json.dumps(values)
-    filename = os.path.join('output', 'values.json')
-    print(f'\nOutputting to: {filename}')
-    with open(filename, 'w') as f:
-        f.write(json_output)
+    filename = Path('.') / 'output' / 'values.json'
+    save_as_json(values, filename, pretty=True)
 
 #%% Example diffing two assets
 # def prep_props_for(assetname):

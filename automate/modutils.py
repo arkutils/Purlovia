@@ -3,6 +3,16 @@ import logging
 
 from ue.stream import MemoryStream
 
+__all__ = (
+    'DecompressionError',
+    'unpackModFile',
+    'readACFFile',
+    'readModInfo',
+    'readModMetaInfo',
+    'readUnrealString',
+    'loadFileAsStream',
+)
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
@@ -102,13 +112,6 @@ def readACFFile(filename, outputType=dict):
     return output
 
 
-def readModMetaInfo(filename):
-    f = loadFileAsStream(filename)
-    countEntries = f.readUInt32()
-    entries = [(readUnrealString(f), readUnrealString(f)) for i in range(countEntries)]
-    return dict(entries)
-
-
 def readModInfo(filename):
     f = loadFileAsStream(filename)
     modname = readUnrealString(f)
@@ -116,6 +119,13 @@ def readModInfo(filename):
     maps = (readUnrealString(f) for i in range(countMaps))
     result = dict(modname=modname, maps=tuple(maps))
     return result
+
+
+def readModMetaInfo(filename):
+    f = loadFileAsStream(filename)
+    countEntries = f.readUInt32()
+    entries = [(readUnrealString(f), readUnrealString(f)) for i in range(countEntries)]
+    return dict(entries)
 
 
 def readUnrealString(f: MemoryStream) -> str:
@@ -135,12 +145,3 @@ def loadFileAsStream(filename):
         mem = memoryview(data)
         stream = MemoryStream(mem)
         return stream
-
-
-__all__ = [
-    'DecompressionError',
-    'unpackModFile',
-    'readACFFile',
-    'readModInfo',
-    'readModMetaInfo',
-]

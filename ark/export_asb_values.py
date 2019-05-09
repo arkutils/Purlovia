@@ -32,6 +32,9 @@ NAME_CHANGES = {
     'Paraceratherium': 'Paracer',
 }
 
+ASB_STAT_INDEXES = (0, 1, 3, 4, 7, 8, 9, 2)
+ARK_STAT_INDEXES = list(range(12))
+
 BASE_VALUES = (100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
 IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
@@ -40,7 +43,7 @@ EXTRA_MULTS_VALUES = (1.35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 remove_default_values = True  # TODO: probably set to False for production runs
 
 
-def values_for_species(asset: UAsset, props, all=False):
+def values_for_species(asset: UAsset, props, all=False, fullStats=False):
     # Create a temporary set of Iw defaults, overriding torpor with TheMaxTorporIncreasePerBaseLevel or 0.06
     iw_values = list(IW_VALUES)
     iw_values[2] = stat_value(props, 'TheMaxTorporIncreasePerBaseLevel', 0, 0.06)
@@ -54,8 +57,15 @@ def values_for_species(asset: UAsset, props, all=False):
     species = dict(name=name, blueprintPath=bp)
 
     # statsRaw data
-    species['statsRaw'] = list()
-    for asb_index, ark_index in enumerate((0, 1, 3, 4, 7, 8, 9, 2)):
+    statsArray = list()
+    if fullStats:
+        statIndexes = ARK_STAT_INDEXES
+        species['fullStatsRaw'] = statsArray
+    else:
+        statIndexes = ASB_STAT_INDEXES
+        species['statsRaw'] = statsArray
+
+    for asb_index, ark_index in enumerate(statIndexes):
         add_one = 1 if ark_index == 8 or ark_index == 9 else 0
         zero_mult = stat_value(props, 'CanLevelUpValue', ark_index, 1)
         ETHM = stat_value(props, 'ExtraTamedHealthMultiplier', ark_index, EXTRA_MULTS_VALUES)
@@ -71,7 +81,7 @@ def values_for_species(asset: UAsset, props, all=False):
         # Round to 6dp like existing values creator
         stat_data = [round(value, 6) for value in stat_data]
 
-        species['statsRaw'].append(stat_data)
+        statsArray.append(stat_data)
 
     # breeding data
     breeding_data = dict()

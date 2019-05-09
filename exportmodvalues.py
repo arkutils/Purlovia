@@ -1,3 +1,4 @@
+import re
 import sys
 import os.path
 import json
@@ -5,10 +6,13 @@ from datetime import datetime
 from collections import defaultdict
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+loggingHandler = logging.StreamHandler()
+logger.addHandler(loggingHandler)
 
 import ark.mod
-from automate.ark import readModData
+from automate.ark import readModData, ArkSteamManager
 from ark.export_asb_values import values_for_species
 from ue.loader import AssetLoader
 
@@ -21,6 +25,7 @@ def log(*args):
 
 
 def error(*args):
+    logger.error(string.format(args))
     print('Error:', *args, file=sys.stderr)
     sys.exit(1)
 
@@ -75,10 +80,19 @@ def grab_mod_info(mod_list, loader: AssetLoader):
     mod_info = dict()
     for modid in mod_list:
         mod_data = readModData(loader.asset_path, modid)
-        long_name = loader.mods_numbers_to_descriptions.get(modid, mod_data['name'])
+        asset = loader[mod_data['package']]
+        props = ark.mod.gather_properties(asset)
+        long_name = str(props['ModName'][0][-1])
+        long_name = clean_name(long_name)
         mod_data['descriptive_name'] = long_name
         mod_info[modid] = mod_data
     return mod_info
+
+
+def clean_name(name):
+    name = name.strip()
+    name = re.sub(r'\s+', '_', name)
+    return name
 
 
 def do_convertions(requests, mod_info, loader: AssetLoader):
@@ -95,19 +109,17 @@ def do_convertions(requests, mod_info, loader: AssetLoader):
 def create_parser():
     import argparse
     parser = argparse.ArgumentParser(description="Export mod data for ASB in values.json format.")
-    parser.add_argument('mods',
-                        metavar='MODID',
-                        type=str,
-                        nargs='+',
-                        help='ID of a mod to export (can appear multiple times, use + to combine)')
+    parser.add_argument('mods', metavar='MODID', nargs='+', help='ID of a mod to export (can be repeated, use + to combine)')
     parser.add_argument('-o', dest='outdir', default='mods', help='directory to save the output(s) into (default: mods)')
+    parser.add_argument('-b', dest='basedir', default='livedata', help='base directory of the live data (default: livedata)')
+    parser.add_argument('-q', dest='quiet', action='store_const', const=True, default=False, help='disable non-essential output')
+    parser.add_argument('-v', dest='verbosity', action='count', default=0, help='increase log level (can be repeated)')
     parser.add_argument('-c',
                         dest='createdir',
                         action='store_const',
                         const=True,
                         default=False,
                         help='create \'outdir\' if it doesn\'t exist')
-    parser.add_argument('-q', dest='quiet', action='store_const', const=True, default=False, help='quieten normal output')
     return parser
 
 
@@ -119,6 +131,13 @@ def main():
 
     if args.quiet:
         log = lambda *args: None
+        logger.setLevel(logging.ERROR)
+
+    if not args.quiet:
+        if args.verbosity:
+            logger.setLevel(logging.INFO)
+        elif args.verbosity > 1:
+            logger.setLevel(logging.DEBUG)
 
     if not os.path.isdir(args.outdir):
         if args.createdir and not os.path.exists(args.outdir):
@@ -131,7 +150,8 @@ def main():
 
     mod_names = dict()
 
-    loader = AssetLoader(quiet=args.quiet)
+    arkman = ArkSteamManager(args.basedir)
+    loader = arkman.createLoader()
 
     requests, mod_list = parse_mod_args()
     mod_info = grab_mod_info(mod_list, loader)

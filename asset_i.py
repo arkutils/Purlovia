@@ -8,9 +8,14 @@ from ue.loader import AssetLoader
 from ue.stream import MemoryStream
 from ue.utils import *
 from ue.properties import *
+from automate.ark import ArkSteamManager
 import ark.mod
 import ark.asset
 
+arkman = ArkSteamManager('./livedata', skipInstall=True)
+loader = arkman.createLoader()
+
+#%% Select asset
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)
 # PlayerLevelEngramPointsSP, PlayerLevelEngramPoints,
 # To checkout:
@@ -18,7 +23,7 @@ import ark.asset
 #   StatusValueDefinitions (unsupported struct x 12)
 #   StatusStateDefinitions (unsupported struct x 13...maybe not useful)
 # ...are server and single-player default mults in here???
-# assetname = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
+assetname = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 
 # assetname = '/Game/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint'  # !*!*! DECODE ERROR
 # assetname = '/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP'  # master item/engram table
@@ -35,7 +40,7 @@ import ark.asset
 # assetname = '/Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP'
-assetname = '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP'
 
 # assetname = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack'
@@ -51,8 +56,6 @@ assetname = '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP'
 # assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
 # assetname = '/Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
 
-loader = AssetLoader()
-# filename = loader.convert_asset_name_to_path(assetname)
 asset = loader[assetname]
 print('Decoding complete.')
 

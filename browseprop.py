@@ -7,7 +7,9 @@ from collections import defaultdict
 from ue.base import UEBase
 from ue.loader import AssetLoader
 from ue.properties import Property, FloatProperty, StructProperty
+
 import ark.asset
+from automate.ark import ArkSteamManager
 
 root = None
 tree = None
@@ -122,18 +124,18 @@ def fill_property_grid():
 
 
 if __name__ == '__main__':
-    global loader
-    loader = AssetLoader()
+    global arkman, loader
+    arkman = ArkSteamManager(skipInstall=True)
+    loader = arkman.createLoader()
 
     mainasset = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
 
     if not mainasset:
         from tkinter import filedialog
-        mainasset = filedialog.askopenfilename(
-            title='Select asset file...',
-            filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
-            initialdir=loader.asset_path)
+        mainasset = filedialog.askopenfilename(title='Select asset file...',
+                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
+                                               initialdir=loader.asset_path)
 
     root.title("Property Browser : " + mainasset)
     load_asset(mainasset)
