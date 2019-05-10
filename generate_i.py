@@ -61,7 +61,11 @@ def save_as_json(data, filename, pretty=False):
 
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
 # Discover all species from the given mod, and convert/output them all
-mod_name = 'ClassicFlyers'  # Primal_Fear SSFlyers Gaia AE
+# mod_name = 'ClassicFlyers'
+# mod_name = 'Primal_Fear'
+mod_name = 'SSFlyer'
+# mod_name = 'Gaia'
+# mod_name = 'AE'
 mod_number = loader.modresolver.get_id_from_name(mod_name)
 print(f'\nLoading {mod_name} ({mod_number})\n')
 species_data = []
