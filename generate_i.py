@@ -26,29 +26,31 @@ from automate.ark import ArkSteamManager, readModData
 arkman = ArkSteamManager('./livedata', skipInstall=True)
 loader = arkman.createLoader()
 
+version_string = None
+
+#%% Helpers
 replace_name = lambda match: f'{species_names[int(match.group(1))]}'
 replace_stat = lambda match: f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
 
+SPECIES_REGEX = re.compile(r"root\['species'\]\[(\d+)\]")
+STAT_REGEX = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
+JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
 
-#%% Helpers
+
 def clean_diff_output(diff):
-    speciesRe = re.compile(r"root\['species'\]\[(\d+)\]")
-    statRe = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
-    diff = speciesRe.sub(replace_name, diff)
+    diff = SPECIES_REGEX.sub(replace_name, diff)
     diff = re.sub(r"\['(.*?)'\]", r'.\1', diff)
-    # diff = statRe.sub(replace_stat, diff)
+    # diff = STAT_REGEX.sub(replace_stat, diff)
     # diff = re.sub(r"\"(.*?)\":", r'\1:', diff)
     # diff = re.sub(r"\{'new_value': (.*?), 'old_value': (.*?)\}", r'\2 -> \1', diff)
     return diff
 
 
-joinLinesRe = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?", re.MULTILINE)
-
-
 def format_json(data, pretty=False):
     json_string = json.dumps(data, indent=('\t' if pretty else None))
     if pretty:
-        json_string = re.sub(joinLinesRe, r" \1", json_string)
+        json_string = re.sub(JOIN_LINES_REGEX, r" \1", json_string)
+        json_string = re.sub(r'(\d)\]', r'\1 ]', json_string)
     return json_string
 
 
@@ -60,22 +62,22 @@ def save_as_json(data, filename, pretty=False):
 
 
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
-# Discover all species from the given mod, and convert/output them all
+# # Discover all species from the given mod, and convert/output them all
 # mod_name = 'ClassicFlyers'
-# mod_name = 'Primal_Fear'
-mod_name = 'SSFlyer'
-# mod_name = 'Gaia'
-# mod_name = 'AE'
-mod_number = loader.modresolver.get_id_from_name(mod_name)
-print(f'\nLoading {mod_name} ({mod_number})\n')
-species_data = []
-all_assetnames = loader.find_assetnames(r'.*(_Character|Character_).*BP.*',
-                                        f'/Game/Mods/{mod_name}',
-                                        exclude=r'.*(_Base|Base_).*')
-for assetname in all_assetnames:
-    asset = loader[assetname]
-    props = ark.mod.gather_properties(asset)
-    species_data.append((asset, props))
+# # mod_name = 'Primal_Fear'
+# # mod_name = 'SSFlyer'
+# # mod_name = 'Gaia'
+# # mod_name = 'AE'
+# mod_number = loader.modresolver.get_id_from_name(mod_name)
+# print(f'\nLoading {mod_name} ({mod_number})\n')
+# species_data = []
+# all_assetnames = loader.find_assetnames(r'.*(_Character|Character_).*BP.*',
+#                                         f'/Game/Mods/{mod_name}',
+#                                         exclude=r'.*(_Base|Base_).*')
+# for assetname in all_assetnames:
+#     asset = loader[assetname]
+#     props = ark.mod.gather_properties(asset)
+#     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather properties from a mod and try to discover the list of species from spawn regions
 # # Discover all species from the given mod, and convert/output them all
@@ -125,15 +127,16 @@ for assetname in all_assetnames:
 #     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather species list from existing ASB values.json
-# if 'mod_name' in vars(): del mod_name
-# value_json = json.load(open(os.path.join('asb_json', 'values.json')))
-# load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
-# print(f'\nDecoding all values.json species...\n')
-# species_data = []
-# for pkgname in load_species:
-#     asset = loader[pkgname]
-#     props = ark.properties.gather_properties(asset)
-#     species_data.append((asset, props))
+if 'mod_name' in vars(): del mod_name
+value_json = json.load(open(os.path.join('asb_json', 'values.json')))
+load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
+version_string = f'{arkman.ensureGameUpdated(skipInstall=True)}.{int(datetime.utcnow().timestamp())}'
+print(f'\nDecoding all values.json species...\n')
+species_data = []
+for pkgname in load_species:
+    asset = loader[pkgname]
+    props = ark.properties.gather_properties(asset)
+    species_data.append((asset, props))
 
 #%% Gather expected resutls from original ASB values files
 if 'mod_name' in vars():
@@ -169,7 +172,7 @@ for i, (a, v) in enumerate(species_data):
 
 #%% Translate properties for export
 values = dict()
-values['ver'] = datetime.utcnow().isoformat()
+values['ver'] = version_string or datetime.utcnow().isoformat()
 values['species'] = list()
 
 all_props = 'mod_name' in vars()
