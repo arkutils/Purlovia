@@ -42,14 +42,13 @@ def clean_diff_output(diff):
     return diff
 
 
-joinLinesRe = re.compile(r"\[\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+),\n\s*([0-9.-]+)\n\s*\]",
-                         re.MULTILINE)
+joinLinesRe = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?", re.MULTILINE)
 
 
 def format_json(data, pretty=False):
     json_string = json.dumps(data, indent=('\t' if pretty else None))
     if pretty:
-        json_string = re.sub(joinLinesRe, r"[ \1, \2, \3, \4, \5 ]", json_string)
+        json_string = re.sub(joinLinesRe, r" \1", json_string)
     return json_string
 
 
@@ -110,6 +109,7 @@ for assetname in all_assetnames:
 #     '/Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP_Aberrant',
 #     '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP',
 #     '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombieFire',
+#     '/Game/Extinction/Dinos/Gacha/Gacha_Character_BP',
 
 #     # '/Game/Mods/ClassicFlyers/Dinos/Argent/Argent_Character_BP',
 # )
