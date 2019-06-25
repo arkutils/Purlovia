@@ -23,7 +23,8 @@ modvers = arkman.ensureModsUpdated([
     839162288,  # Primal_Fear
     893735676,  # Ark Eternal
     895711211,  # ClassicFlyers
-    919470289,  # Speedy Flyers
+    919470289,  # SSFlyer
+    1083349027,  # SpeedyFlyers
     1090809604,  # Pyria
     1125442531,  # Gaia
     1356703358,  # Primal_Fear_Noxious_Creatures
