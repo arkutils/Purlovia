@@ -18,22 +18,23 @@ print(f'Content path: {arkman.getContentPath()}')
 print()
 
 #%% Update mods
-modvers = arkman.ensureModsUpdated([
-    829467257,  # SurvivalPlus
-    839162288,  # Primal_Fear
-    893735676,  # Ark Eternal
+# modvers = arkman.ensureModsUpdated([
+arkman.newEnsureModsUpdated([
+    # 829467257,  # SurvivalPlus
+    # 839162288,  # Primal_Fear
+    # 893735676,  # Ark Eternal
     895711211,  # ClassicFlyers
     919470289,  # SSFlyer
     1083349027,  # SpeedyFlyers
-    1090809604,  # Pyria
-    1125442531,  # Gaia
-    1356703358,  # Primal_Fear_Noxious_Creatures
-    1373744537,  # AC2
-    1675895024,  # NoUntameables
-    1729386191,  # AC2Bonus
+    # 1090809604,  # Pyria
+    # 1125442531,  # Gaia
+    # 1356703358,  # Primal_Fear_Noxious_Creatures
+    # 1373744537,  # AC2
+    # 1675895024,  # NoUntameables
+    # 1729386191,  # AC2Bonus
 ])
-print(f'\nMods:\n')
-pprint(modvers)
+# print(f'\nMods:\n')
+# pprint(modvers)
 print()
 
 #%% Check assets load properly

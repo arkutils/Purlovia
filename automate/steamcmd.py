@@ -1,16 +1,17 @@
-import os
 import platform
 import urllib.request
-import zipfile
-import tarfile
 import logging
 import subprocess
+from pathlib import Path
 '''
 Adapted from the pysteamcmd library, which has an MIT license.
 '''
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
+# TODO: DepotDownloadProgressTimeout 1200
+# It's unlikely this will help, according to many sources
 
 
 class SteamcmdException(Exception):
@@ -34,44 +35,46 @@ class Steamcmd(object):
         """
         :param install_path: installation path for steamcmd
         """
-        self.install_path = install_path
-        os.makedirs(self.install_path, exist_ok=True)
+        self.install_path = Path(install_path)
+        self.install_path.mkdir(parents=True, exist_ok=True)
 
         self.platform = platform.system()
         if self.platform == 'Windows':
             self.steamcmd_url = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip'
-            self.steamcmd_zip = os.path.join(self.install_path, 'steamcmd.zip')
-            self.steamcmd_exe = os.path.join(self.install_path, 'steamcmd.exe')
+            self.steamcmd_zip = self.install_path / 'steamcmd.zip'
+            self.steamcmd_exe = self.install_path / 'steamcmd.exe'
 
         elif self.platform == 'Linux':
             self.steamcmd_url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-            self.steamcmd_zip = os.path.join(self.install_path, 'steamcmd.tar.gz')
-            self.steamcmd_exe = os.path.join(self.install_path, 'steamcmd.sh')
+            self.steamcmd_zip = self.install_path / 'steamcmd.tar.gz'
+            self.steamcmd_exe = self.install_path / 'steamcmd.sh'
 
         else:
-            raise SteamcmdException('The operating system is not supported.'
-                                    'Expected Linux or Windows, received: {}'.format(self.platform))
+            raise SteamcmdException('The operating system is not supported. '
+                                    f'Expected Linux or Windows, received: {self.platform}')
 
     def _download_steamcmd(self):
         try:
-            os.makedirs(os.path.dirname(self.steamcmd_zip), exist_ok=True)
+            self.steamcmd_zip.parent.mkdir(parents=True, exist_ok=True)
             return urllib.request.urlretrieve(self.steamcmd_url, self.steamcmd_zip)
         except Exception as e:
-            raise SteamcmdException('An unknown exception occurred! {}'.format(e))
+            raise SteamcmdException(f'An unknown exception occurred! {e}')
 
     def _extract_steamcmd(self):
         if self.platform == 'Windows':
+            import zipfile
             with zipfile.ZipFile(self.steamcmd_zip, 'r') as f:
                 return f.extractall(self.install_path)
 
         elif self.platform == 'Linux':
+            import tarfile
             with tarfile.open(self.steamcmd_zip, 'r:gz') as f:
                 return f.extractall(self.install_path)
 
         else:
             # This should never happen, but let's just throw it just in case.
-            raise SteamcmdException('The operating system is not supported.'
-                                    'Expected Linux or Windows, received: {}'.format(self.platform))
+            raise SteamcmdException('The operating system is not supported. '
+                                    f'Expected Linux or Windows, received: {self.platform}')
 
     def install(self, force=False):
         """
@@ -79,7 +82,7 @@ class Steamcmd(object):
         :param force: forces steamcmd install regardless of its presence
         :return:
         """
-        if not os.path.isfile(self.steamcmd_exe) or force == True:
+        if not self.steamcmd_exe.is_file() or force == True:
             # Steamcmd isn't installed. Go ahead and install it.
             try:
                 self._download_steamcmd()
@@ -91,7 +94,7 @@ class Steamcmd(object):
             except SteamcmdException as e:
                 return e
 
-    def install_gamefiles(self, gameid, game_install_dir, user='anonymous', password=None, validate=False):
+    def install_gamefiles(self, gameid, game_install_dir: Path, user='anonymous', password=None, validate=False):
         """
         Installs gamefiles for dedicated server. This can also be used to update the gameserver.
         :param gameid: steam game id for the files downloaded
@@ -102,23 +105,26 @@ class Steamcmd(object):
         :return: subprocess call to steamcmd
         """
         if validate:
-            validate = 'validate'
+            validate = '-validate'
         else:
-            validate = None
+            validate = ''
+
+        game_dir = Path(game_install_dir).absolute()
+        logger.info(f'Installing game {gameid} to {game_dir}{" with validate" if validate else ""}')
 
         steamcmd_params = (
-            self.steamcmd_exe,
-            '+login {} {}'.format(user, password),
-            '+force_install_dir {}'.format(game_install_dir),
-            '+app_update {}'.format(gameid),
-            '{}'.format(validate),
+            str(self.steamcmd_exe),
+            f'+login {user} {password}',
+            f'+force_install_dir {game_dir}',
+            f'+app_update {gameid} {validate}',
             '+quit',
         )
         retcode = subprocess.call(steamcmd_params)
+        logger.info(f'SteamCMD process exited with code {retcode}')
         if retcode not in (0, 6, 7):
             raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")
 
-    def install_workshopfiles(self, gameid, workshop_id, game_install_dir, user='anonymous', password=None, validate=False):
+    def install_workshopfiles(self, gameid, workshop_id, game_install_dir, user='anonymous', password=None):
         """
         Installs gamefiles for dedicated server. This can also be used to update the gameserver.
         :param gameid: steam game id for the files downloaded
@@ -126,23 +132,20 @@ class Steamcmd(object):
         :param game_install_dir: installation directory for gameserver files
         :param user: steam username (defaults anonymous)
         :param password: steam password (defaults None)
-        :param validate: should steamcmd validate the gameserver files (takes a while)
         :return: subprocess call to steamcmd
         """
-        if validate:
-            validate = 'validate'
-        else:
-            validate = None
+        game_dir = Path(game_install_dir).absolute()
+        logger.info(f'Installing mod {workshop_id} from game {gameid} to {game_dir}')
 
         steamcmd_params = (
-            self.steamcmd_exe,
-            '+login {} {}'.format(user, password),
-            '+force_install_dir {}'.format(game_install_dir),
-            '+workshop_download_item {} {}'.format(gameid, workshop_id),
-            '{}'.format(validate),
+            str(self.steamcmd_exe),
+            f'+login {user} {password}',
+            f'+force_install_dir {game_dir}',
+            f'+workshop_download_item {gameid} {workshop_id}',
             '+quit',
         )
         retcode = subprocess.call(steamcmd_params)
+        logger.info(f'SteamCMD process exited with code {retcode}')
         if retcode not in (0, 6, 7):
             raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")
 
@@ -153,14 +156,14 @@ __all__ = [
 ]
 
 if __name__ == '__main__':
-    data_path = os.path.abspath(os.path.join('.', 'livedata'))
-    steamcmd_path = os.path.join(data_path, 'steamcmd')
-    game_path = os.path.join(data_path, 'game')
+    data_path = Path('livedata').absolute()
+    steamcmd_path: Path = data_path / 'steamcmd'
+    game_path: Path = data_path / 'game'
     print()
 
-    os.makedirs(steamcmd_path, exist_ok=True)
-    os.makedirs(game_path, exist_ok=True)
+    steamcmd_path.mkdir(parents=True, exist_ok=True)
+    game_path.mkdir(parents=True, exist_ok=True)
 
     steamcmd = Steamcmd(steamcmd_path)
-    # steamcmd.install_gamefiles(376030, game_path)
-    steamcmd.install_workshopfiles(346110, 1125442531, game_path)
+    steamcmd.install_gamefiles(376030, game_path)
+    steamcmd.install_workshopfiles(346110, 895711211, game_path)

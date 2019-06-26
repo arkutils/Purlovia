@@ -13,6 +13,7 @@ jupyter = "*"
 pygments = "*"
 deepdiff = "*"
 deprecated = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

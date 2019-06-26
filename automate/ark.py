@@ -1,14 +1,17 @@
 import math
 import json
-import glob
 import shutil
-import os.path
 import logging
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List, Sequence, Union
+from pathlib import Path
+from shutil import rmtree
+from os import walk
 
 from ue.loader import AssetLoader, ModResolver
 from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
 from .steamcmd import Steamcmd
+from .steamapi import SteamApi, SteamApiException
+from .version import createVersion
 
 __all__ = (
     'ArkSteamManager',
@@ -37,14 +40,13 @@ logger.addHandler(logging.NullHandler())
 
 
 class ArkSteamManager:
-    def __init__(self, basepath='livedata', skipInstall=False):
-        basepath = os.path.abspath(basepath)
-        self.basepath = basepath
+    def __init__(self, basepath=Path('livedata'), skipInstall=False):
+        self.basepath: Path = Path(basepath).absolute()
         self.skip_install = skipInstall
-        self.steamcmd_path = os.path.join(basepath, 'steamcmd')
-        self.gamedata_path = os.path.join(basepath, 'game')
-        self.asset_path = os.path.join(self.gamedata_path, 'ShooterGame')
-        self.mods_path = os.path.join(self.asset_path, 'Content', 'Mods')
+        self.steamcmd_path: Path = self.basepath / 'steamcmd'
+        self.gamedata_path: Path = self.basepath / 'game'
+        self.asset_path: Path = self.gamedata_path / 'ShooterGame'
+        self.mods_path: Path = self.asset_path / 'Content' / 'Mods'
 
         self.steamcmd = Steamcmd(self.steamcmd_path)
 
@@ -63,7 +65,7 @@ class ArkSteamManager:
 
     def ensureSteamCmd(self):
         logger.info(f'Ensuring SteamCMD is installed')
-        os.makedirs(self.steamcmd_path, exist_ok=True)
+        self.steamcmd_path.mkdir(parents=True, exist_ok=True)
         self.steamcmd.install()
 
     def ensureGameUpdated(self, skipInstall=None) -> str:
@@ -72,13 +74,101 @@ class ArkSteamManager:
 
         if skipInstall is None: skipInstall = self.skip_install
 
-        os.makedirs(self.gamedata_path, exist_ok=True)
+        self.gamedata_path.mkdir(parents=True, exist_ok=True)
         if not skipInstall:
             self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
-        verFile = os.path.join(self.gamedata_path, 'version.txt')
-        with open(verFile) as f:
-            version = f.read().strip()
-        return version
+
+        gameVer = self.fetchGameVersion()
+        return gameVer
+
+    def newEnsureModsUpdated(self, modids: Union[List[str], Tuple[str]], dryRun=False, uninstallOthers=False):
+        '''
+        Ensure the listed mods are installed and updated to their latest versions.
+        If uninstallOthers is True, also remove any previously installed mods that are not in the given list.
+        If dryRun is True, make no changes - only report what would have been done.
+        '''
+        modids_requested = set(str(modid) for modid in modids)
+
+        # Find currently installed mods (file search for our _moddata.json)
+        mod_data_installed = findInstalledMods(self.asset_path, exclude_official=True)
+        modids_installed = set(mod_data_installed.keys())
+
+        # Compare lists to calculate mods to 'add/keep/remove'
+        modids_keep = modids_installed & modids_requested
+        modids_add = modids_requested - modids_installed
+        modids_remove = modids_installed - modids_requested
+        logger.debug(f'installed: {modids_installed}')
+        logger.debug(f'requested: {modids_requested}')
+        logger.debug(f'to keep: {modids_keep}')
+        logger.debug(f'to add: {modids_add}')
+        logger.debug(f'to remove: {modids_remove}')
+
+        # Request update times for the 'keep' mods from steam api
+        mod_details_keep_list = SteamApi.GetPublishedFileDetails(modids_keep) if modids_keep else []
+        mod_details_keep = dict((details['publishedfileid'], details) for details in mod_details_keep_list)
+
+        # Calculate mods that need fetching (adds + outdated keeps)
+        def isOutdated(existing_data, workshop_details):
+            return int(workshop_details['time_updated']) > int(existing_data['version'])
+
+        modids_update = set(modid for modid in modids_keep if isOutdated(mod_data_installed[modid], mod_details_keep[modid]))
+        modids_update = modids_update | modids_add
+
+        # Fetch updated mods, then unpack (in thread?)
+        if modids_update:
+            logger.info(f'Updating mods: {modids_update}')
+            if not dryRun:
+                self._installMods(modids_update)
+
+        # Delete unwanted installed mods
+        if uninstallOthers and modids_remove:
+            logger.info(f'Removing mods: {modids_remove}')
+            if not dryRun:
+                self._removeMods(modids_remove)
+
+        # Delete all downloaded steamapps mods
+        if not dryRun:
+            self._cleanSteamModCache()
+
+    def _installMods(self, modids):
+        # TODO: Consider doing the extractions in parallel with the installations (offset) to speed this up
+
+        # Get Steam to download the mods, compressed
+        for modid in modids:
+            logger.debug(f'Installing/updating mod {modid}')
+            self.steamcmd.install_workshopfiles(str(ARK_MAIN_APP_ID), modid, self.gamedata_path)
+
+        # Unpack the mods into the game directory proper
+        for modid in modids:
+            logger.info(f'Unpacking mod {modid}')
+            unpackMod(self.gamedata_path, modid)
+
+        # Collection mod version numbers from workshop data file
+        newVersions = getSteamModVersions(self.gamedata_path, modids)
+
+        # Also need the game version to make a full version number
+        gameVersion = self.fetchGameVersion()
+
+        # Save data on the installed mods
+        for modid in modids:
+            moddata = gatherModInfo(self.asset_path, modid)
+            moddata['version'] = f'{gameVersion}.{newVersions[modid]}'
+            moddata_path = self.mods_path / modid / MODDATA_FILENAME
+            with open(moddata_path, 'w') as f:
+                json.dump(moddata, f, indent='\t')
+
+    def _removeMods(self, modids):
+        # Remove the installed mods
+        for modid in modids:
+            modpath: Path = self.gamedata_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
+            if modpath.is_dir():
+                rmtree(modpath, ignore_errors=True)
+
+    def _cleanSteamModCache(self):
+        workshop_path: Path = self.gamedata_path / 'steamapps' / 'workshop'
+        if workshop_path.is_dir():
+            logging.info('Removing steam workshop cache')
+            rmtree(workshop_path)
 
     def ensureModsUpdated(self, modids, skipInstall=None) -> Dict[str, Dict]:
         """
@@ -92,8 +182,8 @@ class ArkSteamManager:
         if skipInstall is None: skipInstall = self.skip_install
         modids = tuple(str(modid) for modid in modids)
 
-        workshopFile = os.path.join(self.gamedata_path, 'steamapps', 'workshop', f'appworkshop_{ARK_MAIN_APP_ID}.acf')
-        workshopData = readACFFile(workshopFile) if os.path.isfile(workshopFile) else None
+        workshopFile: Path = self.gamedata_path / 'steamapps' / 'workshop' / f'appworkshop_{ARK_MAIN_APP_ID}.acf'
+        workshopData = readACFFile(workshopFile) if workshopFile.is_file() else None
 
         # Gather existing moddata files
         old_moddata = dict()
@@ -127,7 +217,7 @@ class ArkSteamManager:
         for modid in modids:
             moddata = gatherModInfo(self.asset_path, modid)
             moddata['version'] = str(newVersions[modid])
-            moddata_path = os.path.join(self.mods_path, modid, MODDATA_FILENAME)
+            moddata_path = self.mods_path / modid / MODDATA_FILENAME
             with open(moddata_path, 'w') as f:
                 json.dump(moddata, f, indent='\t')
 
@@ -135,12 +225,28 @@ class ArkSteamManager:
 
         return all_moddata
 
+    def fetchGameVersion(self) -> str:
+        verFile = self.gamedata_path / 'version.txt'
+        with open(verFile) as f:
+            version = f.read().strip()
+        return version
+
+    def fetchModData(self, modid) -> Dict[str, Dict]:
+        '''Fetch data for a previously installed mod. Returns None if not installed or invalid.'''
+        moddata_path = self.mods_path / modid / MODDATA_FILENAME
+        try:
+            with open(moddata_path) as f:
+                moddata = json.load(f, indent='\t')
+                return moddata
+        except FileNotFoundError:
+            return None
+
     def getContentPath(self) -> str:
         '''Return the Content directory of the game.'''
         return self.asset_path
 
     def _sanityCheck(self):
-        invalid = not os.path.isdir(self.steamcmd_path) or not os.path.isdir(self.asset_path)
+        invalid = not self.steamcmd_path.is_dir() or not self.asset_path.is_dir()
 
         if invalid and self.skip_install:
             logger.error('Found no game install and was told to skipInstall, aborting')
@@ -181,13 +287,12 @@ class ManagedModResolver(ModResolver):
         return id
 
 
-def findInstalledMods(asset_path, exclude_official=True) -> Dict[str, Dict]:
+def findInstalledMods(asset_path: Path, exclude_official=True) -> Dict[str, Dict]:
     '''Scan installed modules and return their information in a Dict[id->data].'''
-    mods_path = os.path.join(asset_path, 'Content', 'Mods')
-    wildcard = os.path.join(mods_path, '*', MODDATA_FILENAME)
+    mods_path: Path = asset_path / 'Content' / 'Mods'
     result = dict()
-    for filename in glob.iglob(wildcard):
-        modid = os.path.split(os.path.dirname(filename))[-1]
+    for filename in mods_path.glob('*/' + MODDATA_FILENAME):
+        modid = filename.parent.name
         if exclude_official and modid.lower() in OFFICIAL_MODS:
             result[modid] = dict(id=modid, name=modid)
         else:
@@ -197,24 +302,25 @@ def findInstalledMods(asset_path, exclude_official=True) -> Dict[str, Dict]:
     return result
 
 
-def getSteamModVersions(game_path, modids) -> Dict[str, int]:
+def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
     '''Collect version numbers for each of the specified mods in for the form Dict[id->version].'''
-    filename = os.path.join(game_path, 'steamapps', 'workshop', f'appworkshop_{ARK_MAIN_APP_ID}.acf')
+    filename: Path = game_path / 'steamapps' / 'workshop' / f'appworkshop_{ARK_MAIN_APP_ID}.acf'
     data = readACFFile(filename)
     details = data['AppWorkshop']['WorkshopItemDetails']
     newModVersions = dict((modid, int(details[modid]['timeupdated'])) for modid in modids if modid in details)
     return newModVersions
 
 
-def gatherModInfo(asset_path, modid) -> Dict[str, Any]:
+def gatherModInfo(asset_path: Path, modid) -> Dict[str, Any]:
     '''Gather information from mod.info and modmeta.info and collate into an info structure.'''
-    modpath = os.path.join(asset_path, 'Content', 'Mods', str(modid))
+    modid = str(modid)
+    modpath: Path = asset_path / 'Content' / 'Mods' / modid
 
-    modinfo = readModInfo(os.path.join(modpath, 'mod.info'))
-    modmetainfo = readModMetaInfo(os.path.join(modpath, 'modmeta.info'))
+    modinfo = readModInfo(modpath / 'mod.info')
+    modmetainfo = readModMetaInfo(modpath / 'modmeta.info')
 
     moddata = dict()
-    moddata['id'] = str(modid)
+    moddata['id'] = modid
     moddata['name'] = modinfo['modname']
     moddata['maps'] = modinfo['maps']
     moddata['package'] = modmetainfo['PrimalGameData']
@@ -225,10 +331,11 @@ def gatherModInfo(asset_path, modid) -> Dict[str, Any]:
     return moddata
 
 
-def readModData(asset_path, modid) -> Dict[str, Any]:
-    moddata_path = os.path.join(asset_path, 'Content', 'Mods', modid, MODDATA_FILENAME)
+def readModData(asset_path: Path, modid) -> Dict[str, Any]:
+    modid = str(modid)
+    moddata_path: Path = asset_path / 'Content' / 'Mods' / modid / MODDATA_FILENAME
     logger.info(f'Loading mod {modid} metadata')
-    if not os.path.isfile(moddata_path):
+    if not moddata_path.is_file():
         logger.debug(f'Couldn\'t find mod data at "{moddata_path}"')
         return None
 
@@ -240,27 +347,27 @@ def readModData(asset_path, modid) -> Dict[str, Any]:
 
 def unpackMod(game_path, modid) -> str:
     '''Unpack a compressed steam mod and return its version number.'''
-    srcPath = os.path.join(game_path, 'steamapps', 'workshop', 'content', str(ARK_MAIN_APP_ID), str(modid), 'WindowsNoEditor')
-    dstPath = os.path.join(game_path, 'ShooterGame', 'Content', 'Mods', str(modid))
+    srcPath = game_path / 'steamapps' / 'workshop' / 'content' / str(ARK_MAIN_APP_ID) / str(modid) / 'WindowsNoEditor'
+    dstPath = game_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
 
-    for curdir, dirs, files in os.walk(srcPath):
-        curdir = os.path.relpath(curdir, srcPath)
+    for curdir, dirs, files in walk(srcPath):
+        curdir = Path(curdir).relative_to(srcPath)
         for filename in files:
-            name, ext = os.path.splitext(filename)
-            if ext.lower().endswith('.z'):
+            filename = Path(filename)
+            if filename.suffix.lower() == '.z':
                 # decompress
-                src = os.path.abspath(os.path.join(srcPath, curdir, filename))
-                dst = os.path.abspath(os.path.join(dstPath, curdir, name))
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                src = srcPath / curdir / filename
+                dst = dstPath / curdir / filename.stem
+                dst.parent.mkdir(parents=True, exist_ok=True)
                 logger.debug(f'Decompressing {src} -> {dst}')
                 unpackModFile(src, dst)
-            elif ext.lower().endswith('.uncompressed_size'):
+            elif filename.suffix.lower() == '.uncompressed_size':
                 # ignore
                 pass
             else:
                 # just copy
-                src = os.path.abspath(os.path.join(srcPath, curdir, filename))
-                dst = os.path.abspath(os.path.join(dstPath, curdir, filename))
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                src = srcPath / curdir / filename
+                dst = dstPath / curdir / filename
+                dst.parent.mkdir(parents=True, exist_ok=True)
                 logger.debug(f'Copying {src} -> {dst}')
                 shutil.copyfile(src, dst)
