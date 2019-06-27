@@ -224,7 +224,11 @@ class AssetLoader:
         assetname = self.clean_asset_name(assetname)
         del self.cache[assetname]
 
-    def _load_asset(self, assetname: str):
+    def partially_load_asset(self, assetname: str):
+        asset = self._load_asset(assetname, doNotLink=True)
+        return asset
+
+    def _load_asset(self, assetname: str, doNotLink=False):
         mem = self._load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(stream)
@@ -232,6 +236,8 @@ class AssetLoader:
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
         asset.deserialise()
+        if doNotLink:
+            return asset
         asset.link()
         exports = list(findComponentExports(asset))
         if len(exports) > 1:
