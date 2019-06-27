@@ -76,7 +76,7 @@ class ArkSteamManager:
         gameVer = self.fetchGameVersion()
         return gameVer
 
-    def newEnsureModsUpdated(self, modids: Union[List[str], Tuple[str]], dryRun=False, uninstallOthers=False):
+    def ensureModsUpdated(self, modids: Union[List[str], Tuple[str]], dryRun=False, uninstallOthers=False):
         '''
         Ensure the listed mods are installed and updated to their latest versions.
         If uninstallOthers is True, also remove any previously installed mods that are not in the given list.
@@ -164,61 +164,6 @@ class ArkSteamManager:
         if workshop_path.is_dir():
             logging.info('Removing steam workshop cache')
             rmtree(workshop_path)
-
-    def ensureModsUpdated(self, modids, skipInstall=None) -> Dict[str, Dict]:
-        """
-        Install/update the listed mods and return a dict of their versions.
-
-        :param modids: List of mod IDs to work on.
-        :return: Dict of mod data for the given modids.
-        """
-        logger.info(f'Ensuring mods are installed and up to date')
-
-        if skipInstall is None: skipInstall = self.skip_install
-        modids = tuple(str(modid) for modid in modids)
-
-        workshopFile: Path = self.gamedata_path / 'steamapps' / 'workshop' / f'appworkshop_{ARK_MAIN_APP_ID}.acf'
-        workshopData = readACFFile(workshopFile) if workshopFile.is_file() else None
-
-        # Gather existing moddata files
-        old_moddata = dict()
-        for modid in modids:
-            moddata = readModData(self.asset_path, modid)
-            if moddata:
-                old_moddata[modid] = moddata
-
-        # Update mods using steamcmd
-        if not skipInstall:
-            for modid in modids:
-                logger.info(f'Installing/updating mod {modid}')
-                self.steamcmd.install_workshopfiles(str(ARK_MAIN_APP_ID), modid, self.gamedata_path)
-
-        # Collection version numbers from workshop data file
-        newVersions = getSteamModVersions(self.gamedata_path, modids)
-
-        # Unpack mods which have updated versions
-        for modid in modids:
-            oldVersion = int(old_moddata[modid]['version']) if modid in old_moddata else -math.inf
-            newVersion = newVersions.get(modid, None)
-            assert newVersion, LookupError(f"Unable to find version for installed mod {modid}")
-            if newVersion > oldVersion:
-                logger.info(f'Unpacking mod {modid}')
-                unpackMod(self.gamedata_path, modid)
-            else:
-                logger.debug(f'Skipping unchanged mod {modid}')
-
-        # Extract and save mod data
-        all_moddata = dict()
-        for modid in modids:
-            moddata = gatherModInfo(self.asset_path, modid)
-            moddata['version'] = str(newVersions[modid])
-            moddata_path = self.mods_path / modid / MODDATA_FILENAME
-            with open(moddata_path, 'w') as f:
-                json.dump(moddata, f, indent='\t')
-
-            all_moddata[modid] = moddata
-
-        return all_moddata
 
     def fetchGameVersion(self) -> str:
         verFile = self.gamedata_path / 'version.txt'

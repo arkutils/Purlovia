@@ -18,8 +18,7 @@ print(f'Content path: {arkman.getContentPath()}')
 print()
 
 #%% Update mods
-# modvers = arkman.ensureModsUpdated([
-arkman.newEnsureModsUpdated([
+arkman.ensureModsUpdated([
     # 829467257,  # SurvivalPlus
     # 839162288,  # Primal_Fear
     # 893735676,  # Ark Eternal
