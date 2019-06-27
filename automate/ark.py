@@ -30,6 +30,7 @@ MODDATA_FILENAME = '_moddata.json'
 OFFICIAL_MODS = {
     'Ragnarok': 'Ragnarok',
     'TheCenter': 'TheCenter',
+    'Valguero': 'Valguero',
     '111111111': 'PrimitivePlus',
 }
 # Force IDs to be lowercase to help with lookup
