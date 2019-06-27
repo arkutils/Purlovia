@@ -1,14 +1,16 @@
+from typing import Generator
+
 from ue.asset import UAsset
 
 
-def findComponentExports(asset):
+def findComponentExports(asset: UAsset):
     '''Find the main export components from the given asset.'''
     for export in asset.exports.values:
         if str(export.name).startswith('Default__'):
             yield export
 
 
-def findParentPackage(export):
+def findParentPackage(export) -> str:
     '''Find the source asset of the given export.'''
     empty = dict(value=None)
 
@@ -28,7 +30,7 @@ def findParentPackage(export):
         return findParentPackage(klass)
 
 
-def findDependencies(asset):
+def findDependencies(asset) -> Generator[str, None, None]:
     '''Find the names of all relevant assets this asset depends on.'''
     # Packages of classes of main components
     for component in findComponentExports(asset):
@@ -42,7 +44,7 @@ def findDependencies(asset):
 
 
 def findSubComponents(asset, expectedklassname='BlueprintGeneratedClass'):
-    '''Find sub-components that are used within this asset asset.'''
+    '''Find sub-components that are used within this asset.'''
     for export in asset.exports.values:
         kls = export.klass and export.klass.value
         klskls = kls and kls.klass.value
