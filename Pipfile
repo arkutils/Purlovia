@@ -16,6 +16,7 @@ deprecated = "*"
 requests = "*"
 networkx = "*"
 pydot = "*"
+pydantic = "*"
 
 [requires]
 python_version = "3.7"

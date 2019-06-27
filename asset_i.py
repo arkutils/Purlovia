@@ -12,7 +12,7 @@ from automate.ark import ArkSteamManager
 import ark.mod
 import ark.asset
 
-arkman = ArkSteamManager('./livedata', skipInstall=True)
+arkman = ArkSteamManager(skipInstall=True)
 loader = arkman.createLoader()
 
 #%% Select asset
@@ -23,7 +23,7 @@ loader = arkman.createLoader()
 #   StatusValueDefinitions (unsupported struct x 12)
 #   StatusStateDefinitions (unsupported struct x 13...maybe not useful)
 # ...are server and single-player default mults in here???
-assetname = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
+# assetname = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 
 # assetname = '/Game/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint'  # !*!*! DECODE ERROR
 # assetname = '/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP'  # master item/engram table
@@ -53,8 +53,11 @@ assetname = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
-# assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
+assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
 # assetname = '/Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
+
+# Failure case: fails to decode the only export (properties, invalid name)
+# assetname = '/Game/Mods/ClassicFlyers/Dinos/AdminArgent/Assets/T_AdminArgent_Smaller_Colorize_d'
 
 asset = loader[assetname]
 print('Decoding complete.')

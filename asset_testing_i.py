@@ -4,7 +4,7 @@ import os
 from time import process_time, perf_counter
 from automate.ark import ArkSteamManager, readModData
 
-arkman = ArkSteamManager('./livedata', skipInstall=True)
+arkman = ArkSteamManager(skipInstall=True)
 loader = arkman.createLoader()
 
 #%% Gather all assets from all mods

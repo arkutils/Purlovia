@@ -23,7 +23,7 @@ import ark.properties
 from ark.export_asb_values import values_for_species
 from automate.ark import ArkSteamManager, readModData
 
-arkman = ArkSteamManager('./livedata', skipInstall=True)
+arkman = ArkSteamManager(skipInstall=True)
 loader = arkman.createLoader()
 
 version_string = None
@@ -63,7 +63,8 @@ def save_as_json(data, filename, pretty=False):
 
 #%% CHOOSE ONE: Gather properties from a mod and brute-force the list of species
 # Discover all species from the given mod, and convert/output them all
-mod_name = 'SmallDragon'
+mod_name = 'ClassicFlyers'
+# mod_name = 'SmallDragon'
 # mod_name = 'Primal_Fear'
 # mod_name = 'SSFlyer'
 # mod_name = 'Gaia'

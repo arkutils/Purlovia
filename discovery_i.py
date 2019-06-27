@@ -13,7 +13,7 @@ from automate.ark import ArkSteamManager
 from ark.asset import findDependencies, findSubComponents, findComponentExports, findParentPackage
 
 #%% Create loader
-arkman = ArkSteamManager('./livedata', skipInstall=True)
+arkman = ArkSteamManager(skipInstall=True)
 loader = arkman.createLoader()
 
 

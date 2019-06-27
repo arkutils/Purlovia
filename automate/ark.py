@@ -7,6 +7,7 @@ from pathlib import Path
 from shutil import rmtree
 from os import walk
 
+from config import get_global_config, ConfigFile
 from ue.loader import AssetLoader, ModResolver
 from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
 from .steamcmd import Steamcmd
@@ -19,7 +20,6 @@ __all__ = (
     'getModVersions',
     'readModData',
     'unpackMod',
-    'OFFICIAL_MODS',
 )
 
 ARK_SERVER_APP_ID = 376030
@@ -27,23 +27,17 @@ ARK_MAIN_APP_ID = 346110
 
 MODDATA_FILENAME = '_moddata.json'
 
-OFFICIAL_MODS = {
-    'Ragnarok': 'Ragnarok',
-    'TheCenter': 'TheCenter',
-    'Valguero': 'Valguero',
-    '111111111': 'PrimitivePlus',
-}
-# Force IDs to be lowercase to help with lookup
-OFFICIAL_MODS = dict((id.lower(), name) for id, name in OFFICIAL_MODS.items())
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
 class ArkSteamManager:
-    def __init__(self, basepath=Path('livedata'), skipInstall=False):
-        self.basepath: Path = Path(basepath).absolute()
+    def __init__(self, config: ConfigFile = None, skipInstall=False):
+        config = config or get_global_config()
+
+        self.basepath: Path = config.settings.DataDir.absolute()
         self.skip_install = skipInstall
+
         self.steamcmd_path: Path = self.basepath / 'steamcmd'
         self.gamedata_path: Path = self.basepath / 'game'
         self.asset_path: Path = self.gamedata_path / 'ShooterGame'
@@ -61,7 +55,7 @@ class ArkSteamManager:
 
     def findInstalledMods(self):
         '''Scan installed modules and return their information in a Dict[id->data].'''
-        mods = findInstalledMods(self.asset_path, exclude_official=True)
+        mods = findInstalledMods(self.asset_path)
         return mods
 
     def ensureSteamCmd(self):
@@ -91,7 +85,7 @@ class ArkSteamManager:
         modids_requested = set(str(modid) for modid in modids)
 
         # Find currently installed mods (file search for our _moddata.json)
-        mod_data_installed = findInstalledMods(self.asset_path, exclude_official=True)
+        mod_data_installed = findInstalledMods(self.asset_path)
         modids_installed = set(mod_data_installed.keys())
 
         # Compare lists to calculate mods to 'add/keep/remove'
@@ -271,8 +265,11 @@ class ManagedModResolver(ModResolver):
         self.modNameToIds = dict()
 
     def initialise(self):
-        self.dataCache = findInstalledMods(self.asset_path, exclude_official=False)
+        self.dataCache = findInstalledMods(self.asset_path)
         self.modNameToIds = dict((data['name'].lower(), data['id']) for data in self.dataCache.values())
+        for name, modid in get_global_config().official_mods.items():
+            self.dataCache[modid] = dict(id=modid, name=name, official=True)
+            self.modNameToIds[name.lower()] = modid
         return self
 
     def get_name_from_id(self, modid: str) -> str:
@@ -282,23 +279,19 @@ class ManagedModResolver(ModResolver):
         return data['name']
 
     def get_id_from_name(self, name: str) -> str:
-        if name.lower() in OFFICIAL_MODS: return name
         id = self.modNameToIds.get(name.lower(), None)
         if not id: raise NameError(f"Mod name '{name}' not recognised or not installed")
         return id
 
 
-def findInstalledMods(asset_path: Path, exclude_official=True) -> Dict[str, Dict]:
+def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
     '''Scan installed modules and return their information in a Dict[id->data].'''
     mods_path: Path = asset_path / 'Content' / 'Mods'
     result = dict()
     for filename in mods_path.glob('*/' + MODDATA_FILENAME):
         modid = filename.parent.name
-        if exclude_official and modid.lower() in OFFICIAL_MODS:
-            result[modid] = dict(id=modid, name=modid)
-        else:
-            data = readModData(asset_path, modid)
-            result[modid] = data
+        data = readModData(asset_path, modid)
+        result[modid] = data
 
     return result
 
