@@ -14,6 +14,8 @@ pygments = "*"
 deepdiff = "*"
 deprecated = "*"
 requests = "*"
+networkx = "*"
+pydot = "*"
 
 [requires]
 python_version = "3.7"
