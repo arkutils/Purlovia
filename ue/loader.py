@@ -71,12 +71,12 @@ class AssetLoader:
     def __init__(self, modresolver: ModResolver, assetpath='.'):
         self.cache = dict()
         self.asset_path = Path(assetpath)
-        self.absolute_asset_path = self.asset_path.absolute()
+        self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
 
     def clean_asset_name(self, name: str):
-        path = Path(name.strip().strip('/'))
+        path = Path(name.strip().strip('/').strip('\\'))
 
         # Remove .uasset, if present
         if path.suffix == '.uasset':
@@ -84,7 +84,7 @@ class AssetLoader:
 
         # Remove asset_path, if present
         try:
-            path = path.relative_to(self.absolute_asset_path)
+            path = path.absolute().resolve().relative_to(self.absolute_asset_path)
         except ValueError:
             # path is not under the absolute path
             pass
