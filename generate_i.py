@@ -72,13 +72,15 @@ mod_name = 'ClassicFlyers'
 mod_number = loader.modresolver.get_id_from_name(mod_name)
 print(f'\nLoading {mod_name} ({mod_number})\n')
 species_data = []
-all_assetnames = loader.find_assetnames(r'.*(_Character|Character_).*BP.*',
-                                        f'/Game/Mods/{mod_name}',
-                                        exclude=r'.*(_Base|Base_).*')
-for assetname in all_assetnames:
-    asset = loader[assetname]
-    props = ark.mod.gather_properties(asset)
-    species_data.append((asset, props))
+all_assetnames = set()
+
+# Smarter search for potential assets
+for assetname in loader.find_assetnames('.*', f'/Game/Mods/{mod_name}'):
+    mem = loader._load_raw_asset(assetname)
+    if b'ShooterCharacterMovement' in mem.obj:
+        asset = loader[assetname]
+        props = ark.mod.gather_properties(asset)
+        species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather properties from a mod and try to discover the list of species from spawn regions
 # # Discover all species from the given mod, and convert/output them all
