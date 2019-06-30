@@ -1,4 +1,5 @@
 from typing import *
+import warnings
 
 from ue.asset import UAsset
 from ue.loader import AssetLoader
@@ -200,7 +201,7 @@ def gather_color_data(props, loader: AssetLoader):
                         if color_id not in color_ids:
                             color_ids.append(color_id)
                 except:
-                    print(f'{color_name} was not found in the Color definitions')
+                    warnings.warn(f'{color_name} was not found in the Color definitions')
 
         if not color_ids:
             color['name'] = None
@@ -215,7 +216,9 @@ def values_for_species(asset: UAsset, props, allFields=False, fullStats=False):
     assert asset.loader
 
     name = stat_value(props, 'DescriptiveName', 0, None)
-    if not name: raise ValueError("Species has no DescriptiveName")
+    if not name:
+        warnings.warn(f"Species {asset.assetname} has no DescriptiveName")
+        name = '<unnamed species>'
 
     # TODO: This is nasty - get class name from BP instead of assuming
     assert asset.assetname is not None
