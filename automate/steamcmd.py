@@ -1,17 +1,14 @@
+'''
+Adapted from the pysteamcmd library, which has an MIT license.
+'''
 import platform
 import urllib.request
 import logging
 import subprocess
 from pathlib import Path
-'''
-Adapted from the pysteamcmd library, which has an MIT license.
-'''
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-
-# TODO: DepotDownloadProgressTimeout 1200
-# It's unlikely this will help, according to many sources
 
 
 class SteamcmdException(Exception):
@@ -19,7 +16,7 @@ class SteamcmdException(Exception):
     Base exception for the pysteamcmd package
     """
 
-    def __init__(self, message=None, *args, **kwargs):
+    def __init__(self, message, *args, **kwargs):
         self.message = message
         super(SteamcmdException, self).__init__(*args, **kwargs)
 
@@ -30,7 +27,7 @@ class SteamcmdException(Exception):
         return repr(self.message)
 
 
-class Steamcmd(object):
+class Steamcmd:
     def __init__(self, install_path):
         """
         :param install_path: installation path for steamcmd
@@ -82,7 +79,7 @@ class Steamcmd(object):
         :param force: forces steamcmd install regardless of its presence
         :return:
         """
-        if not self.steamcmd_exe.is_file() or force == True:
+        if not self.steamcmd_exe.is_file() or force == True:  # pylint: disable=singleton-comparison
             # Steamcmd isn't installed. Go ahead and install it.
             try:
                 self._download_steamcmd()

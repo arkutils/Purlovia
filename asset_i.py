@@ -32,7 +32,7 @@ loader = arkman.createLoader()
 # assetname = '/Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP_Base'  # player data - ascention
 # assetname = '/Game/Aberration/CoreBlueprints/DinoCharacterStatusComponent_BP_MoleRat'
 
-# assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
+assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant'
 # assetname = '/Game/Extinction/Dinos/Owl/Owl_Character_BP'
 # assetname = '/Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
@@ -53,7 +53,7 @@ loader = arkman.createLoader()
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Tuso'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Turtle'
 
-assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
+# assetname = '/Game/Mods/ClassicFlyers/Dinos/Ptero/Ptero_Character_BP'
 # assetname = '/Game/Mods/895711211/PrimalGameData_BP_ClassicFlyers'
 
 # Failure case: fails to decode the only export (properties, invalid name)
@@ -79,16 +79,16 @@ print('Decoding complete.')
 #%% Try to discover inheritance
 print('\nParent package:')
 if asset.default_export:
-    parent_pkg = ark.asset.findParentPackage(asset.default_export)
+    parent_pkg = ark.asset.findExportSourcePackage(asset.default_export)
     print(parent_pkg)
 else:
     print('-not found-')
 
 #%% Try to discover sub-components
 print('\nComponents:')
-pprint(list(export.name for export in ark.asset.findComponentExports(asset)))
+pprint(list(ark.asset.findParentPackages(asset)))
 print('\nSub-components:')
-pprint(list(export.name for export in ark.asset.findSubComponents(asset)))
+pprint(list(ark.asset.findSubComponentParentPackages(asset)))
 
 #%% Mod info
 print('\nMod adds species:')

@@ -2,8 +2,11 @@ import re
 import sys
 import os.path
 import json
+import string
 from datetime import datetime
 from collections import defaultdict
+from argparse import ArgumentParser, Namespace
+from typing import *
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,10 +33,10 @@ def error(*args):
     sys.exit(1)
 
 
-def lookup(modid, loader: AssetLoader):
-    mod_name = loader.mods_numbers_to_names.get(modid)
-    long_name = loader.mods_numbers_to_descriptions.get(modid, mod_name)
-    return mod_name, long_name
+# def lookup(modid, loader: AssetLoader):
+#     mod_name = loader.mods_numbers_to_names.get(modid)
+#     long_name = loader.mods_numbers_to_descriptions.get(modid, mod_name)
+#     return mod_name, long_name
 
 
 def parse(mod_name: str, modid: int, loader: AssetLoader):
@@ -51,13 +54,15 @@ def parse(mod_name: str, modid: int, loader: AssetLoader):
 
 
 def convert(species_data: list, modid: str, version: str):
-    values = dict()
+    values: Dict[str, Any] = dict()
+    values['formatVersion'] = 2
+    # values['mod'] = dict(id=modid, tag=tag, title=title) # TODO: Complete
     values['ver'] = version
-    values['modid'] = modid
+    values['generatedAt'] = datetime.utcnow().isoformat()
     values['species'] = list()
 
     for asset, props in species_data:
-        species_values = values_for_species(asset, props, all=True)
+        species_values = values_for_species(asset, props, allFields=True, fullStats=True)
         values['species'].append(species_values)
 
     return values
@@ -80,6 +85,7 @@ def grab_mod_info(mod_list, loader: AssetLoader):
     mod_info = dict()
     for modid in mod_list:
         mod_data = readModData(loader.asset_path, modid)
+        assert mod_data
         asset = loader[mod_data['package']]
         props = ark.mod.gather_properties(asset)
         long_name = str(props['ModName'][0][-1])
@@ -107,20 +113,17 @@ def do_convertions(requests, mod_info, loader: AssetLoader):
 
 
 def create_parser():
-    import argparse
-    parser = argparse.ArgumentParser(description="Export mod data for ASB in values.json format.")
-    parser.add_argument('mods', metavar='MODID', nargs='+', help='ID of a mod to export (can be repeated, use + to combine)')
-    parser.add_argument('-o', dest='outdir', default='mods', help='directory to save the output(s) into (default: mods)')
+    parser = ArgumentParser(description="Export mod data for ASB in values.json format.")
+    parser.add_argument('mods', metavar='MODID', nargs='+', help='ID of a mod to export (can be repeated)')
+    parser.add_argument('-o', dest='outdir', default='output', help='directory to save the output(s) into (default: output)')
     parser.add_argument('-b', dest='basedir', default='livedata', help='base directory of the live data (default: livedata)')
-    parser.add_argument('-q', dest='quiet', action='store_const', const=True, default=False, help='disable non-essential output')
+    parser.add_argument('-q', dest='quiet', action='store_const', const=True, help='disable non-essential output')
     parser.add_argument('-v', dest='verbosity', action='count', default=0, help='increase log level (can be repeated)')
-    parser.add_argument('-c',
-                        dest='createdir',
-                        action='store_const',
-                        const=True,
-                        default=False,
-                        help='create \'outdir\' if it doesn\'t exist')
+    parser.add_argument('-c', dest='createdir', action='store_const', const=True, help="create 'outdir' if it doesn't exist")
     return parser
+
+
+args: Namespace = Namespace()
 
 
 def main():
@@ -128,6 +131,9 @@ def main():
 
     parser = create_parser()
     args = parser.parse_args()
+
+    print(args)
+    sys.exit(0)
 
     if args.quiet:
         log = lambda *args: None
@@ -143,7 +149,7 @@ def main():
         if args.createdir and not os.path.exists(args.outdir):
             try:
                 os.makedirs(args.outdir)
-            except ex:
+            except Exception as ex:
                 error('Unable to create outdir: ' + ex)
         else:
             error('Outdir does not exist or is not a directory')

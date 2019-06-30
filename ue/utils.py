@@ -1,16 +1,18 @@
+from typing import Optional
+
 from ue.base import UEBase
 
 
 def get_clean_namespaced_name(ns: UEBase, name: UEBase) -> str:
-    ns = get_clean_name(ns, None)
-    name = get_clean_name(name, '<unknown>')
-    if ns:
-        return f'{ns}::{name}'
+    ns_str = get_clean_name(ns, None)
+    name_str = get_clean_name(name, '<unknown>')
+    if ns_str:
+        return f'{ns_str}::{name_str}'
 
-    return name
+    return name_str  # type: ignore
 
 
-def get_clean_name(obj: UEBase, fallback: str = None) -> str:
+def get_clean_name(obj: UEBase, fallback: str = None) -> Optional[str]:
     if obj is None:
         return fallback
     elif obj.__class__.__name__ in ('NameIndex', 'StringProperty'):
@@ -24,7 +26,7 @@ def get_clean_name(obj: UEBase, fallback: str = None) -> str:
     return fallback
 
 
-def get_property(export, name) -> UEBase:
+def get_property(export, name) -> Optional[UEBase]:
     for prop in export.properties:
         if str(prop.header.name) == name:
             return prop.value

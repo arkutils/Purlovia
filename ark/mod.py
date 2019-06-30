@@ -1,3 +1,5 @@
+from typing import Set, Sequence
+
 from ue.loader import AssetLoader
 from ue.asset import UAsset
 from ue.utils import *
@@ -28,17 +30,18 @@ def get_mod_remapped_npcs(asset: UAsset):
 
 def get_species_from_mod(asset: UAsset, loader: AssetLoader = None) -> list:
     loader = loader or asset.loader
+    assert loader and asset.assetname
     this_mod = loader.get_mod_name(asset.assetname)
     mod_species = set()
 
     # Gather species from the remapped NPCs list
-    for fromPkg, toPkg in get_mod_remapped_npcs(asset):
+    for _, toPkg in get_mod_remapped_npcs(asset):
         to_mod = loader.get_mod_name(toPkg)
         if to_mod == this_mod:
             mod_species.add(toPkg)
 
     # Gather species from the remapped spawn zones
-    for fromPkg, toPkgs in get_mod_remapped_spawners(asset):
+    for _, toPkgs in get_mod_remapped_spawners(asset):
         for toPkg in toPkgs:
             to_mod = loader.get_mod_name(toPkg)
             if to_mod == this_mod:
@@ -55,6 +58,7 @@ def is_mod(asset: UAsset) -> bool:
 
 
 def load_all_species(modasset: UAsset):
+    assert modasset.loader
     species_data = []
     for pkgname in get_species_from_mod(modasset):
         pkg = modasset.loader[pkgname]

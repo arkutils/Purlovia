@@ -1,8 +1,8 @@
 import sys
 from tkinter import Tk
 from tkinter import ttk, filedialog
-from collections.abc import Iterable
 from collections import defaultdict
+from typing import *
 
 from ue.base import UEBase
 from ue.loader import AssetLoader
@@ -11,13 +11,15 @@ from ue.properties import Property, FloatProperty, StructProperty
 import ark.asset
 from automate.ark import ArkSteamManager
 
-root = None
-tree = None
+root: Optional[Tk] = None
+tree: Optional[ttk.Treeview] = None
 
 assetlist = []
 
 # propertyvalues[propname][index][assetname] = value
-propertyvalues = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
+propertyvalues: Dict[str, Dict[int, Dict[str, Any]]] = \
+    defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)  # type: ignore
+    ))
 
 
 def create_ui():
@@ -47,22 +49,24 @@ def get_value_as_string(value):
 
 
 def load_asset(assetname):
-    if not assetname.strip('/').startswith('Game'):
+    if assetname.startswith('/Script') or assetname.startswith('/Engine'):
         return
 
     assetname = loader.clean_asset_name(assetname)
     asset = loader[assetname]
 
     # Take properties and overrides from each sub-component recursively
-    for component in ark.asset.findSubComponents(asset):
-        componentname = ark.asset.findParentPackage(component.klass.value)
+    for component in ark.asset.findSubComponentExports(asset):
+        componentname = ark.asset.findExportSourcePackage(component.klass.value)
+        print(f'Sub-Component: {componentname}')
         record_properties(component.properties, '+' + componentname.split('/')[-1])
         load_asset(componentname)
 
     # Take properties and overrides from each component recursively
     for component in ark.asset.findComponentExports(asset):
         record_properties(component.properties, assetname.split('/')[-1])
-        parentpkg = ark.asset.findParentPackage(component.klass.value)
+        parentpkg = ark.asset.findExportSourcePackage(component)
+        print(f'Component: {parentpkg}')
         load_asset(parentpkg)
 
 
@@ -130,14 +134,23 @@ if __name__ == '__main__':
 
     mainasset = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
+    assert root
 
     if not mainasset:
         from tkinter import filedialog
-        mainasset = filedialog.askopenfilename(title='Select asset file...',
+        from pathlib import Path
+        assetname = filedialog.askopenfilename(title='Select asset file...',
                                                filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
                                                initialdir=loader.asset_path)
+        assert assetname
+        path = Path(assetname).relative_to(loader.asset_path).with_suffix('')
+        mainasset = str(path)
 
-    root.title("Property Browser : " + mainasset)
+    assert mainasset
+    print(mainasset)
+
+    mainasset = loader.clean_asset_name(mainasset)
+    root.title(f"Property Browser : {mainasset}")
     load_asset(mainasset)
     fill_property_grid()
     root.mainloop()

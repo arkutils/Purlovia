@@ -4,7 +4,7 @@ import uuid
 from typing import Type
 
 try:
-    from IPython.lib.pretty import PrettyPrinter, pprint, pretty
+    from IPython.lib.pretty import PrettyPrinter, pprint, pretty  # type: ignore
     support_pretty = True
 except ImportError:
     support_pretty = False

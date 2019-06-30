@@ -3,6 +3,7 @@ import json
 import os
 from time import process_time, perf_counter
 from automate.ark import ArkSteamManager, readModData
+from typing import *
 
 arkman = ArkSteamManager(skipInstall=True)
 loader = arkman.createLoader()
@@ -58,7 +59,7 @@ desired_assets = [
 undesired_assets = ['/Game/Mods/AE/Dinos/Dino_Character_BP_AE']
 bad_assets = ['/Game/Mods/AE/Dinos/Dino_Character_BP_AE']
 
-names_in_asset = set()
+names_in_asset: Set[str] = set()
 for asset in undesired_assets:
     names = set(str(name) for name in loader.partially_load_asset(asset).names)
     if not names_in_asset:

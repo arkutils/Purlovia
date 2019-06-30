@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 from deepdiff import DeepDiff
+from typing import *
 
 from ue.base import UEBase
 from ue.asset import UAsset
@@ -30,7 +31,7 @@ version_string = None
 
 #%% Helpers
 replace_name = lambda match: f'{species_names[int(match.group(1))]}'
-replace_stat = lambda match: f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
+# replace_stat = lambda match: f'stat.{stat_names[int(match.group(1))]}.{stat_fields[int(match.group(2))]}'
 
 SPECIES_REGEX = re.compile(r"root\['species'\]\[(\d+)\]")
 STAT_REGEX = re.compile(r"statsRaw\[(\d+)\]\[(\d+)\]")
@@ -72,7 +73,7 @@ mod_name = 'ClassicFlyers'
 mod_number = loader.modresolver.get_id_from_name(mod_name)
 print(f'\nLoading {mod_name} ({mod_number})\n')
 species_data = []
-all_assetnames = set()
+all_assetnames: Set[str] = set()
 
 # Smarter search for potential assets
 for assetname in loader.find_assetnames('.*', f'/Game/Mods/{mod_name}'):
@@ -160,7 +161,7 @@ for assetname in loader.find_assetnames('.*', f'/Game/Mods/{mod_name}'):
 
 #%% Show which species we're processing
 print(f'\nFound species:')
-species_names = []
+species_names: List[str] = []
 for i, (a, v) in enumerate(species_data):
     name = str(v["DescriptiveName"][0][-1])
     species_names.append(name.replace(' ', ''))
@@ -174,14 +175,14 @@ for i, (a, v) in enumerate(species_data):
         pass
 
 #%% Translate properties for export
-values = dict()
+values: Dict[str, Any] = dict()
 values['ver'] = version_string or datetime.utcnow().isoformat()
 values['species'] = list()
 
 all_props = 'mod_name' in vars()
 
 for asset, props in species_data:
-    species_values = values_for_species(asset, props, all=all_props, fullStats=False)
+    species_values = values_for_species(asset, props, allFields=all_props, fullStats=False)
     values['species'].append(species_values)
 
 #%% Show diff from ASB expected values
@@ -208,7 +209,7 @@ else:
 #%% Example diffing two assets
 # def prep_props_for(assetname):
 #     asset = loader[assetname]
-#     merged_props = ark.properties.gather_properties(asset)
+#     merged_props = ark.properties.gaallFieldserties(asset)
 #     simplified = ark.properties.flatten_to_strings(merged_props)
 #     return simplified
 

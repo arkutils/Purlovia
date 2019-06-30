@@ -1,5 +1,5 @@
 import os.path
-import pytest
+import pytest  # type: ignore
 
 from ue.base import UEBase
 from ue.asset import UAsset

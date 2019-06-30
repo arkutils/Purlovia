@@ -13,16 +13,16 @@ def extract_properties_from_export(export, props):
 
 
 def gather_properties(asset: UAsset, props=None, report=False, depth=0):
-    assert asset is not None
+    assert asset and asset.loader
     if report:
         indent = '  ' * depth
         print(indent + asset.name)
 
     if props is None:
-        props = defaultdict(lambda: defaultdict(lambda: list()))
+        props = defaultdict(lambda: defaultdict(list))
 
     # Gather content from all dependencies first : component parents, sub-component parents
-    for parentpkgname in ark.asset.findDependencies(asset):
+    for parentpkgname in ark.asset.findAllDependencies(asset):
         if parentpkgname and not parentpkgname.strip('/').lower().startswith('script'):
             parentpkg = asset.loader[parentpkgname]
             gather_properties(parentpkg, props, report=report, depth=depth + 1)
@@ -32,7 +32,7 @@ def gather_properties(asset: UAsset, props=None, report=False, depth=0):
         extract_properties_from_export(component, props)
 
     # Gather conents from sub-components
-    for subcomponent in ark.asset.findSubComponents(asset):
+    for subcomponent in ark.asset.findComponentExports(asset):
         extract_properties_from_export(subcomponent, props)
 
     return props

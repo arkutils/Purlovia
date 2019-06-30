@@ -1,17 +1,17 @@
 import re
 import os.path
 import logging
-from typing import Union, Tuple
+from typing import *
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from pathlib import Path, PurePosixPath
+
+from ark.asset import findComponentExports
 
 from .stream import MemoryStream
 from .asset import UAsset, ImportTableItem, ExportTableItem
 from .base import UEBase
 from .properties import ObjectProperty, ObjectIndex, Property
-
-from ark.asset import findComponentExports
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -31,11 +31,11 @@ class ModResolver(ABC):
         pass
 
     @abstractmethod
-    def get_name_from_id(self, modid: int) -> str:
+    def get_name_from_id(self, modid: str) -> str:
         pass
 
     @abstractmethod
-    def get_id_from_name(self, name: str) -> int:
+    def get_id_from_name(self, name: str) -> str:
         pass
 
 
@@ -54,57 +54,45 @@ class IniModResolver(ModResolver):
         # self.mods_id_to_longnames = dict(config['names'])
         return self
 
-    def get_name_from_id(self, modid: int) -> str:
+    def get_name_from_id(self, modid: str) -> str:
         name = self.mods_id_to_names.get(modid, None)
         return name
 
-    # def get_longname_from_id(self, modid: int) -> str:
-    #     name = self.mods_id_to_longnames.get(modid, None)
-    #     return name
-
-    def get_id_from_name(self, name: str) -> int:
-        id = self.mods_names_to_ids.get(name.lower(), None)
-        return id
+    def get_id_from_name(self, name: str) -> str:
+        modid = self.mods_names_to_ids.get(name.lower(), None)
+        return modid
 
 
 class AssetLoader:
     def __init__(self, modresolver: ModResolver, assetpath='.'):
-        self.cache = dict()
+        self.cache: Dict[str, UAsset] = dict()
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
 
     def clean_asset_name(self, name: str):
-        path = Path(name.strip().strip('/').strip('\\'))
+        # Remove class name, if present
+        if '.' in name:
+            name = name[:name.index('.')]
 
-        # Remove .uasset, if present
-        if path.suffix == '.uasset':
-            path = path.with_suffix('')
-
-        # Remove asset_path, if present
-        try:
-            path = path.absolute().resolve().relative_to(self.absolute_asset_path)
-        except ValueError:
-            # path is not under the absolute path
-            pass
+        # Clean it up and break it into its parts
+        name = name.strip().strip('/').strip('\\').replace('\\', '/')
+        parts = name.split('/')
 
         # Convert mod names to numbers
-        if len(path.parts) > 2 and path.parts[1].lower() == 'mods' and path.parts[2].isnumeric():
-            mod_name = self.modresolver.get_name_from_id(path.parts[2])
-            parts = list(path.parts)
+        if len(parts) > 2 and parts[1].lower() == 'mods' and parts[2].isnumeric():
+            mod_name = self.modresolver.get_name_from_id(parts[2])
             parts[2] = mod_name
-            path = Path(*parts)
 
         # Change Content back to name, for cache consistency
-        if len(path.parts) and path.parts[0].lower() == 'content':
-            parts = list(path.parts)
+        if parts and parts[0].lower() == 'content':
             parts[0] = 'Game'
-            path = Path(*parts)
 
-        result = PurePosixPath(path)
-        result = '/' + str(result)
+        # print(parts)
+        result = '/' + '/'.join(parts)
 
+        # print(result)
         return result
 
     def wipe_cache(self):
@@ -120,7 +108,7 @@ class AssetLoader:
             parts[2] = self.modresolver.get_id_from_name(parts[2])
 
         # Game is replaced with Content
-        if len(parts) and parts[0].lower() == 'game':
+        if parts and parts[0].lower() == 'game':
             parts[0] = 'Content'
 
         fullname = os.path.join(self.asset_path, *parts)
@@ -142,22 +130,8 @@ class AssetLoader:
             mod = self.modresolver.get_name_from_id(mod)
         return mod
 
-    def get_mod_descriptive_name(self, assetname: str):
-        assert assetname is not None
-        assetname = self.clean_asset_name(assetname)
-        parts = assetname.strip('/').split('/')
-        if len(parts) < 3:
-            return None
-        if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
-            return None
-        mod = parts[2]
-        id = mod
-        if not mod.isnumeric():
-            id = self.modresolver.get_id_from_name(id)
-        longname = self.modresolver.get_longname_from_id(id)
-        return longname
-
-    def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str]] = None):
+    def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str, ...]] = None):
+        excludes: Tuple[str, ...] = ()
         if exclude is None:
             excludes = ()
         elif isinstance(exclude, str):
@@ -166,7 +140,7 @@ class AssetLoader:
             excludes = exclude
 
         toppath = self.convert_asset_name_to_path(toppath, partial=True)
-        for path, dirs, files in os.walk(toppath):
+        for path, _, files in os.walk(toppath):
             for filename in files:
                 fullpath = os.path.join(path, filename)
                 name, ext = os.path.splitext(fullpath)
@@ -178,10 +152,12 @@ class AssetLoader:
                 if not match:
                     continue
 
-                if any(re.match(exclude, name) for exclude in excludes):
+                partialpath = str(Path(fullpath).relative_to(self.asset_path).with_suffix(''))
+                assetname = self.clean_asset_name(partialpath)
+
+                if any(re.match(exclude, assetname) for exclude in excludes):
                     continue
 
-                assetname = self.clean_asset_name(fullpath)
                 yield assetname
 
     def load_related(self, obj: UEBase):
@@ -199,7 +175,7 @@ class AssetLoader:
 
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
-        logger.info("Loading file:", filename)
+        logger.info(f"Loading file: {filename}")
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
         mem = load_file_into_memory(filename)
@@ -243,25 +219,9 @@ class AssetLoader:
         if len(exports) > 1:
             import warnings
             warnings.warn(f'Found more than one component in {assetname}!')
-        asset.default_export = exports[0] if len(exports) else None
+        asset.default_export = exports[0] if exports else None
         self.cache[assetname] = asset
         return asset
-
-    # def _load_user_config(self):
-    #     config = ConfigParser()
-    #     config.read(os.path.join(self.configpath, 'user.ini'))
-    #     asset_path = config.get('parser', 'assetpath', fallback='.')
-    #     logger.info("Using asset path: " + asset_path)
-    #     self.asset_path = asset_path
-    #     self.normalised_asset_path = asset_path.lower().replace('\\', '/').lstrip('/')
-
-    # def _load_mods_config(self):
-    #     config = ConfigParser(inline_comment_prefixes='#;')
-    #     config.optionxform = lambda v: v  # keep exact base of mod names, please
-    #     config.read(os.path.join(self.configpath, 'mods.ini'))
-    #     self.mods_numbers_to_names = dict(config['ids'])
-    #     self.mods_names_to_numbers = dict(reversed(kvp) for kvp in config['ids'].items())
-    #     self.mods_numbers_to_descriptions = dict(config['names'])
 
 
 def load_file_into_memory(filename):

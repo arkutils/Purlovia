@@ -1,14 +1,14 @@
 import os, sys
-from IPython.lib.pretty import pretty, pprint
+from IPython.lib.pretty import pretty, pprint  # type: ignore
 
 
 def configure_ipython_width():
-    from IPython import get_ipython
+    from IPython import get_ipython  # type: ignore
     ipy = get_ipython()
     if 'ZMQInteractiveShell' in str(ipy):  # Notebook-like
         ipy.config.PlainTextFormatter.max_width = 140
         print("! Forcing wrap width for non-shell view to:", ipy.config.PlainTextFormatter.max_width)
-        from IPython.core.interactiveshell import InteractiveShell
+        from IPython.core.interactiveshell import InteractiveShell  # type: ignore
         InteractiveShell.instance().init_display_formatter()
     elif ipy:  # IPython shell
         import shutil
@@ -42,7 +42,8 @@ del configure_ipython_width
 
 
 def printjson(obj):
-    import pygments, json
+    import json
+    import pygments  # type: ignore
     formatted = obj if isinstance(obj, str) else json.dumps(obj, indent=4)
     out = pygments.highlight(formatted, pygments.lexers.JsonLexer(), pygments.formatters.TerminalFormatter())
     print(out)

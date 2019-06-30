@@ -1,1 +1,12 @@
-disable=unused-wildcard-import
+[MESSAGES CONTROL]
+disable=
+    logging-fstring-interpolation,
+    unused-wildcard-import,
+    missing-docstring,
+    wildcard-import,
+    unused-import,
+    invalid-name,
+    format
+
+[FORMAT]
+max-line-length=129

@@ -1,26 +1,19 @@
-import math
 import json
 import shutil
 import logging
-from typing import Dict, Any, Tuple, List, Sequence, Union
+import datetime
+from typing import *
 from pathlib import Path
-from shutil import rmtree
 from os import walk
 
-from config import get_global_config, ConfigFile
+from config import get_global_config
 from ue.loader import AssetLoader, ModResolver
 from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
 from .steamcmd import Steamcmd
-from .steamapi import SteamApi, SteamApiException
-from .version import createVersion
+from .steamapi import SteamApi
+from .version import createExportVersion
 
-__all__ = (
-    'ArkSteamManager',
-    'findInstalledMods',
-    'getModVersions',
-    'readModData',
-    'unpackMod',
-)
+__all__ = ('ArkSteamManager', )
 
 ARK_SERVER_APP_ID = 376030
 ARK_MAIN_APP_ID = 346110
@@ -32,10 +25,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class ArkSteamManager:
-    def __init__(self, config: ConfigFile = None, skipInstall=False):
-        config = config or get_global_config()
-
-        self.basepath: Path = config.settings.DataDir.absolute()
+    def __init__(self, skipInstall=False):
+        self.basepath: Path = get_global_config().settings.DataDir.absolute()
         self.skip_install = skipInstall
 
         self.steamcmd_path: Path = self.basepath / 'steamcmd'
@@ -45,27 +36,61 @@ class ArkSteamManager:
 
         self.steamcmd = Steamcmd(self.steamcmd_path)
 
+        self.steam_mod_details: Optional[Dict[str, Dict]] = None  # from steam
+        self.mod_data_cache: Optional[Dict[str, Dict]] = None  # internal data
+        self.game_version: Optional[str] = None
+
         self._sanityCheck()
 
-    def createLoader(self):
+    def createLoader(self) -> AssetLoader:
         '''Create an asset loader pointing at the managed game install.'''
         modresolver = ManagedModResolver(self)
         loader = AssetLoader(modresolver, self.asset_path)
         return loader
 
-    def findInstalledMods(self):
-        '''Scan installed modules and return their information in a Dict[id->data].'''
-        mods = findInstalledMods(self.asset_path)
-        return mods
+    def getInstalledMods(self) -> Optional[Dict[str, Dict]]:
+        '''
+        Scan installed modules and return their information in a Dict[id->data].
+        Returns None if mods have not been evaluated yet.
+        '''
+        return self.mod_data_cache
+
+    def getModData(self, modid: str) -> Optional[Dict[str, Any]]:
+        modid = str(modid)
+
+        # Official "mods" need to be handled differently
+        if modid in get_global_config().official_mods.ids():
+            data = dict(id=modid)
+            data['version'] = str(int(datetime.datetime.utcnow().timestamp()))
+            data['name'] = get_global_config().official_mods.tag_from_id(modid)
+            data['title'] = data['name']
+            return data
+
+        if self.mod_data_cache:
+            return self.mod_data_cache.get(modid, None)
+
+        moddata = readModData(self.asset_path, modid)
+        return moddata
+
+    def getGameVersion(self) -> Optional[str]:
+        '''
+        Return the installed game version.
+        Returns None if not installed is not yet evaluated.
+        '''
+        return self.game_version
+
+    def getContentPath(self) -> Path:
+        '''Return the Content directory of the game.'''
+        return self.asset_path
 
     def ensureSteamCmd(self):
-        logger.info(f'Ensuring SteamCMD is installed')
+        logger.info('Ensuring SteamCMD is installed')
         self.steamcmd_path.mkdir(parents=True, exist_ok=True)
         self.steamcmd.install()
 
     def ensureGameUpdated(self, skipInstall=None) -> str:
         """Install/update the game and return its version string."""
-        logger.info(f'Ensuring Ark is installed and up to date')
+        logger.info('Ensuring Ark is installed and up to date')
 
         if skipInstall is None: skipInstall = self.skip_install
 
@@ -73,43 +98,43 @@ class ArkSteamManager:
         if not skipInstall:
             self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
 
-        gameVer = self.fetchGameVersion()
-        return gameVer
+        self.game_version = fetchGameVersion(self.gamedata_path)
+        return self.game_version  # type: ignore
 
-    def ensureModsUpdated(self, modids: Union[List[str], Tuple[str]], dryRun=False, uninstallOthers=False):
+    def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]], dryRun=False, uninstallOthers=False):
         '''
         Ensure the listed mods are installed and updated to their latest versions.
         If uninstallOthers is True, also remove any previously installed mods that are not in the given list.
         If dryRun is True, make no changes - only report what would have been done.
         '''
-        modids_requested = set(str(modid) for modid in modids)
+        modids_requested: Set[str] = set(str(modid) for modid in modids)
+
+        # Remove any request to manage official mods
+        official_modids = set(get_global_config().official_mods.ids())
+        modids_requested -= official_modids
 
         # Find currently installed mods (file search for our _moddata.json)
-        mod_data_installed = findInstalledMods(self.asset_path)
-        modids_installed = set(mod_data_installed.keys())
+        self.mod_data_cache = findInstalledMods(self.asset_path)
+        modids_installed = set(self.mod_data_cache.keys())
 
         # Compare lists to calculate mods to 'add/keep/remove'
         modids_keep = modids_installed & modids_requested
         modids_add = modids_requested - modids_installed
         modids_remove = modids_installed - modids_requested
-        logger.debug(f'installed: {modids_installed}')
-        logger.debug(f'requested: {modids_requested}')
-        logger.debug(f'to keep: {modids_keep}')
-        logger.debug(f'to add: {modids_add}')
-        logger.debug(f'to remove: {modids_remove}')
 
-        # Request update times for the 'keep' mods from steam api
-        mod_details_keep_list = SteamApi.GetPublishedFileDetails(modids_keep) if modids_keep else []
-        mod_details_keep = dict((details['publishedfileid'], details) for details in mod_details_keep_list)
+        # Request details for the 'keep' and 'add' mods from steam api (specifically want update times and titles)
+        mod_details_list = SteamApi.GetPublishedFileDetails(modids_keep | modids_add) if modids_keep else []
+        self.steam_mod_details = dict((details['publishedfileid'], details) for details in mod_details_list)
 
         # Calculate mods that need fetching (adds + outdated keeps)
         def isOutdated(existing_data, workshop_details):
             return int(workshop_details['time_updated']) > int(existing_data['version'])
 
-        modids_update = set(modid for modid in modids_keep if isOutdated(mod_data_installed[modid], mod_details_keep[modid]))
+        modids_update = set(modid for modid in modids_keep
+                            if isOutdated(self.mod_data_cache[modid], self.steam_mod_details[modid]))
         modids_update = modids_update | modids_add
 
-        # Fetch updated mods, then unpack (in thread?)
+        # Fetch updated mods, then unpack
         if modids_update:
             logger.info(f'Updating mods: {modids_update}')
             if not dryRun:
@@ -124,6 +149,10 @@ class ArkSteamManager:
         # Delete all downloaded steamapps mods
         if not dryRun:
             self._cleanSteamModCache()
+
+        # Remove mod data for mods that are no longer present
+        for modid in modids_remove:
+            self.mod_data_cache.pop(modid, None)
 
     def _installMods(self, modids):
         # TODO: Consider doing the extractions in parallel with the installations (offset) to speed this up
@@ -141,49 +170,34 @@ class ArkSteamManager:
         # Collection mod version numbers from workshop data file
         newVersions = getSteamModVersions(self.gamedata_path, modids)
 
-        # Also need the game version to make a full version number
-        gameVersion = self.fetchGameVersion()
-
         # Save data on the installed mods
         for modid in modids:
             moddata = gatherModInfo(self.asset_path, modid)
-            moddata['version'] = f'{gameVersion}.{newVersions[modid]}'
+            moddata['version'] = str(newVersions[modid])
+
+            # See if we got a title for this mod from the SteamAPI earlier
+            if self.steam_mod_details and modid in self.steam_mod_details and 'title' in self.steam_mod_details[modid]:
+                moddata['title'] = self.steam_mod_details[modid]['title']  # ^ inefficient
+
             moddata_path = self.mods_path / modid / MODDATA_FILENAME
             with open(moddata_path, 'w') as f:
                 json.dump(moddata, f, indent='\t')
+
+            # Save the data so we can refer to it later
+            self.mod_data_cache[modid] = moddata
 
     def _removeMods(self, modids):
         # Remove the installed mods
         for modid in modids:
             modpath: Path = self.gamedata_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
             if modpath.is_dir():
-                rmtree(modpath, ignore_errors=True)
+                shutil.rmtree(modpath, ignore_errors=True)
 
     def _cleanSteamModCache(self):
         workshop_path: Path = self.gamedata_path / 'steamapps' / 'workshop'
         if workshop_path.is_dir():
             logging.info('Removing steam workshop cache')
-            rmtree(workshop_path)
-
-    def fetchGameVersion(self) -> str:
-        verFile = self.gamedata_path / 'version.txt'
-        with open(verFile) as f:
-            version = f.read().strip()
-        return version
-
-    def fetchModData(self, modid) -> Dict[str, Dict]:
-        '''Fetch data for a previously installed mod. Returns None if not installed or invalid.'''
-        moddata_path = self.mods_path / modid / MODDATA_FILENAME
-        try:
-            with open(moddata_path) as f:
-                moddata = json.load(f, indent='\t')
-                return moddata
-        except FileNotFoundError:
-            return None
-
-    def getContentPath(self) -> str:
-        '''Return the Content directory of the game.'''
-        return self.asset_path
+            shutil.rmtree(workshop_path)
 
     def _sanityCheck(self):
         invalid = not self.steamcmd_path.is_dir() or not self.asset_path.is_dir()
@@ -200,7 +214,7 @@ class ArkSteamManager:
 
 
 class ManagedModResolver(ModResolver):
-    '''Mod resolution using managed mod data and mods.ini only for long names.'''
+    '''Mod resolution using managed mod data.'''
 
     def __init__(self, manager):
         super().__init__()
@@ -212,7 +226,7 @@ class ManagedModResolver(ModResolver):
     def initialise(self):
         self.dataCache = findInstalledMods(self.asset_path)
         self.modNameToIds = dict((data['name'].lower(), data['id']) for data in self.dataCache.values())
-        for name, modid in get_global_config().official_mods.items():
+        for name, modid in get_global_config().official_mods.tags_to_ids.items():
             self.dataCache[modid] = dict(id=modid, name=name, official=True)
             self.modNameToIds[name.lower()] = modid
         return self
@@ -224,21 +238,28 @@ class ManagedModResolver(ModResolver):
         return data['name']
 
     def get_id_from_name(self, name: str) -> str:
-        id = self.modNameToIds.get(name.lower(), None)
-        if not id: raise NameError(f"Mod name '{name}' not recognised or not installed")
-        return id
+        modid = self.modNameToIds.get(name.lower(), None)
+        if not modid: raise NameError(f"Mod name '{name}' not recognised or not installed")
+        return modid
 
 
 def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
     '''Scan installed modules and return their information in a Dict[id->data].'''
     mods_path: Path = asset_path / 'Content' / 'Mods'
-    result = dict()
+    result: Dict[str, Any] = dict()
     for filename in mods_path.glob('*/' + MODDATA_FILENAME):
-        modid = filename.parent.name
+        modid: str = filename.parent.name
         data = readModData(asset_path, modid)
         result[modid] = data
 
     return result
+
+
+def fetchGameVersion(gamedata_path: Path) -> str:
+    verFile = gamedata_path / 'version.txt'
+    with open(verFile) as f:
+        version = f.read().strip()
+    return version
 
 
 def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
@@ -270,7 +291,7 @@ def gatherModInfo(asset_path: Path, modid) -> Dict[str, Any]:
     return moddata
 
 
-def readModData(asset_path: Path, modid) -> Dict[str, Any]:
+def readModData(asset_path: Path, modid) -> Optional[Dict[str, Any]]:
     modid = str(modid)
     moddata_path: Path = asset_path / 'Content' / 'Mods' / modid / MODDATA_FILENAME
     logger.info(f'Loading mod {modid} metadata')
@@ -284,12 +305,12 @@ def readModData(asset_path: Path, modid) -> Dict[str, Any]:
     return moddata
 
 
-def unpackMod(game_path, modid) -> str:
-    '''Unpack a compressed steam mod and return its version number.'''
+def unpackMod(game_path, modid):
+    '''Unpack a compressed steam mod.'''
     srcPath = game_path / 'steamapps' / 'workshop' / 'content' / str(ARK_MAIN_APP_ID) / str(modid) / 'WindowsNoEditor'
     dstPath = game_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
 
-    for curdir, dirs, files in walk(srcPath):
+    for curdir, _, files in walk(srcPath):
         curdir = Path(curdir).relative_to(srcPath)
         for filename in files:
             filename = Path(filename)

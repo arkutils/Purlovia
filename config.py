@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import *
 from pathlib import Path
 from configparser import ConfigParser
 
@@ -6,47 +6,94 @@ from pydantic import BaseModel, validator
 
 __all__ = [
     'get_global_config',
-    'ensure_loaded',
     'force_reload',
     'ConfigFile',
     'SettingsSection',
+    'OptimisationSection',
+    'ModIdAccess',
 ]
 
 FILENAME = 'config.ini'
 
 
+class IniStringList(list):
+    '''A validated type that converts a newline-separated string list into a proper Python list.'''
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.convert
+
+    @classmethod
+    def convert(cls, v):
+        if isinstance(v, (list, tuple)):
+            return v
+        if isinstance(v, str):
+            v = v.strip().replace('\r\n', '\n').split('\n')
+            return v
+        raise ValueError('Expected string list')
+
+
 class SettingsSection(BaseModel):
-    DataDir: Path = 'livedata'
-    PublishDir: Path = 'output'
+    DataDir: Path = Path('livedata')
+    PublishDir: Path = Path('output')
     UninstallUnusedMods: bool = True
+    SeparateOfficialMods: IniStringList = IniStringList()
     GitCommit: bool = False
     GitBranch: str = 'automated-values'
 
 
-class ConfigFile(BaseModel):
-    settings: SettingsSection
-    mods: List[str] = tuple()
-    official_mods: Dict[str, str] = dict()
+class OptimisationSection(BaseModel):
+    SearchIgnore: IniStringList = IniStringList()
 
-    @validator('official_mods', whole=True)
-    def reverse_official_mods(cls, value, values):
-        # Intercept official mods and created dictionaries in both directions
-        values['official_mods__name_to_id'] = {k.lower(): v for k, v in value.items()}
-        values['official_mods__id_to_name'] = {v.lower(): k for k, v in value.items()}
+
+class ModIdAccess:
+    '''Prodive bi-directional access to a modid <-> tag dictionary.'''
+    ids_to_tags: Dict[str, str]
+    tags_to_ids: Dict[str, str]
+
+    def __init__(self, source: Dict[str, str], keyed_by_id=False):
+        if keyed_by_id:
+            self.ids_to_tags = {k.lower(): v for k, v in source.items()}
+            self.tags_to_ids = {v.lower(): k for k, v in source.items()}
+        else:
+            self.ids_to_tags = {v.lower(): k for k, v in source.items()}
+            self.tags_to_ids = {k.lower(): v for k, v in source.items()}
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value):
         return value
 
-    def is_official_mod(self, modid):
-        return modid in self.official_mods__id_to_name
+    def ids(self) -> List[str]:
+        return list(self.tags_to_ids.values())
 
-    def official_mod_name_from_id(self, modid):
-        return self.official_mods__id_to_name.get(modid, None)
+    def tags(self) -> List[str]:
+        return list(self.ids_to_tags.values())
 
-    def official_mod_name_from_id(self, name):
-        return self.official_mods__name_to_id.get(name, None)
+    def id_from_tag(self, tag: str):
+        return self.tags_to_ids.get(tag.lower(), None)
+
+    def tag_from_id(self, modid: str):
+        return self.ids_to_tags.get(modid.lower(), None)
+
+
+class ConfigFile(BaseModel):
+    settings: SettingsSection
+    mods: Tuple[str, ...] = tuple()
+    official_mods: ModIdAccess = ModIdAccess(dict())
+    optimisation: OptimisationSection
+
+
+config: Optional[ConfigFile] = None
+parser: Optional[ConfigParser] = None
 
 
 def get_global_config() -> ConfigFile:
     _ensure_loaded()
+    assert config is not None
     return config
 
 
@@ -68,13 +115,10 @@ def _read_config(filename):
     parser.read(filename)
 
     managed_mods = list(parser['mods'].keys())
-    official_mods = {k: v for k, v in parser['official-mods'].items()}
+    official_mods = ModIdAccess(parser['official-mods'], keyed_by_id=False)
 
     settings = SettingsSection(**parser['settings'])
+    optimisation = OptimisationSection(**parser['optimisation'])
 
     global config
-    config = ConfigFile(settings=settings, mods=managed_mods, official_mods=official_mods)
-
-
-config = None
-parser = None
+    config = ConfigFile(settings=settings, mods=managed_mods, official_mods=official_mods, optimisation=optimisation)

@@ -1,5 +1,6 @@
 import zlib
 import logging
+from typing import *
 
 from ue.stream import MemoryStream
 
@@ -128,7 +129,7 @@ def readModMetaInfo(filename):
     return dict(entries)
 
 
-def readUnrealString(f: MemoryStream) -> str:
+def readUnrealString(f: MemoryStream) -> Optional[str]:
     count = f.readUInt32()
     if count < 0:
         raise ValueError("UTF16 string detected - add support here!")

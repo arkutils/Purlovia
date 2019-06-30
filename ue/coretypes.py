@@ -1,7 +1,7 @@
 from typing import Type
 
 try:
-    from IPython.lib.pretty import PrettyPrinter
+    from IPython.lib.pretty import PrettyPrinter  # type: ignore
     support_pretty = True
 except ImportError:
     support_pretty = False
@@ -21,7 +21,7 @@ class Table(UEBase):
     skip_level_field = 'values'
     display_fields = ['itemType', 'count', 'values']
 
-    def _deserialise(self, itemType: Type[UEBase], count: int):
+    def _deserialise(self, itemType: Type[UEBase], count: int):  # type: ignore
         assert count is not None
         assert issubclass(itemType, UEBase), f'Table item type must be UEBase'
 

@@ -1,3 +1,5 @@
+from typing import *
+
 from ue.asset import UAsset
 from ue.loader import AssetLoader
 from ue.properties import LinearColor
@@ -55,7 +57,7 @@ IS_PERCENT_STAT = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1)
 
 remove_default_values = True  # TODO: probably set to False for production runs
 
-cached_color_defs = []
+cached_color_defs: List[Tuple[str, Tuple[float, float, float, float]]] = []
 
 
 # TODO: Move to somewhere more global, probably alongside gather_properties
@@ -65,7 +67,7 @@ def create_dict(prop):
 
 def convert_linear_color(lcolor: LinearColor):
     # Uses rounded as it matches the export file values
-    return [lcolor.r.rounded, lcolor.g.rounded, lcolor.b.rounded, lcolor.a.rounded]
+    return (lcolor.r.rounded, lcolor.g.rounded, lcolor.b.rounded, lcolor.a.rounded)
 
 
 def read_colour_definitions(asset):
@@ -74,7 +76,7 @@ def read_colour_definitions(asset):
     color_defs = []
     for color_def in props['ColorDefinitions'][0][-1].values:
         color_dict = create_dict(color_def)
-        color_defs.append([str(color_dict['ColorName']), convert_linear_color(color_dict['ColorValue'].values[0])])
+        color_defs.append((str(color_dict['ColorName']), convert_linear_color(color_dict['ColorValue'].values[0])))
 
     return color_defs
 
@@ -111,8 +113,8 @@ def gather_stat_data(props, statIndexes):
     return statsArray
 
 
-def gather_breeding_data(props, loader: AssetLoader):
-    data = dict(gestationTime=0, incubationTime=0)
+def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
+    data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
     gestation_breeding = stat_value(props, 'bUseBabyGestation', 0, False)
     has_eggs = False
@@ -120,7 +122,7 @@ def gather_breeding_data(props, loader: AssetLoader):
     if props['FertilizedEggItemsToSpawn'][0] and props['FertilizedEggItemsToSpawn'][0][-1].values:
         # eggs = list(filter(lambda v: v and str(v) != 'None', props['FertilizedEggItemsToSpawn'][0][-1].values))
         eggs = [egg for egg in props['FertilizedEggItemsToSpawn'][0][-1].values if str(egg) != 'None']
-        has_eggs = not not eggs
+        has_eggs = bool(eggs)
 
     if gestation_breeding:
         gestation_speed = stat_value(props, 'BabyGestationSpeed', 0, BABYGESTATIONSPEED_DEFAULT)
@@ -174,8 +176,8 @@ def gather_color_data(props, loader: AssetLoader):
     colors = list()
     for i, region in enumerate(DEFAULT_COLOR_REGIONS):
         prevent_region = stat_value(props, 'PreventColorizationRegions', i, region)
-        color = dict()
-        color_ids = list()
+        color: Dict[str, Any] = dict()
+        color_ids: List[int] = list()
 
         if prevent_region:
             color['name'] = None
@@ -209,11 +211,14 @@ def gather_color_data(props, loader: AssetLoader):
     return colors
 
 
-def values_for_species(asset: UAsset, props, all=False, fullStats=False):
+def values_for_species(asset: UAsset, props, allFields=False, fullStats=False):
+    assert asset.loader
+
     name = stat_value(props, 'DescriptiveName', 0, None)
     if not name: raise ValueError("Species has no DescriptiveName")
 
     # TODO: This is nasty - get class name from BP instead of assuming
+    assert asset.assetname is not None
     bp = asset.assetname + '.' + asset.assetname.split('/')[-1]
 
     # Replace names to match ASB's hardcoding of specific species
@@ -228,7 +233,7 @@ def values_for_species(asset: UAsset, props, all=False, fullStats=False):
 
     # Breeding data
     if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-        breeding_data = gather_breeding_data(props, asset.loader)
+        breeding_data = gather_breeding_data(props, asset.loader)  # type: ignore
         if breeding_data:
             species['breeding'] = breeding_data
 
@@ -248,8 +253,8 @@ def values_for_species(asset: UAsset, props, all=False, fullStats=False):
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
-    if all or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
-    if all or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
-    if all or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
+    if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
+    if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
+    if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
 
     return species

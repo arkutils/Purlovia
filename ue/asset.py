@@ -1,4 +1,6 @@
-from deprecated import deprecated
+from typing import *
+
+from deprecated import deprecated  # type: ignore
 
 from .stream import MemoryStream
 from .base import UEBase
@@ -10,14 +12,17 @@ dbg_getName = 0
 
 
 class UAsset(UEBase):
-    display_fields = [
-        'tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'engine', 'header_size', 'none_string', 'package_flags',
-        'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets', 'thumbnail_offset', 'guid'
-    ]
+    display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'engine', 'header_size', 'none_string',
+                      'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets',
+                      'thumbnail_offset', 'guid')
 
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
         self.asset = self
+        self.loader: Optional['AssetLoader'] = None
+        self.assetname: Optional[str] = None
+        self.name: Optional[str] = None
+        self.default_export: Optional['ExportTableItem'] = None
         super().__init__(self, stream)
 
     def _deserialise(self):
@@ -95,38 +100,6 @@ class UAsset(UEBase):
 
         return None
 
-    @deprecated(reason="Use methods in ark.asset instead")
-    def findDefaultExport(self, part='Default__'):
-        indexes = (i for i, export in enumerate(self.exports) if str(export.name).startswith(part))
-        index = next(indexes, None)
-        if index is None or index >= len(self.exports):
-            return
-        export = self.exports[index]
-        return export
-
-    @deprecated(reason="Use methods in ark.asset instead")
-    def findParentPackageForExport(self, de):
-        dec = de.klass.value
-        decs = dec.super.value or dec.klass.value
-        decsi = next(imp for imp in self.imports if imp.klass == decs.name)
-        decsip = str(decsi.package)
-        return decsip
-
-    @deprecated(reason="Use methods in ark.asset instead")
-    def findSubComponents(self, exportType='SCS_Node', pkgPrefix='/Game'):
-        for i, export in enumerate(self.exports):
-            if str(export.name) != exportType: continue
-            p1 = export.properties[0]
-            if str(p1.header.type) != 'ObjectProperty': continue
-            imp = p1.value.value.value.klass.value
-            if str(imp.klass) != 'BlueprintGeneratedClass': continue
-            component_name = str(imp.name)
-            if component_name.endswith('_C'):
-                component_name = component_name[:-2]
-            found_pkg = next((name for name in self.names if component_name in str(name) and str(name).startswith(pkgPrefix)),
-                             None)
-            yield str(found_pkg)
-
     def _parseTable(self, chunk, itemType):
         stream = MemoryStream(self.stream, chunk.offset)
         table = Table(self, stream).deserialise(itemType, chunk.count)
@@ -140,6 +113,18 @@ class UAsset(UEBase):
                 return
 
         raise RuntimeError("Could not find None string entry")
+
+    # def __eq__(self, other):
+    #     return super().__eq__(other)
+
+    # def __hash__(self):
+    #     if 'guid' in self.field_values:
+    #         return hash(self.field_values['guid'])
+
+    #     if hashattr(self, 'assetname'):
+    #         return hash(tuple(self.assetname, self.start_offset, self.end_offset))
+
+    #     return super().__hash__()
 
 
 class ImportTableItem(UEBase):

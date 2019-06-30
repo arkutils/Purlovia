@@ -6,10 +6,12 @@ verify_ssl = true
 [dev-packages]
 yapf = "*"
 rope = "*"
+jupyter = "*"
+pylint = "*"
+mypy = "*"
 
 [packages]
 pytest = "*"
-jupyter = "*"
 pygments = "*"
 deepdiff = "*"
 deprecated = "*"

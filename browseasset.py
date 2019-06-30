@@ -1,16 +1,17 @@
 import os, sys
-from tkinter import Tk, EventType
+from tkinter import Tk, EventType  # type: ignore
 from tkinter import ttk
 from collections.abc import Iterable
+from typing import *
 
 from ue.base import UEBase
 from ue.loader import AssetLoader
 
 from automate.ark import ArkSteamManager
 
-root = None
-tree = None
-treenodes = {}
+root: Optional[Tk] = None
+tree: Optional[ttk.Treeview] = None
+treenodes: Dict[str, Any] = {}
 
 LEAF_TYPES = (
     'str',
@@ -65,6 +66,8 @@ def create_ui():
 
 
 def on_tree_open(evt: EventType):
+    assert tree
+
     # This is called when a node containing a placeholder is opened for the first time
     itemId = tree.selection()[0]
     node = treenodes[itemId]
@@ -166,12 +169,17 @@ if __name__ == '__main__':
 
     assetname = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
+    assert root
 
     if not assetname:
         from tkinter import filedialog
+        from pathlib import Path
         assetname = filedialog.askopenfilename(title='Select asset file...',
                                                filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
                                                initialdir=loader.asset_path)
+        assert assetname
+        path = Path(assetname).relative_to(loader.asset_path).with_suffix('')
+        assetname = str(path)
 
     load_asset(assetname)
     root.mainloop()

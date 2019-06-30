@@ -1,7 +1,8 @@
 {
     "files.exclude": {
         "**/__pycache__": true,
-        "**/.pytest_cache": true
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
     },
     "python.testing.pytestArgs": [],
     "python.testing.unittestEnabled": false,
@@ -12,5 +13,9 @@
     },
     "python.jediEnabled": false,
     "python.formatting.provider": "yapf",
+    "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
     "git.ignoreLimitWarning": true
 }

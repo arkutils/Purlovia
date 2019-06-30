@@ -20,7 +20,7 @@ print()
 #%% Update mods
 arkman.ensureModsUpdated([
     # 829467257,  # SurvivalPlus
-    # 839162288,  # Primal_Fear
+    839162288,  # Primal_Fear
     # 893735676,  # Ark Eternal
     895711211,  # ClassicFlyers
     # 919470289,  # SSFlyer

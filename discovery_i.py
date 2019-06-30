@@ -5,12 +5,12 @@ import json
 import os
 import re
 from collections import defaultdict, deque
-from typing import Generator
+from typing import Iterator
 
-import networkx as nx
+import networkx as nx  # type: ignore
 
 from automate.ark import ArkSteamManager
-from ark.asset import findDependencies, findSubComponents, findComponentExports, findParentPackage
+from ark.asset import findAllDependencies, findParentPackages, findSubComponentParentPackages
 
 #%% Create loader
 arkman = ArkSteamManager(skipInstall=True)
@@ -41,7 +41,7 @@ def loadAssetsFromDir(assetpath, include_related=False):
 
 def loadRelatedContent(asset):
     '''Load all parent classes and referenced component types.'''
-    for subassetname in findDependencies(asset):
+    for subassetname in findAllDependencies(asset):
         if subassetname in asset.loader.cache:
             continue
 
@@ -53,37 +53,34 @@ def loadRelatedContent(asset):
         loadRelatedContent(subasset)
 
 
-def selectAssetsOfType(assetnames, basetype) -> Generator[str, None, None]:
-    '''Select only assets that have a parent (or parent of parent, etc) of the given type.'''
-    for assetname in assetnames:
-        if isAssetOfType(assetname, basetype):
-            yield assetname
+# def selectAssetsOfType(assetnames, basetype) -> Iterator[str]:
+#     '''Select only assets that have a parent (or parent of parent, etc) of the given type.'''
+#     for assetname in assetnames:
+#         if isAssetOfType(assetname, basetype):
+#             yield assetname
 
+# def isAssetOfType(assetname, basetype):
+#     '''Checks up the inheritance chain of an asset to see if it inherits from `basetype`.'''
 
-def isAssetOfType(assetname, basetype):
-    '''Checks up the inheritance chain of an asset to see if it inherits from `basetype`.'''
+#     if assetname == basetype:
+#         return True
 
-    if assetname == basetype:
-        return True
+#     if assetname.startswith('/Script'):
+#         return False
 
-    if assetname.startswith('/Script'):
-        return False
+#     for parentname in findComponentPackages(loader[assetname]):
+#         if parentname == basetype or isAssetOfType(parentname, basepath):
+#             return True
 
-    for export in findComponentExports(loader[assetname]):
-        parentName = findParentPackage(export)
-        if parentName == basetype or isAssetOfType(parentName, basepath):
-            return True
+#     return False
 
-    return False
+# def getAssetBase(assetname):
+#     '''Get the top-most Ark-related package in the inheritance chain.'''
+#     if assetname.startswith('/Script'):
+#         return None
 
-
-def getAssetBase(assetname):
-    '''Get the top-most Ark-related package in the inheritance chain.'''
-    if assetname.startswith('/Script'):
-        return None
-
-    for export in findComponentExports(loader[assetname]):
-        parentName = findParentPackage(export)
+#     for export in findComponentExports(loader[assetname]):
+#         parentName = findParentPackage(export)
 
 
 def showAllParents(assetnames):
@@ -96,28 +93,25 @@ def showParents(assetname, indent=0):
     if assetname.startswith('/Script'):
         return
 
-    for export in findComponentExports(loader[assetname]):
-        parentName = findParentPackage(export)
+    for parentName in findParentPackages(loader[assetname]):
         print(f'{"  "*indent}{parentName}')
         showParents(parentName, indent=indent + 1)
 
 
 #%% Choose top search path (bigger == slower)
-# basepath = '/Game/PrimalEarth/Dinos'
-basepath = '/Game/Mods/ClassicFlyers'
-print(f'Base path: {basepath}')
+# # basepath = '/Game/PrimalEarth/Dinos'
+# basepath = '/Game/Mods/ClassicFlyers'
+# print(f'Base path: {basepath}')
 
-#%% Load everything
-assetnames = loadAssetsFromDir(basepath, include_related=True)
-print('\nLoad complete')
+# assetnames = loadAssetsFromDir(basepath, include_related=True)
+# print('\nLoad complete')
 
-#%% Analyse stuff
-species = assetnames
+# species = assetnames
 # species = list(selectAssetsOfType(assetnames, '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'))
 # print('\nFound species:')
 # pprint(species)
 
-showAllParents(species)
+# showAllParents(species)
 
 #%%
 
@@ -145,8 +139,7 @@ def generateGraph(assetnames, excludeRes=[]):
         graph.add_node(name, assetname=assetname, label=name)
 
         # Inheritance
-        for export in findComponentExports(asset):
-            parentAssetname = findParentPackage(export.klass.value)
+        for parentAssetname in findParentPackages(asset):
             print('  inheritance: ' + parentAssetname)
             if not parentAssetname.startswith('/Game'):
                 continue
@@ -155,8 +148,7 @@ def generateGraph(assetnames, excludeRes=[]):
             queue.append(parentAssetname)
 
         # Components
-        for export in findSubComponents(asset):
-            cmpAssetname = findParentPackage(export.klass.value)
+        for cmpAssetname in findSubComponentParentPackages(asset):
             print('  component: ' + cmpAssetname)
             if not cmpAssetname.startswith('/Game'):
                 continue
@@ -183,20 +175,20 @@ def createConnectedSubgraph(g, nodename):
     nodes.add(nodename)
 
 
-print('\nGraph generation:')
-g = generateGraph(assetnames)
+# print('\nGraph generation:')
+# g = generateGraph(assetnames)
 
 #%% Select anything that inherits from the main Character asset
-target = 'PrimalEarth/CoreBlueprints/Dino_Chr_BP'
-chr_subgraph = g.subgraph([n for n in nx.dfs_tree(g, target)])
+# target = 'PrimalEarth/CoreBlueprints/Dino_Chr_BP'
+# chr_subgraph = g.subgraph([n for n in nx.dfs_tree(g, target)])
 
-# Show if each asset has a sub-component that's a DCSC
-print('\nSpecies candidates:')
-for node in sorted(chr_subgraph.nodes):
-    if any(True for src, _, data in g.in_edges([node], data=True) if data['type'] == 'component' and 'DCSC' in src):
-        print('+' + node)
-    else:
-        print('-' + node)
+# # Show if each asset has a sub-component that's a DCSC
+# print('\nSpecies candidates:')
+# for node in sorted(chr_subgraph.nodes):
+#     if any(True for src, _, data in g.in_edges([node], data=True) if data['type'] == 'component' and 'DCSC' in src):
+#         print('+' + node)
+#     else:
+#         print('-' + node)
 
 # Actually need to find everything that inherits from anything that has a parent of base Chr and has a DCSC
 
@@ -205,7 +197,13 @@ for node in sorted(chr_subgraph.nodes):
 # nx.draw(chr_subgraph)
 
 #%% Output graph using pydot
-import networkx.drawing.nx_pydot as nx_pydot
-nx_pydot.write_dot(chr_subgraph, 'output/cf-chrs.dot')
+# import networkx.drawing.nx_pydot as nx_pydot  # type: ignore
+# nx_pydot.write_dot(chr_subgraph, 'output/cf-chrs.dot')
+
+#%% Test out the new discovery system
+# modid = 839162288 # Primal Fear
+modid = 895711211  # Classic Flyers
+import ark.discovery
+list(ark.discovery.SpeciesDiscoverer(loader).discover_mod_species(str(modid)))
 
 #%%

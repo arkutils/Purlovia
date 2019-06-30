@@ -1,6 +1,7 @@
-import requests
 import logging
-from typing import Tuple, List, Union
+from typing import *
+
+import requests
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -18,9 +19,9 @@ class SteamApi:
         return f'{SteamApi.API_URL}/{interface}/{method}/v{version}/'
 
     @classmethod
-    def GetPublishedFileDetails(cls, mods: Union[List[str], Tuple[str]]):
+    def GetPublishedFileDetails(cls, mods: Iterable[str]) -> Dict:
         url = cls._createUrl('ISteamRemoteStorage', 'GetPublishedFileDetails')
-        params = dict((f'publishedfileids[{i}]', modid) for (i, modid) in enumerate(mods))
+        params: Dict[str, Any] = dict((f'publishedfileids[{i}]', modid) for (i, modid) in enumerate(mods))
         params['itemcount'] = len(params)
         logger.debug(f'POST {url} {params}')
         req = requests.post(url, data=params)

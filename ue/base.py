@@ -1,17 +1,17 @@
+from typing import *
+
 try:
-    from IPython.lib.pretty import PrettyPrinter
+    from IPython.lib.pretty import PrettyPrinter  # type: ignore
     support_pretty = True
 except ImportError:
     support_pretty = False
 
-from .stream import MemoryStream
-
 
 class UEBase(object):
-    main_field = None
-    string_format = None
-    display_fields = None
-    skip_level_field = None
+    main_field: Optional[str] = None
+    string_format: Optional[str] = None
+    display_fields: Optional[Sequence[str]] = None
+    skip_level_field: Optional[str] = None
 
     def __init__(self, owner, stream=None):
         assert owner is not None, "Owner must be specified"
@@ -68,7 +68,7 @@ class UEBase(object):
 
     def _link(self):
         '''Link all known fields.'''
-        if len(self.field_values) == 0:
+        if not self.field_values:
             return
 
         self._linkValues(self.field_values.values())
@@ -93,9 +93,26 @@ class UEBase(object):
         if isinstance(value, UEBase) and not value.is_serialised:
             value.deserialise(*extraArgs)
 
+    # def __eq__(self, other:UEBase):
+    #     if self.start_offset != other.start_offset or self.end_offset != other.end_offset:
+    #         return False
+
+    #     if self.field_values.keys() != other.field_values.keys():
+    #         return False
+
+    #     return self.field_values == other.field_values
+
+    # def __hash__(self):
+    #     if self.asset and id(self) != id(self.asset):
+    #         return hash((self.asset, self.start_offset, self.end_offset))
+
+    #     return hash((self.start_offset, self.end_offset))
+
+    def __eq__(self, other):
+        return self is other  # only the same object is considered the equal
+
     def __hash__(self):
-        id = hash((self.start_offset, self.end_offset))
-        return id
+        return id(self)  # use the id (memory address) so each item is unique
 
     def __getattr__(self, name: str):
         '''Override property accessor to allow reading of defined fields.'''

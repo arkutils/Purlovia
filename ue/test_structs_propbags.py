@@ -1,12 +1,11 @@
-import pytest
+import pytest  # type: ignore
 from .testutils import *
 
 EMPTY_COLORS = dict(name=None, values=None)
 
-DEFAULT_COLORS = dict(
-    name=None,
-    values=('Light Green', 'Light Grey', 'Light Brown', 'Light Orange', 'Light Yellow', 'Light Red', 'Dark Grey', 'Brown',
-            'Black', 'Dark Green', 'Dark Red'))
+DEFAULT_COLORS = dict(name=None,
+                      values=('Light Green', 'Light Grey', 'Light Brown', 'Light Orange', 'Light Yellow', 'Light Red',
+                              'Dark Grey', 'Brown', 'Black', 'Dark Green', 'Dark Red'))
 
 
 @pytest.mark.uses_copyright_material

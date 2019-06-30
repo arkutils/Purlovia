@@ -1,5 +1,8 @@
 #%% Setup
 from interactive_utils import *
+
+from typing import *
+
 from ue.base import UEBase
 from ue.asset import UAsset
 from ue.loader import AssetLoader
@@ -9,6 +12,7 @@ from ue.properties import *
 import ark.mod
 import ark.asset
 from ark.properties import stat_value
+from automate.ark import ArkSteamManager
 
 # Equation References: https://ark.gamepedia.com/DevKit
 
@@ -38,7 +42,8 @@ def get_color_defs(asset):
     return color_defs
 
 
-loader = AssetLoader()
+arkman = ArkSteamManager(skipInstall=True)
+loader = arkman.createLoader()
 
 # Get Colors
 core_media = loader['/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP']
@@ -68,8 +73,8 @@ else:
     colors = []
     for i, region in enumerate(default_color_regions):
         prevent_region = stat_value(character_props, 'PreventColorizationRegions', i, region)
-        color = dict()
-        color_ids = []
+        color: Dict[str, Any] = dict()
+        color_ids: List[int] = []
 
         if prevent_region:
             color['name'] = 'null'
