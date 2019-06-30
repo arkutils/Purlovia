@@ -38,6 +38,7 @@ class SettingsSection(BaseModel):
     PublishDir: Path = Path('output')
     UninstallUnusedMods: bool = True
     SeparateOfficialMods: IniStringList = IniStringList()
+    PrettyJson: bool = False
     GitCommit: bool = False
     GitBranch: str = 'automated-values'
 
