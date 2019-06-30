@@ -30,7 +30,7 @@ class SteamApi:
         return req.json()['response']['publishedfiledetails']
 
 
-# https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/
+# https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/ (https://steamapi.xpaw.me/#ISteamRemoteStorage)
 # itemcount=N
 # publishedfileids[0..i]=mod_id
 
