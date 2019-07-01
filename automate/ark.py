@@ -218,7 +218,8 @@ class ManagedModResolver(ModResolver):
     def initialise(self):
         self.dataCache = findInstalledMods(self.asset_path)
         self.modNameToIds = dict((data['name'].lower(), data['id']) for data in self.dataCache.values())
-        for name, modid in get_global_config().official_mods.tags_to_ids.items():
+        for modid in get_global_config().official_mods.ids():
+            name = get_global_config().official_mods.tag_from_id(modid)
             self.dataCache[modid] = dict(id=modid, name=name, official=True)
             self.modNameToIds[name.lower()] = modid
         return self
