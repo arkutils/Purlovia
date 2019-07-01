@@ -85,7 +85,6 @@ class SpeciesDiscoverer:
     def discover_vanilla_species(self) -> Iterator[str]:
         # Scan /Game, excluding /Game/Mods and any excludes from config
         for species in self.loader.find_assetnames('.*', '/Game', exclude=('/Game/Mods/.*', *self.global_excludes)):
-            print(species)
             if self._filter_species(species):
                 yield species
 
@@ -94,7 +93,6 @@ class SpeciesDiscoverer:
         official_modids -= set(get_global_config().settings.SeparateOfficialMods)
         for modid in official_modids:
             for species in self.loader.find_assetnames('.*', f'/Game/Mods/{modid}', exclude=self.global_excludes):
-                print(species)
                 if self._filter_species(species):
                     yield species
 
