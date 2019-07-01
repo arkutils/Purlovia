@@ -1,6 +1,12 @@
+import logging
+if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    loggingHandler = logging.StreamHandler()
+    logger.addHandler(loggingHandler)
+
 import re
 import json
-import logging
 from typing import *
 from datetime import datetime
 
