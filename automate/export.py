@@ -64,7 +64,7 @@ class Exporter:
         version = self._create_version(self.start_time_stamp)
         species = list(self.discoverer.discover_vanilla_species())
         species_data = self._gather_species_data(species)
-        species_values = self._convert_for_export(species_data)
+        species_values = self._convert_for_export(species_data, False)
         self._export_values(species_values, version=version, moddata=None)
 
     def _export_mod(self, modid: str):
@@ -75,7 +75,7 @@ class Exporter:
         species = list(self.discoverer.discover_mod_species(modid))
         species.sort()
         species_data = self._gather_species_data(species)
-        species_values = self._convert_for_export(species_data)
+        species_values = self._convert_for_export(species_data, True)
         self._export_values(species_values, version=version, moddata=moddata)
 
     def _gather_species_data(self, species):
@@ -86,10 +86,15 @@ class Exporter:
             species_data.append((asset, props))
         return species_data
 
-    def _convert_for_export(self, species_data):
+    def _convert_for_export(self, species_data, ismod: bool):
         values = list()
         for asset, props in species_data:
-            species_values = values_for_species(asset, props, allFields=True, fullStats=self.fullStats)
+            species_values = values_for_species(asset,
+                                                props,
+                                                allFields=True,
+                                                fullStats=self.fullStats,
+                                                includeBreeding=True,
+                                                includeColor=not ismod)
             values.append(species_values)
         return values
 
@@ -135,6 +140,7 @@ def _save_as_json(data, filename, pretty=False):
 if __name__ == '__main__':
     mods = get_global_config().mods
     arkman = ArkSteamManager(skipInstall=True)
+    arkman.ensureSteamCmd()
     arkman.ensureGameUpdated()
     arkman.ensureModsUpdated(mods, uninstallOthers=False)
-    export_values(arkman, set(mods), include_vanilla=False)
+    export_values(arkman, set(mods), include_vanilla=True)

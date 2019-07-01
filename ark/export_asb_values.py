@@ -212,7 +212,7 @@ def gather_color_data(props, loader: AssetLoader):
     return colors
 
 
-def values_for_species(asset: UAsset, props, allFields=False, fullStats=False):
+def values_for_species(asset: UAsset, props, allFields=False, fullStats=False, includeColor=False, includeBreeding=True):
     assert asset.loader
 
     name = stat_value(props, 'DescriptiveName', 0, None)
@@ -234,18 +234,20 @@ def values_for_species(asset: UAsset, props, allFields=False, fullStats=False):
     statIndexes = ARK_STAT_INDEXES if fullStats else ASB_STAT_INDEXES
     species[statsField] = gather_stat_data(props, statIndexes)
 
-    # Breeding data
-    if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-        breeding_data = gather_breeding_data(props, asset.loader)  # type: ignore
-        if breeding_data:
-            species['breeding'] = breeding_data
+    if includeBreeding:
+        # Breeding data
+        if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
+            breeding_data = gather_breeding_data(props, asset.loader)  # type: ignore
+            if breeding_data:
+                species['breeding'] = breeding_data
 
-    # Color data
-    ensure_color_data(asset.loader)
-    if stat_value(props, 'bUseColorization', False):
-        colors = gather_color_data(props, asset.loader)
-        if colors:
-            species['colors'] = colors
+    if includeColor:
+        # Color data
+        ensure_color_data(asset.loader)
+        if stat_value(props, 'bUseColorization', False):
+            colors = gather_color_data(props, asset.loader)
+            if colors:
+                species['colors'] = colors
 
     # Misc data
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
