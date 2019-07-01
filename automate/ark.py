@@ -123,7 +123,7 @@ class ArkSteamManager:
         modids_remove = modids_installed - modids_requested
 
         # Request details for the 'keep' and 'add' mods from steam api (specifically want update times and titles)
-        mod_details_list = SteamApi.GetPublishedFileDetails(modids_keep | modids_add) if modids_keep else []
+        mod_details_list = SteamApi.GetPublishedFileDetails(modids_keep | modids_add) if modids_keep | modids_add else []
         self.steam_mod_details = dict((details['publishedfileid'], details) for details in mod_details_list)
 
         # Calculate mods that need fetching (adds + outdated keeps)
