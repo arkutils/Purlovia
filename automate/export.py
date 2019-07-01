@@ -139,7 +139,7 @@ def _save_as_json(data, filename, pretty=False):
 
 if __name__ == '__main__':
     mods = get_global_config().mods
-    arkman = ArkSteamManager(skipInstall=True)
+    arkman = ArkSteamManager()
     arkman.ensureSteamCmd()
     arkman.ensureGameUpdated()
     arkman.ensureModsUpdated(mods, uninstallOthers=False)

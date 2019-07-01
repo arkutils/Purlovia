@@ -24,7 +24,7 @@ import ark.properties
 from ark.export_asb_values import values_for_species
 from automate.ark import ArkSteamManager, readModData
 
-arkman = ArkSteamManager(skipInstall=True)
+arkman = ArkSteamManager()
 loader = arkman.createLoader()
 
 version_string = None
@@ -134,7 +134,7 @@ for assetname in loader.find_assetnames('.*', f'/Game/Mods/{mod_name}'):
 # if 'mod_name' in vars(): del mod_name
 # value_json = json.load(open(os.path.join('asb_json', 'values.json')))
 # load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
-# version_string = f'{arkman.ensureGameUpdated(skipInstall=True)}.{int(datetime.utcnow().timestamp())}'
+# version_string = f'{arkman.ensureGameUpdated()}.{int(datetime.utcnow().timestamp())}'
 # print(f'\nDecoding all values.json species...\n')
 # species_data = []
 # for pkgname in load_species:

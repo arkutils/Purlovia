@@ -13,7 +13,7 @@ from automate.ark import ArkSteamManager
 from ark.asset import findAllDependencies, findParentPackages, findSubComponentParentPackages
 
 #%% Create loader
-arkman = ArkSteamManager(skipInstall=True)
+arkman = ArkSteamManager()
 loader = arkman.createLoader()
 
 

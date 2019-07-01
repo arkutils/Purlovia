@@ -12,7 +12,7 @@ from automate.ark import ArkSteamManager
 import ark.mod
 import ark.asset
 
-arkman = ArkSteamManager(skipInstall=True)
+arkman = ArkSteamManager()
 loader = arkman.createLoader()
 
 #%% Select asset

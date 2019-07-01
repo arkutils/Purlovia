@@ -25,9 +25,8 @@ logger.addHandler(logging.NullHandler())
 
 
 class ArkSteamManager:
-    def __init__(self, skipInstall=False):
+    def __init__(self):
         self.basepath: Path = get_global_config().settings.DataDir.absolute()
-        self.skip_install = skipInstall
 
         self.steamcmd_path: Path = self.basepath / 'steamcmd'
         self.gamedata_path: Path = self.basepath / 'game'
@@ -88,15 +87,13 @@ class ArkSteamManager:
         self.steamcmd_path.mkdir(parents=True, exist_ok=True)
         self.steamcmd.install()
 
-    def ensureGameUpdated(self, skipInstall=None) -> str:
+    def ensureGameUpdated(self) -> str:
         """Install/update the game and return its version string."""
         logger.info('Ensuring Ark is installed and up to date')
 
-        if skipInstall is None: skipInstall = self.skip_install
-
         self.gamedata_path.mkdir(parents=True, exist_ok=True)
-        if not skipInstall:
-            self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+
+        self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
 
         self.game_version = fetchGameVersion(self.gamedata_path)
         return self.game_version  # type: ignore
@@ -202,15 +199,8 @@ class ArkSteamManager:
     def _sanityCheck(self):
         invalid = not self.steamcmd_path.is_dir() or not self.asset_path.is_dir()
 
-        if invalid and self.skip_install:
-            logger.error('Found no game install and was told to skipInstall, aborting')
-            raise ValueError('Ark Steam Manager found no game install and was told to skipInstall, aborting')
-
         if invalid:
             logger.warning('Sanity check detected no game install present')
-
-        if self.skip_install:
-            logger.warning('Skipping installations due to skipInstall flag!')
 
 
 class ManagedModResolver(ModResolver):

@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO)
 
 from automate.ark import ArkSteamManager
 
-arkman = ArkSteamManager(skipInstall=False)
+arkman = ArkSteamManager()
 
 #%% Init
 arkman.ensureSteamCmd()

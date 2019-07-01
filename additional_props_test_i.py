@@ -42,7 +42,7 @@ def get_color_defs(asset):
     return color_defs
 
 
-arkman = ArkSteamManager(skipInstall=True)
+arkman = ArkSteamManager()
 loader = arkman.createLoader()
 
 # Get Colors

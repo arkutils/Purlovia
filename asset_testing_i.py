@@ -5,7 +5,7 @@ from time import process_time, perf_counter
 from automate.ark import ArkSteamManager, readModData
 from typing import *
 
-arkman = ArkSteamManager(skipInstall=True)
+arkman = ArkSteamManager()
 loader = arkman.createLoader()
 output_file = 'partial.txt'
 

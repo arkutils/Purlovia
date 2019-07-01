@@ -129,7 +129,7 @@ def fill_property_grid():
 
 if __name__ == '__main__':
     global arkman, loader
-    arkman = ArkSteamManager(skipInstall=True)
+    arkman = ArkSteamManager()
     loader = arkman.createLoader()
 
     mainasset = sys.argv[1] if len(sys.argv) > 1 else None
