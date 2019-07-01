@@ -10,6 +10,11 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+STCMD_SUCCESS = 0  # SteamCMD Success return code
+STCMD_TIMEOUT = 10  # SteamCMD Timeout return code
+STCMD_INIT1 = 3221225477  # SteamCMD Failed to initialize - Error: C0000005
+STCMD_INIT2 = 3221225512  # SteamCMD Failed to initialize - Error: C0000028
+
 
 class SteamcmdException(Exception):
     """
@@ -116,10 +121,23 @@ class Steamcmd:
             f'+app_update {gameid} {validate}',
             '+quit',
         )
-        retcode = subprocess.call(steamcmd_params)
-        logger.info(f'SteamCMD process exited with code {retcode}')
-        if retcode not in (0, 6, 7):
-            raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")
+        for i in range(5):
+            # subprocess.run is the modern version of subprocess.call and more flexible
+            # capture_output=True silences the process. Output is accessible from proc_ret.stdout
+            proc_ret = subprocess.run(steamcmd_params, capture_output=True)
+            if proc_ret.returncode == STCMD_TIMEOUT:
+                logger.info(f'  {i + 1}) SteamCMD timed out. Running again: {proc_ret.returncode}')
+            elif proc_ret.returncode in (STCMD_INIT1, STCMD_INIT2):
+                logger.info(
+                    f'  {i + 1}) SteamCMD failed to initialize. Running again: {proc_ret.returncode} ({proc_ret.returncode:X})')
+            else:
+                logger.info(f'SteamCMD process exited with code {proc_ret.returncode}')
+                break
+
+        if proc_ret.returncode not in (STCMD_SUCCESS, 0):
+            logger.info(proc_ret.args)
+            logger.info(proc_ret.stdout)
+            raise SteamcmdException(f'SteamCMD exited with code {proc_ret.returncode} ({proc_ret.returncode:X})')
 
     def install_workshopfiles(self, gameid, workshop_id, game_install_dir, user='anonymous', password=None):
         """
@@ -141,10 +159,23 @@ class Steamcmd:
             f'+workshop_download_item {gameid} {workshop_id}',
             '+quit',
         )
-        retcode = subprocess.call(steamcmd_params)
-        logger.info(f'SteamCMD process exited with code {retcode}')
-        if retcode not in (0, 6, 7):
-            raise SteamcmdException("Steamcmd was unable to run. Did you install your 32-bit libraries?")
+        for i in range(5):
+            # subprocess.run is the modern version of subprocess.call and more flexible
+            # capture_output=True silences the process. Output is accessible from proc_ret.stdout
+            proc_ret = subprocess.run(steamcmd_params, capture_output=True)
+            if proc_ret.returncode == STCMD_TIMEOUT:
+                logger.info(f'  {i + 1}) SteamCMD timed out. Running again: {proc_ret.returncode}')
+            elif proc_ret.returncode in (STCMD_INIT1, STCMD_INIT2):
+                logger.info(
+                    f'  {i + 1}) SteamCMD failed to initialize. Running again: {proc_ret.returncode} ({proc_ret.returncode:X})')
+            else:
+                logger.info(f'SteamCMD process exited with code {proc_ret.returncode}')
+                break
+
+        if proc_ret.returncode not in (STCMD_SUCCESS, 0):
+            logger.info(proc_ret.args)
+            logger.info(proc_ret.stdout)
+            raise SteamcmdException(f'SteamCMD exited with code {proc_ret.returncode} ({proc_ret.returncode:X})')
 
 
 __all__ = [
