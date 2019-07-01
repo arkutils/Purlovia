@@ -158,6 +158,8 @@ class ArkSteamManager:
         for modid in modids:
             logger.debug(f'Installing/updating mod {modid}')
             self.steamcmd.install_workshopfiles(str(ARK_MAIN_APP_ID), modid, self.gamedata_path)
+            if not verifyModDownloaded(self.gamedata_path, modid):
+                raise FileNotFoundError("Mod was not downloaded despite successful retcode - is it still available?")
 
         # Unpack the mods into the game directory proper
         for modid in modids:
@@ -293,6 +295,11 @@ def readModData(asset_path: Path, modid) -> Optional[Dict[str, Any]]:
         moddata = json.load(f)
 
     return moddata
+
+
+def verifyModDownloaded(game_path, modid):
+    srcPath = game_path / 'steamapps' / 'workshop' / 'content' / str(ARK_MAIN_APP_ID) / str(modid) / 'WindowsNoEditor'
+    return srcPath.is_dir()
 
 
 def unpackMod(game_path, modid):
