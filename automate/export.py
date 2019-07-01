@@ -1,9 +1,10 @@
 import logging
 if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    loggingHandler = logging.StreamHandler()
-    logger.addHandler(loggingHandler)
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    # loggingHandler = logging.StreamHandler()
+    # logger.addHandler(loggingHandler)
 
 import re
 import json
@@ -27,8 +28,10 @@ __all__ = [
 
 def export_values(arkman: ArkSteamManager, modids: Set[str], include_vanilla=True):
     pretty = get_global_config().settings.PrettyJson
+    logger.info('Export beginning')
     exporter = Exporter(arkman, modids, include_vanilla=include_vanilla, prettyJson=pretty)
     exporter.perform()
+    logger.info('Export complete')
 
 
 class Exporter:
@@ -121,6 +124,7 @@ class Exporter:
 
         fullpath = (get_global_config().settings.PublishDir / filename).with_suffix('.json')
 
+        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if self.prettyJson else "")}')
         _save_as_json(values, fullpath, pretty=self.prettyJson)
 
 

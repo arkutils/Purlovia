@@ -175,7 +175,7 @@ class AssetLoader:
 
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
-        logger.info(f"Loading file: {filename}")
+        logger.debug(f"Loading file: {filename}")
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
         mem = load_file_into_memory(filename)
@@ -184,7 +184,7 @@ class AssetLoader:
     def _load_raw_asset(self, name: str):
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
-        logger.info(f"Loading asset: {name}")
+        logger.debug(f"Loading asset: {name}")
         filename = self.convert_asset_name_to_path(name)
         mem = load_file_into_memory(filename)
         return mem

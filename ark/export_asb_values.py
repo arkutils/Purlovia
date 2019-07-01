@@ -1,11 +1,15 @@
 from typing import *
 import warnings
+import logging
 
 from ue.asset import UAsset
 from ue.loader import AssetLoader
 from ue.properties import LinearColor
 from ark.properties import stat_value
 import ark.mod
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 #                    Ark   ASB
 # Health              0     0
@@ -217,7 +221,7 @@ def values_for_species(asset: UAsset, props, allFields=False, fullStats=False, i
 
     name = stat_value(props, 'DescriptiveName', 0, None)
     if not name:
-        warnings.warn(f"Species {asset.assetname} has no DescriptiveName")
+        logger.warning(f"Species {asset.assetname} has no DescriptiveName")
         name = '<unnamed species>'
 
     # TODO: This is nasty - get class name from BP instead of assuming

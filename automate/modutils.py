@@ -21,9 +21,6 @@ logger.addHandler(logging.NullHandler())
 class DecompressionError(Exception):
     '''An error occurred during file decompression.'''
 
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
-
 
 # Compressed file structure:
 #   8   fixed token 0x9e2a83c1
@@ -39,7 +36,6 @@ def unpackModFile(src: str, dst: str):
     sizeUnpackedChunk = f.readUInt64()
     sizePacked = f.readUInt64()
     sizeUnpacked = f.readUInt64()
-    logger.debug(f'Header: sizeUnpackedChunk={sizeUnpackedChunk}, sizePacked={sizePacked}, sizeUnpacked={sizeUnpacked}')
 
     assert token == 0x9e2a83c1, DecompressionError("Invalid header in downloaded mod")
 
@@ -51,9 +47,6 @@ def unpackModFile(src: str, dst: str):
         chunkSizes.append((chunkSizeCompressed, chunkSizeUnompressed))
         sizeFound += chunkSizeUnompressed
 
-        logger.debug(f'Chunk info: chunkSizeCompressed={chunkSizeCompressed}, chunkSizeUnompressed={chunkSizeUnompressed}')
-
-    logger.debug(f'Total chunks: sizeFound={sizeFound}')
     assert sizeFound == sizeUnpacked, DecompressionError("Invalid chunk sizes in downloaded mod")
 
     data = bytes()
@@ -61,8 +54,6 @@ def unpackModFile(src: str, dst: str):
         chunkData = f.readBytes(csCompressed)
         uncompressedChunkData = zlib.decompress(chunkData)
         del chunkData
-
-        logger.debug(f'Chunk {i}: csCompressed={csCompressed}, len(uncompressedChunkData)={len(uncompressedChunkData)}')
 
         assert len(uncompressedChunkData) == csUncompressed, DecompressionError(
             "Decompression of downloaded mod chunk failed verification")

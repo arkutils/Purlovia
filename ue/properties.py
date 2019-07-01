@@ -1,6 +1,7 @@
 import sys
 import math
 import uuid
+import logging
 from typing import Type
 
 try:
@@ -14,6 +15,9 @@ from .base import UEBase
 from .coretypes import *
 
 dbg_structs = 0
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class PropertyTable(UEBase):
@@ -482,7 +486,10 @@ class ArrayProperty(UEBase):
                 values.append(value)
             except Exception as err:
                 values.append('<exception during decoding of array element>')
-                if support_pretty: pprint(err)
+                assetname = '<unnamed asset>'
+                if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
+                    assetname = self.asset.assetname
+                logger.info(f'Skippable exception parsing {assetname}: {err}')
                 self.stream.offset = saved_offset + size
                 return
 

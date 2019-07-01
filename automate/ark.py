@@ -133,7 +133,7 @@ class ArkSteamManager:
 
         # Fetch updated mods, then unpack
         if modids_update:
-            logger.info(f'Updating mods: {modids_update}')
+            logger.info(f'Updating mods: {", ".join(sorted(modids_update))}')
             if not dryRun:
                 self._installMods(modids_update)
 
@@ -193,7 +193,7 @@ class ArkSteamManager:
     def _cleanSteamModCache(self):
         workshop_path: Path = self.gamedata_path / 'steamapps' / 'workshop'
         if workshop_path.is_dir():
-            logging.info('Removing steam workshop cache')
+            logger.info('Removing steam workshop cache')
             shutil.rmtree(workshop_path)
 
     def _sanityCheck(self):
