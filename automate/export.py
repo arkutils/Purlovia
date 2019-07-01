@@ -112,7 +112,7 @@ class Exporter:
         values['formatVersion'] = 2
 
         if moddata:
-            filename = moddata['id']
+            filename = moddata['name']
             values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=moddata['title'])
         else:
             filename = 'values'
