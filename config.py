@@ -13,7 +13,7 @@ __all__ = [
     'ModIdAccess',
 ]
 
-FILENAME = 'config.ini'
+FILENAME = 'config/config.ini'
 
 
 class IniStringList(list):

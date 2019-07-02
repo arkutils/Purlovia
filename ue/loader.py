@@ -168,6 +168,7 @@ class AssetLoader:
         if isinstance(obj, ImportTableItem):
             assetname = str(obj.namespace.value.name.value)
             loader = obj.asset.loader
+            logger.debug(f'Found related: {assetname}')
             asset = loader[assetname]
             return asset
 

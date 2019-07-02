@@ -1,6 +1,7 @@
 user.ini
 output/
 livedata/
+logs/
 
 # Python profiling output
 *.prof
