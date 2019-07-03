@@ -142,7 +142,7 @@ def _save_as_json(data, filename, pretty=False):
 
 if __name__ == '__main__':
     from .logging import setup_logging
-    setup_logging(path='logging.yaml', level=logging.INFO)
+    setup_logging(path='config/logging.yaml', level=logging.INFO)
     mods = get_global_config().mods
     arkman = ArkSteamManager()
     arkman.ensureSteamCmd()
