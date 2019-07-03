@@ -22,11 +22,18 @@ __all__ = [
 def export_values(arkman: ArkSteamManager, modids: Set[str]):
     config = get_global_config()
     logger.info('Export beginning')
+
+    # Ensure the output directory exists
+    outdir = config.settings.PublishDir
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # Export based on current config
     exporter = Exporter(arkman, modids,
         include_vanilla=config.settings.ExportVanillaSpecies,
         all_stats=not config.settings.Export8Stats,
         pretty_json=config.settings.PrettyJson)
     exporter.perform()
+
     logger.info('Export complete')
 
 
@@ -143,10 +150,16 @@ def _save_as_json(data, filename, pretty=False):
         f.write(json_string)
 
 
-def temporary_main():
+def temporary_main(logdir:str='logs'):
+    # All of this should not be here, but is it's temporary resting place
+
+    # Ensure log directory exists before starting the logging system
+    from pathlib import Path
     from .logging import setup_logging
+    Path(logdir).mkdir(parents=True, exist_ok=True)
     setup_logging(path='config/logging.yaml', level=logging.INFO)
 
+    # Run update then export
     try:
         mods = get_global_config().mods
         arkman = ArkSteamManager()
