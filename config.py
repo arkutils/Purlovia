@@ -37,6 +37,8 @@ class SettingsSection(BaseModel):
     DataDir: Path = Path('livedata')
     PublishDir: Path = Path('output')
     UninstallUnusedMods: bool = True
+    Export8Stats: bool = False
+    ExportVanillaSpecies: bool = False
     SeparateOfficialMods: IniStringList = IniStringList()
     PrettyJson: bool = False
     GitCommit: bool = False

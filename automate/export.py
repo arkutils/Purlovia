@@ -19,21 +19,24 @@ __all__ = [
 ]
 
 
-def export_values(arkman: ArkSteamManager, modids: Set[str], include_vanilla=True):
-    pretty = get_global_config().settings.PrettyJson
+def export_values(arkman: ArkSteamManager, modids: Set[str]):
+    config = get_global_config()
     logger.info('Export beginning')
-    exporter = Exporter(arkman, modids, include_vanilla=include_vanilla, prettyJson=pretty)
+    exporter = Exporter(arkman, modids,
+        include_vanilla=config.settings.ExportVanillaSpecies,
+        all_stats=not config.settings.Export8Stats,
+        pretty_json=config.settings.PrettyJson)
     exporter.perform()
     logger.info('Export complete')
 
 
 class Exporter:
-    def __init__(self, arkman: ArkSteamManager, modids: Set[str], include_vanilla=True, fullStats=False, prettyJson=False):
+    def __init__(self, arkman: ArkSteamManager, modids: Set[str], include_vanilla=True, all_stats=False, pretty_json=False):
         self.arkman = arkman
         self.modids = modids
         self.include_vanilla = include_vanilla
-        self.fullStats = fullStats
-        self.prettyJson = prettyJson
+        self.all_stats = all_stats
+        self.pretty_json = pretty_json
 
         self.output_dir = get_global_config().settings.PublishDir
         self.loader = arkman.createLoader()
@@ -94,7 +97,7 @@ class Exporter:
             species_values = values_for_species(asset,
                                                 props,
                                                 allFields=True,
-                                                fullStats=self.fullStats,
+                                                fullStats=self.all_stats,
                                                 includeBreeding=True,
                                                 includeColor=not ismod)
             values.append(species_values)
@@ -117,8 +120,8 @@ class Exporter:
 
         fullpath = (get_global_config().settings.PublishDir / filename).with_suffix('.json')
 
-        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if self.prettyJson else "")}')
-        _save_as_json(values, fullpath, pretty=self.prettyJson)
+        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if self.pretty_json else "")}')
+        _save_as_json(values, fullpath, pretty=self.pretty_json)
 
 
 JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
@@ -147,5 +150,5 @@ if __name__ == '__main__':
     arkman = ArkSteamManager()
     arkman.ensureSteamCmd()
     arkman.ensureGameUpdated()
-    arkman.ensureModsUpdated(mods, uninstallOthers=False)
-    export_values(arkman, set(mods), include_vanilla=True)
+    arkman.ensureModsUpdated(mods, uninstallOthers=get_global_config().settings.UninstallUnusedMods)
+    export_values(arkman, set(mods))
