@@ -50,7 +50,7 @@ class OptimisationSection(BaseModel):
 
 
 class ModIdAccess:
-    '''Prodive bi-directional access to a modid <-> tag dictionary.'''
+    '''Provide bi-directional access to a modid <-> tag dictionary.'''
     ids_to_tags: Dict[str, str]
     tags_to_ids: Dict[str, str]
 

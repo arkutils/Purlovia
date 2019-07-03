@@ -16,8 +16,6 @@ pygments = "*"
 deepdiff = "*"
 deprecated = "*"
 requests = "*"
-networkx = "*"
-pydot = "*"
 pydantic = "*"
 pyyaml = "*"
 
