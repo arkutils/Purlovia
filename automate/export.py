@@ -143,12 +143,20 @@ def _save_as_json(data, filename, pretty=False):
         f.write(json_string)
 
 
-if __name__ == '__main__':
+def temporary_main():
     from .logging import setup_logging
     setup_logging(path='config/logging.yaml', level=logging.INFO)
-    mods = get_global_config().mods
-    arkman = ArkSteamManager()
-    arkman.ensureSteamCmd()
-    arkman.ensureGameUpdated()
-    arkman.ensureModsUpdated(mods, uninstallOthers=get_global_config().settings.UninstallUnusedMods)
-    export_values(arkman, set(mods))
+
+    try:
+        mods = get_global_config().mods
+        arkman = ArkSteamManager()
+        arkman.ensureSteamCmd()
+        arkman.ensureGameUpdated()
+        arkman.ensureModsUpdated(mods, uninstallOthers=get_global_config().settings.UninstallUnusedMods)
+        export_values(arkman, set(mods))
+    except:  # pylint: disable=bare-except
+        logging.exception('Caught exception during automation run. Aborting.')
+
+
+if __name__ == '__main__':
+    temporary_main()
