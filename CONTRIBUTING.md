@@ -1,10 +1,11 @@
 ## Development
 
-The project uses `pipenv` to manage both the virtual Python environment and the required modules.
+The project uses `pipenv` to manage both the virtual Python environment and the required modules. Requires Python 3.7.
 
 To get setup:
 ```sh
 pipenv install --dev
+pipenv shell
 ```
 
 IPython is supported throughout the data system, and each of the `*_i.py` files are designed to used interactively in a live session for experimentation. This works both on IPython's command-line and in VSCode's interactive Python window.
