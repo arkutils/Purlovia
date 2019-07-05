@@ -3,10 +3,11 @@
 #%% Setup
 from interactive_utils import *
 from ue.base import UEBase
-from ue.asset import UAsset
+from ue.asset import UAsset, ExportTableItem, ImportTableItem
 from ue.loader import AssetLoader
 from ue.stream import MemoryStream
 from ue.utils import *
+from ue.coretypes import *
 from ue.properties import *
 from automate.ark import ArkSteamManager
 import ark.mod
@@ -32,7 +33,7 @@ loader = arkman.createLoader()
 # assetname = '/Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP_Base'  # player data - ascention
 # assetname = '/Game/Aberration/CoreBlueprints/DinoCharacterStatusComponent_BP_MoleRat'
 
-assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant'
 # assetname = '/Game/Extinction/Dinos/Owl/Owl_Character_BP'
 # assetname = '/Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
@@ -58,6 +59,11 @@ assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
 
 # Failure case: fails to decode the only export (properties, invalid name)
 # assetname = '/Game/Mods/ClassicFlyers/Dinos/AdminArgent/Assets/T_AdminArgent_Smaller_Colorize_d'
+
+# Experimenting with CharacterStatusComponentPriority
+assetname = '/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP'
+# assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Deinonychus'
 
 asset = loader[assetname]
 print('Decoding complete.')
@@ -91,7 +97,112 @@ print('\nSub-components:')
 pprint(list(ark.asset.findSubComponentParentPackages(asset)))
 
 #%% Mod info
-print('\nMod adds species:')
-pprint(ark.mod.get_species_from_mod(asset))
+# print('\nMod adds species:')
+# pprint(ark.mod.get_species_from_mod(asset))
 
 #%%
+print('\nComponents:')
+for export in ark.asset.findComponentExports(asset):
+    print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
+    print('Type:', export.klass.value)
+    print('Props:', len(export.properties.values))
+    print('Parent:', export.klass.value.super)
+
+print('\nSub-components:')
+for export in ark.asset.findSubComponentExports(asset):
+    print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
+    print('Export:', export)
+    print('Props:', len(export.properties.values))
+
+#%% Inheritance/component scan
+
+
+def calc_pkg(obj):
+    if isinstance(obj, ObjectIndex):
+        return calc_pkg(obj.value)
+
+    this_asset = obj.asset
+    pkg = None
+
+    if isinstance(obj, ImportTableItem):
+        pkg = str(obj.namespace.value.name)
+    elif isinstance(obj, ExportTableItem):
+        return "(local export)"
+    else:
+        raise ValueError('')
+
+    if pkg is None:
+        return None
+
+    pkg = str(pkg)
+    if pkg == this_asset.assetname:
+        return '(local)'
+
+    if not pkg.startswith('/Game'):
+        return None
+
+    return f'(from {pkg})'
+
+
+def show_value(msg, obj, indent=0):
+    value = get_clean_name(obj)
+    if value:
+        pkg = calc_pkg(obj) or ''
+        print(f'{"  "*indent}{msg} {value} {pkg}')
+
+
+INTERESTING_PROPS = (
+    'MaxStatusValues',
+    'CanLevelUpValue',
+    'CharacterStatusComponentPriority',
+)
+
+
+def get_interesting_props(props, indent=0):
+    pre = '  ' * (indent)
+    for prop in props.values:
+        if str(prop.header.name) not in INTERESTING_PROPS:
+            continue
+
+        yield f'{pre}{prop.header.name}[{prop.header.index}] = {prop.value}'
+
+
+def scan_export(export: ExportTableItem, indent=0):
+    print(f'{"  "*indent}{str(export.name)}:')
+    show_value('sub-component of', export.namespace, indent=indent + 1)
+    show_value('is a', export.klass, indent=indent + 1)
+    show_value('inherits from', export.super, indent=indent + 1)
+    props = list(sorted(get_interesting_props(export.properties, indent=indent + 2)))
+    if not props:
+        print(f'{"  "*(indent+1)}no properties')
+    else:
+        print(f'{"  "*(indent+1)}properties:')
+        for prop in props:
+            print(prop)
+    print()
+
+
+def scan_asset(asset: UAsset, indent=0):
+    pre = '\t' * indent
+    print(f'{pre}{asset.assetname}:')
+
+    for export in asset.exports:
+        if str(export.name).startswith('Default__'):
+            scan_export(export, indent=indent + 1)
+
+        elif export.klass and export.klass.value and 'BlueprintGeneratedClass' in str(export.klass.value):
+            scan_export(export, indent=indent + 1)
+
+    print()
+
+
+#%%
+print()
+
+scan_asset(asset)
+
+for parent in ark.asset.findParentPackages(asset):
+    scan_asset(loader[parent])
+
+for comp in ark.asset.findSubComponentParentPackages(asset):
+    scan_asset(loader[comp])
