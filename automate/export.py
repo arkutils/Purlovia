@@ -107,7 +107,7 @@ class Exporter:
 
     def _export_values(self, species_values: List, version: str, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
-        values['formatVersion'] = 2
+        values['formatVersion'] = "1.12"
 
         if moddata:
             filename = moddata['name']
