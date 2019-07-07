@@ -1,3 +1,20 @@
+[MASTER]
+
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code.
+extension-pkg-whitelist=re
+
+# Add files or directories to the blacklist. They should be base names, not
+# paths.
+ignore=
+    .git
+    .vscode
+    ref
+    output
+    livedata
+
+
 [MESSAGES CONTROL]
 disable=
     logging-fstring-interpolation,
