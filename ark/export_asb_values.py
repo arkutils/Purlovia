@@ -216,7 +216,39 @@ def gather_color_data(props, loader: AssetLoader):
     return colors
 
 
-def values_for_species(asset: UAsset, props, allFields=False, fullStats=False, includeColor=False, includeBreeding=True):
+def gather_taming_data(props) -> Dict[str, Any]:
+    data: Dict[str, Any] = dict()
+
+    # Currently unable to gather the foods list
+    eats: Optional[List[str]] = None
+    favorite_kibble: Optional[str] = None
+    special_food_values: Optional[List[Dict[str, Dict[str, List[int]]]]] = None
+
+    data['eats'] = eats
+    data['favoriteKibble'] = favorite_kibble
+    data['nonViolent'] = stat_value(props, 'bPreventSleepingTame', 0, False)
+    data['specialFoodValues'] = special_food_values
+    data['tamingIneffectiveness'] = stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0)
+    data['affinityNeeded0'] = stat_value(props, 'RequiredTameAffinity', 0, 100)
+    data['affinityIncreasePL'] = stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0)
+
+    torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) * stat_value(
+        props, 'RecoveryRateStatusValue', 2, 0.00)
+    data['torporDepletionPS0'] = -torpor_depletion
+    data['foodConsumptionBase'] = -stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000)  # pylint: disable=invalid-unary-operand-type
+    data['foodConsumptionMult'] = stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00)
+    data['violent'] = not stat_value(props, 'bSupportWakingTame', 0, False)
+
+    return data
+
+
+def values_for_species(asset: UAsset,
+                       props,
+                       allFields=False,
+                       fullStats=False,
+                       includeColor=False,
+                       includeBreeding=True,
+                       includeTaming=True):
     assert asset.loader
 
     name = stat_value(props, 'DescriptiveName', 0, None)
@@ -255,6 +287,14 @@ def values_for_species(asset: UAsset, props, allFields=False, fullStats=False, i
             colors = gather_color_data(props, asset.loader)
             if colors:
                 species['colors'] = colors
+
+    if includeTaming:
+        # Taming data
+        # ASB currently requires all species to have taming data
+        if stat_value(props, 'bCanBeTamed', True) or True:
+            taming = gather_taming_data(props)
+            if taming:
+                species['taming'] = taming
 
     # Misc data
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
