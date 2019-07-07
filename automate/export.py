@@ -28,32 +28,28 @@ def export_values(arkman: ArkSteamManager, modids: Set[str]):
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
-    exporter = Exporter(arkman, modids,
-        include_vanilla=config.settings.ExportVanillaSpecies,
-        all_stats=not config.settings.Export8Stats,
-        pretty_json=config.settings.PrettyJson)
+    exporter = Exporter(arkman, modids)
     exporter.perform()
 
     logger.info('Export complete')
 
 
 class Exporter:
-    def __init__(self, arkman: ArkSteamManager, modids: Set[str], include_vanilla=True, all_stats=False, pretty_json=False):
+    def __init__(self, arkman: ArkSteamManager, modids: Set[str], config: ConfigFile=None):
+        self.config = config = config or get_global_config()
         self.arkman = arkman
         self.modids = modids
-        self.include_vanilla = include_vanilla
-        self.all_stats = all_stats
-        self.pretty_json = pretty_json
-
-        self.output_dir = get_global_config().settings.PublishDir
         self.loader = arkman.createLoader()
+        self.discoverer = ark.discovery.SpeciesDiscoverer(self.loader)
+        self.game_version = self.arkman.getGameVersion()
+
+        self.start_time_stamp = ''
+        self.start_time_text = ''
 
     def perform(self):
         self._prepare_versions()
 
-        self.discoverer = ark.discovery.SpeciesDiscoverer(self.loader)
-
-        if self.include_vanilla:
+        if self.config.settings.ExportVanillaSpecies:
             logger.info('Beginning export of vanilla species')
             self._export_vanilla()
 
@@ -62,15 +58,14 @@ class Exporter:
             self._export_mod(modid)
 
     def _prepare_versions(self):
-        self.start_time = datetime.utcnow()
-        self.start_time_stamp = str(int(self.start_time.timestamp()))
-        self.start_time_text = self.start_time.isoformat()
-        self.game_version = self.arkman.getGameVersion()
+        start_time = datetime.utcnow()
+        self.start_time_stamp = str(int(start_time.timestamp()))
+        self.start_time_text = start_time.isoformat()
         if not self.game_version:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")
 
     def _create_version(self, timestamp: str) -> str:
-        return createExportVersion(self.game_version, timestamp)
+        return createExportVersion(self.game_version, timestamp) # type: ignore
 
     def _export_vanilla(self):
         version = self._create_version(self.start_time_stamp)
@@ -104,7 +99,7 @@ class Exporter:
             species_values = values_for_species(asset,
                                                 props,
                                                 allFields=True,
-                                                fullStats=self.all_stats,
+                                                fullStats=not self.config.settings.Export8Stats,
                                                 includeBreeding=True,
                                                 includeColor=not ismod)
             values.append(species_values)
@@ -125,10 +120,11 @@ class Exporter:
 
         values['species'] = species_values
 
-        fullpath = (get_global_config().settings.PublishDir / filename).with_suffix('.json')
+        fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')
 
-        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if self.pretty_json else "")}')
-        _save_as_json(values, fullpath, pretty=self.pretty_json)
+        pretty = self.config.settings.PrettyJson
+        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if pretty else "")}')
+        _save_as_json(values, fullpath, pretty=pretty)
 
 
 JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
