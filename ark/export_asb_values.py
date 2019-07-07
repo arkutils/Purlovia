@@ -231,7 +231,10 @@ def values_for_species(asset: UAsset, props, allFields=False, fullStats=False, i
     # Replace names to match ASB's hardcoding of specific species
     name = NAME_CHANGES.get(name, name)
 
-    species = dict(name=name, blueprintPath=bp)
+    # Get the GUID for the species
+    guid = str(props['UniqueGuidId'][0][-1].values[0].value)
+
+    species = dict(name=name, blueprintPath=bp, guid=guid)
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'

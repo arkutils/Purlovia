@@ -1,6 +1,7 @@
 import sys
 import math
 import uuid
+import struct
 import logging
 from typing import Type
 
@@ -265,7 +266,11 @@ class Guid(UEBase):
 
     def _deserialise(self, *args):
         raw_bytes = self.stream.readBytes(16)
-        self._newField('value', str(uuid.UUID(bytes_le=raw_bytes)))
+        # Here we need to reverse the endian of each 4-byte word
+        # to match C# UUID decoder. Python's bytes_le only corrects
+        # some of the fields as the rest are single bytes.
+        value = uuid.UUID(bytes=struct.pack('>4I', *struct.unpack('<4I', raw_bytes)))
+        self._newField('value', value)
 
 
 class StructEntry(UEBase):
