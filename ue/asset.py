@@ -23,6 +23,7 @@ class UAsset(UEBase):
         self.assetname: Optional[str] = None
         self.name: Optional[str] = None
         self.default_export: Optional['ExportTableItem'] = None
+        self.default_class: Optional['ExportTableItem'] = None
         super().__init__(self, stream)
 
     def _deserialise(self):
@@ -163,6 +164,7 @@ class ImportTableItem(UEBase):
 class ExportTableItem(UEBase):
     string_format = '{name} ({klass}) [{super}]'
     display_fields = ('name', 'namespace', 'klass', 'super')
+    fullname: Optional[str] = None
 
     def _deserialise(self):
         self._newField('klass', ObjectIndex(self))  # item type/class
@@ -181,6 +183,11 @@ class ExportTableItem(UEBase):
 
         # References to this item
         self.users = set()
+
+    def _link(self):
+        super()._link()
+        if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
+            self.fullname = self.asset.assetname + '.' + str(self.name)
 
     def register_user(self, user):
         self.users.add(user)

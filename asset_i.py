@@ -13,6 +13,7 @@ from automate.ark import ArkSteamManager
 import ark.mod
 import ark.asset
 import ark.properties
+from ark.common import *
 
 arkman = ArkSteamManager()
 loader = arkman.createLoader()
@@ -34,7 +35,7 @@ loader = arkman.createLoader()
 # assetname = '/Game/PrimalEarth/CoreBlueprints/PrimalPlayerDataBP_Base'  # player data - ascention
 # assetname = '/Game/Aberration/CoreBlueprints/DinoCharacterStatusComponent_BP_MoleRat'
 
-assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
 # assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant'
 # assetname = '/Game/Extinction/Dinos/Owl/Owl_Character_BP'
 # assetname = '/Game/Extinction/Dinos/Owl/DinoSettings_Carnivore_Large_Owl'
@@ -63,7 +64,7 @@ assetname = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'
 
 # Experimenting with CharacterStatusComponentPriority
 # assetname = '/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP'
-# assetname = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP'
+assetname = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Deinonychus'
 
 asset = loader[assetname]
@@ -153,8 +154,11 @@ def show_value(msg, obj, indent=0):
 
 
 INTERESTING_PROPS = (
-    'MaxStatusValues',
+    'bSpawnNestEgg',
     'CanLevelUpValue',
+    'DinoNameTag',
+    'MaxStatusValues',
+    'RunningspeedModifier',
     'CharacterStatusComponentPriority',
 )
 
@@ -162,6 +166,7 @@ INTERESTING_PROPS = (
 def get_interesting_props(props, indent=0):
     pre = '  ' * (indent)
     for prop in props.values:
+        # print(str(prop.header.name))
         if str(prop.header.name) not in INTERESTING_PROPS:
             continue
 
@@ -209,27 +214,39 @@ for comp in ark.asset.findSubComponentParentPackages(asset):
     scan_asset(loader[comp])
 
 #%% Taming info
-for assetname in (
-        '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
-        '/Game/PrimalEarth/Dinos/Lystrosaurus/Lystro_Character_BP',
-        '/Game/PrimalEarth/Dinos/Leedsichthys/Leedsichthys_Character_BP',
-        '/Game/PrimalEarth/Dinos/Moschops/Moschops_Character_BP',
-        '/Game/ScorchedEarth/Dinos/RockGolem/RockGolem_Character_BP',
-):
-    print(f'\n{assetname}:')
-    props = ark.properties.gather_properties(loader[assetname])
-    for n in ('bCanBeTamed', 'bPreventSleepingTame', 'bSupportWakingTame', 'RequiredTameAffinity',
-              'Required Tame Affinity Per Base Level', 'TameIneffectivenessByAffinity',
-              'WakingTameFoodConsumptionRateMultiplier', 'Base Food Consumption Rate', 'Prone Water Food Consumption Multiplier',
-              'Knocked Out Torpidity Recovery Rate Multiplier', 'Waking Tame Food Affinity Multiplier',
-              'The Max Torpor Increase Per Base Level'):
-        n = n.replace(' ', '')
-        print(f'{n:>44}: ', end='')
-        if n in props and 0 in props[n] and len(props[n][0]):
-            print(f'{props[n][0][-1]}')
-        else:
-            print(f'')
+# for assetname in (
+#         '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
+#         '/Game/PrimalEarth/Dinos/Lystrosaurus/Lystro_Character_BP',
+#         '/Game/PrimalEarth/Dinos/Leedsichthys/Leedsichthys_Character_BP',
+#         '/Game/PrimalEarth/Dinos/Moschops/Moschops_Character_BP',
+#         '/Game/ScorchedEarth/Dinos/RockGolem/RockGolem_Character_BP',
+# ):
+#     print(f'\n{assetname}:')
+#     props = ark.properties.gather_properties(loader[assetname])
+#     for n in ('bCanBeTamed', 'bPreventSleepingTame', 'bSupportWakingTame', 'RequiredTameAffinity',
+#               'Required Tame Affinity Per Base Level', 'TameIneffectivenessByAffinity',
+#               'WakingTameFoodConsumptionRateMultiplier', 'Base Food Consumption Rate', 'Prone Water Food Consumption Multiplier',
+#               'Knocked Out Torpidity Recovery Rate Multiplier', 'Waking Tame Food Affinity Multiplier',
+#               'The Max Torpor Increase Per Base Level'):
+#         n = n.replace(' ', '')
+#         print(f'{n:>44}: ', end='')
+#         if n in props and 0 in props[n] and len(props[n][0]):
+#             print(f'{props[n][0][-1]}')
+#         else:
+#             print(f'')
 
-    print(f'{"RecoveryRateStatusValue[TORPOR]":>44}: {ark.properties.stat_value(props, "RecoveryRateStatusValue", 2, None)}')
+#     print(f'{"RecoveryRateStatusValue[TORPOR]":>44}: {ark.properties.stat_value(props, "RecoveryRateStatusValue", 2, None)}')
+
+#%% Pre-set variables for experimenting
+dcsc = loader.load_class(DCSC_CLS)
+chr = loader.load_class(CHR_CLS)
+
+deino_chr = loader.load_class('/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP.Deinonychus_Character_BP_C')
+deino_chr_dcsc = next(ark.asset.findSubComponentExports(deino_chr.asset))
+deino_dcsc = loader.load_related(deino_chr_dcsc.klass.value).default_class
+
+yeti_chr = loader.load_class('/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP.Yeti_Character_BP_C')
+yeti_chr_dcsc = next(ark.asset.findSubComponentExports(yeti_chr.asset))
+yeti_dcsc = loader.load_related(yeti_chr_dcsc.klass.value).default_class
 
 #%%

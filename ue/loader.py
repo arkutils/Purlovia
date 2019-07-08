@@ -23,6 +23,7 @@ __all__ = (
     'IniModResolver',
 )
 
+NO_FALLBACK = object()
 
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
@@ -174,6 +175,19 @@ class AssetLoader:
 
         raise ValueError(f"Unsupported type for load_releated '{type(obj)}'")
 
+    def load_class(self, fullname: str, fallback=NO_FALLBACK) -> ExportTableItem:
+        (assetname, clsname) = fullname.split('.')
+        assetname = self.clean_asset_name(assetname)
+        asset = self[assetname]
+        for export in asset.exports:
+            if str(export.name) == clsname:
+                return export
+
+        if fallback is not NO_FALLBACK:
+            return fallback
+
+        raise KeyError(f"Export {clsname} not found")
+
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
         logger.debug(f"Loading file: {filename}")
@@ -221,6 +235,8 @@ class AssetLoader:
             import warnings
             warnings.warn(f'Found more than one component in {assetname}!')
         asset.default_export = exports[0] if exports else None
+        if asset.default_export:
+            asset.default_class = asset.default_export.klass.value
         self.cache[assetname] = asset
         return asset
 

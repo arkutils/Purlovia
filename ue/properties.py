@@ -3,7 +3,8 @@ import math
 import uuid
 import struct
 import logging
-from typing import Type
+from typing import Type, Dict, List, Optional, Union
+from collections import defaultdict
 
 try:
     from IPython.lib.pretty import PrettyPrinter, pprint, pretty  # type: ignore
@@ -20,11 +21,45 @@ dbg_structs = 0
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+PropDict = Dict[str, Dict[int, UEBase]]
+
+NO_FALLBACK = object()
+
 
 class PropertyTable(UEBase):
     string_format = '{count} entries'
     display_fields = ['values']
     skip_level_field = 'values'
+    _as_dict: Optional[PropDict] = None
+
+    values: List["Property"]
+
+    def as_dict(self) -> PropDict:
+        return self._as_dict or self._convert_to_dict()
+
+    def get_property(self, name: str, index: int = 0, fallback=NO_FALLBACK) -> UEBase:
+        value = self.as_dict()[name][index]
+
+        if value is not None:
+            return value
+
+        if fallback is not NO_FALLBACK:
+            return fallback
+
+        raise KeyError(f"Property {name}[{index}] not found")
+
+    def _convert_to_dict(self):
+        result: PropDict = defaultdict(lambda: defaultdict(lambda: None))
+
+        for prop in self.values:
+            name = str(prop.header.name)
+            idx = prop.header.index
+            value = prop.value
+
+            result[name][idx] = value
+
+        self._as_dict = result
+        return result
 
     def _deserialise(self):
         values = []
