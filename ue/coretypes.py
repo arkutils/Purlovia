@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, List
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
@@ -20,6 +20,10 @@ class Table(UEBase):
     string_format = '{count} x {itemType.__name__}'
     skip_level_field = 'values'
     display_fields = ['itemType', 'count', 'values']
+
+    count: int
+    values: List[UEBase]
+    itemType: Type[UEBase]
 
     def _deserialise(self, itemType: Type[UEBase], count: int):  # type: ignore
         assert count is not None
@@ -72,6 +76,9 @@ class Table(UEBase):
 
 
 class ChunkPtr(UEBase):
+    count: int
+    offset: int
+
     def _deserialise(self):
         self._newField('count', self.stream.readUInt32())
         self._newField('offset', self.stream.readUInt32())
@@ -79,6 +86,9 @@ class ChunkPtr(UEBase):
 
 class NameIndex(UEBase):
     main_field = 'value'
+
+    index: int
+    value: UEBase  # can't specify StringProperty
 
     def _deserialise(self):
         # Get the index but don't look up the actual value until the link phase
@@ -111,6 +121,10 @@ class ObjectIndex(UEBase):
     main_field = 'value'
     display_fields = ['index', 'value']
     skip_level_field = 'value'
+
+    index: int
+    used_index: int
+    kind: str
 
     def _deserialise(self):
         # Calculate the indexes but don't look up the actual import/export until the link phase

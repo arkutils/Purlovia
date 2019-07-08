@@ -3,7 +3,12 @@ import struct
 __all__ = ('MemoryStream', )
 
 
-class MemoryStream(object):
+class MemoryStream:
+    mem: memoryview
+    offset: int
+    size: int
+    end: int
+
     def __init__(self, memOrStream, offset=None, size=None):
         if isinstance(memOrStream, MemoryStream):
             self.mem = memOrStream.mem
@@ -28,10 +33,10 @@ class MemoryStream(object):
         return self._read('B')
 
     def readBool8(self) -> bool:
-        return not not self._read('B')
+        return bool(self._read('B'))
 
     def readBool32(self) -> bool:
-        return not not self._read('I')
+        return bool(self._read('I'))
 
     def readUInt32(self) -> int:
         return self._read('I')
@@ -73,7 +78,7 @@ class MemoryStream(object):
         if self.offset + size > self.end:
             raise EOFError("End of stream at offset " + str(self.offset))
 
-        if count == None or count == 1:
+        if count is None or count == 1:
             value, = struct.unpack_from('<' + fmt, self.mem, self.offset)
             self.offset += size
             return value

@@ -127,6 +127,11 @@ class PropertyTable(UEBase):
 class PropertyHeader(UEBase):
     display_fields = ['name', 'index']
 
+    name: NameIndex
+    type: NameIndex
+    size: int
+    index: int
+
     def _deserialise(self):
         self._newField('name', NameIndex(self))
         self._newField('type', NameIndex(self))
@@ -136,6 +141,9 @@ class PropertyHeader(UEBase):
 
 class Property(UEBase):
     string_format = '{header.name}[{header.index}] = {value}'
+
+    header: PropertyHeader
+    value: UEBase
 
     def _deserialise(self):
         self._newField('header', PropertyHeader(self))
@@ -172,6 +180,12 @@ class FloatProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
 
+    value: float
+    textual: str
+    bytes: bytes
+    rounded: str
+    rounded_value: float
+
     def _deserialise(self, size=None):
         # Read once as a float
         saved_offset = self.stream.offset
@@ -196,6 +210,12 @@ class FloatProperty(UEBase):
 class DoubleProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
+
+    value: float
+    textual: str
+    bytes: bytes
+    rounded: str
+    rounded_value: float
 
     def _deserialise(self, size=None):
         # Read once as a float
@@ -222,6 +242,8 @@ class IntProperty(UEBase):
     string_format = '(int) {value}'
     main_field = 'value'
 
+    value: int
+
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readInt32())
 
@@ -229,11 +251,16 @@ class IntProperty(UEBase):
 class BoolProperty(UEBase):
     main_field = 'value'
 
+    value: bool
+
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readBool8())
 
 
 class ByteProperty(UEBase):  # With optional enum type
+    enum: NameIndex
+    value: Union[NameIndex, int]
+
     def _deserialise(self, size):
         self._newField('enum', NameIndex(self))
         if size == 1:
@@ -266,6 +293,8 @@ class ObjectProperty(UEBase):
     main_field = 'value'
     skip_level_field = 'value'
 
+    value: ObjectIndex
+
     def _deserialise(self, size=None):
         self._newField('value', ObjectIndex(self))
 
@@ -274,12 +303,17 @@ class NameProperty(UEBase):
     main_field = 'value'
     display_fields = ['value']
 
+    value: NameIndex
+
     def _deserialise(self, size=None):
         self._newField('value', NameIndex(self))
 
 
 class StringProperty(UEBase):
     main_field = 'value'
+
+    size: int
+    value: str
 
     def _deserialise(self, *args):
         self._newField('size', self.stream.readInt32())
@@ -299,6 +333,8 @@ class StringProperty(UEBase):
 class Guid(UEBase):
     main_field = 'value'
 
+    value: uuid.UUID
+
     def _deserialise(self, *args):
         raw_bytes = self.stream.readBytes(16)
         # Here we need to reverse the endian of each 4-byte word
@@ -310,6 +346,11 @@ class Guid(UEBase):
 
 class StructEntry(UEBase):
     string_format = '{name} = ({type}) {value}'
+
+    name: NameIndex
+    type: NameIndex
+    length: int
+    value: UEBase
 
     def _deserialise(self):
         self._newField('name', NameIndex(self))
@@ -398,6 +439,9 @@ def decode_type_or_name(type_or_name: NameIndex):
 class StructProperty(UEBase):
     skip_level_field = 'values'
 
+    count: int
+    values: List[UEBase]
+
     def _deserialise(self, size):
         values = []
         self._newField('values', values)
@@ -485,6 +529,10 @@ class StructProperty(UEBase):
 
 
 class ArrayProperty(UEBase):
+    field_type: NameIndex
+    count: int
+    values: List[UEBase]
+
     def _deserialise(self, size):
         assert size >= 4, "Array size is required"
 
@@ -556,6 +604,10 @@ class ArrayProperty(UEBase):
 
 
 class Vector(UEBase):
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+
     def _deserialise(self, size=None):
         self._newField('x', FloatProperty(self))
         self._newField('y', FloatProperty(self))
@@ -563,12 +615,19 @@ class Vector(UEBase):
 
 
 class Vector2D(UEBase):
+    x: FloatProperty
+    y: FloatProperty
+
     def _deserialise(self, size=None):
         self._newField('x', FloatProperty(self))
         self._newField('y', FloatProperty(self))
 
 
 class Rotator(UEBase):
+    a: FloatProperty
+    b: FloatProperty
+    c: FloatProperty
+
     def _deserialise(self, size=None):
         self._newField('a', FloatProperty(self))
         self._newField('b', FloatProperty(self))
@@ -576,6 +635,11 @@ class Rotator(UEBase):
 
 
 class Quat(UEBase):
+    w: FloatProperty
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+
     def _deserialise(self, size=None):
         self._newField('w', FloatProperty(self))
         self._newField('x', FloatProperty(self))
@@ -584,6 +648,10 @@ class Quat(UEBase):
 
 
 class Transform(UEBase):
+    rotatio: Quat
+    translation: Vector
+    scale: Vector
+
     def _deserialise(self, size=None):
         self._newField('rotation', Quat(self))
         self._newField('translation', Vector(self))
@@ -593,11 +661,18 @@ class Transform(UEBase):
 class Color(UEBase):
     string_format = '#{rgba:08X}'
 
+    rgba: int
+
     def _deserialise(self, size=None):
         self._newField('rgba', self.stream.readUInt32())
 
 
 class LinearColor(UEBase):
+    r: FloatProperty
+    g: FloatProperty
+    b: FloatProperty
+    a: FloatProperty
+
     def _deserialise(self, size=None):
         self._newField('r', FloatProperty(self))
         self._newField('g', FloatProperty(self))

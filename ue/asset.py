@@ -129,6 +129,11 @@ class UAsset(UEBase):
 
 
 class ImportTableItem(UEBase):
+    package: NameIndex
+    klass: NameIndex
+    namespace: ObjectIndex
+    name: NameIndex
+
     def _deserialise(self):
         self._newField('package', NameIndex(self))  # item type/class namespace
         self._newField('klass', NameIndex(self))  # item type/class
@@ -165,6 +170,12 @@ class ExportTableItem(UEBase):
     string_format = '{name} ({klass}) [{super}]'
     display_fields = ('name', 'namespace', 'klass', 'super')
     fullname: Optional[str] = None
+
+    klass: ObjectIndex
+    super: ObjectIndex
+    namespace: ObjectIndex
+    name: NameIndex
+    properties: PropertyTable
 
     def _deserialise(self):
         self._newField('klass', ObjectIndex(self))  # item type/class

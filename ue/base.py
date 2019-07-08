@@ -6,6 +6,8 @@ try:
 except ImportError:
     support_pretty = False
 
+from ue.stream import MemoryStream
+
 
 class UEBase(object):
     main_field: Optional[str] = None
@@ -13,20 +15,20 @@ class UEBase(object):
     display_fields: Optional[Sequence[str]] = None
     skip_level_field: Optional[str] = None
 
-    def __init__(self, owner, stream=None):
+    def __init__(self, owner: "UEBase", stream=None):
         assert owner is not None, "Owner must be specified"
-        self.stream = stream or owner.stream
+        self.stream: MemoryStream = stream or owner.stream
         self.asset = owner.asset
-        self.parent = owner if owner is not owner.asset else None
-        self.field_values = {}
-        self.field_order = []
+        self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
+        self.field_values: Dict[str, Any] = {}
+        self.field_order: List[str] = []
         self.is_serialising = False
         self.is_serialised = False
         self.is_linking = False
         self.is_linked = False
         self.is_inside_array = False
-        self.start_offset = None
-        self.end_offset = None
+        self.start_offset: Optional[int] = None
+        self.end_offset: Optional[int] = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
