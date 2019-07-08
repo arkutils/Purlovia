@@ -1,7 +1,7 @@
 # Value generation interactive experiments
 
 #%% Setup
-from interactive_utils import *
+from interactive_utils import *  # pylint: disable=wrong-import-order
 
 import re
 import json
@@ -9,8 +9,8 @@ import os.path
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
-from deepdiff import DeepDiff
 from typing import *
+from deepdiff import DeepDiff
 
 from ue.base import UEBase
 from ue.asset import UAsset

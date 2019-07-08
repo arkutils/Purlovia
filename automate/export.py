@@ -105,13 +105,20 @@ class Exporter:
             values.append(species_values)
         return values
 
+    def _get_mod_title(self, moddata):
+        pgd_asset = self.loader[moddata['package']]
+        props = ark.properties.gather_properties(pgd_asset)
+        title = ark.properties.stat_value(props, 'ModName', 0, moddata['title'])
+        return title
+
     def _export_values(self, species_values: List, version: str, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
         values['formatVersion'] = "1.12"
 
         if moddata:
             filename = moddata['name']
-            values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=moddata['title'])
+            title2 = self._get_mod_title(moddata)
+            values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=moddata['title'], title2=title2)
         else:
             filename = 'values'
 
