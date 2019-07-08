@@ -15,7 +15,7 @@ def get_clean_namespaced_name(ns: UEBase, name: UEBase) -> str:
 def get_clean_name(obj: UEBase, fallback: str = None) -> Optional[str]:
     if obj is None:
         return fallback
-    elif obj.__class__.__name__ in ('NameIndex', 'StringProperty'):
+    elif obj.__class__.__name__ in ('NameIndex', 'StringProperty', 'NameProperty'):
         value = str(obj).strip()
         return fallback if value == 'None' else value
     elif obj.__class__.__name__ in ('ObjectIndex', 'ObjectProperty'):

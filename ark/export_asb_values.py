@@ -267,9 +267,9 @@ def values_for_species(asset: UAsset,
                        includeTaming=True):
     assert asset.loader
 
-    name = stat_value(props, 'DescriptiveName', 0, None)
+    name = stat_value(props, 'DescriptiveName', 0, None) or stat_value(props, 'DinoNameTag', 0, None)
     if not name:
-        logger.warning(f"Species {asset.assetname} has no DescriptiveName")
+        logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag")
         name = '<unnamed species>'
 
     # TODO: This is nasty - get class name from BP instead of assuming

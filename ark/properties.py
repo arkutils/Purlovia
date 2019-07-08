@@ -47,7 +47,7 @@ def clean_value(value, fallback=None):
         return value
     if value.__class__.__name__ == 'FloatProperty':
         return clean_value(value.rounded_value)
-    if value.__class__.__name__ in ('StringProperty', 'NameIndex'):
+    if value.__class__.__name__ in ('StringProperty', 'NameIndex', 'NameProperty'):
         return get_clean_name(value)
     if value.__class__.__name__ in ('ByteProperty', 'IntProperty', 'BoolProperty'):
         return value.value
@@ -65,7 +65,7 @@ def clean_value_str(value, fallback=None):
         return str(value)
     if value.__class__.__name__ == 'FloatProperty':
         return clean_value_str(value.rounded_value)
-    if value.__class__.__name__ in ('StringProperty', 'NameIndex'):
+    if value.__class__.__name__ in ('StringProperty', 'NameIndex', 'NameProperty'):
         return get_clean_name(value)
     if value.__class__.__name__ in ('ByteProperty', 'IntProperty', 'BoolProperty'):
         return str(value.value)
