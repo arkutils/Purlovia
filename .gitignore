@@ -2,6 +2,7 @@ user.ini
 output/
 livedata/
 logs/
+asb_json/
 
 # Python profiling output
 *.prof

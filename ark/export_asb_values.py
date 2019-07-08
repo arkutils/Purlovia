@@ -94,9 +94,10 @@ def gather_stat_data(props, statIndexes):
     iw_values = list(IW_VALUES)
     iw_values[2] = stat_value(props, 'TheMaxTorporIncreasePerBaseLevel', 0, 0.06)
 
-    for asb_index, ark_index in enumerate(statIndexes):
+    for _, ark_index in enumerate(statIndexes):
+        can_level = (ark_index == 2) or stat_value(props, 'CanLevelUpValue', ark_index, CANLEVELUP_VALUES)
         add_one = 1 if IS_PERCENT_STAT[ark_index] else 0
-        zero_mult = stat_value(props, 'CanLevelUpValue', ark_index, 1)
+        zero_mult = 1 if can_level else 0
         ETHM = stat_value(props, 'ExtraTamedHealthMultiplier', ark_index, EXTRA_MULTS_VALUES)
 
         stat_data = [
@@ -112,8 +113,7 @@ def gather_stat_data(props, statIndexes):
 
         # Creates a null value in the JSON for stats that are unused
         dont_use = stat_value(props, 'DontUseValue', ark_index, DONTUSESTAT_VALUES)
-        can_level = stat_value(props, 'CanLevelUpValue', ark_index, CANLEVELUP_VALUES)
-        if ark_index != 2 and dont_use and not can_level:
+        if dont_use and not can_level:
             stat_data = None
 
         statsArray.append(stat_data)
