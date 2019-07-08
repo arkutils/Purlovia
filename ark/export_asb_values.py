@@ -49,6 +49,7 @@ IW_VALUES = (0, 0, 0.06, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 EXTRA_MULTS_VALUES = (1.35, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 DONTUSESTAT_VALUES = (0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1)
+CANLEVELUP_VALUES = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 FEMALE_MINTIMEBETWEENMATING_DEFAULT = 64800.0
 FEMALE_MAXTIMEBETWEENMATING_DEFAULT = 172800.0
@@ -110,7 +111,9 @@ def gather_stat_data(props, statIndexes):
         stat_data = [round(value, 6) for value in stat_data]
 
         # Creates a null value in the JSON for stats that are unused
-        if stat_value(props, 'DontUseValue', ark_index, DONTUSESTAT_VALUES):
+        dont_use = stat_value(props, 'DontUseValue', ark_index, DONTUSESTAT_VALUES)
+        can_level = stat_value(props, 'CanLevelUpValue', ark_index, CANLEVELUP_VALUES)
+        if ark_index != 2 and dont_use and not can_level:
             stat_data = None
 
         statsArray.append(stat_data)
@@ -224,20 +227,33 @@ def gather_taming_data(props) -> Dict[str, Any]:
     favorite_kibble: Optional[str] = None
     special_food_values: Optional[List[Dict[str, Dict[str, List[int]]]]] = None
 
-    data['eats'] = eats
-    data['favoriteKibble'] = favorite_kibble
-    data['nonViolent'] = stat_value(props, 'bPreventSleepingTame', 0, False)
-    data['specialFoodValues'] = special_food_values
-    data['tamingIneffectiveness'] = stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0)
-    data['affinityNeeded0'] = stat_value(props, 'RequiredTameAffinity', 0, 100)
-    data['affinityIncreasePL'] = stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0)
+    can_tame = stat_value(props, 'bCanBeTamed', 0, True)
+    can_knockout = stat_value(props, 'bCanBeTorpid', 0, True)
+    data['nonViolent'] = stat_value(props, 'bSupportWakingTame', 0, False) and can_tame
+    data['violent'] = not stat_value(props, 'bPreventSleepingTame', 0, False) and can_tame and can_knockout
 
-    torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) * stat_value(
-        props, 'RecoveryRateStatusValue', 2, 0.00)
-    data['torporDepletionPS0'] = -torpor_depletion
-    data['foodConsumptionBase'] = -stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000)  # pylint: disable=invalid-unary-operand-type
-    data['foodConsumptionMult'] = stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00)
-    data['violent'] = not stat_value(props, 'bSupportWakingTame', 0, False)
+    if can_tame or True:
+        data['tamingIneffectiveness'] = stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0)
+        data['affinityNeeded0'] = stat_value(props, 'RequiredTameAffinity', 0, 100)
+        data['affinityIncreasePL'] = stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0)
+
+        torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) * stat_value(
+            props, 'RecoveryRateStatusValue', 2, 0.00)
+
+        if data['violent']:
+            data['torporDepletionPS0'] = -torpor_depletion
+        if data['nonViolent']:
+            data['wakeAffinityMult'] = stat_value(props, 'WakingTameFoodAffinityMultiplier', 0, 1.6)
+            data['wakeFoodDeplMult'] = stat_value(props, 'WakingTameFoodConsumptionRateMultiplier', 0, 2.0)
+
+        data['foodConsumptionBase'] = -stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000)  # pylint: disable=invalid-unary-operand-type
+        data['foodConsumptionMult'] = stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00)
+
+        if eats is not None:
+            data['eats'] = eats
+        if favorite_kibble is not None:
+            data['favoriteKibble'] = favorite_kibble
+        data['specialFoodValues'] = special_food_values
 
     return data
 
