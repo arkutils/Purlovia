@@ -26,7 +26,7 @@ Covering:
 
 Create virtualenv and install the required packages (needs Python 3.7):
 ```sh
-pipenv install --dev
+pipenv sync   # add --dev to install dev-related dependencies
 pipenv shell
 ```
 

@@ -4,7 +4,7 @@ The project uses `pipenv` to manage both the virtual Python environment and the 
 
 To get setup:
 ```sh
-pipenv install --dev
+pipenv sync --dev
 pipenv shell
 ```
 
