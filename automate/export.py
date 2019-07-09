@@ -1,6 +1,7 @@
 import re
 import json
 import logging
+from operator import attrgetter
 from typing import *
 from datetime import datetime
 
@@ -43,9 +44,6 @@ class Exporter:
         self.discoverer = ark.discovery.SpeciesDiscoverer(self.loader)
         self.game_version = self.arkman.getGameVersion()
 
-        self.start_time_stamp = ''
-        self.start_time_text = ''
-
     def perform(self):
         self._prepare_versions()
 
@@ -58,9 +56,6 @@ class Exporter:
             self._export_mod(modid)
 
     def _prepare_versions(self):
-        start_time = datetime.utcnow()
-        self.start_time_stamp = str(int(start_time.timestamp()))
-        self.start_time_text = start_time.isoformat()
         if not self.game_version:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")
 
@@ -71,6 +66,7 @@ class Exporter:
         game_timestamp = str(self.arkman.getGameUpdateTime())
         version = self._create_version(game_timestamp)
         species = list(self.discoverer.discover_vanilla_species())
+        species.sort()
         species_data = self._gather_species_data(species)
         species_values = self._convert_for_export(species_data, False)
         self._export_values(species_values, version=version, moddata=None)
@@ -90,20 +86,35 @@ class Exporter:
         species_data = list()
         for assetname in species:
             asset = self.loader[assetname]
-            props = ark.properties.gather_properties(asset)
-            species_data.append((asset, props))
+
+            props = None
+            try:
+                props = ark.properties.gather_properties(asset)
+            except:  # pylint: disable=bare-except
+                logger.warning(f'Gathering properties failed for {assetname}', exc_info=True)
+
+            if props:
+                species_data.append((asset, props))
+
         return species_data
 
     def _convert_for_export(self, species_data, ismod: bool):
         values = list()
         for asset, props in species_data:
-            species_values = values_for_species(asset,
-                                                props,
-                                                allFields=True,
-                                                fullStats=not self.config.settings.Export8Stats,
-                                                includeBreeding=True,
-                                                includeColor=not ismod)
-            values.append(species_values)
+            species_values = None
+            try:
+                species_values = values_for_species(asset,
+                                                    props,
+                                                    allFields=True,
+                                                    fullStats=not self.config.settings.Export8Stats,
+                                                    includeBreeding=True,
+                                                    includeColor=not ismod)
+            except:  # pylint: disable=bare-except
+                logger.warning(f'Export conversion failed for {asset.assetname}', exc_info=True)
+
+            if species_values:
+                values.append(species_values)
+
         return values
 
     def _export_values(self, species_values: List, version: str, moddata: Optional[Dict] = None):
@@ -118,8 +129,6 @@ class Exporter:
             filename = 'values'
 
         values['version'] = version
-        values['generatedAt'] = self.start_time_text
-
         values['species'] = species_values
 
         fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')

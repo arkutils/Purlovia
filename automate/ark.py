@@ -61,7 +61,7 @@ class ArkSteamManager:
         # Official "mods" need to be handled differently
         if modid in get_global_config().official_mods.ids():
             data = dict(id=modid)
-            data['version'] = str(int(datetime.datetime.utcnow().timestamp()))
+            data['version'] = str(self.getGameUpdateTime())
             data['name'] = get_global_config().official_mods.tag_from_id(modid)
             data['title'] = data['name']
             return data
