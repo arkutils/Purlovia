@@ -35,14 +35,15 @@ class IniStringList(list):
 
 class SettingsSection(BaseModel):
     DataDir: Path = Path('livedata')
-    PublishDir: Path = Path('output')
+    PublishDir: Path = Path('output/data/asb')
     UninstallUnusedMods: bool = True
     Export8Stats: bool = False
     ExportVanillaSpecies: bool = False
     SeparateOfficialMods: IniStringList = IniStringList()
     PrettyJson: bool = False
-    GitCommit: bool = False
-    GitBranch: str = 'automated-values'
+    EnableGit: bool = False
+    GitDirectory: Path = Path('output')
+    GitBranch: str = 'master'
 
 
 class OptimisationSection(BaseModel):
