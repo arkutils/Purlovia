@@ -68,7 +68,8 @@ class Exporter:
         return createExportVersion(self.game_version, timestamp)  # type: ignore
 
     def _export_vanilla(self):
-        version = self._create_version(self.start_time_stamp)
+        game_timestamp = str(self.arkman.getGameUpdateTime())
+        version = self._create_version(game_timestamp)
         species = list(self.discoverer.discover_vanilla_species())
         species_data = self._gather_species_data(species)
         species_values = self._convert_for_export(species_data, False)
@@ -105,20 +106,14 @@ class Exporter:
             values.append(species_values)
         return values
 
-    def _get_mod_title(self, moddata):
-        pgd_asset = self.loader[moddata['package']]
-        props = ark.properties.gather_properties(pgd_asset)
-        title = ark.properties.stat_value(props, 'ModName', 0, moddata['title'])
-        return title
-
     def _export_values(self, species_values: List, version: str, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
         values['formatVersion'] = "1.12"
 
         if moddata:
             filename = moddata['name']
-            title2 = self._get_mod_title(moddata)
-            values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=moddata['title'], title2=title2)
+            title = moddata['title'] or moddata['name']
+            values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
         else:
             filename = 'values'
 

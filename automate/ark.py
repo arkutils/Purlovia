@@ -38,6 +38,7 @@ class ArkSteamManager:
         self.steam_mod_details: Optional[Dict[str, Dict]] = None  # from steam
         self.mod_data_cache: Optional[Dict[str, Dict]] = None  # internal data
         self.game_version: Optional[str] = None
+        self.game_update_timestamp: Optional[int] = None
 
         self._sanityCheck()
 
@@ -78,6 +79,13 @@ class ArkSteamManager:
         '''
         return self.game_version
 
+    def getGameUpdateTime(self) -> Optional[int]:
+        '''
+        Return the installed game's update timestamp.
+        Returns None if not installed is not yet evaluated.
+        '''
+        return self.game_update_timestamp
+
     def getContentPath(self) -> Path:
         '''Return the Content directory of the game.'''
         return self.asset_path
@@ -87,7 +95,7 @@ class ArkSteamManager:
         self.steamcmd_path.mkdir(parents=True, exist_ok=True)
         self.steamcmd.install()
 
-    def ensureGameUpdated(self) -> str:
+    def ensureGameUpdated(self):
         """Install/update the game and return its version string."""
         logger.info('Ensuring Ark is installed and up to date')
 
@@ -96,7 +104,7 @@ class ArkSteamManager:
         self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
 
         self.game_version = fetchGameVersion(self.gamedata_path)
-        return self.game_version  # type: ignore
+        self.game_update_timestamp = getGameUpdateTime(self.gamedata_path)
 
     def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]], dryRun=False, uninstallOthers=False):
         '''
@@ -179,9 +187,12 @@ class ArkSteamManager:
             moddata = gatherModInfo(self.asset_path, modid)
             moddata['version'] = str(newVersions[modid])
 
-            # See if we got a title for this mod from the SteamAPI earlier
-            if self.steam_mod_details and modid in self.steam_mod_details and 'title' in self.steam_mod_details[modid]:
-                moddata['title'] = self.steam_mod_details[modid]['title']  # ^ inefficient
+            # See if we got a title for this mod from either the mod's PGD or the SteamAPI earlier
+            title = self._fetchModTitleFromPGD(moddata)
+            if not title and modid in self.steam_mod_details and 'title' in self.steam_mod_details[modid]:
+                title = self.steam_mod_details[modid]['title']  # ^ inefficient
+
+            moddata['title'] = title or moddata['name']
 
             moddata_path = self.mods_path / modid / MODDATA_FILENAME
             with open(moddata_path, 'w') as f:
@@ -189,6 +200,13 @@ class ArkSteamManager:
 
             # Save the data so we can refer to it later
             self.mod_data_cache[modid] = moddata
+
+    def _fetchModTitleFromPGD(self, moddata):
+        resolver = FixedModResolver({moddata['name']: moddata['id']})
+        loader = AssetLoader(resolver, self.asset_path)
+        pgd_asset = loader[moddata['package']]
+        title = pgd_asset.default_export.properties.get_property('ModName')
+        return title
 
     def _removeMods(self, modids):
         # Remove the installed mods
@@ -241,6 +259,22 @@ class ManagedModResolver(ModResolver):
         return modid
 
 
+class FixedModResolver(ModResolver):
+    def __init__(self, namesToIds: Dict[str, str]):
+        self.namesToIds = namesToIds
+        self.idsToNames = dict((v, k) for k, v in namesToIds.items())
+        return super().__init__()
+
+    def initialise(self):
+        return super().initialise()
+
+    def get_id_from_name(self, name):
+        return self.namesToIds[name]
+
+    def get_name_from_id(self, modid):
+        return self.idsToNames[modid]
+
+
 def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
     '''Scan installed modules and return their information in a Dict[id->data].'''
     mods_path: Path = asset_path / 'Content' / 'Mods'
@@ -267,6 +301,14 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
     details = data['AppWorkshop']['WorkshopItemDetails']
     newModVersions = dict((modid, int(details[modid]['timeupdated'])) for modid in modids if modid in details)
     return newModVersions
+
+
+def getGameUpdateTime(game_path: Path) -> int:
+    '''Collect the last modified timestamp of the game from Steam's metadata files.'''
+    filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
+    data = readACFFile(filename)
+    timestamp = int(data['AppState']['LastUpdated'])
+    return timestamp
 
 
 def gatherModInfo(asset_path: Path, modid) -> Dict[str, Any]:
