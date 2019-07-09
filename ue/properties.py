@@ -3,7 +3,7 @@ import math
 import uuid
 import struct
 import logging
-from typing import Type, Dict, List, Optional, Union
+from typing import Type, Dict, List, Optional, Union, ByteString
 from collections import defaultdict
 
 try:
@@ -41,7 +41,7 @@ class PropertyTable(UEBase):
         value = self.as_dict()[name][index]
 
         if value is not None:
-            return value
+            return value.value
 
         if fallback is not NO_FALLBACK:
             return fallback
@@ -182,7 +182,7 @@ class FloatProperty(UEBase):
 
     value: float
     textual: str
-    bytes: bytes
+    bytes: ByteString
     rounded: str
     rounded_value: float
 
@@ -213,7 +213,7 @@ class DoubleProperty(UEBase):
 
     value: float
     textual: str
-    bytes: bytes
+    bytes: ByteString
     rounded: str
     rounded_value: float
 

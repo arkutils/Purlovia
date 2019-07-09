@@ -25,6 +25,7 @@ __all__ = (
 
 NO_FALLBACK = object()
 
+
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
 

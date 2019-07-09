@@ -18,7 +18,7 @@ class UEBase(object):
     def __init__(self, owner: "UEBase", stream=None):
         assert owner is not None, "Owner must be specified"
         self.stream: MemoryStream = stream or owner.stream
-        self.asset = owner.asset
+        self.asset = owner.asset  # type: ignore
         self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
         self.field_values: Dict[str, Any] = {}
         self.field_order: List[str] = []
