@@ -38,4 +38,3 @@ def main(logdir: str = 'logs'):
 
     except:  # pylint: disable=bare-except
         logging.exception('Caught exception during automation run. Aborting.')
-

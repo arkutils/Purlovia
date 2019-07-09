@@ -154,7 +154,7 @@ class ArkSteamManager:
         # Verify there are no overlapping mod tags
         tag_list = [data['name'].lower() for data in self.mod_data_cache.values()]
         if len(set(tag_list)) != len(tag_list):
-                raise ValueError(f'There are mods with duplicate tag names present. Aborting.')
+            raise ValueError(f'There are mods with duplicate tag names present. Aborting.')
 
     def _installMods(self, modids):
         # TODO: Consider doing the extractions in parallel with the installations (offset) to speed this up

@@ -4,6 +4,7 @@ import logging.config
 
 import yaml
 
+
 def setup_logging(path='config/logging.yaml', level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
@@ -18,5 +19,5 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     logger = logging.getLogger()
     logging.addLevelName(100, 'STARTUP')
     logger.log(100, '')
-    logger.log(100, '-'*100)
+    logger.log(100, '-' * 100)
     logger.log(100, '')

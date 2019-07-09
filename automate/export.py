@@ -35,7 +35,7 @@ def export_values(arkman: ArkSteamManager, modids: Set[str]):
 
 
 class Exporter:
-    def __init__(self, arkman: ArkSteamManager, modids: Set[str], config: ConfigFile=None):
+    def __init__(self, arkman: ArkSteamManager, modids: Set[str], config: ConfigFile = None):
         self.config = config = config or get_global_config()
         self.arkman = arkman
         self.modids = modids
@@ -65,7 +65,7 @@ class Exporter:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")
 
     def _create_version(self, timestamp: str) -> str:
-        return createExportVersion(self.game_version, timestamp) # type: ignore
+        return createExportVersion(self.game_version, timestamp)  # type: ignore
 
     def _export_vanilla(self):
         version = self._create_version(self.start_time_stamp)
@@ -151,4 +151,3 @@ def _save_as_json(data, filename, pretty=False):
     json_string = _format_json(data, pretty)
     with open(filename, 'w') as f:
         f.write(json_string)
-
