@@ -33,7 +33,7 @@ pipenv shell
 ### Full Automation Run
 Tailor `config.ini` to your needs, then run:
 ```sh
-python -m automate.export
+python -m automate
 ```
 This will:
 * Ensure SteamCmd is downloaded

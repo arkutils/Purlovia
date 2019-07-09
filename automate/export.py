@@ -152,27 +152,3 @@ def _save_as_json(data, filename, pretty=False):
     with open(filename, 'w') as f:
         f.write(json_string)
 
-
-def temporary_main(logdir:str='logs'):
-    # All of this should not be here, but is it's temporary resting place
-
-    # Ensure log directory exists before starting the logging system
-    from pathlib import Path
-    from .logging import setup_logging
-    Path(logdir).mkdir(parents=True, exist_ok=True)
-    setup_logging(path='config/logging.yaml', level=logging.INFO)
-
-    # Run update then export
-    try:
-        mods = get_global_config().mods
-        arkman = ArkSteamManager()
-        arkman.ensureSteamCmd()
-        arkman.ensureGameUpdated()
-        arkman.ensureModsUpdated(mods, uninstallOthers=get_global_config().settings.UninstallUnusedMods)
-        export_values(arkman, set(mods))
-    except:  # pylint: disable=bare-except
-        logging.exception('Caught exception during automation run. Aborting.')
-
-
-if __name__ == '__main__':
-    temporary_main()
