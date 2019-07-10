@@ -63,8 +63,8 @@ class Exporter:
         return createExportVersion(self.game_version, timestamp)  # type: ignore
 
     def _export_vanilla(self):
-        game_timestamp = str(self.arkman.getGameUpdateTime())
-        version = self._create_version(game_timestamp)
+        game_buildid = self.arkman.getGameBuildId()
+        version = self._create_version(game_buildid)
         species = list(self.discoverer.discover_vanilla_species())
         species.sort()
         species_data = self._gather_species_data(species)

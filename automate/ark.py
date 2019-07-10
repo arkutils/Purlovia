@@ -38,7 +38,7 @@ class ArkSteamManager:
         self.steam_mod_details: Optional[Dict[str, Dict]] = None  # from steam
         self.mod_data_cache: Optional[Dict[str, Dict]] = None  # internal data
         self.game_version: Optional[str] = None
-        self.game_update_timestamp: Optional[int] = None
+        self.game_buildid: Optional[str] = None
 
         self._sanityCheck()
 
@@ -58,10 +58,10 @@ class ArkSteamManager:
     def getModData(self, modid: str) -> Optional[Dict[str, Any]]:
         modid = str(modid)
 
-        # Official "mods" need to be handled differently
+        # Official "mods" get a custom moddata using the game's version
         if modid in get_global_config().official_mods.ids():
             data = dict(id=modid)
-            data['version'] = str(self.getGameUpdateTime())
+            data['version'] = self.getGameBuildId() or '0'
             data['name'] = get_global_config().official_mods.tag_from_id(modid)
             data['title'] = data['name']
             return data
@@ -79,12 +79,12 @@ class ArkSteamManager:
         '''
         return self.game_version
 
-    def getGameUpdateTime(self) -> Optional[int]:
+    def getGameBuildId(self) -> Optional[str]:
         '''
-        Return the installed game's update timestamp.
+        Return the installed game's build ID (a simply incrementing version number of the Steam depot).
         Returns None if not installed is not yet evaluated.
         '''
-        return self.game_update_timestamp
+        return self.game_buildid
 
     def getContentPath(self) -> Path:
         '''Return the Content directory of the game.'''
@@ -104,7 +104,7 @@ class ArkSteamManager:
         self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
 
         self.game_version = fetchGameVersion(self.gamedata_path)
-        self.game_update_timestamp = getGameUpdateTime(self.gamedata_path)
+        self.game_buildid = getGameBuildId(self.gamedata_path)
 
     def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]], dryRun=False, uninstallOthers=False):
         '''
@@ -303,12 +303,12 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
     return newModVersions
 
 
-def getGameUpdateTime(game_path: Path) -> int:
-    '''Collect the last modified timestamp of the game from Steam's metadata files.'''
+def getGameBuildId(game_path: Path) -> str:
+    '''Collect the buildid of the game from Steam's metadata files. This will be updated even if the version number doesn't change.'''
     filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
     data = readACFFile(filename)
-    timestamp = int(data['AppState']['LastUpdated'])
-    return timestamp
+    buildid = data['AppState']['buildid']
+    return buildid
 
 
 def gatherModInfo(asset_path: Path, modid) -> Dict[str, Any]:
