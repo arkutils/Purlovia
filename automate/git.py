@@ -31,12 +31,24 @@ class GitManager:
         logger.info('Verifying Git repo integrity')
 
         # Validate clone is valid
-        self.git.status()
-
-        # Check branch is correct (maybe checkout if not?)
-        self._set_branch()
-
-        logger.info('Git repo is setup and ready to go')
+        status = self.git.status().split('\n')
+        branch = status[0].split(' ')[-1]
+        if self._check_branch(branch):
+            if status[-1].strip() == 'nothing to commit, working tree clean':
+                logger.info('Git is setup and ready to commit to the correct branch')
+            else:
+                logger.warning('Git is on the correct branch but the working tree is not clean.')
+                # TODO stash changes and email devs with stash id and message
+        else:
+            if status[-1].strip() == 'nothing to commit, working tree clean':
+                logger.info('Git is on the wrong branch but the working tree is clean.')
+                self.git.checkout(self.config.settings.GitBranch)
+                logger.info('Checkout complete. Git is ready.')
+            else:
+                logger.warning('Git is on the wrong branch and some files have been modified')
+                # TODO stash changes and email devs with stash id and message
+                self.git.checkout(self.config.settings.GitBranch)
+                logger.info('Checkout complete. Git is ready.')
 
     def after_exports(self):
         if not self.config.settings.EnableGit:
@@ -63,12 +75,8 @@ class GitManager:
         # Push
         # self.git.push()
 
-    def _set_branch(self):
-        branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()
-
-        if branch != self.config.settings.GitBranch:
-            branch = self.config.settings.GitBranch
-            self.git.checkout(self.config.settings.GitBranch)
+    def _check_branch(self, branch):
+        return branch == self.config.settings.GitBranch
 
     def _create_commit_msg(self):
         message = MESSAGE_HEADER
