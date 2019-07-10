@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+import requests
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 MESSAGE_HEADER = "Raptor Claus just dropped some files off"
+GITHUB_API = 'https://api.github.com/graphql'
 
 
 class GitManager:
@@ -113,10 +115,29 @@ class GitManager:
 
         return None
 
+    def _create_issue(self, title: str, body: str):
+        with open('token,json') as fp:
+            token = json.load(fp)['token']
+
+        header = {"Authorization": f'bearer {token}'}
+        payload = {'query': f'mutation {{ createIssue(input: {{ repositoryId:"MDEwOlJlcG9zaXRvcnkxNzIzMzM4MjA=", '  # TODO move repository ID to config
+                            f'title:"{title}", body:"{body}" }}) {{ issue {{ id }} }} }}'}
+        r = requests.post(GITHUB_API, headers=header, data=json.dumps(payload))
+        try:
+            id = json.loads(r.text)['data']['createIssue']['issue']['id']
+        except KeyError:
+            error_string = '\n'.join([error['message'] for error in r.json()['errors']])
+            logger.warning(f"Failed to create issue on GitHub:\n{error_string}")
+        else:
+            logger.info(f"GitHub Issue created: {id}")
+
     def _stash_changes(self):
-        stash_msg = self.git.stash()
-        logger.info(stash_msg)
-        logger.info(self._get_stashed_changes())  # TODO email devs in addition to logging
+        stash = self.git.stash()
+        logger.info(stash)
+        stash_msg = self._get_stashed_changes()
+        issue_body = f'The working tree was not clean when the export was run. The modifications were stashed.\n\n' \
+                     f'`{stash}`\n```\n{stash_msg}\n```'
+        self._create_issue('Purlovia: Stashed Modifications', issue_body)
 
     def _get_stashed_changes(self) -> str:
         stash_list = self.git.stash('list').split('\n')
@@ -124,7 +145,7 @@ class GitManager:
 
         for stash in stash_list:
             stash_id = stash.split(':')[0]
-            stash_message += stash_id
+            stash_message += stash
             stash_message += '\n    '.join(self.git.stash('show', stash_id).split('\n'))
             stash_message += '\n'
 
