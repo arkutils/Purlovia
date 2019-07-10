@@ -115,21 +115,25 @@ class GitManager:
 
         return None
 
-    def _create_issue(self, title: str, body: str):
-        with open('token,json') as fp:
-            token = json.load(fp)['token']
-
-        header = {"Authorization": f'bearer {token}'}
-        payload = {'query': f'mutation {{ createIssue(input: {{ repositoryId:"MDEwOlJlcG9zaXRvcnkxNzIzMzM4MjA=", '  # TODO move repository ID to config
-                            f'title:"{title}", body:"{body}" }}) {{ issue {{ id }} }} }}'}
-        r = requests.post(GITHUB_API, headers=header, data=json.dumps(payload))
+    @staticmethod
+    def _create_issue(title: str, body: str):
         try:
-            id = json.loads(r.text)['data']['createIssue']['issue']['id']
-        except KeyError:
-            error_string = '\n'.join([error['message'] for error in r.json()['errors']])
-            logger.warning(f"Failed to create issue on GitHub:\n{error_string}")
+            with open('token.json') as fp:
+                token = json.load(fp)['token']
+        except FileNotFoundError:
+            logging.error("Cannot create issue because GitHub token file is not found.")
         else:
-            logger.info(f"GitHub Issue created: {id}")
+            header = {"Authorization": f'bearer {token}'}
+            payload = {'query': f'mutation {{ createIssue(input: {{ repositoryId:"MDEwOlJlcG9zaXRvcnkxNzIzMzM4MjA=", '  # TODO move repositoryId to config
+                                f'title:"{title}", body:"{body}" }}) {{ issue {{ id }} }} }}'}
+            r = requests.post(GITHUB_API, headers=header, data=json.dumps(payload))
+            try:
+                id = json.loads(r.text)['data']['createIssue']['issue']['id']
+            except KeyError:
+                error_string = '\n'.join([error['message'] for error in r.json()['errors']])
+                logger.warning(f"Failed to create issue on GitHub:\n{error_string}")
+            else:
+                logger.info(f"GitHub Issue created: {id}")
 
     def _stash_changes(self):
         stash = self.git.stash()
