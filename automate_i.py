@@ -1,7 +1,16 @@
 #%% Setup
 from interactive_utils import *
 import logging
-logging.basicConfig(level=logging.INFO)
+log_format = '{asctime}.{msecs:03.0f}|{levelname:<8}|{name}::{message}'
+date_format = '%Y-%m-%dT%H:%M:%S'
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter(log_format, datefmt=date_format, style='{')
+ch.setFormatter(formatter)
+logging.basicConfig(level=logging.DEBUG, handlers=[ch])
+logger = logging.getLogger()
+logger.info('Logging Setup Complete')
 
 from automate.ark import ArkSteamManager
 
