@@ -38,7 +38,9 @@ class GitManager:
                 logger.info('Git is setup and ready to commit to the correct branch')
             else:
                 logger.warning('Git is on the correct branch but the working tree is not clean.')
-                # TODO stash changes and email devs with stash id and message
+                stash_msg = self.git.stash()
+                logger.info(stash_msg)
+                # TODO email devs with stash id and message
         else:
             if status[-1].strip() == 'nothing to commit, working tree clean':
                 logger.info('Git is on the wrong branch but the working tree is clean.')
@@ -46,7 +48,9 @@ class GitManager:
                 logger.info('Checkout complete. Git is ready.')
             else:
                 logger.warning('Git is on the wrong branch and some files have been modified')
-                # TODO stash changes and email devs with stash id and message
+                stash_msg = self.git.stash()
+                logger.info(stash_msg)
+                # TODO email devs with stash id and message
                 self.git.checkout(self.config.settings.GitBranch)
                 logger.info('Checkout complete. Git is ready.')
 
