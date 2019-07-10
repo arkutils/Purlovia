@@ -280,7 +280,14 @@ def values_for_species(asset: UAsset,
     name = NAME_CHANGES.get(name, name)
 
     # Get the GUID for the species
-    guid = str(props['UniqueGuidId'][0][-1].values[0].value)
+    # This isn't pretty, but it works. Adds a lot of extra processing time
+    for value in asset.exports.values:
+        if str(value.name).lower() == str(asset.name).lower():
+            # Alternative BP name generation possible
+            # bp = asset.assetname + '.' + str(value.name)
+            for prop in value.properties.values:
+                if str(prop.header.name) == 'BlueprintGuid':
+                    guid = str(prop.value.values[0].value)
 
     species = dict(name=name, blueprintPath=bp, guid=guid)
 
