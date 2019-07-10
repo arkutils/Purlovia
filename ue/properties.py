@@ -41,7 +41,7 @@ class PropertyTable(UEBase):
         value = self.as_dict()[name][index]
 
         if value is not None:
-            return value.value
+            return value
 
         if fallback is not NO_FALLBACK:
             return fallback
