@@ -3,6 +3,7 @@ output/
 livedata/
 logs/
 asb_json/
+token.json
 
 # Python profiling output
 *.prof
