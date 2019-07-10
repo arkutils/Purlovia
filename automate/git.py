@@ -38,9 +38,7 @@ class GitManager:
                 logger.info('Git is setup and ready to commit to the correct branch')
             else:
                 logger.warning('Git is on the correct branch but the working tree is not clean.')
-                stash_msg = self.git.stash()
-                logger.info(stash_msg)
-                # TODO email devs with stash id and message
+                self._stash_changes()
         else:
             if status[-1].strip() == 'nothing to commit, working tree clean':
                 logger.info('Git is on the wrong branch but the working tree is clean.')
@@ -48,9 +46,7 @@ class GitManager:
                 logger.info('Checkout complete. Git is ready.')
             else:
                 logger.warning('Git is on the wrong branch and some files have been modified')
-                stash_msg = self.git.stash()
-                logger.info(stash_msg)
-                # TODO email devs with stash id and message
+                self._stash_changes()
                 self.git.checkout(self.config.settings.GitBranch)
                 logger.info('Checkout complete. Git is ready.')
 
@@ -116,3 +112,20 @@ class GitManager:
             return f'{path.name} updated to version {version}'
 
         return None
+
+    def _stash_changes(self):
+        stash_msg = self.git.stash()
+        logger.info(stash_msg)
+        logger.info(self._get_stashed_changes())  # TODO email devs in addition to logging
+
+    def _get_stashed_changes(self) -> str:
+        stash_list = self.git.stash('list').split('\n')
+        stash_message = ''
+
+        for stash in stash_list:
+            stash_id = stash.split(':')[0]
+            stash_message += stash_id
+            stash_message += '\n    '.join(self.git.stash('show', stash_id).split('\n'))
+            stash_message += '\n'
+
+        return stash_message
