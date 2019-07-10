@@ -1,9 +1,11 @@
+import os
 import json
 import logging
+import tempfile
 from pathlib import Path
 
 from config import ConfigFile, get_global_config
-from utils.brigit import Git
+from utils.brigit import Git, GitException
 
 __all__ = [
     'GitManager',
@@ -31,7 +33,7 @@ class GitManager:
         logger.info('Verifying Git repo integrity')
 
         # Validate clone is valid
-        self.git.status()
+        self._validate_setup()
 
         # Check branch is correct (maybe checkout if not?)
         self._set_branch()
@@ -47,21 +49,49 @@ class GitManager:
         self.git.pull('--no-rebase', '--ff-only')
 
         # If no files changed, return
-        if not self.git.status('-s').strip():
+        if not self.git.status('-s', '--', self.relative_publish_path).strip():
             logger.info('There are no local changes')
             return
 
-        # Add all changed files in the PublishDir
-        self.git.add('--all', self.relative_publish_path)
-
         # Construct commit message using a simple message plus names and versions of all changed files
         message = self._create_commit_msg()
-        print(message)
 
         # Commit
-        # self.git.commit('-a', message=message)
+        self._do_commit(message)
+
         # Push
         # self.git.push()
+
+        logger.info('Git automation complete')
+
+    def _do_commit(self, message):
+        logger.info('Performing commit')
+
+        # Put the message in a temp file to avoid stupidly long command-line arguments
+        tmpfilename: str
+        with tempfile.NamedTemporaryFile('w', delete=False) as f:
+            tmpfilename = f.name
+            f.write(message)
+
+        self.git.commit('-F', f.name, '--', self.relative_publish_path)
+        os.unlink(tmpfilename)
+
+    def _validate_setup(self):
+        # This will throw if there's no git repo here
+        self.git.status()
+
+        # Check a custom user has been configured and is using a custom ssh identity
+        username: str = '<unset>'
+        try:
+            # Each of these will throw a GitException if not present
+            username = self.git.config('--local', 'user.name').strip()
+            self.git.config('--local', 'user.email')
+            self.git.config('--local', 'core.sshCommand')
+        except GitException:
+            logger.error("Git output repo does not have custom identity configuration. Aborting!")
+            raise
+
+        logger.info(f'Git configured as user: {username}')
 
     def _set_branch(self):
         branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()
@@ -74,7 +104,7 @@ class GitManager:
         message = MESSAGE_HEADER
 
         lines = []
-        status_output = self.git.status('-s', self.relative_publish_path)
+        status_output = self.git.status('-s', '--', self.relative_publish_path)
         filelist = [line[3:].strip() for line in status_output.split('\n')]
         for filename in filelist:
             line = self._generate_info_line_from_file(filename)
@@ -84,6 +114,8 @@ class GitManager:
         if lines:
             message += '\n\n'
             message += '\n'.join(lines)
+
+        logger.info('Commit message:\n%s', message)
 
         return message
 
@@ -100,7 +132,7 @@ class GitManager:
             version = data.get('version', None)
             title = data.get('mod', dict()).get('title', None)
             if title:
-                return f'{path.name} ({title}) updated to version {version}'
+                return f'"{title}" updated to version {version}'
             return f'{path.name} updated to version {version}'
 
         return None
