@@ -46,6 +46,7 @@ class GitManager:
                 logger.info('Checkout complete. Git is ready.')
             else:
                 logger.warning('Git is on the wrong branch and some files have been modified')
+                self.git.status()
                 # TODO stash changes and email devs with stash id and message
                 self.git.checkout(self.config.settings.GitBranch)
                 logger.info('Checkout complete. Git is ready.')
