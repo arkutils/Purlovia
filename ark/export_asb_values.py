@@ -272,17 +272,15 @@ def values_for_species(asset: UAsset,
         logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag")
         name = '<unnamed species>'
 
-    # TODO: This is nasty - get class name from BP instead of assuming
-    assert asset.assetname is not None
-    bp = asset.assetname + '.' + asset.assetname.split('/')[-1]
+    assert asset.assetname is not None and asset.default_export and asset.default_class and asset.default_class.fullname
+    bp: str = asset.default_class.fullname
+    if bp.endswith('_C'):
+        bp = bp[:-2]
 
     # Replace names to match ASB's hardcoding of specific species
     name = NAME_CHANGES.get(name, name)
 
-    # Get the GUID for the species
-    guid = str(props['UniqueGuidId'][0][-1].values[0].value)
-
-    species = dict(name=name, blueprintPath=bp, guid=guid)
+    species = dict(name=name, blueprintPath=bp)
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'

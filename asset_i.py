@@ -202,18 +202,17 @@ def scan_asset(asset: UAsset, indent=0):
     print()
 
 
-#%%
-print()
+#%% Break down assets into components and sub-components visually
+# print()
+# scan_asset(asset)
 
-scan_asset(asset)
+# for parent in ark.asset.findParentPackages(asset):
+#     scan_asset(loader[parent])
 
-for parent in ark.asset.findParentPackages(asset):
-    scan_asset(loader[parent])
+# for comp in ark.asset.findSubComponentParentPackages(asset):
+#     scan_asset(loader[comp])
 
-for comp in ark.asset.findSubComponentParentPackages(asset):
-    scan_asset(loader[comp])
-
-#%% Taming info
+#%% Working out where to find taming info
 # for assetname in (
 #         '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
 #         '/Game/PrimalEarth/Dinos/Lystrosaurus/Lystro_Character_BP',
@@ -237,16 +236,36 @@ for comp in ark.asset.findSubComponentParentPackages(asset):
 
 #     print(f'{"RecoveryRateStatusValue[TORPOR]":>44}: {ark.properties.stat_value(props, "RecoveryRateStatusValue", 2, None)}')
 
-#%% Pre-set variables for experimenting
-dcsc = loader.load_class(DCSC_CLS)
-chr = loader.load_class(CHR_CLS)
+#%% Pre-set variables for experimenting with Deino and Yeti, for component priorities
+# dcsc = loader.load_class(DCSC_CLS)
+# chr = loader.load_class(CHR_CLS)
 
-deino_chr = loader.load_class('/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP.Deinonychus_Character_BP_C')
-deino_chr_dcsc = next(ark.asset.findSubComponentExports(deino_chr.asset))
-deino_dcsc = loader.load_related(deino_chr_dcsc.klass.value).default_class
+# deino_chr = loader.load_class('/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP.Deinonychus_Character_BP_C')
+# deino_chr_dcsc = next(ark.asset.findSubComponentExports(deino_chr.asset))
+# deino_dcsc = loader.load_related(deino_chr_dcsc.klass.value).default_class
 
-yeti_chr = loader.load_class('/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP.Yeti_Character_BP_C')
-yeti_chr_dcsc = next(ark.asset.findSubComponentExports(yeti_chr.asset))
-yeti_dcsc = loader.load_related(yeti_chr_dcsc.klass.value).default_class
+# yeti_chr = loader.load_class('/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP.Yeti_Character_BP_C')
+# yeti_chr_dcsc = next(ark.asset.findSubComponentExports(yeti_chr.asset))
+# yeti_dcsc = loader.load_related(yeti_chr_dcsc.klass.value).default_class
+
+#%% Look at where UniqueGuidIds come from
+for assetname in ('/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP',
+                  '/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP', '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP',
+                  '/Game/Aberration/Dinos/LanternBird/LanternBird_Character_BP',
+                  '/Game/Aberration/Dinos/LanternGoat/LanternGoat_Character_BP',
+                  '/Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP',
+                  '/Game/ScorchedEarth/Dinos/RockGolem/RockGolem_Character_BP',
+                  '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire',
+                  '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Poison',
+                  '/Game/Mods/839162288/Dinos/Toxic/Toxic_Wyvern/Wyvern_Character_BP_Toxic_Ice',
+                  '/Game/Mods/893735676/Dinos/Ancient/BigFoot/Ancient_Bigfoot_Character_BP',
+                  '/Game/Mods/893735676/Dinos/Ancient/Quetz/Ancient_Quetz_Character_BP'):
+    props = ark.properties.gather_properties(loader[assetname])
+    guids = [(str(v.values[0].value), v.asset.assetname) for v in props['UniqueGuidId'][0]]
+    print(f'\n{assetname}:')
+    for guid, srcasset in guids:
+        print(f'  {guid} {srcasset}')
+
+# ...answer is they're copied all over the place, so useless
 
 #%%
