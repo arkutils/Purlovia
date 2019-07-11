@@ -6,7 +6,7 @@ from typing import *
 from pathlib import Path
 from os import walk
 
-from config import get_global_config
+from config import get_global_config, ConfigFile
 from ue.loader import AssetLoader, ModResolver
 from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
 from .steamcmd import Steamcmd
@@ -25,8 +25,9 @@ logger.addHandler(logging.NullHandler())
 
 
 class ArkSteamManager:
-    def __init__(self):
-        self.basepath: Path = get_global_config().settings.DataDir.absolute()
+    def __init__(self, config: ConfigFile = get_global_config()):
+        self.config = config
+        self.basepath: Path = config.settings.DataDir.absolute()
 
         self.steamcmd_path: Path = self.basepath / 'steamcmd'
         self.gamedata_path: Path = self.basepath / 'game'
@@ -59,10 +60,10 @@ class ArkSteamManager:
         modid = str(modid)
 
         # Official "mods" get a custom moddata using the game's version
-        if modid in get_global_config().official_mods.ids():
+        if modid in self.config.official_mods.ids():
             data = dict(id=modid)
             data['version'] = self.getGameBuildId() or '0'
-            data['name'] = get_global_config().official_mods.tag_from_id(modid)
+            data['name'] = self.config.official_mods.tag_from_id(modid)
             data['title'] = data['name']
             return data
 
@@ -101,21 +102,24 @@ class ArkSteamManager:
 
         self.gamedata_path.mkdir(parents=True, exist_ok=True)
 
-        self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+        if not self.config.settings.SkipInstall:
+            self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+        else:
+            logger.info('(skipped)')
 
         self.game_version = fetchGameVersion(self.gamedata_path)
         self.game_buildid = getGameBuildId(self.gamedata_path)
 
-    def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]], dryRun=False, uninstallOthers=False):
+    def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]]):
         '''
         Ensure the listed mods are installed and updated to their latest versions.
-        If uninstallOthers is True, also remove any previously installed mods that are not in the given list.
-        If dryRun is True, make no changes - only report what would have been done.
         '''
         modids_requested: Set[str] = set(str(modid) for modid in modids)
+        uninstallOthers = self.config.settings.UninstallUnusedMods
+        dryRun = self.config.settings.SkipInstall
 
         # Remove any request to manage official mods
-        official_modids = set(get_global_config().official_mods.ids())
+        official_modids = set(self.config.official_mods.ids())
         modids_requested -= official_modids
 
         # Find currently installed mods (file search for our _moddata.json)
@@ -144,16 +148,22 @@ class ArkSteamManager:
             logger.info(f'Updating mods: {", ".join(sorted(modids_update))}')
             if not dryRun:
                 self._installMods(modids_update)
+            else:
+                logger.info('(skipped)')
 
         # Delete unwanted installed mods
         if uninstallOthers and modids_remove:
             logger.info(f'Removing mods: {modids_remove}')
             if not dryRun:
                 self._removeMods(modids_remove)
+            else:
+                logger.info('(skipped)')
 
         # Delete all downloaded steamapps mods
         if not dryRun:
             self._cleanSteamModCache()
+        else:
+            logger.info('(skipped)')
 
         # Remove mod data for mods that are no longer present
         for modid in modids_remove:

@@ -34,16 +34,24 @@ class IniStringList(list):
 
 
 class SettingsSection(BaseModel):
-    DataDir: Path = Path('livedata')
-    PublishDir: Path = Path('output/data/asb')
     UninstallUnusedMods: bool = True
     Export8Stats: bool = False
     ExportVanillaSpecies: bool = False
-    SeparateOfficialMods: IniStringList = IniStringList()
     PrettyJson: bool = False
-    EnableGit: bool = False
+
+    SeparateOfficialMods: IniStringList = IniStringList()
+
+    DataDir: Path = Path('livedata')
     GitDirectory: Path = Path('output')
+    PublishDir: Path = Path('output/data/asb')
+
     GitBranch: str = 'master'
+    EnableGit: bool = False
+
+    SkipInstall: bool = False
+    SkipExtract: bool = False
+    SkipCommit: bool = False
+    SkipPush: bool = False
 
 
 class OptimisationSection(BaseModel):

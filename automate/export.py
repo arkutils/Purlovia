@@ -20,24 +20,26 @@ __all__ = [
 ]
 
 
-def export_values(arkman: ArkSteamManager, modids: Set[str]):
-    config = get_global_config()
+def export_values(arkman: ArkSteamManager, modids: Set[str], config: ConfigFile):
     logger.info('Export beginning')
+    if config.settings.SkipExtract:
+        logger.info('(skipped)')
+        return
 
     # Ensure the output directory exists
     outdir = config.settings.PublishDir
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
-    exporter = Exporter(arkman, modids)
+    exporter = Exporter(arkman, modids, config)
     exporter.perform()
 
     logger.info('Export complete')
 
 
 class Exporter:
-    def __init__(self, arkman: ArkSteamManager, modids: Set[str], config: ConfigFile = None):
-        self.config = config = config or get_global_config()
+    def __init__(self, arkman: ArkSteamManager, modids: Set[str], config: ConfigFile):
+        self.config = config
         self.arkman = arkman
         self.modids = modids
         self.loader = arkman.createLoader()

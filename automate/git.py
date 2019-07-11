@@ -49,7 +49,7 @@ class GitManager:
         self.git.pull('--no-rebase', '--ff-only')
 
         # If no files changed, return
-        if not self.git.status('-s', '--', self.relative_publish_path).strip():
+        if not self._any_local_changes():
             logger.info('There are no local changes')
             return
 
@@ -57,15 +57,26 @@ class GitManager:
         message = self._create_commit_msg()
 
         # Commit
-        self._do_commit(message)
+        self._do_commit(message, dry_run=self.config.settings.SkipCommit)
 
         # Push
-        # self.git.push()
+        self._do_push()
 
         logger.info('Git automation complete')
 
-    def _do_commit(self, message):
-        logger.info('Performing commit')
+    def _any_local_changes(self):
+        output = self.git.status('-s', '--', self.relative_publish_path).strip()
+        return bool(output)
+
+    def _do_push(self):
+        logger.info('Pushing changes')
+        if not (self.config.settings.SkipPush or self.config.settings.SkipCommit):
+            self.git.push()
+        else:
+            logger.info('(skipped)')
+
+    def _do_commit(self, message, dry_run=True):
+        logger.info('Performing commit %s', '[dry-run only]' if dry_run else '')
 
         # Put the message in a temp file to avoid stupidly long command-line arguments
         tmpfilename: str
@@ -73,7 +84,12 @@ class GitManager:
             tmpfilename = f.name
             f.write(message)
 
-        self.git.commit('-F', f.name, '--', self.relative_publish_path)
+        # Run the commit, with dry-run flag if requested
+        self.git.add('--', self.relative_publish_path)
+        if dry_run:
+            self.git.commit('--dry-run', '-F', f.name, '--', self.relative_publish_path)
+        else:
+            self.git.commit('-F', f.name, '--', self.relative_publish_path)
         os.unlink(tmpfilename)
 
     def _validate_setup(self):
