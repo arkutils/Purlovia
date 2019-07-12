@@ -53,6 +53,9 @@ class GitManager:
             logger.info('There are no local changes')
             return
 
+        # Add
+        self._do_add()
+
         # Construct commit message using a simple message plus names and versions of all changed files
         message = self._create_commit_msg()
 
@@ -67,6 +70,9 @@ class GitManager:
     def _any_local_changes(self):
         output = self.git.status('-s', '--', self.relative_publish_path).strip()
         return bool(output)
+
+    def _do_add(self):
+        self.git.add('--', self.relative_publish_path)
 
     def _do_push(self):
         logger.info('Pushing changes')
@@ -85,7 +91,6 @@ class GitManager:
             f.write(message)
 
         # Run the commit, with dry-run flag if requested
-        self.git.add('--', self.relative_publish_path)
         if dry_run:
             self.git.commit('--dry-run', '-F', f.name, '--', self.relative_publish_path)
         else:
