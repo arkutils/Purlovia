@@ -55,10 +55,11 @@ def handle_args(args: Any) -> ConfigFile:
 
     config = get_global_config()
 
-    if not args.stats or int(args.stats) == 12:
-        config.settings.Export8Stats = False
-    else:
-        config.settings.Export8Stats = True
+    if args.stats:
+        if int(args.stats) == 12:
+            config.settings.Export8Stats = False
+        else:
+            config.settings.Export8Stats = True
 
     if args.skip_install:
         config.settings.SkipInstall = True
