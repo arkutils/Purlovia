@@ -1,6 +1,5 @@
 import sys
 
-import psutil
 import re
 import os.path
 import logging
