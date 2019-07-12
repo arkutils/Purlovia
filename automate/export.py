@@ -58,7 +58,7 @@ class Exporter:
             self._export_mod(modid)
 
             # Remove assets with this mod's prefix from the cache
-            prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/'+modid)
+            prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
             self.loader.wipe_cache_with_prefix(prefix)
 
     def _prepare_versions(self):

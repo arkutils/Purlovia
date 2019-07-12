@@ -35,7 +35,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-commit', action='store_true', help='Skip committing to Git (uses dry-run mode)')
     parser.add_argument('--skip-push', action='store_true', help='Skip pushing to Git')
 
-    parser.add_argument('--stats', action='store', choices=('8','12'), help='Specify the stat format to export')
+    parser.add_argument('--stats', action='store', choices=('8', '12'), help='Specify the stat format to export')
 
     parser.add_argument('-l', '--log-level', action='store', choices=loglevels, default='INFO', help="Set the logging level")
     parser.add_argument('--log-dir', action='store', type=Path, default=Path('logs'), help="Change the default logging level")
@@ -55,10 +55,10 @@ def handle_args(args: Any) -> ConfigFile:
 
     config = get_global_config()
 
-    if int(args.stats) == 8:
-        config.settings.Export8Stats = True
-    else:
+    if not args.stats or int(args.stats) == 12:
         config.settings.Export8Stats = False
+    else:
+        config.settings.Export8Stats = True
 
     if args.skip_install:
         config.settings.SkipInstall = True
@@ -78,7 +78,7 @@ def handle_args(args: Any) -> ConfigFile:
     return config
 
 
-def go(config: ConfigFile):
+def run(config: ConfigFile):
 
     # Run update then export
     try:
@@ -109,4 +109,4 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     config = handle_args(args)
-    go(config)
+    run(config)
