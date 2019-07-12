@@ -1,6 +1,10 @@
+import sys
+
+import psutil
 import re
 import os.path
 import logging
+import weakref
 from typing import *
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
@@ -228,7 +232,7 @@ class AssetLoader:
     def _load_asset(self, assetname: str, doNotLink=False):
         mem = self._load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
-        asset = UAsset(stream)
+        asset = UAsset(weakref.proxy(stream))
         asset.loader = self
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
@@ -251,4 +255,4 @@ def load_file_into_memory(filename):
     with open(filename, 'rb') as f:
         data = f.read()
         mem = memoryview(data)
-        return mem
+    return mem

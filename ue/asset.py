@@ -1,3 +1,4 @@
+import weakref
 from typing import *
 
 from deprecated import deprecated  # type: ignore
@@ -209,7 +210,7 @@ class ExportTableItem(UEBase):
 
         # We deferred deserialising the properties until all imports/exports were defined
         stream = MemoryStream(self.stream, self.serial_offset, self.serial_size)
-        self._newField('properties', PropertyTable(self, stream))
+        self._newField('properties', PropertyTable(self, weakref.proxy(stream)))
         self.properties.link()
 
     def __str__(self):
