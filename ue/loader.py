@@ -100,6 +100,11 @@ class AssetLoader:
     def wipe_cache(self):
         self.cache = dict()
 
+    def wipe_cache_with_prefix(self, prefix: str):
+        cache = self.cache
+        for assetname in list(key for key in cache.keys() if key.startswith(prefix)):
+            del cache[assetname]
+
     def convert_asset_name_to_path(self, name: str, partial=False):
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
