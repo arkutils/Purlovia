@@ -91,6 +91,20 @@ def read_colour_definitions(asset):
     return color_defs
 
 
+# returns the species' mass or the default value of 100
+# needs to be incorporated into the gather props function as species
+#    that inherit from other species will use it's parent's mass instead
+#    and ends up receiving the "default" 100 value for mass
+def get_species_mass(asset):
+    for export in asset.exports:
+        if export.namespace.value:
+            if str(export.namespace.value) == str(asset.default_export):
+                for prop in export.properties:
+                    if str(prop.header.name.value) == 'Mass':
+                        return prop.value.value
+    return 100.0
+
+
 def gather_stat_data(props, statIndexes):
     statsArray = list()
 
@@ -277,8 +291,8 @@ immobilization_itemdata: List[ImmobilizingItem] = [
     ImmobilizingItem(name="Bola", maxWeight=150),
     ImmobilizingItem(name="Chain Bola", minWeight=148, maxWeight=900, ignoreBosses=True),
     ImmobilizingItem(name="Bear Trap", maxMass=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
-    ImmobilizingItem(name="Large Bear Trap", minMass=150, maxWeight=math.inf, ignoreBosses=True),
-    ImmobilizingItem(name="Plant Species Y", maxWeight=300, ignoreBosses=True),
+    ImmobilizingItem(name="Large Bear Trap", minMass=150, ignoreBosses=True),
+    ImmobilizingItem(name="Plant Species Y", maxMass=300, ignoreBosses=True),
 ]
 
 
@@ -292,7 +306,7 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
     raise NotImplementedError
 
 
-def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
+def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader, mass) -> List[str]:
     items = ensure_immobilization_itemdata(loader)
     immobilizedBy: List[Any] = []
     if stat_value(props, 'bPreventImmobilization', 0, False):
@@ -300,7 +314,6 @@ def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> 
     if stat_value(props, 'bIsWaterDino', 0, False):
         return immobilizedBy
     weight = stat_value(props, 'DragWeight', 0, 35)
-    mass = stat_value(props, 'Mass', 0, 100)
     is_boss = stat_value(props, 'bIsBossDino', 0, False)
     tag = stat_value(props, 'CustomTag', 0, None)
     for item in items:
@@ -355,7 +368,8 @@ def values_for_species(asset: UAsset,
 
     if includeImmobilize:
         # ImmobilizedBy format data
-        immobilization_data = gather_immobilization_data(props, asset.loader)
+        mass = get_species_mass(asset)
+        immobilization_data = gather_immobilization_data(props, asset.loader, mass)
         if immobilization_data:
             species['immobilizedBy'] = immobilization_data
 
