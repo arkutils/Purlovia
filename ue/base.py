@@ -95,21 +95,6 @@ class UEBase(object):
         if isinstance(value, UEBase) and not value.is_serialised:
             value.deserialise(*extraArgs)
 
-    # def __eq__(self, other:UEBase):
-    #     if self.start_offset != other.start_offset or self.end_offset != other.end_offset:
-    #         return False
-
-    #     if self.field_values.keys() != other.field_values.keys():
-    #         return False
-
-    #     return self.field_values == other.field_values
-
-    # def __hash__(self):
-    #     if self.asset and id(self) != id(self.asset):
-    #         return hash((self.asset, self.start_offset, self.end_offset))
-
-    #     return hash((self.start_offset, self.end_offset))
-
     def __eq__(self, other):
         return self is other  # only the same object is considered the equal
 

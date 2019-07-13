@@ -15,9 +15,9 @@ def findSubComponentExports(asset: UAsset, expectedklassname='BlueprintGenerated
     for export in asset.exports.values:
         kls = export.klass and export.klass.value
         klskls = kls and kls.klass.value
-        if not klskls:
-            continue
-        if str(klskls) == expectedklassname:
+        if export.namespace.value == asset.default_export:
+            yield export
+        elif klskls and str(klskls) == expectedklassname:
             yield export
 
 

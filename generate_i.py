@@ -160,7 +160,6 @@ for v in expected_species_data.values():
         if 'specialFoodValues' in v['taming']: del v['taming']['specialFoodValues']
         if 'favoriteKibble' in v['taming']: del v['taming']['favoriteKibble']
         if 'eats' in v['taming']: del v['taming']['eats']
-    # if 'immobilizedBy' in v: del v['immobilizedBy']
     if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
 
 #%% Show which species we're processing

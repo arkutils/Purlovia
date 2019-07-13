@@ -279,6 +279,7 @@ def gather_taming_data(props) -> Dict[str, Any]:
 @dataclass
 class ImmobilizingItem:
     name: str
+    is_trap: bool = False
     minWeight: Optional[float] = 0
     maxWeight: Optional[float] = math.inf
     minMass: Optional[float] = 0
@@ -290,9 +291,9 @@ class ImmobilizingItem:
 immobilization_itemdata: List[ImmobilizingItem] = [
     ImmobilizingItem(name="Bola", maxWeight=150),
     ImmobilizingItem(name="Chain Bola", minWeight=148, maxWeight=900, ignoreBosses=True),
-    ImmobilizingItem(name="Bear Trap", maxMass=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
-    ImmobilizingItem(name="Large Bear Trap", minMass=150, ignoreBosses=True),
-    ImmobilizingItem(name="Plant Species Y", maxMass=300, ignoreBosses=True),
+    ImmobilizingItem(name="Bear Trap", is_trap=True, maxMass=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
+    ImmobilizingItem(name="Large Bear Trap", is_trap=True, minMass=150, ignoreBosses=True),
+    ImmobilizingItem(name="Plant Species Y", is_trap=True, maxMass=300, ignoreBosses=True),
 ]
 
 
@@ -306,7 +307,7 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
     raise NotImplementedError
 
 
-def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader, mass) -> List[str]:
+def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
     items = ensure_immobilization_itemdata(loader)
     immobilizedBy: List[Any] = []
     if stat_value(props, 'bPreventImmobilization', 0, False):
@@ -314,9 +315,13 @@ def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader, mas
     if stat_value(props, 'bIsWaterDino', 0, False):
         return immobilizedBy
     weight = stat_value(props, 'DragWeight', 0, 35)
+    mass = stat_value(props, 'Mass', 0, 100.0)
     is_boss = stat_value(props, 'bIsBossDino', 0, False)
     tag = stat_value(props, 'CustomTag', 0, None)
+    ignore_traps = stat_value(props, 'bIgnoreAllImmobilizationTraps', 0, False)
     for item in items:
+        if item.is_trap and ignore_traps:
+            continue
         if item.minWeight > weight or item.maxWeight <= weight:
             continue
         if item.minMass > mass or item.maxMass <= mass:
@@ -368,8 +373,7 @@ def values_for_species(asset: UAsset,
 
     if includeImmobilize:
         # ImmobilizedBy format data
-        mass = get_species_mass(asset)
-        immobilization_data = gather_immobilization_data(props, asset.loader, mass)
+        immobilization_data = gather_immobilization_data(props, asset.loader)
         if immobilization_data:
             species['immobilizedBy'] = immobilization_data
 
