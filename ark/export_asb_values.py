@@ -35,6 +35,8 @@ logger.addHandler(logging.NullHandler())
 # Ta    TamingMaxStatAdditions
 # Tm    TamingMaxStatMultipliers
 
+# 50% TE Bonus Levels (MaxTamingEffectivenessBaseLevelMultiplier Default: 0.5)
+
 # TBHM  TamedBaseHealthMultiplier
 
 NAME_CHANGES = {
@@ -265,6 +267,8 @@ class ImmobilizingItem:
     name: str
     minWeight: Optional[float] = 0
     maxWeight: Optional[float] = math.inf
+    minMass: Optional[float] = 0
+    maxMass: Optional[float] = math.inf
     ignoreTags: List[str] = field(default_factory=list)
     ignoreBosses: bool = False
 
@@ -272,8 +276,8 @@ class ImmobilizingItem:
 immobilization_itemdata: List[ImmobilizingItem] = [
     ImmobilizingItem(name="Bola", maxWeight=150),
     ImmobilizingItem(name="Chain Bola", minWeight=148, maxWeight=900, ignoreBosses=True),
-    ImmobilizingItem(name="Bear Trap", maxWeight=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
-    ImmobilizingItem(name="Large Bear Trap", minWeight=150, maxWeight=math.inf, ignoreBosses=True),
+    ImmobilizingItem(name="Bear Trap", maxMass=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
+    ImmobilizingItem(name="Large Bear Trap", minMass=150, maxWeight=math.inf, ignoreBosses=True),
     ImmobilizingItem(name="Plant Species Y", maxWeight=300, ignoreBosses=True),
 ]
 
@@ -290,12 +294,19 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
 
 def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
     items = ensure_immobilization_itemdata(loader)
-    immobilizedBy = []
-    weight = stat_value(props, 'DragWeight', 0, 100)  # TODO: Verify default DragWeight
+    immobilizedBy: List[Any] = []
+    if stat_value(props, 'bPreventImmobilization', 0, False):
+        return immobilizedBy
+    if stat_value(props, 'bIsWaterDino', 0, False):
+        return immobilizedBy
+    weight = stat_value(props, 'DragWeight', 0, 35)
+    mass = stat_value(props, 'Mass', 0, 100)
     is_boss = stat_value(props, 'bIsBossDino', 0, False)
     tag = stat_value(props, 'CustomTag', 0, None)
     for item in items:
-        if item.minWeight > weight or item.maxWeight < weight:
+        if item.minWeight > weight or item.maxWeight <= weight:
+            continue
+        if item.minMass > mass or item.maxMass <= mass:
             continue
         if is_boss:
             continue
