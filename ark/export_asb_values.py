@@ -271,7 +271,8 @@ def gather_taming_data(props) -> Dict[str, Any]:
             data['eats'] = eats
         if favorite_kibble is not None:
             data['favoriteKibble'] = favorite_kibble
-        # data['specialFoodValues'] = special_food_values # TODO: Temporarily commented out
+        if special_food_values is not None:
+            data['specialFoodValues'] = special_food_values
 
     return data
 
@@ -359,10 +360,10 @@ def values_for_species(asset: UAsset,
     name = NAME_CHANGES.get(name, name)
 
     # Tag is used to identify immobilization targets and compatible saddles
-    tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
+    # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
 
     # Drag weight is used for immobilization calculation and arena entry
-    dragWeight = stat_value(props, 'DragWeight', 0, None)
+    # dragWeight = stat_value(props, 'DragWeight', 0, None)
 
     species = dict(name=name, blueprintPath=bp)  #, tag=tag, dragWeight=dragWeight
 
@@ -374,13 +375,12 @@ def values_for_species(asset: UAsset,
     if includeImmobilize:
         # ImmobilizedBy format data
         immobilization_data = gather_immobilization_data(props, asset.loader)
-        if immobilization_data:
-            species['immobilizedBy'] = immobilization_data
+        species['immobilizedBy'] = immobilization_data
 
     if includeBreeding:
         # Breeding data
         if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-            breeding_data = gather_breeding_data(props, asset.loader)  # type: ignore
+            breeding_data = gather_breeding_data(props, asset.loader)
             if breeding_data:
                 species['breeding'] = breeding_data
 
@@ -394,8 +394,7 @@ def values_for_species(asset: UAsset,
 
     if includeTaming:
         # Taming data
-        # ASB currently requires all species to have taming data
-        if stat_value(props, 'bCanBeTamed', True) or True:
+        if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
             taming = gather_taming_data(props)
             if taming:
                 species['taming'] = taming
