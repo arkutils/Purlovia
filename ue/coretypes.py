@@ -98,11 +98,6 @@ class NameIndex(UEBase):
         self._newField('value', self.asset.getName(self.index))
         self.value.register_user(self.parent or self)
 
-    __hash__ = UEBase.__hash__
-
-    def __eq__(self, other):
-        return self.index == other.index
-
     if support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -159,12 +154,6 @@ class ObjectIndex(UEBase):
                 value.register_user(self)
 
         self._newField('value', value)
-
-    def __hash__(self):
-        return super().__hash__()
-
-    def __eq__(self, other):
-        return self.index == other.index
 
     # if support_pretty:
 

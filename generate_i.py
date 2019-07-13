@@ -160,7 +160,6 @@ for v in expected_species_data.values():
         if 'specialFoodValues' in v['taming']: del v['taming']['specialFoodValues']
         if 'favoriteKibble' in v['taming']: del v['taming']['favoriteKibble']
         if 'eats' in v['taming']: del v['taming']['eats']
-    if 'immobilizedBy' in v: del v['immobilizedBy']
     if 'boneDamageAdjusters' in v: del v['boneDamageAdjusters']
 
 #%% Show which species we're processing
@@ -194,7 +193,12 @@ stat_names = ('health', 'stam', 'oxy', 'food', 'weight', 'dmg', 'speed', 'torpor
 stat_fields = ('B', 'Iw', 'Id', 'Ta', 'Tm')
 
 print(f'\nDifferences:')
-diff = DeepDiff(expected_values, values, ignore_numeric_type_changes=True, exclude_paths={"root['ver']"}, significant_digits=2)
+diff = DeepDiff(expected_values,
+                values,
+                ignore_numeric_type_changes=True,
+                ignore_type_in_groups=[(int, float)],
+                exclude_paths={"root['ver']"},
+                significant_digits=1)
 diff = pretty(diff, max_width=130)
 diff = clean_diff_output(diff)
 print(diff)

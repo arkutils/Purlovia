@@ -1,11 +1,13 @@
+import math
 from typing import *
 import warnings
 import logging
+from dataclasses import dataclass, field
 
 from ue.asset import UAsset
 from ue.loader import AssetLoader
 from ue.properties import LinearColor
-from ark.properties import stat_value
+from ark.properties import stat_value, PriorityPropDict
 import ark.mod
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,8 @@ logger.addHandler(logging.NullHandler())
 # Id    AmountMaxGainedPerLevelUpValueTamed
 # Ta    TamingMaxStatAdditions
 # Tm    TamingMaxStatMultipliers
+
+# 50% TE Bonus Levels (MaxTamingEffectivenessBaseLevelMultiplier Default: 0.5)
 
 # TBHM  TamedBaseHealthMultiplier
 
@@ -85,6 +89,20 @@ def read_colour_definitions(asset):
         color_defs.append((str(color_dict['ColorName']), convert_linear_color(color_dict['ColorValue'].values[0])))
 
     return color_defs
+
+
+# returns the species' mass or the default value of 100
+# needs to be incorporated into the gather props function as species
+#    that inherit from other species will use it's parent's mass instead
+#    and ends up receiving the "default" 100 value for mass
+def get_species_mass(asset):
+    for export in asset.exports:
+        if export.namespace.value:
+            if str(export.namespace.value) == str(asset.default_export):
+                for prop in export.properties:
+                    if str(prop.header.name.value) == 'Mass':
+                        return prop.value.value
+    return 100.0
 
 
 def gather_stat_data(props, statIndexes):
@@ -253,9 +271,69 @@ def gather_taming_data(props) -> Dict[str, Any]:
             data['eats'] = eats
         if favorite_kibble is not None:
             data['favoriteKibble'] = favorite_kibble
-        data['specialFoodValues'] = special_food_values
+        if special_food_values is not None:
+            data['specialFoodValues'] = special_food_values
 
     return data
+
+
+@dataclass
+class ImmobilizingItem:
+    name: str
+    is_trap: bool = False
+    minWeight: Optional[float] = 0
+    maxWeight: Optional[float] = math.inf
+    minMass: Optional[float] = 0
+    maxMass: Optional[float] = math.inf
+    ignoreTags: List[str] = field(default_factory=list)
+    ignoreBosses: bool = False
+
+
+immobilization_itemdata: List[ImmobilizingItem] = [
+    ImmobilizingItem(name="Bola", maxWeight=150),
+    ImmobilizingItem(name="Chain Bola", minWeight=148, maxWeight=900, ignoreBosses=True),
+    ImmobilizingItem(name="Bear Trap", is_trap=True, maxMass=201, ignoreTags=['Mek', 'MegaMek'], ignoreBosses=True),
+    ImmobilizingItem(name="Large Bear Trap", is_trap=True, minMass=150, ignoreBosses=True),
+    ImmobilizingItem(name="Plant Species Y", is_trap=True, maxMass=300, ignoreBosses=True),
+]
+
+
+def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem]:
+    global immobilization_itemdata  #pylint: disable=global-statement
+    if immobilization_itemdata:
+        return immobilization_itemdata
+
+    # TODO: Implement search for buffs and structures that can immobilize
+    # bImmobilizeTarget for buffs (including bolas, etc)
+    raise NotImplementedError
+
+
+def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
+    items = ensure_immobilization_itemdata(loader)
+    immobilizedBy: List[Any] = []
+    if stat_value(props, 'bPreventImmobilization', 0, False):
+        return immobilizedBy
+    if stat_value(props, 'bIsWaterDino', 0, False):
+        return immobilizedBy
+    weight = stat_value(props, 'DragWeight', 0, 35)
+    mass = stat_value(props, 'Mass', 0, 100.0)
+    is_boss = stat_value(props, 'bIsBossDino', 0, False)
+    tag = stat_value(props, 'CustomTag', 0, None)
+    ignore_traps = stat_value(props, 'bIgnoreAllImmobilizationTraps', 0, False)
+    for item in items:
+        if item.is_trap and ignore_traps:
+            continue
+        if item.minWeight > weight or item.maxWeight <= weight:
+            continue
+        if item.minMass > mass or item.maxMass <= mass:
+            continue
+        if is_boss:
+            continue
+        if tag in item.ignoreTags:  # pylint: disable=unsupported-membership-test
+            continue
+        immobilizedBy.append(item.name)
+
+    return immobilizedBy
 
 
 def values_for_species(asset: UAsset,
@@ -264,6 +342,7 @@ def values_for_species(asset: UAsset,
                        fullStats=False,
                        includeColor=False,
                        includeBreeding=True,
+                       includeImmobilize=True,
                        includeTaming=True):
     assert asset.loader
 
@@ -280,17 +359,28 @@ def values_for_species(asset: UAsset,
     # Replace names to match ASB's hardcoding of specific species
     name = NAME_CHANGES.get(name, name)
 
-    species = dict(name=name, blueprintPath=bp)
+    # Tag is used to identify immobilization targets and compatible saddles
+    # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
+
+    # Drag weight is used for immobilization calculation and arena entry
+    # dragWeight = stat_value(props, 'DragWeight', 0, None)
+
+    species = dict(name=name, blueprintPath=bp)  #, tag=tag, dragWeight=dragWeight
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'
     statIndexes = ARK_STAT_INDEXES if fullStats else ASB_STAT_INDEXES
     species[statsField] = gather_stat_data(props, statIndexes)
 
+    if includeImmobilize:
+        # ImmobilizedBy format data
+        immobilization_data = gather_immobilization_data(props, asset.loader)
+        species['immobilizedBy'] = immobilization_data
+
     if includeBreeding:
         # Breeding data
         if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-            breeding_data = gather_breeding_data(props, asset.loader)  # type: ignore
+            breeding_data = gather_breeding_data(props, asset.loader)
             if breeding_data:
                 species['breeding'] = breeding_data
 
@@ -304,8 +394,7 @@ def values_for_species(asset: UAsset,
 
     if includeTaming:
         # Taming data
-        # ASB currently requires all species to have taming data
-        if stat_value(props, 'bCanBeTamed', True) or True:
+        if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
             taming = gather_taming_data(props)
             if taming:
                 species['taming'] = taming

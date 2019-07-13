@@ -57,6 +57,8 @@ class ByInheritance:
 
             asset = self.loader[assetname]
             for cmpassetname in findSubComponentParentPackages(asset):
+                if not cmpassetname.startswith('/Game'):
+                    continue
                 cmpasset = self.loader[cmpassetname]
                 if inherits_from(cmpasset, ByInheritance.DCSC_ASSET):
                     return True  # finish walk early
