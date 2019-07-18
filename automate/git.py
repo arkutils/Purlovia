@@ -147,6 +147,9 @@ class GitManager:
             return f'{path.name} removed'
 
         if path.suffix.lower() == '.json':
+            if path.name.lower() == '_manifest.json':
+                return None
+
             with open(path) as f:
                 data = json.load(f)
 

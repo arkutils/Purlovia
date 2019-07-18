@@ -12,6 +12,7 @@ from config import get_global_config, ConfigFile
 from .git import GitManager
 from .ark import ArkSteamManager
 from .export import export_values
+from .manifest import update_manifest
 
 # pylint: enable=invalid-name
 
@@ -119,6 +120,9 @@ def run(config: ConfigFile):
 
         # Export vanilla and/or requested mods
         export_values(arkman, set(mods), config)
+
+        # Update the manifest file
+        update_manifest(config=config)
 
         # Commit any changes
         git.after_exports()
