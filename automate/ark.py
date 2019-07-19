@@ -1,16 +1,17 @@
+import datetime
 import json
 import shutil
-import logging
-import datetime
-from typing import *
-from pathlib import Path
+from logging import NullHandler, getLogger
 from os import walk
+from pathlib import Path
+from typing import *
 
-from config import get_global_config, ConfigFile
+from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, ModResolver
-from .modutils import unpackModFile, readACFFile, readModInfo, readModMetaInfo
-from .steamcmd import Steamcmd
+
+from .modutils import readACFFile, readModInfo, readModMetaInfo, unpackModFile
 from .steamapi import SteamApi
+from .steamcmd import Steamcmd
 from .version import createExportVersion
 
 __all__ = ('ArkSteamManager', )
@@ -20,8 +21,8 @@ ARK_MAIN_APP_ID = 346110
 
 MODDATA_FILENAME = '_moddata.json'
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 
 class ArkSteamManager:

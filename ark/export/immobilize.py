@@ -1,8 +1,9 @@
 import math
-from typing import *
 from dataclasses import dataclass, field
+from typing import *
+
+from ark.properties import PriorityPropDict, stat_value
 from ue.loader import AssetLoader
-from ark.properties import stat_value, PriorityPropDict
 
 
 @dataclass

@@ -7,7 +7,6 @@ briGit - Very simple git wrapper module
 """
 
 import logging
-from logging import getLogger
 import os
 import re
 from datetime import datetime
@@ -79,7 +78,7 @@ class Git(RawGit):
 
         dirpath = os.path.dirname(self.path)
         basename = os.path.basename(self.path)
-        self.logger = getLogger("brigit")
+        self.logger = logging.getLogger("brigit")
         if not quiet:
             self.logger.addHandler(handler)
             self.logger.setLevel(logging.DEBUG)

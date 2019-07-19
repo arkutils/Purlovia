@@ -1,6 +1,6 @@
 from typing import *
 
-from ue.asset import UAsset, ExportTableItem
+from ue.asset import ExportTableItem, UAsset
 
 
 def findComponentExports(asset: UAsset) -> Iterator[ExportTableItem]:

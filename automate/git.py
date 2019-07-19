@@ -1,7 +1,7 @@
-import os
 import json
-import logging
+import os
 import tempfile
+from logging import NullHandler, getLogger
 from pathlib import Path
 
 from config import ConfigFile, get_global_config
@@ -11,8 +11,8 @@ __all__ = [
     'GitManager',
 ]
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 MESSAGE_HEADER = "Raptor Claus just dropped some files off"
 

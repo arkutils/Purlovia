@@ -1,15 +1,15 @@
 import os.path
+
 import pytest  # type: ignore
 
-from ue.base import UEBase
+import ark.asset
+import ark.mod
 from ue.asset import UAsset
+from ue.base import UEBase
 from ue.loader import load_file_into_memory
+from ue.properties import *
 from ue.stream import MemoryStream
 from ue.utils import *
-from ue.properties import *
-
-import ark.mod
-import ark.asset
 
 
 def load_asset(assetfile: str):

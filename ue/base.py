@@ -1,12 +1,12 @@
 from typing import *
 
+from ue.stream import MemoryStream
+
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
     support_pretty = True
 except ImportError:
     support_pretty = False
-
-from ue.stream import MemoryStream
 
 
 class UEBase(object):

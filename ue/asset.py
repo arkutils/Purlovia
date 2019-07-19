@@ -3,11 +3,11 @@ from typing import *
 
 from deprecated import deprecated  # type: ignore
 
-from .stream import MemoryStream
 from .base import UEBase
-from .utils import get_clean_name, get_clean_namespaced_name
 from .coretypes import *
-from .properties import PropertyTable, StringProperty, Guid
+from .properties import Guid, PropertyTable, StringProperty
+from .stream import MemoryStream
+from .utils import get_clean_name, get_clean_namespaced_name
 
 dbg_getName = 0
 

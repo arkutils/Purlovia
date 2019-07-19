@@ -1,17 +1,17 @@
-import os
+import argparse
 import logging
 import logging.config
-import argparse
-from typing import *
+import os
 from pathlib import Path
+from typing import *
 
 import yaml
 
-from config import get_global_config, ConfigFile
+from config import ConfigFile, get_global_config
 
-from .git import GitManager
 from .ark import ArkSteamManager
 from .export import export_values
+from .git import GitManager
 from .manifest import update_manifest
 
 # pylint: enable=invalid-name

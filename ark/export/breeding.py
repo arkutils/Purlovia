@@ -1,7 +1,8 @@
 from typing import *
-from ue.loader import AssetLoader
+
 import ark.mod
 from ark.properties import stat_value
+from ue.loader import AssetLoader
 
 FEMALE_MINTIMEBETWEENMATING_DEFAULT = 64800.0
 FEMALE_MAXTIMEBETWEENMATING_DEFAULT = 172800.0

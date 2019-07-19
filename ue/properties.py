@@ -1,10 +1,14 @@
-import sys
 import math
-import uuid
 import struct
-import logging
-from typing import Type, Dict, List, Optional, Union, ByteString
+import sys
+import uuid
 from collections import defaultdict
+from logging import NullHandler, getLogger
+from typing import ByteString, Dict, List, Optional, Type, Union
+
+from .base import UEBase
+from .coretypes import *
+from .stream import MemoryStream
 
 try:
     from IPython.lib.pretty import PrettyPrinter, pprint, pretty  # type: ignore
@@ -12,14 +16,10 @@ try:
 except ImportError:
     support_pretty = False
 
-from .stream import MemoryStream
-from .base import UEBase
-from .coretypes import *
-
 dbg_structs = 0
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 PropDict = Dict[str, Dict[int, UEBase]]
 

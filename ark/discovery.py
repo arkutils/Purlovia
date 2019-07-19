@@ -1,9 +1,10 @@
 from typing import *
 
-from ue.loader import AssetLoader
 from config import get_global_config
+from ue.loader import AssetLoader
+
 from .asset import findSubComponentParentPackages
-from .tree import walk_parents, inherits_from
+from .tree import inherits_from, walk_parents
 
 __all__ = [
     'SpeciesDiscoverer',

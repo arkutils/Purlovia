@@ -1,9 +1,10 @@
 import warnings
 from typing import *
-from ue.loader import AssetLoader
-from ue.properties import LinearColor
+
 import ark.mod
 from ark.properties import stat_value
+from ue.loader import AssetLoader
+from ue.properties import LinearColor
 
 cached_color_defs: List[Tuple[str, Tuple[float, float, float, float]]] = []
 

@@ -1,19 +1,19 @@
-import re
 import json
-import logging
+import re
+from datetime import datetime
+from logging import NullHandler, getLogger
 from operator import attrgetter
 from typing import *
-from datetime import datetime
 
 import ark.discovery
 import ark.properties
 from ark.export_asb_values import values_for_species
-from config import get_global_config, ConfigFile
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
+from config import ConfigFile, get_global_config
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 __all__ = [
     'export_values',

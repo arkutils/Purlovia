@@ -1,8 +1,5 @@
+from logging import NullHandler, getLogger
 from typing import *
-import logging
-
-from ue.asset import UAsset
-from ark.properties import stat_value
 
 from ark.export.bones import gather_damage_mults
 from ark.export.breeding import gather_breeding_data
@@ -10,9 +7,11 @@ from ark.export.colors import gather_color_data
 from ark.export.immobilize import gather_immobilization_data
 from ark.export.stats import gather_stat_data
 from ark.export.taming import gather_taming_data
+from ark.properties import stat_value
+from ue.asset import UAsset
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 #                    Ark   ASB
 # Health              0     0
@@ -45,26 +44,11 @@ NAME_CHANGES = {
     'Ichthyosaurus': 'Ichthy',
     'Paraceratherium': 'Paracer',
 }
+
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
 ASB_STAT_INDEXES = (0, 1, 3, 4, 7, 8, 9, 2)
 ARK_STAT_INDEXES = list(range(12))
-
-remove_default_values = True  # TODO: probably set to False for production runs
-
-
-# returns the species' mass or the default value of 100
-# needs to be incorporated into the gather props function as species
-#    that inherit from other species will use it's parent's mass instead
-#    and ends up receiving the "default" 100 value for mass
-def get_species_mass(asset):
-    for export in asset.exports:
-        if export.namespace.value:
-            if str(export.namespace.value) == str(asset.default_export):
-                for prop in export.properties:
-                    if str(prop.header.name.value) == 'Mass':
-                        return prop.value.value
-    return 100.0
 
 
 def values_for_species(asset: UAsset,

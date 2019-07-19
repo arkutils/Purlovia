@@ -9,7 +9,10 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "[python]": {
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
     },
     "python.jediEnabled": false,
     "python.formatting.provider": "yapf",

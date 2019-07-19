@@ -3,12 +3,12 @@ Adapted from the pysteamcmd library, which has an MIT license.
 '''
 import platform
 import urllib.request
-import logging
+from logging import NullHandler, getLogger
 import subprocess
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 STCMD_SUCCESS = (0, 6, 7)  # SteamCMD Success return code
 STCMD_TIMEOUT = 10  # SteamCMD Timeout return code

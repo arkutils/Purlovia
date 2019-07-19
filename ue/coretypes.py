@@ -1,12 +1,12 @@
-from typing import Type, List
+from typing import List, Type
+
+from .base import UEBase
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
     support_pretty = True
 except ImportError:
     support_pretty = False
-
-from .base import UEBase
 
 __all__ = (
     'Table',

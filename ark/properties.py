@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import *
+from typing import Dict, List, Optional, Tuple
 
-from ue.coretypes import UEBase
-from ue.asset import UAsset, ExportTableItem
-from ue.utils import get_clean_name, get_property
 import ark.asset
 import ark.tree
 from ark.tree import inherits_from
+from ue.asset import ExportTableItem, UAsset
+from ue.coretypes import UEBase
+from ue.utils import get_clean_name, get_property
 
 from .common import *
 

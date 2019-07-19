@@ -1,8 +1,9 @@
-from typing import *
-from functools import lru_cache
 from collections import deque
+from functools import lru_cache
+from typing import *
 
-from ue.asset import UAsset, ExportTableItem, ImportTableItem
+from ue.asset import ExportTableItem, ImportTableItem, UAsset
+
 from .asset import findParentPackages
 
 __all__ = [

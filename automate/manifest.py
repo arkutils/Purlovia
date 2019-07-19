@@ -1,10 +1,10 @@
-import re
 import json
-import logging
-from typing import *
-from pathlib import Path
-from dataclasses import dataclass, asdict
+import re
+from dataclasses import asdict, dataclass
+from logging import NullHandler, getLogger
 from operator import itemgetter
+from pathlib import Path
+from typing import *
 
 from config import get_global_config
 
@@ -12,8 +12,8 @@ __all__ = [
     'update_manifest',
 ]
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 DEFAULT_IGNORES = ('_manifest.json', )
 

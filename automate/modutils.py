@@ -1,5 +1,5 @@
 import zlib
-import logging
+from logging import NullHandler, getLogger
 from typing import *
 
 from ue.stream import MemoryStream
@@ -14,8 +14,8 @@ __all__ = (
     'loadFileAsStream',
 )
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 
 class DecompressionError(Exception):

@@ -1,23 +1,22 @@
-import sys
-
-import re
 import os.path
-import logging
+import re
+import sys
 import weakref
-from typing import *
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
+from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
+from typing import *
 
 from ark.asset import findComponentExports
 
-from .stream import MemoryStream
-from .asset import UAsset, ImportTableItem, ExportTableItem
+from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
-from .properties import ObjectProperty, ObjectIndex, Property
+from .properties import ObjectIndex, ObjectProperty, Property
+from .stream import MemoryStream
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 __all__ = (
     'AssetLoader',

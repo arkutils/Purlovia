@@ -1,9 +1,9 @@
-from typing import Set, Sequence
+from typing import Sequence, Set
 
-from ue.loader import AssetLoader
-from ue.asset import UAsset
-from ue.utils import *
 from ark.asset import findComponentExports
+from ue.asset import UAsset
+from ue.loader import AssetLoader
+from ue.utils import *
 
 from .properties import gather_properties
 

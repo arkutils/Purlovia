@@ -1,5 +1,7 @@
 from pathlib import Path
+
 from pytest import fixture  # type: ignore
+
 from .loader import AssetLoader, ModResolver
 
 

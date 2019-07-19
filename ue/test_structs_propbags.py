@@ -1,4 +1,5 @@
 import pytest  # type: ignore
+
 from .testutils import *
 
 EMPTY_COLORS = dict(name=None, values=None)
