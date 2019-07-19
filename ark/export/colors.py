@@ -15,71 +15,69 @@ def create_dict(prop):
     return dict((str(v.name), v.value) for v in prop.values)
 
 
-def convert_linear_color(lcolor: LinearColor):
-    # Uses rounded as it matches the export file values
-    return (lcolor.r.rounded, lcolor.g.rounded, lcolor.b.rounded, lcolor.a.rounded)
+# def convert_linear_color(lcolor: LinearColor):
+#     # Uses rounded as it matches the export file values
+#     return (lcolor.r.rounded, lcolor.g.rounded, lcolor.b.rounded, lcolor.a.rounded)
 
+# TODO: Handle mod color definitions
+# def read_colour_definitions(asset):
+#     props = ark.mod.gather_properties(asset)
 
-def read_colour_definitions(asset):
-    props = ark.mod.gather_properties(asset)
+#     color_defs = []
+#     for color_def in props['ColorDefinitions'][0][-1].values:
+#         color_dict = create_dict(color_def)
+#         color_defs.append((str(color_dict['ColorName']), convert_linear_color(color_dict['ColorValue'].values[0])))
 
-    color_defs = []
-    for color_def in props['ColorDefinitions'][0][-1].values:
-        color_dict = create_dict(color_def)
-        color_defs.append((str(color_dict['ColorName']), convert_linear_color(color_dict['ColorValue'].values[0])))
+#     return color_defs
 
-    return color_defs
-
-
-def ensure_color_data(loader: AssetLoader):
-    global cached_color_defs
-    if cached_color_defs: return
-    cached_color_defs = read_colour_definitions(loader['/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'])
+# def ensure_color_data(loader: AssetLoader):
+#     global cached_color_defs
+#     if cached_color_defs: return
+#     cached_color_defs = read_colour_definitions(loader['/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'])
 
 
 def gather_color_data(props, loader: AssetLoader):
-    # TODO: Handle mod color definitions
+    colors: List[Any] = list()
+    male_colorset = props['RandomColorSetsMale'][0][-1]
+    female_colorset = props['RandomColorSetsFemale'][0][-1]
 
-    male_colorset_asset = loader.load_related(props['RandomColorSetsMale'][0][-1])
-    male_colorset_props = ark.mod.gather_properties(male_colorset_asset)
+    # Verifies the listed colorsets aren't empty
+    if male_colorset.value.value is not None:
+        male_colorset_asset = loader.load_related(male_colorset)
+        male_colorset_props = ark.mod.gather_properties(male_colorset_asset)
+    elif female_colorset.value.value is not None:
+        female_colorset_asset = loader.load_related(female_colorset)
+        female_colorset_props = ark.mod.gather_properties(female_colorset_asset)
+    else:
+        return colors
 
-    # Female Colorset
-    # female_colorset_asset = loader.load_related(props['RandomColorSetsFemale'][0][-1])
-    # female_colorset_props = ark.mod.gather_properties(female_colorset_asset)
+    # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
+    colorset_props = male_colorset_props or female_colorset_props
 
-    colors = list()
     for i, region in enumerate(DEFAULT_COLOR_REGIONS):
         prevent_region = stat_value(props, 'PreventColorizationRegions', i, region)
         color: Dict[str, Any] = dict()
-        color_ids: List[int] = list()
+        color_names: Set[str] = set()
 
         if prevent_region:
             color['name'] = None
-        elif i not in male_colorset_props['ColorSetDefinitions']:
+        elif i not in colorset_props['ColorSetDefinitions']:
             color['name'] = None
         else:
-            color_set_defs = create_dict(male_colorset_props['ColorSetDefinitions'][i][-1])
+            color_set_defs = create_dict(colorset_props['ColorSetDefinitions'][i][-1])
 
-            try:
+            if 'RegionName' in color_set_defs:
                 color['name'] = str(color_set_defs['RegionName'])
-            except:
+            else:
                 color['name'] = 'Unknown Region Name'
-
             if 'ColorEntryNames' in color_set_defs:
-                # If one color doesn't exist, this entire region is nulled
-                # Needs to be better implemented to support invalid color names
-                try:
-                    for color_name in color_set_defs['ColorEntryNames'].values:
-                        color_id = [c_def[0] for c_def in cached_color_defs].index(str(color_name)) + 1
-                        if color_id not in color_ids:
-                            color_ids.append(color_id)
-                except:
-                    warnings.warn(f'{color_name} was not found in the Color definitions')
+                for color_name in color_set_defs['ColorEntryNames'].values:
+                    color_names.add(str(color_name))
 
-        if not color_ids:
+        if not color_names:
             color['name'] = None
 
-        color['colorIds'] = color_ids
+        color['colors'] = sorted(color_names)
         colors.append(color)
 
     return colors

@@ -6,7 +6,7 @@ from ark.properties import stat_value
 
 from ark.export.bones import gather_damage_mults
 from ark.export.breeding import gather_breeding_data
-from ark.export.colors import ensure_color_data, gather_color_data
+from ark.export.colors import gather_color_data
 from ark.export.immobilize import gather_immobilization_data
 from ark.export.stats import gather_stat_data
 from ark.export.taming import gather_taming_data
@@ -71,7 +71,7 @@ def values_for_species(asset: UAsset,
                        props,
                        allFields=False,
                        fullStats=False,
-                       includeColor=False,
+                       includeColor=True,
                        includeBreeding=True,
                        includeImmobilize=True,
                        includeDamageMults=True,
@@ -118,7 +118,6 @@ def values_for_species(asset: UAsset,
 
     if includeColor:
         # Color data
-        ensure_color_data(asset.loader)
         if stat_value(props, 'bUseColorization', False):
             colors = gather_color_data(props, asset.loader)
             if colors:

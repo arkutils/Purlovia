@@ -114,7 +114,7 @@ class Exporter:
                                                     allFields=True,
                                                     fullStats=not self.config.settings.Export8Stats,
                                                     includeBreeding=True,
-                                                    includeColor=not ismod)
+                                                    includeColor=True)
             except:  # pylint: disable=bare-except
                 logger.warning(f'Export conversion failed for {asset.assetname}', exc_info=True)
 
