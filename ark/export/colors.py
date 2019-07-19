@@ -2,7 +2,7 @@ import warnings
 from typing import *
 
 import ark.mod
-from ark.properties import stat_value
+from ark.properties import PriorityPropDict, stat_value
 from ue.loader import AssetLoader
 from ue.properties import LinearColor
 
@@ -41,6 +41,9 @@ def gather_color_data(props, loader: AssetLoader):
     colors: List[Any] = list()
     male_colorset = props['RandomColorSetsMale'][0][-1]
     female_colorset = props['RandomColorSetsFemale'][0][-1]
+
+    male_colorset_props: Optional[PriorityPropDict] = None
+    female_colorset_props: Optional[PriorityPropDict] = None
 
     # Verifies the listed colorsets aren't empty
     if male_colorset.value.value is not None:
