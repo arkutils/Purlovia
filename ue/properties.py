@@ -441,6 +441,7 @@ class StructProperty(UEBase):
 
     count: int
     values: List[UEBase]
+    _as_dict: Optional[Dict[str, UEBase]] = None
 
     def _deserialise(self, size):
         values = []
@@ -505,6 +506,32 @@ class StructProperty(UEBase):
             value.deserialise()
             values.append(value)
             self.field_values['count'] += 1
+
+    def as_dict(self) -> Dict[str, UEBase]:
+        return self._as_dict or self._convert_to_dict()
+
+    def get_property(self, name: str, fallback=NO_FALLBACK) -> UEBase:
+        value = self.as_dict()[name]
+
+        if value is not None:
+            return value
+
+        if fallback is not NO_FALLBACK:
+            return fallback
+
+        raise KeyError(f"Property {name} not found")
+
+    def _convert_to_dict(self):
+        result: Dict[str, Optional[UEBase]] = defaultdict(lambda: None)
+
+        for entry in self.values:
+            name = str(entry.name)
+            value = entry.value
+
+            result[name] = value
+
+        self._as_dict = result
+        return result
 
     def __str__(self):
         if self.values and len(self.values) == 1:

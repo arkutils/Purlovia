@@ -336,6 +336,21 @@ def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> 
     return immobilizedBy
 
 
+def gather_damage_mults(props: PriorityPropDict) -> Optional[Dict[str, float]]:
+    if not props['BoneDamageAdjusters'][0]:
+        return None
+
+    adjusters = props['BoneDamageAdjusters'][0][-1].values
+
+    result = dict()
+    for bone_info in adjusters:
+        name = str(bone_info.get_property('BoneName'))
+        mult = bone_info.get_property('DamageMultiplier').value
+        result[name] = mult
+
+    return result
+
+
 def values_for_species(asset: UAsset,
                        props,
                        allFields=False,
@@ -343,6 +358,7 @@ def values_for_species(asset: UAsset,
                        includeColor=False,
                        includeBreeding=True,
                        includeImmobilize=True,
+                       includeDamageMults=True,
                        includeTaming=True):
     assert asset.loader
 
@@ -398,6 +414,12 @@ def values_for_species(asset: UAsset,
             taming = gather_taming_data(props)
             if taming:
                 species['taming'] = taming
+
+    if includeDamageMults:
+        # Bone damage multipliers
+        dmg_mults = gather_damage_mults(props)
+        if dmg_mults:
+            species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
