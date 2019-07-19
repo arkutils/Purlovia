@@ -3,12 +3,18 @@ from typing import *
 
 from ark.export.bones import gather_damage_mults
 from ark.export.breeding import gather_breeding_data
-from ark.export.colors import gather_color_data
+from ark.export.colors import gather_color_data, gather_pgd_colors
 from ark.export.immobilize import gather_immobilization_data
 from ark.export.stats import gather_stat_data
 from ark.export.taming import gather_taming_data
-from ark.properties import stat_value
+from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
+from ue.loader import AssetLoader
+
+__all__ = [
+    'values_from_pgd',
+    'values_for_species',
+]
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -51,8 +57,24 @@ ASB_STAT_INDEXES = (0, 1, 3, 4, 7, 8, 9, 2)
 ARK_STAT_INDEXES = list(range(12))
 
 
+def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, Any]:
+    assert asset and asset.loader
+    loader = asset.loader
+    props = gather_properties(asset)
+
+    result: Dict[str, Any] = dict()
+
+    colors, dyes = gather_pgd_colors(props, loader, require_override=require_override)
+    if colors:
+        result['colorDefinitions'] = colors
+    if dyes:
+        result['dyeDefinitions'] = dyes
+
+    return result
+
+
 def values_for_species(asset: UAsset,
-                       props,
+                       props: PriorityPropDict,
                        allFields=False,
                        fullStats=False,
                        includeColor=True,

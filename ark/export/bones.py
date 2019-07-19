@@ -2,6 +2,10 @@ from typing import *
 
 from ark.properties import PriorityPropDict
 
+__all__ = [
+    'gather_damage_mults',
+]
+
 
 def gather_damage_mults(props: PriorityPropDict) -> Optional[Dict[str, float]]:
     if not props['BoneDamageAdjusters'][0]:

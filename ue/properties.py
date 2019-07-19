@@ -706,6 +706,9 @@ class LinearColor(UEBase):
         self._newField('b', FloatProperty(self))
         self._newField('a', FloatProperty(self))
 
+    def as_tuple(self):
+        return tuple(v.value for v in self.field_values.values())
+
 
 TYPE_MAP = {
     'FloatProperty': FloatProperty,

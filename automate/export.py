@@ -7,7 +7,8 @@ from typing import *
 
 import ark.discovery
 import ark.properties
-from ark.export_asb_values import values_for_species
+from ark.common import PGD_PKG
+from ark.export_asb_values import values_for_species, values_from_pgd
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
@@ -75,7 +76,11 @@ class Exporter:
         species.sort()
         species_data = self._gather_species_data(species)
         species_values = self._convert_for_export(species_data, False)
-        self._export_values(species_values, version=version, moddata=None)
+
+        other: Dict[str, Any] = dict()
+        other.update(self._gather_color_data(PGD_PKG, require_override=False))
+
+        self._export_values(species_values, version=version, moddata=None, other=other)
 
     def _export_mod(self, modid: str):
         moddata = self.arkman.getModData(modid)
@@ -86,7 +91,20 @@ class Exporter:
         species.sort()
         species_data = self._gather_species_data(species)
         species_values = self._convert_for_export(species_data, True)
-        self._export_values(species_values, version=version, moddata=moddata)
+
+        other: Dict[str, Any] = dict()
+        mod_pgd = moddata.get('package', None)
+        if mod_pgd:
+            other.update(self._gather_color_data(mod_pgd, require_override=True))
+        else:
+            logger.warning(f'PrimalGameData information missing for mod {modid}')
+
+        self._export_values(species_values, version=version, moddata=moddata, other=other)
+
+    def _gather_color_data(self, pgd_assetname: str, require_override: bool = False) -> Dict[str, Any]:
+        asset = self.loader[pgd_assetname]
+        color_data = values_from_pgd(asset, require_override=require_override)
+        return color_data
 
     def _gather_species_data(self, species):
         species_data = list()
@@ -123,7 +141,7 @@ class Exporter:
 
         return values
 
-    def _export_values(self, species_values: List, version: str, moddata: Optional[Dict] = None):
+    def _export_values(self, species_values: List, version: str, other: Dict = dict(), moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
         values['formatVersion'] = "1.12"
 
@@ -136,6 +154,9 @@ class Exporter:
 
         values['version'] = version
         values['species'] = species_values
+
+        if other:
+            values.update(other)
 
         fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')
 

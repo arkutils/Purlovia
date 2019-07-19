@@ -2,6 +2,10 @@ from typing import *
 
 from ark.properties import stat_value
 
+__all__ = [
+    'gather_taming_data',
+]
+
 
 def gather_taming_data(props) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()

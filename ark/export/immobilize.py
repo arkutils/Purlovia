@@ -5,6 +5,10 @@ from typing import *
 from ark.properties import PriorityPropDict, stat_value
 from ue.loader import AssetLoader
 
+__all__ = [
+    'gather_immobilization_data',
+]
+
 
 @dataclass
 class ImmobilizingItem:
