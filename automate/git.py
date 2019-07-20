@@ -27,7 +27,7 @@ class GitManager:
 
     def before_exports(self):
         if not self.config.settings.EnableGit:
-            logger.info('Git interaction disabled, aborting')
+            logger.info('Git interaction disabled')
             return
 
         logger.info('Verifying Git repo integrity')
@@ -35,8 +35,11 @@ class GitManager:
         # Validate clone is valid
         self._validate_setup()
 
-        # Check branch is correct (maybe checkout if not?)
+        # Check branch is correct
         self._set_branch()
+
+        # Perform reset, if configured
+        self._do_reset()
 
         logger.info('Git repo is setup and ready to go')
 
@@ -44,23 +47,22 @@ class GitManager:
         if not self.config.settings.EnableGit:
             return
 
-        # Pull and ensure it was clean
-        logger.info('Pulling remote changes')
-        self.git.pull('--no-rebase', '--ff-only')
+        # Perform pull, if configured
+        self._do_pull()
 
         # If no files changed, return
         if not self._any_local_changes():
-            logger.info('There are no local changes')
+            logger.info('No local changes, aborting')
             return
 
-        # Add
+        # Add changed files
         self._do_add()
 
-        # Construct commit message using a simple message plus names and versions of all changed files
+        # Construct commit message using a simple message plus names and versions of changed files
         message = self._create_commit_msg()
 
         # Commit
-        self._do_commit(message, dry_run=self.config.settings.SkipCommit)
+        self._do_commit(message)
 
         # Push
         self._do_push()
@@ -71,54 +73,80 @@ class GitManager:
         output = self.git.status('-s', '--', self.relative_publish_path).strip()
         return bool(output)
 
+    def _do_reset(self):
+        if self.config.settings.GitUseReset:
+            logger.info('Performing hard reset to remote HEAD')
+            if not self.config.settings.SkipPull:
+                self.git.fetch()
+                self.git.reset('--hard', 'origin/' + self.config.settings.GitBranch)
+            else:
+                logger.info('(skipped)')
+
+    def _do_pull(self):
+        if not self.config.settings.GitUseReset:
+            logger.info('Performing pull')
+            if not self.config.settings.SkipPull:
+                self.git.pull('--no-rebase', '--ff-only')
+            else:
+                logger.info('(skipped)')
+
     def _do_add(self):
         self.git.add('--', self.relative_publish_path)
 
     def _do_push(self):
-        logger.info('Pushing changes')
-        if not (self.config.settings.SkipPush or self.config.settings.SkipCommit):
+        if self.config.settings.SkipPush:
+            logger.info('(push skipped by request)')
+        elif not self.config.settings.GitUseIdentity:
+            logger.warning('Push skipped due to lack of git identity')
+        else:
+            logger.info('Pushing changes')
             self.git.push()
+
+    def _do_commit(self, message):
+        if self.config.settings.SkipCommit:
+            logger.info('(commit skipped by request')
+        elif not self.config.settings.GitUseIdentity:
+            logger.warning('Commit skipped due to lack of git identity')
         else:
-            logger.info('(skipped)')
+            logger.info('Performing commit')
 
-    def _do_commit(self, message, dry_run=True):
-        logger.info('Performing commit %s', '[dry-run only]' if dry_run else '')
+            try:
+                # Put the message in a temp file to avoid stupidly long command-line arguments
+                tmpfilename: str
+                with tempfile.NamedTemporaryFile('w', delete=False) as f:
+                    tmpfilename = f.name
+                    f.write(message)
 
-        # Put the message in a temp file to avoid stupidly long command-line arguments
-        tmpfilename: str
-        with tempfile.NamedTemporaryFile('w', delete=False) as f:
-            tmpfilename = f.name
-            f.write(message)
-
-        # Run the commit, with dry-run flag if requested
-        if dry_run:
-            self.git.commit('--dry-run', '-F', f.name, '--', self.relative_publish_path)
-        else:
-            self.git.commit('-F', f.name, '--', self.relative_publish_path)
-        os.unlink(tmpfilename)
+                # Run the commit
+                self.git.commit('-F', f.name, '--', self.relative_publish_path)
+            finally:
+                if tmpfilename:
+                    os.unlink(tmpfilename)
 
     def _validate_setup(self):
         # This will throw if there's no git repo here
         self.git.status()
 
-        # Check a custom user has been configured and is using a custom ssh identity
-        username: str = '<unset>'
-        try:
-            # Each of these will throw a GitException if not present
-            username = self.git.config('--local', 'user.name').strip()
-            self.git.config('--local', 'user.email')
-            self.git.config('--local', 'core.sshCommand')
-        except GitException:
-            logger.error("Git output repo does not have custom identity configuration. Aborting!")
-            raise
+        if self.config.settings.GitUseIdentity:
+            # Check a custom user has been configured and is using a custom ssh identity
+            username: str = '<unset>'
+            try:
+                # Each of these will throw a GitException if not present
+                username = self.git.config('--local', 'user.name').strip()
+                self.git.config('--local', 'user.email')
+                self.git.config('--local', 'core.sshCommand')
+            except GitException:
+                logger.error("Git output repo does not have custom identity configuration. Aborting!")
+                raise
 
-        logger.info(f'Git configured as user: {username}')
+            logger.info(f'Git configured as user: {username}')
+        else:
+            logger.info(f'Git ready, without user identity')
 
     def _set_branch(self):
         branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()
 
         if branch != self.config.settings.GitBranch:
-            branch = self.config.settings.GitBranch
             self.git.checkout(self.config.settings.GitBranch)
 
     def _create_commit_msg(self):

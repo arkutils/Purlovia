@@ -25,6 +25,7 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     if os.path.exists(path):
         with open(path, 'rt') as f:
             config = yaml.safe_load(f)
+        Path('logs').mkdir(parents=True, exist_ok=True)
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=level)
@@ -38,41 +39,56 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     root_logger.log(100, '')
 
 
+EPILOG = '''example: python -m automate --dev --skip-install'''
+
+DESCRIPTION = '''Perform an automated run of Purlovia, optionally overriding config or individual parts of the process.'''
+
+
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Perform an automated run of Purlovia")
+    parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
-    parser.add_argument('--dev', action='store_true', help='Enable dev mode [skips install, commit and push]')
+    exclusive = parser.add_mutually_exclusive_group()
+    exclusive.add_argument('--live', action='store_true', help='enable live mode [requires git identity]')
+    exclusive.add_argument('--dev', action='store_true', help='enable dev mode [skips commit and push]')
 
-    parser.add_argument('--skip-install', action='store_true', help='Skip instllation of game and mods')
-    parser.add_argument('--skip-extract', action='store_true', help='Skip extracting all species')
-    parser.add_argument('--skip-vanilla', action='store_true', help='Skip extracting vanilla species')
-    parser.add_argument('--skip-commit', action='store_true', help='Skip committing to Git (uses dry-run mode)')
-    parser.add_argument('--skip-push', action='store_true', help='Skip pushing to Git')
+    parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
+    parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
+    parser.add_argument('--skip-extract', action='store_true', help='skip extracting all species completely')
+    parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting vanilla species')
+    parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
+    parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
 
-    parser.add_argument('--stats', action='store', choices=('8', '12'), help='Specify the stat format to export')
-
-    parser.add_argument('--log-dir', action='store', type=Path, default=Path('logs'), help="Change the default logging level")
+    parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format to export')
 
     return parser
 
 
 def handle_args(args: Any) -> ConfigFile:
-    # Ensure log directory exists before starting the logging system
-    args.log_dir.mkdir(parents=True, exist_ok=True)
     setup_logging(path='config/logging.yaml')
 
-    if args.dev:
-        args.skip_commit = True
-        args.skip_install = True
-        logger.info('DEV mode enabled')
-
     config = get_global_config()
+
+    if args.dev:
+        logger.info('DEV mode enabled')
+        config.settings.GitUseIdentity = False
+        config.settings.GitUseReset = False
+        config.settings.SkipCommit = True
+        config.settings.SkipPush = True
+        config.settings.SkipPull = True
+    elif args.live:
+        logger.info('LIVE mode enabled')
+        config.settings.EnableGit = True
+        config.settings.GitUseReset = True
+        config.settings.GitUseIdentity = True
 
     if args.stats:
         if int(args.stats) == 12:
             config.settings.Export8Stats = False
         else:
             config.settings.Export8Stats = True
+
+    if args.skip_pull:
+        config.settings.SkipPull = True
 
     if args.skip_install:
         config.settings.SkipInstall = True

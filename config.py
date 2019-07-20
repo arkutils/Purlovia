@@ -1,6 +1,6 @@
-from typing import *
-from pathlib import Path
 from configparser import ConfigParser
+from pathlib import Path
+from typing import *
 
 from pydantic import BaseModel, validator
 
@@ -45,12 +45,15 @@ class SettingsSection(BaseModel):
     GitDirectory: Path = Path('output')
     PublishDir: Path = Path('output/data/asb')
 
-    GitBranch: str = 'master'
     EnableGit: bool = False
+    GitBranch: str = 'master'
+    GitUseReset: bool = False
+    GitUseIdentity: bool = False
 
     SkipInstall: bool = False
     SkipExtract: bool = False
     SkipCommit: bool = False
+    SkipPull: bool = False
     SkipPush: bool = False
 
 
