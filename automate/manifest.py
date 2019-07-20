@@ -70,7 +70,7 @@ def _collect_info(filename: Path) -> Dict:
     if ver:
         info['version'] = ver
 
-    fmt = data.get('formatVersion', None)
+    fmt = data.get('format', None)
     if fmt:
         info['format'] = fmt
 
