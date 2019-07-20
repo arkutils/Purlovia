@@ -8,7 +8,7 @@
             "name": "Run automate.export",
             "type": "python",
             "request": "launch",
-            "module": "automate.export",
+            "module": "automate",
             "console": "integratedTerminal"
         },
         {
