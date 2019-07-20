@@ -24,7 +24,7 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
         with open(path, 'rt') as f:
-            config = yaml.safe_load(f.read())
+            config = yaml.safe_load(f)
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=level)
@@ -38,16 +38,8 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     root_logger.log(100, '')
 
 
-def get_level_names():
-    for name in sorted(logging._levelToName.values()):  # pylint: disable=protected-access,no-member
-        if isinstance(name, str) and 'NOTSET' not in name:
-            yield name
-
-
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Perform an automated run of Purlovia")
-
-    loglevels = list(get_level_names())
 
     parser.add_argument('--dev', action='store_true', help='Enable dev mode [skips install, commit and push]')
 
@@ -59,7 +51,6 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--stats', action='store', choices=('8', '12'), help='Specify the stat format to export')
 
-    parser.add_argument('-l', '--log-level', action='store', choices=loglevels, default='INFO', help="Set the logging level")
     parser.add_argument('--log-dir', action='store', type=Path, default=Path('logs'), help="Change the default logging level")
 
     return parser
@@ -68,7 +59,7 @@ def create_parser() -> argparse.ArgumentParser:
 def handle_args(args: Any) -> ConfigFile:
     # Ensure log directory exists before starting the logging system
     args.log_dir.mkdir(parents=True, exist_ok=True)
-    setup_logging(path='config/logging.yaml', level=args.log_level)
+    setup_logging(path='config/logging.yaml')
 
     if args.dev:
         args.skip_commit = True
@@ -126,6 +117,8 @@ def run(config: ConfigFile):
 
         # Commit any changes
         git.after_exports()
+
+        logger.info('Automation completed')
 
     except:  # pylint: disable=bare-except
         logger.exception('Caught exception during automation run. Aborting.')

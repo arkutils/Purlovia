@@ -161,6 +161,7 @@ class ArkSteamManager:
                 logger.info('(skipped)')
 
         # Delete all downloaded steamapps mods
+        logger.info('Removing steam workshop cache')
         if not dryRun:
             self._cleanSteamModCache()
         else:
@@ -229,7 +230,6 @@ class ArkSteamManager:
     def _cleanSteamModCache(self):
         workshop_path: Path = self.gamedata_path / 'steamapps' / 'workshop'
         if workshop_path.is_dir():
-            logger.info('Removing steam workshop cache')
             shutil.rmtree(workshop_path)
 
     def _sanityCheck(self):
@@ -345,7 +345,7 @@ def gatherModInfo(asset_path: Path, modid) -> Dict[str, Any]:
 def readModData(asset_path: Path, modid) -> Optional[Dict[str, Any]]:
     modid = str(modid)
     moddata_path: Path = asset_path / 'Content' / 'Mods' / modid / MODDATA_FILENAME
-    logger.info(f'Loading mod {modid} metadata')
+    logger.debug(f'Loading mod {modid} metadata')
     if not moddata_path.is_file():
         logger.debug(f'Couldn\'t find mod data at "{moddata_path}"')
         return None

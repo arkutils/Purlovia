@@ -18,16 +18,16 @@ handlers:
         stream: ext://sys.stdout
 
     debug_file_handler:
-        class: logging.handlers.RotatingFileHandler
+        class: utils.log.CompressedRotatingFileHandler
         level: DEBUG
         formatter: withtime
         filename: logs/debug.log
         maxBytes: 10485760 # 10MB
-        backupCount: 10
+        backupCount: 5
         encoding: utf8
 
     info_file_handler:
-        class: logging.handlers.RotatingFileHandler
+        class: utils.log.CompressedRotatingFileHandler
         level: INFO
         formatter: withtime
         filename: logs/info.log
@@ -40,9 +40,20 @@ handlers:
         level: ERROR
         formatter: withtime
         filename: logs/errors.log
-        maxBytes: 10485760 # 10MB
+        maxBytes: 2097152 # 2MB
         backupCount: 10
         encoding: utf8
+        delay: True
+
+    warning_file_handler:
+        class: utils.log.CompressedRotatingFileHandler
+        level: WARNING
+        formatter: withtime
+        filename: logs/warnings.log
+        maxBytes: 4194304 # 4MB
+        backupCount: 10
+        encoding: utf8
+        delay: True
 
 # Add specific config for individual Python modules here
 loggers:
@@ -53,5 +64,5 @@ loggers:
 
 # Default options
 root:
-    level: INFO
-    handlers: [console, info_file_handler, error_file_handler]
+    level: DEBUG
+    handlers: [console, info_file_handler, error_file_handler, debug_file_handler, warning_file_handler]

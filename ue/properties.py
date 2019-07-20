@@ -604,7 +604,7 @@ class ArrayProperty(UEBase):
                 assetname = '<unnamed asset>'
                 if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
                     assetname = self.asset.assetname
-                logger.info(f'Skippable exception parsing {assetname}: {err}')
+                logger.debug(f'Skippable exception parsing {assetname}: {err}')
                 self.stream.offset = saved_offset + size
                 return
 
