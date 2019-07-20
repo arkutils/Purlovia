@@ -152,7 +152,7 @@ class Property(UEBase):
         try:
             propertyType = getPropertyType(self.header.type.value.value)
         except TypeError:
-            print(f'Encountered unknown property type {self.header.type.value.value}... attempting to skip')
+            logger.debug(f'Encountered unknown property type {self.header.type.value.value}... attempting to skip')
 
         if propertyType:
             self._newField('value', propertyType(self), self.header.size)
