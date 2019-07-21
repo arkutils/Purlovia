@@ -104,7 +104,7 @@ class GitManager:
 
     def _do_commit(self, message):
         if self.config.settings.SkipCommit:
-            logger.info('(commit skipped by request')
+            logger.info('(commit skipped by request)')
         elif not self.config.settings.GitUseIdentity:
             logger.warning('Commit skipped due to lack of git identity')
         else:

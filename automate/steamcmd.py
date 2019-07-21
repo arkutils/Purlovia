@@ -1,6 +1,7 @@
 '''
 Adapted from the pysteamcmd library, which has an MIT license.
 '''
+import os
 import platform
 import subprocess
 import urllib.request
@@ -45,11 +46,13 @@ class Steamcmd:
             self.steamcmd_url = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip'
             self.steamcmd_zip = self.install_path / 'steamcmd.zip'
             self.steamcmd_exe = self.install_path / 'steamcmd.exe'
+            self.home_path = None
 
         elif self.platform == 'Linux':
             self.steamcmd_url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
             self.steamcmd_zip = self.install_path / 'steamcmd.tar.gz'
             self.steamcmd_exe = self.install_path / 'steamcmd.sh'
+            self.home_path = self.install_path.parent
 
         else:
             raise SteamcmdException('The operating system is not supported. '
@@ -100,13 +103,21 @@ class Steamcmd:
         for attempt in range(1, 6):
             # subprocess.run is the modern version of subprocess.call and more flexible
             # capture_output=True silences the process. Output is accessible from proc_ret.stdout
-            proc_ret = subprocess.run(params, capture_output=True)
+            if self.home_path:
+                logger.debug('Using HOME: %s', str(self.home_path))
+                env = dict(os.environ, HOME=str(self.home_path))
+            else:
+                env = None
+            proc_ret = subprocess.run(params, capture_output=True, env=env)
+
+            if proc_ret.stderr:
+                logger.debug('SteamCMD stderr:\n%s', proc_ret.stderr)
+
             if proc_ret.returncode in STCMD_SUCCESS:
-                # TODO: Remove this logging after we check codes 6 and 7
-                logger.info(f'SteamCMD process exited with code {proc_ret.returncode} (0x{proc_ret.returncode:X})')
+                logger.info(f'SteamCMD process exited successfully with code {proc_ret.returncode} (0x{proc_ret.returncode:X})')
                 break
 
-            logger.warning(f'SteamCMD process exited with code {proc_ret.returncode} (0x{proc_ret.returncode:X})')
+            logger.warning(f'SteamCMD process exited with error code {proc_ret.returncode} (0x{proc_ret.returncode:X})')
             logger.warning(f'Attempt {attempt} failed.')
 
         if proc_ret.returncode not in STCMD_SUCCESS:

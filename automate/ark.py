@@ -30,7 +30,7 @@ class ArkSteamManager:
         self.config = config
         self.basepath: Path = config.settings.DataDir.absolute()
 
-        self.steamcmd_path: Path = self.basepath / 'steamcmd'
+        self.steamcmd_path: Path = self.basepath / 'Steam'
         self.gamedata_path: Path = self.basepath / 'game'
         self.asset_path: Path = self.gamedata_path / 'ShooterGame'
         self.mods_path: Path = self.asset_path / 'Content' / 'Mods'
@@ -115,6 +115,8 @@ class ArkSteamManager:
         '''
         Ensure the listed mods are installed and updated to their latest versions.
         '''
+        logger.info('Ensuring mods are installed and up to date')
+
         modids_requested: Set[str] = set(str(modid) for modid in modids)
         uninstallOthers = self.config.settings.UninstallUnusedMods
         dryRun = self.config.settings.SkipInstall
@@ -151,14 +153,19 @@ class ArkSteamManager:
                 self._installMods(modids_update)
             else:
                 logger.info('(skipped)')
+        else:
+            logger.info(f'No mods to update')
 
         # Delete unwanted installed mods
-        if uninstallOthers and modids_remove:
-            logger.info(f'Removing mods: {modids_remove}')
-            if not dryRun:
-                self._removeMods(modids_remove)
+        if uninstallOthers:
+            if modids_remove:
+                logger.info(f'Removing mods: {modids_remove}')
+                if not dryRun:
+                    self._removeMods(modids_remove)
+                else:
+                    logger.info('(skipped)')
             else:
-                logger.info('(skipped)')
+                logger.info(f'No mods to remove')
 
         # Delete all downloaded steamapps mods
         logger.info('Removing steam workshop cache')
@@ -188,7 +195,7 @@ class ArkSteamManager:
 
         # Unpack the mods into the game directory proper
         for modid in modids:
-            logger.info(f'Unpacking mod {modid}')
+            logger.debug(f'Unpacking mod {modid}')
             unpackMod(self.gamedata_path, modid)
 
         # Collection mod version numbers from workshop data file
@@ -233,6 +240,11 @@ class ArkSteamManager:
             shutil.rmtree(workshop_path)
 
     def _sanityCheck(self):
+        # Check if we have an old steamcmd directory instead of a new Steam directory
+        if Path(self.basepath / 'steamcmd').is_dir() and not self.steamcmd_path.is_dir():
+            logger.warning("Renaming old-style 'steamcmd' folder to 'Steam'")
+            shutil.move(str(self.basepath / 'steamcmd'), str(self.steamcmd_path))
+
         invalid = not self.steamcmd_path.is_dir() or not self.asset_path.is_dir()
 
         if invalid:

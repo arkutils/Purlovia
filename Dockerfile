@@ -9,14 +9,15 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 # Install:
 #  git for output repo management
+#  ssh for git to use contacting GitHub
 #  lib32gcc1 as required by SteamCMD
 RUN set -ex \
-    && apt-get update && apt-get install --no-install-recommends -y git lib32gcc1 \
+    && apt-get update && apt-get install --no-install-recommends -y git openssh-client lib32gcc1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && mkdir -p /app \
     && groupadd -r purlovia \
-    && useradd --no-log-init -r -g purlovia purlovia
+    && useradd --no-log-init -r -g purlovia -d /app purlovia
 
 # Grab Pipfile and Pipfile.lock then install requirements using pipenv, system-wide
 WORKDIR /app
