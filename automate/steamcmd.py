@@ -2,9 +2,9 @@
 Adapted from the pysteamcmd library, which has an MIT license.
 '''
 import platform
+import subprocess
 import urllib.request
 from logging import NullHandler, getLogger
-import subprocess
 from pathlib import Path
 
 logger = getLogger(__name__)
@@ -137,6 +137,7 @@ class Steamcmd:
 
         steamcmd_params = (
             str(self.steamcmd_exe),
+            '+@sSteamCmdForcePlatformType windows',
             f'+login {user} {password}',
             f'+force_install_dir {game_dir}',
             f'+app_update {gameid} {validate}',
@@ -160,6 +161,7 @@ class Steamcmd:
 
         steamcmd_params = (
             str(self.steamcmd_exe),
+            '+@sSteamCmdForcePlatformType windows',
             f'+login {user} {password}',
             f'+force_install_dir {game_dir}',
             f'+workshop_download_item {gameid} {workshop_id}',
