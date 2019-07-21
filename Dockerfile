@@ -28,11 +28,12 @@ RUN set -ex \
     && pip3 uninstall -y pipenv \
     && rm Pipfile Pipfile.lock
 
-USER purlovia:purlovia
-
 # Copy the app over and prepare its environment
 COPY . .
+RUN set -ex \
+    && rm Pipfile Pipfile.lock
 
-VOLUME /app/logs, /app/livedata, /app/output, /app/config
+VOLUME /app/logs /app/livedata /app/output /app/config
 
+USER purlovia:purlovia
 CMD [ "python3", "-m", "automate"]
