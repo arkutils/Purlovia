@@ -56,7 +56,7 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
     sorted_data = dict((k, v) for k, v in sorted(data.items(), key=itemgetter(0)))
 
     # Save
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', newline='\n') as f:
         json.dump(sorted_data, f, indent='\t')
 
 

@@ -184,5 +184,5 @@ def _format_json(data, pretty=False):
 
 def _save_as_json(data, filename, pretty=False):
     json_string = _format_json(data, pretty)
-    with open(filename, 'w') as f:
+    with open(filename, 'w', newline='\n') as f:
         f.write(json_string)

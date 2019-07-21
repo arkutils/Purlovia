@@ -58,7 +58,7 @@ def format_json(data, pretty=False):
 def save_as_json(data, filename, pretty=False):
     print(f'Outputting to: {filename}')
     json_string = format_json(data, pretty)
-    with open(filename, 'w') as f:
+    with open(filename, 'w', newline='\n') as f:
         f.write(json_string)
 
 
