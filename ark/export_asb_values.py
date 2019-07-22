@@ -53,8 +53,8 @@ NAME_CHANGES = {
 
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
-ASB_STAT_INDEXES = list([0, 1, 3, 4, 7, 8, 9, 2])
-ARK_STAT_INDEXES = list(range(12))
+ASB_STAT_INDEXES: Tuple[int, ...] = (0, 1, 3, 4, 7, 8, 9, 2)
+ARK_STAT_INDEXES = tuple(range(12))
 
 
 def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, Any]:
@@ -112,7 +112,7 @@ def values_for_species(asset: UAsset,
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
-    for _, ark_index in enumerate(statIndexes):
+    for ark_index in statIndexes:
         imprint_mult = stat_value(props, 'DinoMaxStatAddMultiplierImprinting', ark_index, IMPRINT_VALUES)
         stat_imprint_mults.append(imprint_mult)
     if stat_imprint_mults != list(IMPRINT_VALUES):
