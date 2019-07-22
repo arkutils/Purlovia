@@ -1,8 +1,10 @@
+import hashlib
 import json
 import re
 from datetime import datetime
 from logging import NullHandler, getLogger
 from operator import attrgetter
+from pathlib import Path
 from typing import *
 
 import ark.discovery
@@ -122,7 +124,7 @@ class Exporter:
 
         return species_data
 
-    def _convert_for_export(self, species_data, ismod: bool):
+    def _convert_for_export(self, species_data, _ismod: bool):
         values = list()
         for asset, props in species_data:
             species_values = None
@@ -141,7 +143,7 @@ class Exporter:
 
         return values
 
-    def _export_values(self, species_values: List, version: str, other: Dict = dict(), moddata: Optional[Dict] = None):
+    def _export_values(self, species_values: List, version: str, other: Dict = None, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
         values['format'] = "1.12"
 
@@ -159,10 +161,81 @@ class Exporter:
             values.update(other)
 
         fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')
+        self._save_json_if_changed(values, fullpath)
 
-        pretty = self.config.settings.PrettyJson
-        logger.info(f'Saving export to {fullpath}{(" (with pretty json)" if pretty else "")}')
-        _save_as_json(values, fullpath, pretty=pretty)
+    def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
+        changed, version = _should_save_json(values, fullpath)
+        if changed:
+            pretty = self.config.settings.PrettyJson
+            logger.info(f'Saving export to {fullpath} with version {version}')
+            values['version'] = version
+            _save_as_json(values, fullpath, pretty=pretty)
+        elif version == values['version']:
+            logger.info(f'No changes to {fullpath}')
+        else:
+            logger.info(f'No changes to {fullpath} between {version} and {values["version"]}')
+
+
+def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str]:
+    '''
+    Works out if a file needs to be saved and with which version number.
+
+    This is calcualted using the digest of its content, excluding the version field.
+    Also handles cases where the content has changed but the version has not, by bumping the build number.
+
+    Returns a tuple of (changed, version), where `changed` is a boolean saying whether the data needs to be
+    saved and `version` is the version number to use.
+    '''
+    new_version: str = values.get('version', None)
+    if not new_version:
+        raise ValueError('Export data must contain a version field')
+
+    # Load the existing file
+    try:
+        with open(fullpath) as f:
+            existing_data = json.load(f)
+    except:  # pylint: disable=bare-except
+        # Old file doesn't exist/isn't readable/is corrupt
+        return (True, new_version)
+
+    # Can only do this with dictionaries
+    if not isinstance(existing_data, dict):
+        return (True, new_version)
+
+    # Get the old and new versions and digests
+    _, new_digest = _calculate_digest(values)
+    old_version, old_digest = _calculate_digest(existing_data)
+
+    # If content hasn't changed, don't save regardless of any version changes
+    if new_digest == old_digest:
+        return (False, old_version or new_version)
+
+    # Content has changed... if the version is changed also then we're done
+    if old_version != new_version:
+        return (True, new_version)
+
+    # Content has changed but version hasn't... bump build number
+    parts = [int(v) for v in new_version.strip().split('.')]
+    parts = parts + [0] * (4 - len(parts))
+    parts[3] += 1
+    bumped_version = '.'.join(str(v) for v in parts)
+
+    return (True, bumped_version)
+
+
+def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
+    '''Calculates the digest of the given data, returning a tuple of (version, digest).'''
+    assert isinstance(values, dict)
+
+    # Take a shallow copy of the data and remove the version field
+    values = dict(values)
+    version: Optional[str] = values.pop('version', None)
+
+    # Calculate the digest of the minified output, using SHA512
+    as_bytes = _format_json(values, pretty=False).encode('utf8')
+    digest = hashlib.sha512(as_bytes).hexdigest()
+
+    return (version, digest)
 
 
 JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
