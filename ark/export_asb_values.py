@@ -151,6 +151,7 @@ def values_for_species(asset: UAsset,
             species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
+    noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
     usesOxyWild = stat_value(props, 'bCanSuffocate', 0, True)
     usesOxyTamed = stat_value(props, 'bCanSuffocateIfTamed', 0, usesOxyWild)
     forceOxy = stat_value(props, 'bForceGainOxygen', 0, False)
@@ -159,6 +160,7 @@ def values_for_species(asset: UAsset,
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
     if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
+    if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
 
     return species
