@@ -53,7 +53,7 @@ NAME_CHANGES = {
 
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
-ASB_STAT_INDEXES = (0, 1, 3, 4, 7, 8, 9, 2)
+ASB_STAT_INDEXES = list([0, 1, 3, 4, 7, 8, 9, 2])
 ARK_STAT_INDEXES = list(range(12))
 
 
@@ -110,6 +110,14 @@ def values_for_species(asset: UAsset,
     statIndexes = ARK_STAT_INDEXES if fullStats else ASB_STAT_INDEXES
     species[statsField] = gather_stat_data(props, statIndexes)
 
+    # Set imprint multipliers
+    stat_imprint_mults: List[float] = list()
+    for _, ark_index in enumerate(statIndexes):
+        imprint_mult = stat_value(props, 'DinoMaxStatAddMultiplierImprinting', ark_index, IMPRINT_VALUES)
+        stat_imprint_mults.append(imprint_mult)
+    if stat_imprint_mults != list(IMPRINT_VALUES):
+        species['statImprintMult'] = stat_imprint_mults
+
     if includeImmobilize:
         # ImmobilizedBy format data
         immobilization_data = gather_immobilization_data(props, asset.loader)
@@ -143,7 +151,6 @@ def values_for_species(asset: UAsset,
             species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
-    noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
     usesOxyWild = stat_value(props, 'bCanSuffocate', 0, True)
     usesOxyTamed = stat_value(props, 'bCanSuffocateIfTamed', 0, usesOxyWild)
     forceOxy = stat_value(props, 'bForceGainOxygen', 0, False)
@@ -152,7 +159,6 @@ def values_for_species(asset: UAsset,
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
     if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
-    if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
 
     return species
