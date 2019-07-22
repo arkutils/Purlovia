@@ -1,8 +1,6 @@
 import weakref
 from typing import *
 
-from deprecated import deprecated  # type: ignore
-
 from .base import UEBase
 from .coretypes import *
 from .properties import Guid, PropertyTable, StringProperty
