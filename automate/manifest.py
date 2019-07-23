@@ -1,5 +1,6 @@
 import json
 import re
+from collections import Counter
 from dataclasses import asdict, dataclass
 from logging import NullHandler, getLogger
 from operator import itemgetter
@@ -54,6 +55,14 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
 
     # Sort by filename to ensure diff consistency
     sorted_data = dict((k, v) for k, v in sorted(data.items(), key=itemgetter(0)))
+
+    # Pull common formats out to the top-level
+    counts = Counter(mod.get('format', None) for mod in data.values())
+    most_common_format = sorted(counts.items(), key=itemgetter(1), reverse=True)[0][0]
+    sorted_data['format'] = most_common_format
+    for k, mod in data.items():
+        if 'format' in mod and mod['format'] == most_common_format:
+            del mod['format']
 
     # Save
     with open(output_file, 'w', newline='\n') as f:
