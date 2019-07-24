@@ -34,7 +34,7 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
     if not output_file.suffix.endswith('.json'):
         raise ValueError("Output file must be json")
 
-    data: Dict[str, dict] = dict()
+    files: Dict[str, dict] = dict()
 
     # Collect info from each json file
     for filename in directory.glob('*.json'):
@@ -47,26 +47,29 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
         info = _collect_info(filename)
         if info:
             key = str(filename.relative_to(directory))
-            data[key] = info
+            files[key] = info
 
     # Try to make directory the file lives in
     if not output_file.parent.is_dir:
         output_file.parent.mkdirs(parents=True, exists_ok=True)
 
     # Sort by filename to ensure diff consistency
-    sorted_data = dict((k, v) for k, v in sorted(data.items(), key=itemgetter(0)))
+    sorted_files = dict((k, v) for k, v in sorted(files.items(), key=lambda p: p[0].lower()))
 
     # Pull common formats out to the top-level
-    counts = Counter(mod.get('format', None) for mod in data.values())
+    counts = Counter(mod.get('format', None) for mod in files.values())
     most_common_format = sorted(counts.items(), key=itemgetter(1), reverse=True)[0][0]
-    sorted_data['format'] = most_common_format
-    for k, mod in data.items():
+    for _, mod in files.items():
         if 'format' in mod and mod['format'] == most_common_format:
             del mod['format']
 
+    output: Dict[str, Any] = dict()
+    output['format'] = most_common_format
+    output['files'] = sorted_files
+
     # Save
     with open(output_file, 'w', newline='\n') as f:
-        json.dump(sorted_data, f, indent='\t')
+        json.dump(output, f, indent='\t')
 
 
 def _collect_info(filename: Path) -> Dict:
