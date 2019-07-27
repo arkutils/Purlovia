@@ -240,7 +240,7 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
 
 JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
 JOIN_COLORS_REGEX = re.compile(r"\[\n\s+([\w\" ]+),\n\s+(.{,90})\n\s+\]")
-SHRINK_EMPTY_COLOR_REGEX = re.compile(r"\{\n\s+(\"name\": null),\n\s+(\"colors\": \[\])\n\s+\}")
+SHRINK_EMPTY_COLOR_REGEX = re.compile(r"\{\n\s+(\"\w+\": \w+)\n\s+\}")
 
 
 def _format_json(data, pretty=False):
@@ -248,7 +248,7 @@ def _format_json(data, pretty=False):
         json_string = json.dumps(data, indent='\t')
         json_string = re.sub(JOIN_LINES_REGEX, r" \1", json_string)
         json_string = re.sub(JOIN_COLORS_REGEX, r"[ \1, \2 ]", json_string)
-        json_string = re.sub(SHRINK_EMPTY_COLOR_REGEX, r"{ \1, \2 }", json_string)
+        json_string = re.sub(SHRINK_EMPTY_COLOR_REGEX, r"{ \1 }", json_string)
         json_string = re.sub(r'(\d)\]', r'\1 ]', json_string)
     else:
         json_string = json.dumps(data, indent=None, separators=(',', ':'))

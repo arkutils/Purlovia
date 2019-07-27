@@ -1,0 +1,567 @@
+# Value overrides
+# Provides a mechanism for overriding output data
+
+# Note: Surround regexes with single quotes to avoid extra backslash quoting
+
+defaults:
+    color_regions:
+        # Whether to capitalize the first character of region names
+        capitalize: true
+
+        # What to name regions that have no name (&unknown is a reference for use elsewhere)
+        default_name: &unknown "Unknown"
+
+        # Regions that are nullified if they contain *only* "Red"
+        # (key names are ignored, existing for merging only)
+        nullify_name_regexes:
+            ignore_nothing: '\**IGNORE(\*|\s)*NOTHING\**'
+            not_used: '\**NOT(\*|\s)*USED\**'
+
+        # Region names that will be replaced by the default_name
+        # (if not specifically overridden in the species)
+        # (applied after nullify_name_regexes)
+        # (key names are ignored, existing for merging only)
+        useless_name_regexes:
+            group_names: '((DARK|LIGHT)\s*)?(MUTED|ALL)(\s*[-+]\s?[a-z/]+)*(\s+No\s*Alb)?'
+            ignore_nothing: '\**IGNORE(\*|\s)*NOTHING\**'
+            not_used: '\**NOT(\*|\s)*USED\**'
+
+
+# Override settings on a per-mod basis
+mods:
+    # '': # Core
+
+    839162288: # Primal Fear
+        color_regions:
+            useless_name_regexes:
+                pf_groups: '(Toxic|Alpha|Electric|Golds?|Blacks?)\d*'
+
+    1356703358: # Primal Fear Noxious
+        color_regions:
+            useless_name_regexes:
+                pfn_groups: '(Toxic|Alpha)\d*'
+
+
+# Override settings on a per-species basis
+species:
+    /Game/ScorchedEarth/Dinos/RockGolem/RockGolem_Character_BP:
+        color_regions:
+            region_names:
+                1: "Body"
+    /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Shell"
+                3: "Shell Highlights"
+                4: "Stripe"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Allosaurus/Allo_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Spine"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Ammonite/Ammonite_Character:
+        color_regions:
+            region_names:
+                0: "Shell"
+                2: "Tentacle Highlights"
+                4: "Shell Highlights"
+                5: "Tentacles"
+    /Game/PrimalEarth/Dinos/Anglerfish/Angler_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                5: "Tail fin and Accents"
+    /Game/PrimalEarth/Dinos/Ankylo/Ankylo_Character_BP:
+        color_regions:
+            region_names:
+                0: "Back"
+                1: "Spikes"
+                2: "Leg Plates"
+                3: "Spike Tips"
+                4: "Head and Back"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Archaeopteryx/Archa_Character_BP:
+        color_regions:
+            region_names:
+                0: "Sides, Tail, Wings and Face"
+                2: "Skin"
+                4: "Top and Wing Tips"
+                5: "Underside and Accents"
+    /Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                2: "Wing Tips"
+                3: "Legs"
+                4: "Head Feathers"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Arthropluera/Arthro_Character_BP:
+        color_regions:
+            region_names:
+                0: "Segments"
+                1: "Head"
+                2: "Sternites"
+                3: "Legs, Antennae, and Forcipules"
+                5: "Underside of Head/Segments"
+    /Game/PrimalEarth/Dinos/Baryonyx/Baryonyx_Character_BP:
+        color_regions:
+            region_names:
+                1: "Spines"
+                4: "Stripes"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Bat/Bat_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Claws"
+                2: "Membrane Shading"
+                4: "Abdomen and Legs"
+                5: "Wing Membrane"
+    /Game/PrimalEarth/Dinos/Beaver/Beaver_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Feet"
+                4: "Stripe"
+                5: "Tail"
+    /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP_Aggressive_Med:
+        color_regions:
+            region_names:
+                0: "Fur Mane"
+                4: "Fur Accent"
+                5: "Skins"
+    /Game/PrimalEarth/Dinos/BoaFrill/BoaFrill_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Frill Middle Line 1"
+                2: "Frill Middle Line 2"
+                3: "Frill Middle Line 3"
+                4: "Body Accent and Inner Frill"
+                5: "Outer Frill"
+    /Game/PrimalEarth/Dinos/Carno/Carno_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Horns"
+                4: "Patterning"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Compy/Compy_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                3: "Feathers"
+                4: "Patterning"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Dilo/Dilo_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Back and Face"
+                2: "Spike Tips"
+                3: "Spine and Spike Base"
+                4: "Frill, Crest and Belly"
+                5: "Legs and Arms"
+    /Game/PrimalEarth/Dinos/Dimetrodon/Dimetro_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Side Fin"
+                2: "Sail"
+                3: "Sail Spines"
+                4: "Legs and Belly"
+    /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive_DragonBoss_Med:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Face and Wing Membrane"
+                5: "Feathers"
+    /Game/PrimalEarth/Dinos/Diplodocus/Diplodocus_Character_BP:
+        color_regions:
+            region_names:
+                0: "Sides, Legs, and Accents"
+                1: "Spines"
+                4: "Back"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Direbear/Direbear_Character_BP:
+        descriptive_name: 'Direbear'
+        color_regions:
+            region_names:
+                0: "Back and Head"
+                5: "Belly and Legs"
+    /Game/PrimalEarth/Dinos/Direwolf/Direwolf_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Tail, Back, and Face"
+                5: "Feet"
+    /Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Face"
+                2: "Beak"
+                3: "Forehead, Neck, and Feet"
+                4: "Head"
+                5: "Wings and Patterning"
+    /Game/PrimalEarth/Dinos/Dodo/ZombieDodo_Character_BP:
+        color_regions:
+            region_names:
+                0: *unknown
+                1: *unknown
+                2: *unknown
+                3: *unknown
+                4: *unknown
+                5: *unknown
+    /Game/PrimalEarth/Dinos/Doedicurus/Doed_Character_BP:
+        color_regions:
+            region_names:
+                0: "Shell and Plates"
+                1: "Spikes and Claws"
+                4: "Shell Patterning"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Dolphin/Dolphin_Character_BP:
+        descriptive_name: "Ichthy"
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Back and Fins"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/DungBeetle/DungBeetle_Character_BP:
+        color_regions:
+            region_names:
+                0: "Shell"
+                1: "Legs"
+                3: "Palps and Leg Patterning"
+                4: "Shell Patterning"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Dunkleosteus/Dunkle_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Spots"
+                5: "Head"
+    /Game/PrimalEarth/Dinos/Gallimimus/Galli_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Feathers"
+                4: "Spine and Feather Tips"
+                5: "Lower Body"
+    /Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP_TekCave:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Back, Hands, and Feet"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Kairuku/Kairuku_Character_BP:
+        color_regions:
+            region_names:
+                0: "Back and Markings"
+                1: "Beak"
+                2: "Feet"
+                4: "Osteoderms"
+    /Game/PrimalEarth/Dinos/Lystrosaurus/Lystro_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: *unknown
+                2: *unknown
+                3: *unknown
+                4: "Underside"
+                5: "Spine and Feet"
+    /Game/PrimalEarth/Dinos/Mammoth/Mammoth_Character_BP:
+        color_regions:
+            region_names:
+                0: "Fur Mane"
+                2: "Tusks and Toes"
+                4: "Fur Accent"
+    /Game/PrimalEarth/Dinos/Manta/Manta_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spots"
+                2: *unknown
+                3: *unknown
+                4: "Patterning"
+                5: *unknown
+    /Game/PrimalEarth/Dinos/Megalodon/Megalodon_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Stripes"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Megalosaurus/Megalosaurus_Character_BP_TekCave:
+        color_regions:
+            region_names:
+                0: "Face, Appendages, Sides"
+                4: "Feathers, Osteoderms, Patterning"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Microraptor/Microraptor_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Face"
+                2: "Skin"
+                4: "Neck"
+                5: "Belly and Wing Bands"
+    /Game/PrimalEarth/Dinos/Monkey/Monkey_Character_BP_Aggressive_Med:
+        color_regions:
+            region_names:
+                0: "Body"
+                2: "Eye Markings"
+                4: "Back, Lower Limbs, and Tail Tip"
+                5: "Skins"
+    /Game/PrimalEarth/Dinos/Mosasaurus/Mosa_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                2: "Spinal Ridge"
+                4: "Sides of the Back"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Oviraptor/Oviraptor_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Crest and Beak"
+                2: "Feathers"
+                4: "Patterning"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Pachy/Pachy_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                3: "Spikes and Claws"
+                4: "Beak and Plates"
+                5: "Body Accent"
+    /Game/PrimalEarth/Dinos/Para/Para_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Beak and Frill"
+                2: "Frill Edge"
+                3: "Crest"
+                4: "Patterning"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Paraceratherium/Paracer_Character_BP:
+        descriptive_name: "Paracer"
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Back"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Pelagornis/Pela_Character_BP:
+        color_regions:
+            region_names:
+                0: "Feathers"
+                1: *unknown
+                3: *unknown
+                5: "Skin and Wind/Tail Tips"
+    /Game/PrimalEarth/Dinos/Phiomia/Phiomia_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Spots 1"
+                5: "Spots 2"
+    /Game/PrimalEarth/Dinos/Plesiosaur/Plesiosaur_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Facial Fins"
+                4: "Back"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Procoptodon/Procoptodon_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Back Stripes"
+                5: "Inner Ear, Snout, Belly, Appendages"
+    /Game/PrimalEarth/Dinos/Ptero/Ptero_Minion_Character_Med:
+        color_regions:
+            region_names:
+                0: "Patterning"
+                1: "Wing Base"
+                2: "Face, Crest, and Hands"
+                3: "Inner Crest"
+                4: "Wing Membrane"
+                5: "Body"
+    /Game/PrimalEarth/Dinos/Quetzalcoatlus/Quetz_Character_BP:
+        color_regions:
+            region_names:
+                0: "Wing Membrane"
+                1: "Crest"
+                2: "Skins"
+                3: "Freckles"
+                5: "Body Feathers"
+    /Game/PrimalEarth/Dinos/Raptor/BionicRaptor_Character_BP:
+        color_regions:
+            region_names:
+                0: "Inner Body"
+                1: "Legs and Head"
+                2: "Body"
+                3: "Gears"
+                4: "Spikes and Tail"
+    /Game/PrimalEarth/Dinos/Raptor/Raptor_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body Accent"
+                1: "Feather Tips"
+                3: "Body"
+                4: "Feathers"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Rex/Rex_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spine"
+                2: ignore
+                3: ignore
+                4: "Back"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Saber/Saber_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Mane and Face"
+                5: "Stripes"
+    /Game/PrimalEarth/Dinos/Sarco/Sarco_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                2: "Stripe, Face, and Tail"
+                3: "Snout and Tail Tip"
+                4: "Plates"
+                5: "Body Accent"
+    /Game/PrimalEarth/Dinos/Sauropod/Sauropod_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spine"
+                4: "Back"
+                5: "Legs"
+    /Game/PrimalEarth/Dinos/Scorpion/Scorpion_Character_BP:
+        color_regions:
+            region_names:
+                0: "Plate Edges"
+                1: "Claw Stripes, Barb Patterning, Body Joints"
+                2: "Limb Joints"
+                3: "Body"
+                4: "Plates"
+                5: "Legs"
+    /Game/PrimalEarth/Dinos/Sheep/Sheep_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                4: "Horns"
+                5: "Hooves and Eye Regions"
+    /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP_Aggressive_Med:
+        color_regions:
+            region_names:
+                0: "Thorax and Head"
+                2: "Lower Abdomen"
+                3: "Leg"
+                4: "Scutes"
+                5: "Upper Abdomen and Markings"
+    /Game/PrimalEarth/Dinos/Spino/Spino_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Sail Edge"
+                4: "Face, Tail, Inner Sail, and Frill"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Stag/Stag_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                2: "Antlers"
+                4: "Patterning"
+    /Game/PrimalEarth/Dinos/Stego/BionicStego_Character_BP:
+        color_regions:
+            region_names:
+                0: "Inner Body"
+                1: "Spine"
+                2: "Body"
+                3: "Legs and Head"
+                4: "Leg Tops and Spike Plate"
+                5: "Emissive and Spike Tops"
+    /Game/PrimalEarth/Dinos/Stego/Stego_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spine"
+                2: "Plate Base and Spike Base"
+                3: "Back"
+                4: "Plate Edge and Spike Tips"
+                5: "Belly"
+    /Game/PrimalEarth/Dinos/Tapejara/Tapejara_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Wing and Sail Markings"
+                2: *unknown
+                3: "Wings and Sail"
+                4: "Back, Beak and Sail Spines"
+                5: "Sail and Throat"
+    /Game/PrimalEarth/Dinos/TerrorBird/TerrorBird_Character_BP:
+        color_regions:
+            region_names:
+                0: "Feathers"
+                4: "Belly/Wings Accent"
+                5: "Beak, Skin, Legs"
+    /Game/PrimalEarth/Dinos/Titanosaur/Titanosaur_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: *unknown
+                2: *unknown
+                3: *unknown
+                4: "Back"
+                5: "Underside"
+    /Game/PrimalEarth/Dinos/Toad/Toad_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spikes"
+                4: "Stripes"
+                5: "Belly and Accents"
+    /Game/PrimalEarth/Dinos/Trike/Trike_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Face and Feet"
+                3: "Patterning"
+                4: "Frill"
+                5: "Body Accent"
+    /Game/PrimalEarth/Dinos/Turtle/Turtle_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Shell Base"
+                4: "Shell, Plates, and Claws"
+                5: "Body Accent"
+    /Game/PrimalEarth/Dinos/WoollyRhino/Rhino_Character_BP:
+        color_regions:
+            region_names:
+                0: "Skins"
+                1: "Back"
+                4: "Underside"
+                5: "Horn"
+    /Game/ScorchedEarth/Dinos/Camelsaurus/camelsaurus_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spine"
+                3: "Spikes"
+                4: "Furred Stripes"
+                5: "Underside and Legs"
+    /Game/ScorchedEarth/Dinos/SpineyLizard/SpineyLizard_Character_BP:
+        color_regions:
+            region_names:
+                0: "Mid-section and Legs"
+                1: "Quills"
+                2: "Belly"
+                4: "Top"
+                5: "Underside"

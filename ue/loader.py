@@ -8,8 +8,6 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import *
 
-from ark.asset import findComponentExports
-
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
 from .properties import ObjectIndex, ObjectProperty, Property
@@ -30,7 +28,6 @@ NO_FALLBACK = object()
 
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
-
     def initialise(self):
         pass
 
@@ -45,7 +42,6 @@ class ModResolver(ABC):
 
 class IniModResolver(ModResolver):
     '''Old-style mod resolution by hand-crafted mods.ini.'''
-
     def __init__(self, filename='mods.ini'):
         self.filename = filename
 
@@ -126,7 +122,7 @@ class AssetLoader:
 
         return fullname
 
-    def get_mod_name(self, assetname: str):
+    def get_mod_name(self, assetname: str) -> Optional[str]:
         assert assetname is not None
         assetname = self.clean_asset_name(assetname)
         parts = assetname.strip('/').split('/')
@@ -137,6 +133,19 @@ class AssetLoader:
         mod = parts[2]
         if mod.isnumeric():
             mod = self.modresolver.get_name_from_id(mod)
+        return mod
+
+    def get_mod_id(self, assetname: str) -> Optional[str]:
+        assert assetname is not None
+        assetname = self.clean_asset_name(assetname)
+        parts = assetname.strip('/').split('/')
+        if len(parts) < 3:
+            return None
+        if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
+            return None
+        mod = parts[2]
+        if not mod.isnumeric():
+            mod = self.modresolver.get_id_from_name(mod)
         return mod
 
     def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str, ...]] = None):
@@ -238,13 +247,15 @@ class AssetLoader:
         if doNotLink:
             return asset
         asset.link()
-        exports = list(findComponentExports(asset))
+
+        exports = [export for export in asset.exports.values if str(export.name).startswith('Default__')]
         if len(exports) > 1:
             import warnings
             warnings.warn(f'Found more than one component in {assetname}!')
         asset.default_export = exports[0] if exports else None
         if asset.default_export:
             asset.default_class = asset.default_export.klass.value
+
         self.cache[assetname] = asset
         return asset
 
