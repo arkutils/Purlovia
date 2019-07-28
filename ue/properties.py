@@ -384,6 +384,7 @@ class StructEntry(UEBase):
         if dbg_structs > 1:
             print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
 
+        if self.type == "TimelinePostUpdateFunc": return
         propertyType = getPropertyType(str(self.type))
         self._newField('value', '<not yet defined>')
         self.field_values['value'] = propertyType(self)
