@@ -376,8 +376,11 @@ def verifyModDownloaded(game_path, modid):
 
 def unpackMod(game_path, modid):
     '''Unpack a compressed steam mod.'''
-    srcPath = game_path / 'steamapps' / 'workshop' / 'content' / str(ARK_MAIN_APP_ID) / str(modid) / 'WindowsNoEditor'
-    dstPath = game_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
+    srcPath: Path = game_path / 'steamapps' / 'workshop' / 'content' / str(ARK_MAIN_APP_ID) / str(modid) / 'WindowsNoEditor'
+    dstPath: Path = game_path / 'ShooterGame' / 'Content' / 'Mods' / str(modid)
+
+    if dstPath.is_dir():
+        shutil.rmtree(dstPath)
 
     for curdir, _, files in walk(srcPath):
         curdir = Path(curdir).relative_to(srcPath)
