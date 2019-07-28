@@ -248,6 +248,17 @@ class IntProperty(UEBase):
         self._newField('value', self.stream.readInt32())
 
 
+class DelegateProperty(UEBase):
+    string_format = '(int) {value}'
+    main_field = 'value'
+
+    value: int
+
+    def _deserialise(self, size=None):
+        # uint32 + FName?
+        self.stream.offset += 12
+
+
 class BoolProperty(UEBase):
     main_field = 'value'
 
@@ -397,12 +408,14 @@ STRUCT_TYPES_TO_ABORT_ON = (
 
 SKIPPABLE_STRUCTS = {
     # 'name': byte length
+    'DelegateProperty': 12,
     'Vector': 12,
     'Vector2D': 8,
     'Rotator': 12,
     'Quat': 16,
     'Color': 4,
     'LinearColor': 16,
+    'Box': 12*2 + 1,
     # 'Transform': 4*4 + 3*4 + 3*4,
 }
 
@@ -652,6 +665,17 @@ class Vector(UEBase):
         self._newField('z', FloatProperty(self))
 
 
+class Box(UEBase):
+    min: Vector
+    max: Vector
+    is_valid: bool
+
+    def _deserialise(self, size=None):
+        self._newField('min', Vector(self))
+        self._newField('max', Vector(self))
+        self._newField('is_valid', BoolProperty(self))
+
+
 class Vector2D(UEBase):
     x: FloatProperty
     y: FloatProperty
@@ -727,6 +751,7 @@ TYPE_MAP = {
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
+    'DelegateProperty': DelegateProperty,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,
@@ -740,6 +765,7 @@ TYPE_MAP = {
     'Quat': Quat,
     'Color': Color,
     'LinearColor': LinearColor,
+    'Box': Box,
     # 'Transform': Transform, # no worky
 }
 
