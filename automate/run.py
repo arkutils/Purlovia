@@ -71,7 +71,6 @@ def handle_args(args: Any) -> ConfigFile:
     if args.dev:
         logger.info('DEV mode enabled')
         config.settings.GitUseIdentity = False
-        config.settings.GitUseReset = False
         config.settings.SkipCommit = True
         config.settings.SkipPush = True
         config.settings.SkipPull = True
