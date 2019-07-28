@@ -11,7 +11,7 @@ dbg_getName = 0
 
 
 class UAsset(UEBase):
-    display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'engine', 'header_size', 'none_string',
+    display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size', 'package_group',
                       'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets',
                       'thumbnail_offset', 'guid')
 
@@ -32,9 +32,9 @@ class UAsset(UEBase):
         self._newField('ue_ver', self.stream.readInt32())
         self._newField('file_ver', self.stream.readUInt32())
         self._newField('licensee_ver', self.stream.readUInt32())
-        self._newField('engine', self.stream.readUInt32())
+        self._newField('custom_versions', self.stream.readUInt32())
         self._newField('header_size', self.stream.readUInt32())
-        self._newField('none_string', StringProperty(self))
+        self._newField('package_group', StringProperty(self))
         self._newField('package_flags', self.stream.readUInt32())
 
         # Chunk offsets
@@ -106,7 +106,7 @@ class UAsset(UEBase):
         return table
 
     def _findNoneName(self):
-        target = self.none_string.value
+        target = self.package_group.value
         for i, name in enumerate(self.names):
             if name.value == target:
                 self.none_index = i
