@@ -24,7 +24,7 @@ NULLABLE_REGION_COLORS = set(['Red'])
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
 
-def gather_pgd_colors(props: PriorityPropDict, loader: "AssetLoader",
+def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
                       require_override=True) -> Tuple[Optional[Sequence[ColorEntry]], Optional[Sequence[ColorEntry]]]:
     '''Gather color and dye definitions from a PrimalGameData asset.'''
     colors: Optional[List[ColorEntry]] = list()
@@ -60,8 +60,10 @@ def gather_pgd_colors(props: PriorityPropDict, loader: "AssetLoader",
     return (colors, dyes)
 
 
-def gather_color_data(props: PriorityPropDict, loader: "AssetLoader", overrides: OverrideSettings):
+def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: OverrideSettings):
     '''Gather color region definitions for a species.'''
+    assert asset and asset.loader and asset.assetname
+    loader: AssetLoader = asset.loader
 
     settings = overrides.color_regions
 
@@ -83,6 +85,9 @@ def gather_color_data(props: PriorityPropDict, loader: "AssetLoader", overrides:
     if not colorset_props:
         return None
 
+    if stat_value(props, 'bIsCorrupted', 0, False):
+        return colors
+
     # Export a list of color names for each region
     for i in range(NUM_REGIONS):
         prevent_region = stat_value(props, 'PreventColorizationRegions', i, 0)
@@ -102,41 +107,15 @@ def gather_color_data(props: PriorityPropDict, loader: "AssetLoader", overrides:
 
             region_name: Optional[str] = str(color_set_defs.get('RegionName', settings.default_name)).strip()
 
-            # if not color_names:
-            #     # No colours, so ths region is null by definition
-            #     region_name = None
-
             if region_name and any_regexes_match(settings.nullify_name_regexes, region_name):
                 # Null-out this region if it matches NULLABLE_REGION_COLORS exactly
-                if color_names == NULLABLE_REGION_COLORS:
+                if not color_names or color_names == NULLABLE_REGION_COLORS:
                     region_name = None
                     color_names.clear()
 
             if region_name and any_regexes_match(settings.useless_name_regexes, region_name):
                 # Region name is useless, replace with the default_name
                 region_name = settings.default_name
-
-            # TEMPORARY check for wasted region overrides
-            if i in settings.region_names:
-                dn = str(props['DescriptiveName'][0][-1])
-                rn_asset = region_name
-                rn_override = settings.region_names[i]
-                if not rn_asset and not rn_override:
-                    pass
-                elif not rn_asset and rn_override:
-                    logger.warning('Naming an empty region: %s[%d] orig="%s", using="%s", override="%s"', dn, i,
-                                   str(color_set_defs.get('RegionName', '--none--')).strip(), rn_asset, rn_override)
-                elif rn_asset and not rn_override:
-                    logger.warning('Overriding valid region with null: %s[%d] orig="%s", using="%s", override="%s"', dn, i,
-                                   str(color_set_defs.get('RegionName', '--none--')).strip(), rn_asset, rn_override)
-                else:
-                    from difflib import SequenceMatcher
-                    if rn_asset.lower() == rn_override.lower():
-                        logger.warning('Name match: %s[%d] orig="%s", using="%s", override="%s"', dn, i,
-                                       str(color_set_defs.get('RegionName', '--none--')).strip(), rn_asset, rn_override)
-                    elif SequenceMatcher(None, rn_override.lower(), rn_asset, False).ratio() > 0.8:
-                        logger.warning('Name approximate match: %s[%d] orig="%s", using="%s", override="%s"', dn, i,
-                                       str(color_set_defs.get('RegionName', '--none--')).strip(), rn_asset, rn_override)
 
             if region_name and color_names and i in settings.region_names:
                 # There's a specific override for this region

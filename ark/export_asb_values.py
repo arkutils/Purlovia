@@ -139,8 +139,8 @@ def values_for_species(asset: UAsset,
     if includeColor:
         # Color data
         if stat_value(props, 'bUseColorization', False):
-            colors = gather_color_data(props, asset.loader, overrides)
-            if colors:
+            colors = gather_color_data(asset, props, overrides)
+            if colors is not None:
                 species['colors'] = colors
 
     if includeTaming:

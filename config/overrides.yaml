@@ -15,6 +15,7 @@ defaults:
         # (key names are ignored, existing for merging only)
         nullify_name_regexes:
             ignore_nothing: '\**IGNORE(\*|\s)*NOTHING\**'
+            no_effect: '\**NO(\*|\s)*EFFECT\**'
             not_used: '\**NOT(\*|\s)*USED\**'
 
         # Region names that will be replaced by the default_name
@@ -24,6 +25,7 @@ defaults:
         useless_name_regexes:
             group_names: '((DARK|LIGHT)\s*)?(MUTED|ALL)(\s*[-+]\s?[a-z/]+)*(\s+No\s*Alb)?'
             ignore_nothing: '\**IGNORE(\*|\s)*NOTHING\**'
+            no_effect: '\**NO(\*|\s)*EFFECT\**'
             not_used: '\**NOT(\*|\s)*USED\**'
 
 
@@ -44,10 +46,6 @@ mods:
 
 # Override settings on a per-species basis
 species:
-    /Game/ScorchedEarth/Dinos/RockGolem/RockGolem_Character_BP:
-        color_regions:
-            region_names:
-                1: "Body"
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
         color_regions:
             region_names:
@@ -210,12 +208,12 @@ species:
     /Game/PrimalEarth/Dinos/Dodo/ZombieDodo_Character_BP:
         color_regions:
             region_names:
-                0: *unknown
-                1: *unknown
-                2: *unknown
-                3: *unknown
-                4: *unknown
-                5: *unknown
+                0: "Body"
+                1: "Face"
+                2: "Beak"
+                3: "Forehead, Neck and Feet"
+                4: "Head"
+                5: "Wings and Patterning"
     /Game/PrimalEarth/Dinos/Doedicurus/Doed_Character_BP:
         color_regions:
             region_names:
@@ -268,9 +266,9 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: *unknown
-                2: *unknown
-                3: *unknown
+                1: null
+                2: null
+                3: null
                 4: "Underside"
                 5: "Spine and Feet"
     /Game/PrimalEarth/Dinos/Mammoth/Mammoth_Character_BP:
@@ -284,10 +282,10 @@ species:
             region_names:
                 0: "Body"
                 1: "Spots"
-                2: *unknown
-                3: *unknown
+                2: null
+                3: null
                 4: "Patterning"
-                5: *unknown
+                5: null
     /Game/PrimalEarth/Dinos/Megalodon/Megalodon_Character_BP:
         color_regions:
             region_names:
@@ -357,8 +355,8 @@ species:
         color_regions:
             region_names:
                 0: "Feathers"
-                1: *unknown
-                3: *unknown
+                1: null
+                3: null
                 5: "Skin and Wind/Tail Tips"
     /Game/PrimalEarth/Dinos/Phiomia/Phiomia_Character_BP:
         color_regions:
@@ -501,7 +499,7 @@ species:
             region_names:
                 0: "Body"
                 1: "Wing and Sail Markings"
-                2: *unknown
+                2: null
                 3: "Wings and Sail"
                 4: "Back, Beak and Sail Spines"
                 5: "Sail and Throat"
@@ -515,9 +513,9 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: *unknown
-                2: *unknown
-                3: *unknown
+                1: null
+                2: null
+                3: null
                 4: "Back"
                 5: "Underside"
     /Game/PrimalEarth/Dinos/Toad/Toad_Character_BP:
