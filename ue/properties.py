@@ -344,6 +344,17 @@ class Guid(UEBase):
         self._newField('value', value)
 
 
+class CustomVersion(UEBase):
+    guid: Guid
+    version: int
+    friendly_name: str
+
+    def _deserialise(self):
+        self._newField('guid', Guid(self))
+        self._newField('version', self.stream.readUInt32())
+        self._newField('friendly_name', StringProperty(self))
+
+
 class StructEntry(UEBase):
     string_format = '{name} = ({type}) {value}'
 

@@ -3,7 +3,7 @@ from typing import *
 
 from .base import UEBase
 from .coretypes import *
-from .properties import Guid, PropertyTable, StringProperty
+from .properties import CustomVersion, Guid, PropertyTable, StringProperty
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 
@@ -32,7 +32,7 @@ class UAsset(UEBase):
         self._newField('ue_ver', self.stream.readInt32())
         self._newField('file_ver', self.stream.readUInt32())
         self._newField('licensee_ver', self.stream.readUInt32())
-        self._newField('custom_versions', self.stream.readUInt32())
+        self._newField('custom_versions', Table(self).deserialise(CustomVersion, self.stream.readUInt32()))
         self._newField('header_size', self.stream.readUInt32())
         self._newField('package_group', StringProperty(self))
         self._newField('package_flags', self.stream.readUInt32())
