@@ -170,10 +170,8 @@ class Exporter:
             logger.info(f'Saving export to {fullpath} with version {version}')
             values['version'] = version
             _save_as_json(values, fullpath, pretty=pretty)
-        elif version == values['version']:
-            logger.info(f'No changes to {fullpath}')
         else:
-            logger.info(f'No changes to {fullpath} between {version} and {values["version"]}')
+            logger.info(f'No changes to {fullpath}')
 
 
 def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str]:
@@ -211,11 +209,13 @@ def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str
         return (False, old_version or new_version)
 
     # Content has changed... if the version is changed also then we're done
-    if old_version != new_version:
+    old_parts = [int(v) for v in old_version.strip().split('.')]
+    new_parts = [int(v) for v in new_version.strip().split('.')]
+    if old_parts[:3] != new_parts[:3]:
         return (True, new_version)
 
     # Content has changed but version hasn't... bump build number
-    parts = [int(v) for v in new_version.strip().split('.')]
+    parts = old_parts
     parts = parts + [0] * (4 - len(parts))
     parts[3] += 1
     bumped_version = '.'.join(str(v) for v in parts)
