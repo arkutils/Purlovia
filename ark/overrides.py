@@ -1,5 +1,6 @@
 import re
 from collections.abc import MutableMapping as Map
+from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
 from typing import *
@@ -88,7 +89,8 @@ def get_overrides_for_mod_dict(modid: str) -> Dict:
 @lru_cache(maxsize=10)
 def get_overrides_for_mod(modid: str) -> OverrideSettings:
     modid = modid or ''
-    settings = get_overrides_for_mod_dict(modid)
+    settings: Dict[str, Any] = dict()
+    nested_update(settings, get_overrides_for_mod_dict(modid))
     return OverrideSettings(**settings)
 
 
@@ -122,5 +124,5 @@ def nested_update(d, v):
         if key in d and isinstance(d[key], Map) and isinstance(v[key], Map):
             nested_update(d[key], v[key])
         else:
-            d[key] = v[key]
+            d[key] = deepcopy(v[key])
     return d
