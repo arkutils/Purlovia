@@ -1,4 +1,5 @@
 import warnings
+from logging import NullHandler, getLogger
 from typing import *
 
 import ark.mod
@@ -7,14 +8,18 @@ from ue.asset import UAsset
 from ue.loader import AssetLoader
 from ue.properties import LinearColor, UEBase
 
+from ..overrides import (OverrideSettings, any_regexes_match, get_overrides_for_species)
+
 __all__ = [
     'gather_pgd_colors',
     'gather_color_data',
 ]
 
-cached_color_defs: List[Tuple[str, Tuple[float, float, float, float]]] = []
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 NUM_REGIONS = 6
+NULLABLE_REGION_COLORS = set(['Red'])
 
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
@@ -55,9 +60,14 @@ def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
     return (colors, dyes)
 
 
-def gather_color_data(props: PriorityPropDict, loader: AssetLoader):
+def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: OverrideSettings):
     '''Gather color region definitions for a species.'''
-    colors: List[Any] = list()
+    assert asset and asset.loader and asset.assetname
+    loader: AssetLoader = asset.loader
+
+    settings = overrides.color_regions
+
+    colors: List[Dict] = list()
     male_colorset = props['RandomColorSetsMale'][0][-1]
     female_colorset = props['RandomColorSetsFemale'][0][-1]
 
@@ -75,6 +85,9 @@ def gather_color_data(props: PriorityPropDict, loader: AssetLoader):
     if not colorset_props:
         return None
 
+    if stat_value(props, 'bIsCorrupted', 0, False):
+        return colors
+
     # Export a list of color names for each region
     for i in range(NUM_REGIONS):
         prevent_region = stat_value(props, 'PreventColorizationRegions', i, 0)
@@ -87,15 +100,34 @@ def gather_color_data(props: PriorityPropDict, loader: AssetLoader):
             color['name'] = None
         else:
             color_set_defs: Dict[str, UEBase] = colorset_props['ColorSetDefinitions'][i][-1].as_dict()
-            color['name'] = str(color_set_defs.get('RegionName', 'Unknown Region Name'))
+
             if 'ColorEntryNames' in color_set_defs:
                 for color_name in color_set_defs['ColorEntryNames'].values:
                     color_names.add(str(color_name))
 
-        if not color_names:
-            color['name'] = None
+            region_name: Optional[str] = str(color_set_defs.get('RegionName', settings.default_name)).strip()
 
-        color['colors'] = sorted(color_names)
+            if region_name and any_regexes_match(settings.nullify_name_regexes, region_name):
+                # Null-out this region if it matches NULLABLE_REGION_COLORS exactly
+                if not color_names or color_names == NULLABLE_REGION_COLORS:
+                    region_name = None
+                    color_names.clear()
+
+            if region_name and any_regexes_match(settings.useless_name_regexes, region_name):
+                # Region name is useless, replace with the default_name
+                region_name = settings.default_name
+
+            if region_name and color_names and i in settings.region_names:
+                # There's a specific override for this region
+                region_name = settings.region_names[i]
+
+            if region_name and settings.capitalize:
+                region_name = region_name[0].upper() + region_name[1:]
+
+            color['name'] = region_name
+            if region_name and color_names:
+                color['colors'] = sorted(color_names)
+
         colors.append(color)
 
     return colors

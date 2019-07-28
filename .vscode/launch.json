@@ -5,11 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run automate.export",
+            "name": "Run automate",
             "type": "python",
             "request": "launch",
             "module": "automate",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                "--dev",
+                "--skip-install"
+            ]
         },
         {
             "name": "Launch current file",

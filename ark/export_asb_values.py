@@ -11,6 +11,8 @@ from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
 from ue.loader import AssetLoader
 
+from .overrides import get_overrides_for_species
+
 __all__ = [
     'values_from_pgd',
     'values_for_species',
@@ -89,13 +91,17 @@ def values_for_species(asset: UAsset,
         logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag")
         name = '<unnamed species>'
 
-    assert asset.assetname is not None and asset.default_export and asset.default_class and asset.default_class.fullname
+    assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
+
+    modid: str = asset.loader.get_mod_id(asset.assetname)
+    overrides = get_overrides_for_species(asset.assetname, modid)
+
     bp: str = asset.default_class.fullname
     if bp.endswith('_C'):
         bp = bp[:-2]
 
     # Replace names to match ASB's hardcoding of specific species
-    name = NAME_CHANGES.get(name, name)
+    name = overrides.descriptive_name or name
 
     # Tag is used to identify immobilization targets and compatible saddles
     # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
@@ -133,8 +139,8 @@ def values_for_species(asset: UAsset,
     if includeColor:
         # Color data
         if stat_value(props, 'bUseColorization', False):
-            colors = gather_color_data(props, asset.loader)
-            if colors:
+            colors = gather_color_data(asset, props, overrides)
+            if colors is not None:
                 species['colors'] = colors
 
     if includeTaming:
