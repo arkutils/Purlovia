@@ -11,9 +11,9 @@ dbg_getName = 0
 
 
 class UAsset(UEBase):
-    display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size', 'package_group',
-                      'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets',
-                      'thumbnail_offset', 'guid')
+    display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size',
+                      'package_group', 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset',
+                      'string_assets', 'thumbnail_offset', 'guid')
 
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree

@@ -40,7 +40,6 @@ class AssetNotFound(Exception):
 
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
-
     def initialise(self):
         pass
 
@@ -55,7 +54,6 @@ class ModResolver(ABC):
 
 class IniModResolver(ModResolver):
     '''Old-style mod resolution by hand-crafted mods.ini.'''
-
     def __init__(self, filename='mods.ini'):
         self.filename = filename
 
@@ -117,7 +115,7 @@ class AssetLoader:
         for assetname in list(key for key in cache.keys() if key.startswith(prefix)):
             del cache[assetname]
 
-    def convert_asset_name_to_path(self, name: str, partial=False):
+    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset'):
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
         parts = name.strip('/').split('/')
@@ -132,7 +130,7 @@ class AssetLoader:
 
         fullname = os.path.join(self.asset_path, *parts)
         if not partial:
-            fullname += '.uasset'
+            fullname += ext
 
         return fullname
 
@@ -234,11 +232,17 @@ class AssetLoader:
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
         logger.debug(f"Loading asset: {name}")
-        filename = self.convert_asset_name_to_path(name)
-        try:
-            mem = load_file_into_memory(filename)
-        except FileNotFoundError:
+
+        mem = None
+        for ext in ('.uasset', '.umap'):
+            filename = self.convert_asset_name_to_path(name, ext=ext)
+            if Path(filename).is_file():
+                mem = load_file_into_memory(filename)
+                break
+
+        if mem is None:
             raise AssetNotFound(name)
+
         return mem
 
     def __getitem__(self, assetname: str):

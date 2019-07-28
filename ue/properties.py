@@ -752,4 +752,4 @@ def getPropertyType(typeName: str, throw=True):
 
 
 # Types to export from this module
-__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable')
+__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion')
