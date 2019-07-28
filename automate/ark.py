@@ -186,23 +186,22 @@ class ArkSteamManager:
     def _installMods(self, modids):
         # TODO: Consider doing the extractions in parallel with the installations (offset) to speed this up
 
-        # Get Steam to download the mods, compressed
         for modid in modids:
+            # Get Steam to download the mod, compressed
             logger.debug(f'Installing/updating mod {modid}')
             self.steamcmd.install_workshopfiles(str(ARK_MAIN_APP_ID), modid, self.gamedata_path)
             if not verifyModDownloaded(self.gamedata_path, modid):
                 raise FileNotFoundError("Mod was not downloaded despite successful retcode - is it still available?")
 
-        # Unpack the mods into the game directory proper
-        for modid in modids:
+            # Unpack the mod into the game directory proper
             logger.debug(f'Unpacking mod {modid}')
             unpackMod(self.gamedata_path, modid)
 
-        # Collection mod version numbers from workshop data file
-        newVersions = getSteamModVersions(self.gamedata_path, modids)
+            # Collection mod version number from workshop data file
+            newVersions = getSteamModVersions(self.gamedata_path, [modid])
+            newVersion = newVersions[modid]
 
-        # Save data on the installed mods
-        for modid in modids:
+            # Save data on the installed mod
             moddata = gatherModInfo(self.asset_path, modid)
             moddata['version'] = str(newVersions[modid])
 
@@ -253,7 +252,6 @@ class ArkSteamManager:
 
 class ManagedModResolver(ModResolver):
     '''Mod resolution using managed mod data.'''
-
     def __init__(self, manager):
         super().__init__()
         self.manager = manager
