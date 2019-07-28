@@ -91,7 +91,10 @@ class GitManager:
                 logger.info('(skipped)')
 
     def _do_add(self):
-        self.git.add('--', self.relative_publish_path)
+        if self.config.settings.SkipCommit:
+            logger.info('(skipped by request)')
+        else:
+            self.git.add('--', self.relative_publish_path)
 
     def _do_push(self):
         if self.config.settings.SkipPush:
