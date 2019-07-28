@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import *
 
 from config import ConfigFile, get_global_config
-from ue.loader import AssetLoader, ModResolver
+from ue.loader import AssetLoader, ModNotFound, ModResolver
 
 from .modutils import readACFFile, readModInfo, readModMetaInfo, unpackModFile
 from .steamapi import SteamApi
@@ -278,7 +278,8 @@ class ManagedModResolver(ModResolver):
 
     def get_id_from_name(self, name: str) -> str:
         modid = self.modNameToIds.get(name.lower(), None)
-        if not modid: raise NameError(f"Mod name '{name}' not recognised or not installed")
+        if not modid:
+            raise ModNotFound(name)
         return modid
 
 
@@ -286,7 +287,7 @@ class FixedModResolver(ModResolver):
     def __init__(self, namesToIds: Dict[str, str]):
         self.namesToIds = namesToIds
         self.idsToNames = dict((v, k) for k, v in namesToIds.items())
-        return super().__init__()
+        super().__init__()
 
     def initialise(self):
         return super().initialise()

@@ -17,6 +17,7 @@ ignore=
 [MESSAGES CONTROL]
 disable=
     logging-fstring-interpolation,
+    useless-super-delegation,
     unused-wildcard-import,
     missing-docstring,
     wildcard-import,

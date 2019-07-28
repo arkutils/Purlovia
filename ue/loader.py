@@ -17,6 +17,8 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 __all__ = (
+    'ModNotFound',
+    'AssetNotFound',
     'AssetLoader',
     'load_file_into_memory',
     'ModResolver',
@@ -26,8 +28,19 @@ __all__ = (
 NO_FALLBACK = object()
 
 
+class ModNotFound(Exception):
+    def __init__(self, mod_name: str):
+        super().__init__(f'Mod {mod_name} not found')
+
+
+class AssetNotFound(Exception):
+    def __init__(self, asset_name: str):
+        super().__init__(f'Asset {asset_name} not found')
+
+
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
+
     def initialise(self):
         pass
 
@@ -42,6 +55,7 @@ class ModResolver(ABC):
 
 class IniModResolver(ModResolver):
     '''Old-style mod resolution by hand-crafted mods.ini.'''
+
     def __init__(self, filename='mods.ini'):
         self.filename = filename
 
@@ -210,7 +224,10 @@ class AssetLoader:
         logger.debug(f"Loading file: {filename}")
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
-        mem = load_file_into_memory(filename)
+        try:
+            mem = load_file_into_memory(filename)
+        except FileNotFoundError:
+            raise AssetNotFound(filename)
         return mem
 
     def _load_raw_asset(self, name: str):
@@ -218,7 +235,10 @@ class AssetLoader:
         name = self.clean_asset_name(name)
         logger.debug(f"Loading asset: {name}")
         filename = self.convert_asset_name_to_path(name)
-        mem = load_file_into_memory(filename)
+        try:
+            mem = load_file_into_memory(filename)
+        except FileNotFoundError:
+            raise AssetNotFound(name)
         return mem
 
     def __getitem__(self, assetname: str):
