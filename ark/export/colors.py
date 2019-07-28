@@ -5,7 +5,7 @@ from typing import *
 import ark.mod
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
-from ue.loader import AssetLoader
+from ue.loader import AssetLoader, AssetNotFound
 from ue.properties import LinearColor, UEBase
 
 from ..overrides import (OverrideSettings, any_regexes_match, get_overrides_for_species)
@@ -76,9 +76,15 @@ def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: Overrid
 
     # Choose which color set to use
     if male_colorset and male_colorset.value and male_colorset.value.value:
-        male_colorset_props = ark.mod.gather_properties(loader.load_related(male_colorset))
+        try:
+            male_colorset_props = ark.mod.gather_properties(loader.load_related(male_colorset))
+        except AssetNotFound as ex:
+            logger.warning(f'Unable to load male colorset for {asset.assetname}:\n\t{ex}')
     if female_colorset and female_colorset.value and female_colorset.value.value:
-        female_colorset_props = ark.mod.gather_properties(loader.load_related(female_colorset))
+        try:
+            female_colorset_props = ark.mod.gather_properties(loader.load_related(female_colorset))
+        except AssetNotFound as ex:
+            logger.warning(f'Unable to load female colorset for {asset.assetname}:\n\t{ex}')
 
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
