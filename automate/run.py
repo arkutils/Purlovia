@@ -73,7 +73,6 @@ def handle_args(args: Any) -> ConfigFile:
         config.settings.GitUseIdentity = False
         config.settings.SkipCommit = True
         config.settings.SkipPush = True
-        config.settings.SkipPull = True
     elif args.live:
         logger.info('LIVE mode enabled')
         config.settings.EnableGit = True
