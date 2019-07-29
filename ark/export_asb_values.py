@@ -1,12 +1,13 @@
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export.bones import gather_damage_mults
-from ark.export.breeding import gather_breeding_data
-from ark.export.colors import gather_color_data, gather_pgd_colors
-from ark.export.immobilize import gather_immobilization_data
-from ark.export.stats import gather_stat_data
-from ark.export.taming import gather_taming_data
+from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
+from ark.export_asb.bones import gather_damage_mults
+from ark.export_asb.breeding import gather_breeding_data
+from ark.export_asb.colors import gather_color_data, gather_pgd_colors
+from ark.export_asb.immobilize import gather_immobilization_data
+from ark.export_asb.stats import gather_stat_data
+from ark.export_asb.taming import gather_taming_data
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
 from ue.loader import AssetLoader
@@ -46,8 +47,6 @@ logger.addHandler(NullHandler())
 # 50% TE Bonus Levels (MaxTamingEffectivenessBaseLevelMultiplier Default: 0.5)
 
 # TBHM  TamedBaseHealthMultiplier
-
-IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
 ASB_STAT_INDEXES: Tuple[int, ...] = (0, 1, 3, 4, 7, 8, 9, 2)
 ARK_STAT_INDEXES = tuple(range(12))
@@ -155,7 +154,6 @@ def values_for_species(asset: UAsset,
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
-    DONTUSESTAT_VALUES = (0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1)
     displayed_stats: int = 0
 
     for i in statIndexes:

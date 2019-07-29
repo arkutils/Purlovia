@@ -1,17 +1,13 @@
 from typing import *
 
 import ark.mod
+from ark.defaults import *
 from ark.properties import stat_value
 from ue.loader import AssetLoader
 
 __all__ = [
     'gather_breeding_data',
 ]
-
-FEMALE_MINTIMEBETWEENMATING_DEFAULT = 64800.0
-FEMALE_MAXTIMEBETWEENMATING_DEFAULT = 172800.0
-
-BABYGESTATIONSPEED_DEFAULT = 0.000035
 
 
 def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
