@@ -159,6 +159,8 @@ class GitManager:
         status_output = self.git.status('-s', '--', self.relative_publish_path)
         filelist = [line[3:].strip() for line in status_output.split('\n')]
         for filename in filelist:
+            if ' -> ' in filename:
+                filename = filename.split(' -> ')[-1].strip()
             line = self._generate_info_line_from_file(filename)
             if line:
                 lines.append(f'* {line}')
