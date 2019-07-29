@@ -94,11 +94,9 @@ def values_for_species(asset: UAsset,
     if bp.endswith('_C'):
         bp = bp[:-2]
 
-    class_name = str(asset.default_class.name)
-
     # Replace names to match ASB's hardcoding of specific species
     name = overrides.descriptive_name or name
-    species = dict(name=name, blueprintPath=bp, className=class_name)
+    species = dict(name=name, blueprintPath=bp)
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'
