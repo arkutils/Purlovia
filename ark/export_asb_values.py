@@ -10,7 +10,7 @@ from ark.export_asb.stats import gather_stat_data
 from ark.export_asb.taming import gather_taming_data
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
-from ue.loader import AssetLoader
+from ue.loader import AssetLoader, AssetNotFound, ModNotFound
 
 from .overrides import get_overrides_for_species
 
@@ -113,33 +113,54 @@ def values_for_species(asset: UAsset,
 
     if includeImmobilize:
         # ImmobilizedBy format data
-        immobilization_data = gather_immobilization_data(props, asset.loader)
-        species['immobilizedBy'] = immobilization_data
+        immobilization_data = None
+        try:
+            immobilization_data = gather_immobilization_data(props, asset.loader)
+        except (AssetNotFound, ModNotFound) as ex:
+            logger.warning(f'Failure while gathering immobilization data for {asset.assetname}:\n\t{ex}')
+        if immobilization_data is not None:
+            species['immobilizedBy'] = immobilization_data
 
     if includeBreeding:
         # Breeding data
         if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-            breeding_data = gather_breeding_data(props, asset.loader)
+            breeding_data = None
+            try:
+                breeding_data = gather_breeding_data(props, asset.loader)
+            except (AssetNotFound, ModNotFound) as ex:
+                logger.warning(f'Failure while gathering breeding data for {asset.assetname}:\n\t{ex}')
             if breeding_data:
                 species['breeding'] = breeding_data
 
     if includeColor:
         # Color data
         if stat_value(props, 'bUseColorization', False):
-            colors = gather_color_data(asset, props, overrides)
+            colors = None
+            try:
+                colors = gather_color_data(asset, props, overrides)
+            except (AssetNotFound, ModNotFound) as ex:
+                logger.warning(f'Failure while gathering color data for {asset.assetname}:\n\t{ex}')
             if colors is not None:
                 species['colors'] = colors
 
     if includeTaming:
         # Taming data
         if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
-            taming = gather_taming_data(props)
+            taming = None
+            try:
+                taming = gather_taming_data(props)
+            except (AssetNotFound, ModNotFound) as ex:
+                logger.warning(f'Failure while gathering taming data for {asset.assetname}:\n\t{ex}')
             if taming:
                 species['taming'] = taming
 
     if includeDamageMults:
         # Bone damage multipliers
-        dmg_mults = gather_damage_mults(props)
+        dmg_mults = None
+        try:
+            dmg_mults = gather_damage_mults(props)
+        except (AssetNotFound, ModNotFound) as ex:
+            logger.warning(f'Failure while gathering bone damage data for {asset.assetname}:\n\t{ex}')
         if dmg_mults:
             species['boneDamageAdjusters'] = dmg_mults
 
