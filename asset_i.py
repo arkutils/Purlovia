@@ -1,19 +1,25 @@
 # Asset interactive experiments
 
 #%% Setup
-from interactive_utils import *
-from ue.base import UEBase
-from ue.asset import UAsset, ExportTableItem, ImportTableItem
-from ue.loader import AssetLoader
-from ue.stream import MemoryStream
-from ue.utils import *
-from ue.coretypes import *
-from ue.properties import *
-from automate.ark import ArkSteamManager
-import ark.mod
+try:
+    from interactive_utils import *
+except ImportError:
+    pass
+
+from typing import *
+
 import ark.asset
+import ark.mod
 import ark.properties
 from ark.common import *
+from automate.ark import ArkSteamManager
+from ue.asset import ExportTableItem, ImportTableItem, UAsset
+from ue.base import UEBase
+from ue.coretypes import *
+from ue.loader import AssetLoader, AssetNotFound
+from ue.properties import *
+from ue.stream import MemoryStream
+from ue.utils import get_clean_name
 
 arkman = ArkSteamManager()
 loader = arkman.createLoader()
@@ -93,28 +99,28 @@ else:
     print('-not found-')
 
 #%% Try to discover sub-components
-print('\nComponents:')
-pprint(list(ark.asset.findParentPackages(asset)))
-print('\nSub-components:')
-pprint(list(ark.asset.findSubComponentParentPackages(asset)))
+# print('\nComponents:')
+# pprint(list(ark.asset.findParentPackages(asset)))
+# print('\nSub-components:')
+# pprint(list(ark.asset.findSubComponentParentPackages(asset)))
 
 #%% Mod info
 # print('\nMod adds species:')
 # pprint(ark.mod.get_species_from_mod(asset))
 
 #%%
-print('\nComponents:')
-for export in ark.asset.findComponentExports(asset):
-    print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
-    print('Type:', export.klass.value)
-    print('Props:', len(export.properties.values))
-    print('Parent:', export.klass.value.super)
+# print('\nComponents:')
+# for export in ark.asset.findComponentExports(asset):
+#     print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
+#     print('Type:', export.klass.value)
+#     print('Props:', len(export.properties.values))
+#     print('Parent:', export.klass.value.super)
 
-print('\nSub-components:')
-for export in ark.asset.findSubComponentExports(asset):
-    print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
-    print('Export:', export)
-    print('Props:', len(export.properties.values))
+# print('\nSub-components:')
+# for export in ark.asset.findSubComponentExports(asset):
+#     print('Priority:', get_property(export, 'CharacterStatusComponentPriority'))
+#     print('Export:', export)
+#     print('Props:', len(export.properties.values))
 
 #%% Inheritance/component scan
 
@@ -140,9 +146,6 @@ def calc_pkg(obj):
     if pkg == this_asset.assetname:
         return '(local)'
 
-    if not pkg.startswith('/Game'):
-        return None
-
     return f'(from {pkg})'
 
 
@@ -156,6 +159,7 @@ def show_value(msg, obj, indent=0):
 INTERESTING_PROPS = (
     'bSpawnNestEgg',
     'CanLevelUpValue',
+    'DescriptiveName',
     'DinoNameTag',
     'MaxStatusValues',
     'RunningspeedModifier',
@@ -173,11 +177,30 @@ def get_interesting_props(props, indent=0):
         yield f'{pre}{prop.header.name}[{prop.header.index}] = {prop.value}'
 
 
+def show_inheritance(obj: Union[ObjectIndex, ExportTableItem, ImportTableItem], indent: int = 0):
+    if isinstance(obj, ObjectIndex):
+        obj = obj.value
+
+    if isinstance(obj, ImportTableItem):
+        fullname = str(obj.namespace.value.name) + '.' + str(obj.name)
+        try:
+            obj = loader.load_class(fullname, fallback=None)
+        except AssetNotFound:
+            return
+
+    if not obj or not obj.super:
+        return
+
+    show_value('from', obj.super, indent=indent)
+    show_inheritance(obj.super, indent=indent + 1)
+
+
 def scan_export(export: ExportTableItem, indent=0):
     print(f'{"  "*indent}{str(export.name)}:')
     show_value('sub-component of', export.namespace, indent=indent + 1)
     show_value('is a', export.klass, indent=indent + 1)
     show_value('inherits from', export.super, indent=indent + 1)
+    show_inheritance(export.super, indent=indent + 2)
     props = list(sorted(get_interesting_props(export.properties, indent=indent + 2)))
     if not props:
         print(f'{"  "*(indent+1)}no properties')
@@ -203,14 +226,18 @@ def scan_asset(asset: UAsset, indent=0):
 
 
 #%% Break down assets into components and sub-components visually
-# print()
-# scan_asset(asset)
+print()
+scan_asset(asset)
 
-# for parent in ark.asset.findParentPackages(asset):
-#     scan_asset(loader[parent])
+for parent in ark.asset.findParentPackages(asset):
+    scan_asset(loader[parent])
 
-# for comp in ark.asset.findSubComponentParentPackages(asset):
-#     scan_asset(loader[comp])
+for comp in ark.asset.findSubComponentParentPackages(asset):
+    try:
+        comp_asset = loader[comp]
+    except AssetNotFound:
+        continue
+    scan_asset(comp_asset)
 
 #%% Working out where to find taming info
 # for assetname in (
