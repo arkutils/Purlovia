@@ -98,10 +98,9 @@ class NameIndex(UEBase):
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
+        self.value.register_user(self.parent or self)
         if self.instance:
-            self.field_values['value'] = f'{str(self.value)}_{self.instance}'
-        else:
-            self.value.register_user(self.parent or self)
+            self.field_values['value'] = f'{self.value}_{self.instance}'
 
     if support_pretty:
 
