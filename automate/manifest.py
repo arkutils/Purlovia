@@ -17,6 +17,7 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 DEFAULT_IGNORES = ('_manifest.json', )
+SHRINK_MOD_REGEX = r"{\n\s+(.+: .*),\n\s+(.+: .*),\n\s+(.+: .*)\n\s+}"
 
 
 def update_manifest(config=get_global_config()):
@@ -69,7 +70,9 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
 
     # Save
     with open(output_file, 'w', newline='\n') as f:
-        json.dump(output, f, indent='\t')
+        content = json.dumps(output, indent='\t')
+        content = re.sub(SHRINK_MOD_REGEX, r'{ \1, \2, \3 }', content)
+        f.write(content)
 
 
 def _collect_info(filename: Path) -> Dict:
