@@ -47,12 +47,6 @@ logger.addHandler(NullHandler())
 
 # TBHM  TamedBaseHealthMultiplier
 
-NAME_CHANGES = {
-    'Dire Bear': 'Direbear',
-    'Ichthyosaurus': 'Ichthy',
-    'Paraceratherium': 'Paracer',
-}
-
 IMPRINT_VALUES = (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
 
 ASB_STAT_INDEXES: Tuple[int, ...] = (0, 1, 3, 4, 7, 8, 9, 2)

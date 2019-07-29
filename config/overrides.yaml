@@ -43,6 +43,11 @@ mods:
             useless_name_regexes:
                 pfn_groups: '(Toxic|Alpha)\d*'
 
+    1675895024: # No Untameables
+        color_regions:
+            useless_name_regexes:
+                unkown: 'Unkown'
+
 
 # Override settings on a per-species basis
 species:

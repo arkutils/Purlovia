@@ -42,6 +42,12 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
 
 
 def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
+    # Tag is used to identify immobilization targets and compatible saddles
+    # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
+
+    # Drag weight is used for immobilization calculation and arena entry
+    # dragWeight = stat_value(props, 'DragWeight', 0, None)
+
     items = ensure_immobilization_itemdata(loader)
     immobilizedBy: List[Any] = []
     if stat_value(props, 'bPreventImmobilization', 0, False):
