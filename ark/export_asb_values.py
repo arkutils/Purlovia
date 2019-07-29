@@ -165,8 +165,17 @@ def values_for_species(asset: UAsset,
     ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1)
     TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
 
+    DONTUSESTAT_VALUES = (0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1)
+    displayed_stats: int = 0
+
+    for i in statIndexes:
+        use_stat = not stat_value(props, 'DontUseValue', i, DONTUSESTAT_VALUES)
+        if use_stat and not (i == 9 and doesntUseOxygen):
+            displayed_stats |= (1 << i)
+
     if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
     if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
+    if allFields or displayed_stats: species['displayedStats'] = displayed_stats
 
     return species
