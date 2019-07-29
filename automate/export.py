@@ -148,7 +148,7 @@ class Exporter:
         values['format'] = "1.12"
 
         if moddata:
-            filename = moddata['name']
+            filename = f"{moddata['id']}-{moddata['name']}"
             title = moddata['title'] or moddata['name']
             values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
         else:
