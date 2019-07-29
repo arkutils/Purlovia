@@ -248,17 +248,6 @@ class IntProperty(UEBase):
         self._newField('value', self.stream.readInt32())
 
 
-class DelegateProperty(UEBase):
-    string_format = '(int) {value}'
-    main_field = 'value'
-
-    value: int
-
-    def _deserialise(self, size=None):
-        # uint32 + FName?
-        self.stream.offset += 12
-
-
 class BoolProperty(UEBase):
     main_field = 'value'
 
@@ -376,22 +365,48 @@ class StructEntry(UEBase):
 
     def _deserialise(self):
         self._newField('name', NameIndex(self))
-        self._newField('type', NameIndex(self))
+        self._newField('type', '<not yet defined>')
+        entryType = NameIndex(self).deserialise()
         self._newField('length', self.stream.readInt64())
 
         self.name.link()
-        self.type.link()
-        if dbg_structs > 1:
-            print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={self.type}, length={self.length}')
 
-        if self.type == "TimelinePostUpdateFunc": return
-        propertyType = getPropertyType(str(self.type))
-        self._newField('value', '<not yet defined>')
-        self.field_values['value'] = propertyType(self)
-        self.field_values['value'].deserialise(self.length)
-        self.field_values['value'].link()
+        name, propertyType, skipLength = decode_type_or_name(entryType, skip_deserialise=True)
+        self.field_values['type'] = entryType
+
         if dbg_structs > 1:
-            print(f'     = ', str(self.value))
+            print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={entryType}, length={self.length}')
+
+        # We may know the type of the data to go into this...
+        subTypeName = TYPED_ARRAY_CONTENT.get(str(self.name), None)
+        if propertyType == ArrayProperty and subTypeName is not None:
+            self._newField('value', '<not yet defined>')
+            subType = getPropertyType(subTypeName)
+            self.field_values['value'] = ArrayProperty(self)
+            self.field_values['value'].deserialise(self.length, with_type=subType)
+            self.field_values['value'].link()
+            if dbg_structs > 1:
+                print(f'     = ', str(self.value))
+        elif propertyType:
+            self._newField('value', '<not yet defined>')
+            self.field_values['value'] = propertyType(self)
+            self.field_values['value'].deserialise(self.length)
+            self.field_values['value'].link()
+            if dbg_structs > 1:
+                print(f'     = ', str(self.value))
+
+            return
+
+        if skipLength is not None:
+            self.stream.offset += self.length
+            if dbg_structs > 1: print(f'  Recognised as skippable: {self.length} bytes')
+            self.field_values['value'] = f'<skipped {name} ({self.length} bytes)>'
+            self.stream.offset += skipLength
+            return
+
+        if dbg_structs:
+            print(f'Struct @ {self.start_offset}, size=?: ' +
+                  f'name={name}, type={propertyType.__name__ if propertyType else ""}, len={skipLength}')
 
 
 # Still to investigate
@@ -410,20 +425,21 @@ STRUCT_TYPES_TO_ABORT_ON = (
 SKIPPABLE_STRUCTS = {
     # 'name': byte length
     'DelegateProperty': 12,
-    'Vector': 12,
-    'Vector2D': 8,
-    'Rotator': 12,
-    'Quat': 16,
-    'Color': 4,
-    'LinearColor': 16,
-    'Box': 12*2 + 1,
+    'IntPoint': 8,
+    'LazyObjectProperty': 16,
+    'Vector4': 16,
     # 'Transform': 4*4 + 3*4 + 3*4,
 }
 
+TYPED_ARRAY_CONTENT = {
+    'VertexData': 'Vector',
+}
 
-def decode_type_or_name(type_or_name: NameIndex):
+
+def decode_type_or_name(type_or_name: NameIndex, skip_deserialise=False):
     '''Decode a name as either a supported type, a length of an unsupported but skippable type, or a simple name.'''
-    type_or_name.deserialise()
+    if not skip_deserialise:
+        type_or_name.deserialise()
     if type_or_name.index == type_or_name.asset.none_index:
         return None, None, None
     type_or_name.link()
@@ -434,13 +450,11 @@ def decode_type_or_name(type_or_name: NameIndex):
     name = str(type_or_name)
 
     # Is it a supported type?
-    propertyType = getPropertyType(str(type_or_name), throw=False)
+    propertyType = getPropertyType(name, throw=False)
     if propertyType:
         if dbg_structs > 2:
             print(f'  ...is a supported type')
         return name, propertyType, None
-
-    name = str(type_or_name)
 
     # Is it skippable?
     known_length = SKIPPABLE_STRUCTS.get(name, None)
@@ -484,6 +498,7 @@ class StructProperty(UEBase):
 
             # It is a type we have a class for
             if propertyType:
+
                 if dbg_structs > 1: print(f'  Recognised type: {name}')
                 value = propertyType(self)
                 values.append(value)
@@ -585,11 +600,12 @@ class ArrayProperty(UEBase):
     count: int
     values: List[UEBase]
 
-    def _deserialise(self, size):
+    def _deserialise(self, size, with_type: Type = None):
         assert size >= 4, "Array size is required"
 
         self._newField('field_type', NameIndex(self))
         self.field_type.link()
+
         saved_offset = self.stream.offset
         self._newField('count', self.stream.readUInt32())
 
@@ -597,24 +613,26 @@ class ArrayProperty(UEBase):
             self._newField('values', [])
             return
 
-        propertyType = None
-        try:
-            propertyType = getPropertyType(str(self.field_type))
-        except TypeError:
-            pass
+        propertyType = with_type
+        if not propertyType:
+            try:
+                propertyType = getPropertyType(str(self.field_type))
+            except TypeError:
+                pass
 
-        if propertyType == None:  # or str(self.field_type) == 'StructProperty':
+        if propertyType is None:  # or str(self.field_type) == 'StructProperty':
             self.stream.offset = saved_offset + size
             self._newField('value', f'<unsupported field type {self.field_type}>')
             return
 
-        values = []
+        values: List[Union[UEBase, str]] = []
         self._newField('values', values)
 
         field_size = (size-4) // self.count  # don't know if we can use this
         end = saved_offset + size
-        # print(f'Array @ {self.start_offset}, size={size}, count={self.count}, '
-        #       f'calculated field size={field_size}, field type={self.field_type}')
+        if dbg_structs > 1:
+            print(f'Array @ {self.start_offset}, size={size}, count={self.count}, '
+                  f'calculated field size={field_size}, field type={self.field_type}')
 
         while self.stream.offset < end:
             # print("  Array entry @", self.stream.offset)
@@ -626,6 +644,7 @@ class ArrayProperty(UEBase):
                 values.append(value)
             except Exception as err:
                 values.append('<exception during decoding of array element>')
+                # logger.warning('exception during decoding of array element', exc_info=True)
                 assetname = '<unnamed asset>'
                 if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
                     assetname = self.asset.assetname
@@ -752,7 +771,6 @@ TYPE_MAP = {
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
-    'DelegateProperty': DelegateProperty,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,
