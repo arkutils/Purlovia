@@ -96,20 +96,16 @@ def values_for_species(asset: UAsset,
     modid: str = asset.loader.get_mod_id(asset.assetname)
     overrides = get_overrides_for_species(asset.assetname, modid)
 
+    # TODO: Discuss having ASB append the class and remove the C and only provide the asset path
     bp: str = asset.default_class.fullname
     if bp.endswith('_C'):
         bp = bp[:-2]
 
+    class_name = str(asset.default_class.name)
+
     # Replace names to match ASB's hardcoding of specific species
     name = overrides.descriptive_name or name
-
-    # Tag is used to identify immobilization targets and compatible saddles
-    # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
-
-    # Drag weight is used for immobilization calculation and arena entry
-    # dragWeight = stat_value(props, 'DragWeight', 0, None)
-
-    species = dict(name=name, blueprintPath=bp)  #, tag=tag, dragWeight=dragWeight
+    species = dict(name=name, blueprintPath=bp, className=class_name)
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'
