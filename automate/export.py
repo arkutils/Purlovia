@@ -14,6 +14,7 @@ from ark.export_asb_values import values_for_species, values_from_pgd
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
+from utils.strings import get_valid_filename
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -149,6 +150,7 @@ class Exporter:
 
         if moddata:
             filename = f"{moddata['id']}-{moddata['name']}"
+            filename = get_valid_filename(filename)
             title = moddata['title'] or moddata['name']
             values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
         else:
