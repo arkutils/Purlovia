@@ -1,9 +1,10 @@
 import weakref
+from collections import namedtuple
 from typing import *
 
 from .base import UEBase
 from .coretypes import *
-from .properties import CustomVersion, Guid, PropertyTable, StringProperty
+from .properties import (CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 
@@ -53,6 +54,16 @@ class UAsset(UEBase):
 
         # Remaining header
         self._newField('guid', Guid(self))
+        self._newField('generations', Table(self).deserialise(GenerationInfo, self.stream.readUInt32()))
+        self._newField('engine_version_saved', EngineVersion(self))
+        self._newField('compression_flags', self.stream.readUInt32())
+        self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
+        self._newField('package_source', self.stream.readUInt32())
+        self._newField('unknown_field', self.stream.readUInt64())  # TODO: Conditional on Ark???
+        self._newField('packages_to_cook', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
+        self._newField('asset_registry_data_offset', self.stream.readUInt32())
+        self._newField('bulk_data_start_offset', self.stream.readUInt64())
+        self._newField('world_tile_info_data_offset', self.stream.readUInt32())
 
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
@@ -61,6 +72,11 @@ class UAsset(UEBase):
         self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
         self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
 
+        bulk_stream = MemoryStream(self.stream, self.bulk_data_start_offset)
+        bulk_length = self.world_tile_info_data_offset - self.bulk_data_start_offset
+        self._newField('bulk_length', bulk_length)
+        self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
+
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
         super()._link()
@@ -68,6 +84,9 @@ class UAsset(UEBase):
         self._findNoneName()
         self.imports.link()
         self.exports.link()
+
+        # bulk_chunk = namedtuple('FakeChunkPtr', ['offset', 'count'])(self.bulk_data_start_offset, self.bulk_length)
+        # self._newField('bulk', self._parseTable(bulk_chunk, PropertyTable))
 
         for export in self.exports:
             export.deserialise_properties()

@@ -13,6 +13,8 @@ __all__ = (
     'ChunkPtr',
     'NameIndex',
     'ObjectIndex',
+    'GenerationInfo',
+    'CompressedChunk',
 )
 
 
@@ -82,6 +84,28 @@ class ChunkPtr(UEBase):
     def _deserialise(self):
         self._newField('count', self.stream.readUInt32())
         self._newField('offset', self.stream.readUInt32())
+
+
+class GenerationInfo(UEBase):
+    export_count: int
+    name_count: int
+
+    def _deserialise(self):
+        self._newField('export_count', self.stream.readUInt32())
+        self._newField('name_count', self.stream.readUInt32())
+
+
+class CompressedChunk(UEBase):
+    uncompressed_offset: int
+    uncompressed_size: int
+    compressed_offset: int
+    compressed_size: int
+
+    def _deserialise(self):
+        self._newField('uncompressed_offset', self.stream.readUInt32())
+        self._newField('uncompressed_size', self.stream.readUInt32())
+        self._newField('compressed_offset', self.stream.readUInt32())
+        self._newField('compressed_size', self.stream.readUInt32())
 
 
 class NameIndex(UEBase):

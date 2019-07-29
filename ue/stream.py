@@ -38,6 +38,12 @@ class MemoryStream:
     def readBool32(self) -> bool:
         return bool(self._read('I'))
 
+    def readUInt16(self) -> int:
+        return self._read('H')
+
+    def readInt16(self) -> int:
+        return self._read('h')
+
     def readUInt32(self) -> int:
         return self._read('I')
 

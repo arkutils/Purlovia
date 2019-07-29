@@ -160,7 +160,7 @@ class AssetLoader:
             mod = self.modresolver.get_id_from_name(mod)
         return mod
 
-    def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str, ...]] = None):
+    def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str, ...]] = None, extension='.uasset'):
         excludes: Tuple[str, ...] = ()
         if exclude is None:
             excludes = ()
@@ -175,7 +175,7 @@ class AssetLoader:
                 fullpath = os.path.join(path, filename)
                 name, ext = os.path.splitext(fullpath)
 
-                if not ext.lower() == '.uasset':
+                if not ext.lower() == extension:
                     continue
 
                 match = re.match(regex, name)

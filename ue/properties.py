@@ -614,7 +614,6 @@ STRUCT_TYPES_TO_ABORT_ON = (
 SKIPPABLE_STRUCTS = {
     # 'name': byte length
     'DelegateProperty': 12,
-    'IntPoint': 8,
     'LazyObjectProperty': 16,
     'Vector4': 16,
     # 'Transform': 4*4 + 3*4 + 3*4,
@@ -622,6 +621,7 @@ SKIPPABLE_STRUCTS = {
 
 TYPED_ARRAY_CONTENT = {
     'VertexData': 'Vector',
+    'NPCsSpawnOffsets': 'Vector',
 }
 
 
@@ -954,6 +954,30 @@ class LinearColor(UEBase):
         return tuple(v.value for v in self.field_values.values())
 
 
+class IntPoint(UEBase):
+    x: int
+    y: int
+
+    def _deserialise(self, size=None):
+        self._newField('x', self.stream.readInt32())
+        self._newField('y', self.stream.readInt32())
+
+
+class EngineVersion(UEBase):
+    major: int
+    minor: int
+    patch: int
+    changelist: int
+    branch: str
+
+    def _deserialise(self):
+        self._newField('major', self.stream.readUInt16())
+        self._newField('minor', self.stream.readUInt16())
+        self._newField('patch', self.stream.readUInt16())
+        self._newField('changelist', self.stream.readUInt32())
+        self._newField('branch', StringProperty(self))
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
@@ -974,6 +998,7 @@ TYPE_MAP = {
     'Color': Color,
     'LinearColor': LinearColor,
     'Box': Box,
+    'IntPoint': IntPoint,
     # 'Transform': Transform, # no worky
 }
 
@@ -986,4 +1011,5 @@ def getPropertyType(typeName: str, throw=True):
 
 
 # Types to export from this module
-__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion')
+__all__ = tuple(set(cls.__name__
+                    for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion', 'EngineVersion')

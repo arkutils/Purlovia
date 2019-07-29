@@ -41,6 +41,8 @@ class SettingsSection(BaseModel):
 
     SeparateOfficialMods: IniStringList = IniStringList()
 
+    Maps: IniStringList = IniStringList()
+
     DataDir: Path = Path('livedata')
     GitDirectory: Path = Path('output')
     PublishDir: Path = Path('output/data/asb')
