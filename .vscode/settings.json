@@ -3,6 +3,7 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/.mypy_cache": true,
+        ".idea": true,
     },
     "python.testing.pytestArgs": [],
     "python.testing.unittestEnabled": false,
