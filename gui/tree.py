@@ -217,6 +217,7 @@ class Tree(ttk.Treeview):
             new_id = self.node_id(value, parent_id)
             str_value = self.get_value_as_string(value)
             item_id = self.insert(
+
                 parent_id,
                 "end",
                 new_id,
