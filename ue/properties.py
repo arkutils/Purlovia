@@ -1,4 +1,5 @@
 import math
+import operator
 import struct
 import sys
 import uuid
@@ -8,6 +9,7 @@ from typing import ByteString, Dict, List, Optional, Type, Union
 
 from .base import UEBase
 from .coretypes import *
+from .number import *
 from .stream import MemoryStream
 
 try:
@@ -176,15 +178,38 @@ class Property(UEBase):
             p.pretty(self.value)
 
 
+class DummyAsset(UEBase):
+    def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
+        for k, v in kwargs.items():
+            vars(self).setdefault(k, v)
+
+    def _deserialise(self, *args, **kwargs):
+        return super()._deserialise(*args, **kwargs)
+
+    def _link(self):
+        return super()._link()
+
+
 class FloatProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
 
     value: float
     textual: str
-    bytes: ByteString
+    raw_data: bytes
     rounded: str
     rounded_value: float
+
+    @classmethod
+    def create(cls, value: float, data: bytes = None):
+        if data is None:
+            data = struct.pack('f', value)
+        else:
+            from_data = struct.unpack('f', data)[0]
+            assert f"{value:.5e}" == f"{from_data:.5e}"
+        obj = cls(DummyAsset(asset=None), MemoryStream(data))
+        obj.deserialise()
+        return obj
 
     def _deserialise(self, size=None):
         # Read once as a float
@@ -193,7 +218,7 @@ class FloatProperty(UEBase):
 
         # Read again as plain bytes for exact exporting
         self.stream.offset = saved_offset
-        self._newField('bytes', self.stream.readBytes(4))
+        self._newField('raw_data', self.stream.readBytes(4))
 
         # Make a rounded textual version with (inexact) if required
         value = self.value
@@ -205,6 +230,55 @@ class FloatProperty(UEBase):
         if inexact:
             text += ' (inexact)'
         self._newField('textual', text)
+
+    def __bytes__(self):
+        assert self.is_serialised
+        return self.raw_data
+
+    def __bool__(self):
+        assert self.is_serialised
+        return bool(self.value)
+
+    __nonzero__ = __bool__
+
+    def __float__(self):
+        assert self.is_serialised
+        return float(self.value)
+
+    def __int__(self):
+        assert self.is_serialised
+        return int(self.value)
+
+    __nonzero__ = __bool__
+
+    def __pos__(self):
+        assert self.is_serialised
+        return self.value
+
+    def __neg__(self):
+        assert self.is_serialised
+        return -self.value
+
+    __pow__, __rpow__ = make_binary_operators(pow)
+    __mod__, __rmod__ = make_binary_operators(operator.mod)
+    __add__, __radd__ = make_binary_operators(operator.add)
+    __sub__, __rsub__ = make_binary_operators(operator.sub)
+    __mul__, __rmul__ = make_binary_operators(operator.mul)
+    __truediv__, __rtruediv__ = make_binary_operators(operator.truediv)
+    __floordiv__, __rfloordiv__ = make_binary_operators(operator.floordiv)
+
+    __eq__ = make_binary_operator(operator.eq)
+    __ne__ = make_binary_operator(operator.ne)
+    __gt__ = make_binary_operator(operator.gt)
+    __lt__ = make_binary_operator(operator.lt)
+    __ge__ = make_binary_operator(operator.ge)
+    __le__ = make_binary_operator(operator.le)
+
+    __round__ = make_operator(round)
+    __ceil__ = make_operator(math.ceil)
+    __abs__ = make_operator(operator.abs)
+    __floor__ = make_operator(math.floor)
+    __trunc__ = make_operator(math.trunc)
 
 
 class DoubleProperty(UEBase):
