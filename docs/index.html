@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to Purlovia’s documentation! &#8212; Purlovia  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-purlovia-s-documentation">
+<h1>Welcome to Purlovia’s documentation!<a class="headerlink" href="#welcome-to-purlovia-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-gui.tree"></span><dl class="class">
+<dt id="gui.tree.Tree">
+<em class="property">class </em><code class="sig-prename descclassname">gui.tree.</code><code class="sig-name descname">Tree</code><span class="sig-paren">(</span><em class="sig-param">frame</em>, <em class="sig-param">columns=('type'</em>, <em class="sig-param">'value')</em>, <em class="sig-param">**kw</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>A view based on Tkinter’s Treeview class with methods for parsing the asset tree.</p>
+<p>Any kwargs that are passed in are passed directly to Treeview’s __init__ method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> – The Tkinter Frame to render the Tree in</p></li>
+<li><p><strong>columns</strong> – (Optional) A tuple of the column names to create for the tree.
+Default: (“type”, “value”)</p></li>
+<li><p><strong>kw</strong> – (Optional) Any other kwargs to pass to Treeview’s __init__</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="gui.tree.Tree.add_asset_to_root">
+<code class="sig-name descname">add_asset_to_root</code><span class="sig-paren">(</span><em class="sig-param">asset: ue.base.UEBase</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.add_asset_to_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an asset to the root of the tree.</p>
+<p>This asset is parsed into the tree which is displayed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>asset</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">UEBase</span></code> The asset to add.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.add_placeholder_node">
+<code class="sig-name descname">add_placeholder_node</code><span class="sig-paren">(</span><em class="sig-param">item_id</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.add_placeholder_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a tag to specify this node as having a placeholder (so it will raise an event when opened)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>item_id</strong> – The id of the item to create the placeholder for.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.get_node_iterator">
+<em class="property">static </em><code class="sig-name descname">get_node_iterator</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.get_node_iterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets an iterator of the current node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">Union[list,</span> <span class="pre">UEBase]</span></code> The node to process</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An iterator of the node passed in.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code> if node is not a <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">UEBase</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.get_value_as_string">
+<em class="property">static </em><code class="sig-name descname">get_value_as_string</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.get_value_as_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a value as a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> – The value to get a string representation of.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>The number of entries if value is a <cite>list</cite>.</p></li>
+<li><p>The name of the type for any other <cite>type</cite>.</p></li>
+<li><p>The string representation for everything else.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.has_children">
+<code class="sig-name descname">has_children</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.has_children" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if the node passed in has any children</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – The node to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Boolean</span></code> <cite>True</cite> if the node has children, <cite>False</cite> otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.insert_fields_for_node">
+<code class="sig-name descname">insert_fields_for_node</code><span class="sig-paren">(</span><em class="sig-param">parent_id</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.insert_fields_for_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts nodes into the tree and creates a placeholder if the node has children.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parent_id</strong> – The id of the node to insert</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.node_id">
+<em class="property">static </em><code class="sig-name descname">node_id</code><span class="sig-paren">(</span><em class="sig-param">node</em>, <em class="sig-param">parent_id=None</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.node_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a string ID for a node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">UEBase</span></code> node to get the ID of</p></li>
+<li><p><strong>parent_id</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> ID of the parent node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ID of node if it is an instance of UEBase or None otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.on_tree_open">
+<code class="sig-name descname">on_tree_open</code><span class="sig-paren">(</span><em class="sig-param">evt: tkinter.EventType</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.on_tree_open" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is called when a node containing a placeholder is opened for the first time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>evt</strong> – Event (Not currently used)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gui.tree.Tree.type_name">
+<em class="property">static </em><code class="sig-name descname">type_name</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#gui.tree.Tree.type_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the type of a value as a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> – The value to get the type of.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A string of value’s type.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Purlovia</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, coldino.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
