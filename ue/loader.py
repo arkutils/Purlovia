@@ -202,7 +202,7 @@ class AssetLoader:
             asset = loader[assetname]
             return asset
 
-        raise ValueError(f"Unsupported type for load_releated '{type(obj)}'")
+        raise ValueError(f"Unsupported type for load_related '{type(obj)}'")
 
     def load_class(self, fullname: str, fallback=NO_FALLBACK) -> ExportTableItem:
         (assetname, clsname) = fullname.split('.')
