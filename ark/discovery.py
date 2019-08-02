@@ -27,6 +27,16 @@ class ByRawData:
 
         return result
 
+    def is_structure(self, assetname: str):
+        '''Use binary string matching to check if an asset is a structure.'''
+        # Load asset as raw data
+        mem = self.loader._load_raw_asset(assetname)
+
+        # Check for the presence of required string
+        result = b'StructureMesh' in mem.obj
+
+        return result
+
 
 class ByInheritance:
     '''Totally accurate but expensive method, to be used to verify results from other discovery methods.'''

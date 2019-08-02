@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List, Type, Union
 
 from .base import UEBase
 
@@ -88,15 +88,19 @@ class NameIndex(UEBase):
     main_field = 'value'
 
     index: int
-    value: UEBase  # can't specify StringProperty
+    instance: int
+    value: Union[UEBase, str]  # can't specify StringProperty
 
     def _deserialise(self):
         # Get the index but don't look up the actual value until the link phase
-        self._newField('index', self.stream.readUInt64())  # name indexes are 64-bit and unsigned
+        self._newField('index', self.stream.readUInt32())
+        self._newField('instance', self.stream.readUInt32())
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
         self.value.register_user(self.parent or self)
+        if self.instance:
+            self.field_values['value'] = f'{self.value}_{self.instance}'
 
     if support_pretty:
 
