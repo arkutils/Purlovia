@@ -190,7 +190,6 @@ species:
                 4: "Back"
                 5: "Underside"
     /Game/PrimalEarth/Dinos/Direbear/Direbear_Character_BP:
-        descriptive_name: 'Direbear'
         color_regions:
             region_names:
                 0: "Back and Head"
@@ -227,7 +226,6 @@ species:
                 4: "Shell Patterning"
                 5: "Underside"
     /Game/PrimalEarth/Dinos/Dolphin/Dolphin_Character_BP:
-        descriptive_name: "Ichthy"
         color_regions:
             region_names:
                 0: "Body"
@@ -350,7 +348,6 @@ species:
                 4: "Patterning"
                 5: "Belly"
     /Game/PrimalEarth/Dinos/Paraceratherium/Paracer_Character_BP:
-        descriptive_name: "Paracer"
         color_regions:
             region_names:
                 0: "Body"
