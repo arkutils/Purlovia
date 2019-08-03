@@ -130,7 +130,7 @@ species:
                 1: "Feet"
                 4: "Stripe"
                 5: "Tail"
-    /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP_Aggressive_Med:
+    /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP:
         color_regions:
             region_names:
                 0: "Fur Mane"
@@ -176,7 +176,7 @@ species:
                 2: "Sail"
                 3: "Sail Spines"
                 4: "Legs and Belly"
-    /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive_DragonBoss_Med:
+    /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
@@ -252,7 +252,7 @@ species:
                 1: "Feathers"
                 4: "Spine and Feather Tips"
                 5: "Lower Body"
-    /Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP_TekCave:
+    /Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
@@ -309,7 +309,7 @@ species:
                 2: "Skin"
                 4: "Neck"
                 5: "Belly and Wing Bands"
-    /Game/PrimalEarth/Dinos/Monkey/Monkey_Character_BP_Aggressive_Med:
+    /Game/PrimalEarth/Dinos/Monkey/Monkey_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
@@ -457,7 +457,7 @@ species:
                 0: "Body"
                 4: "Horns"
                 5: "Hooves and Eye Regions"
-    /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP_Aggressive_Med:
+    /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP:
         color_regions:
             region_names:
                 0: "Thorax and Head"
