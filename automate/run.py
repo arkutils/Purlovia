@@ -39,7 +39,7 @@ def setup_logging(path='config/logging.yaml', level=logging.INFO):
     root_logger.log(100, '')
 
 
-EPILOG = '''example: python -m automate --dev --skip-install'''
+EPILOG = '''example: python -m automate --skip-install'''
 
 DESCRIPTION = '''Perform an automated run of Purlovia, optionally overriding config or individual parts of the process.'''
 
@@ -49,7 +49,6 @@ def create_parser() -> argparse.ArgumentParser:
 
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('--live', action='store_true', help='enable live mode [requires git identity]')
-    exclusive.add_argument('--dev', action='store_true', help='enable dev mode [skips commit and push]')
 
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
@@ -68,16 +67,16 @@ def handle_args(args: Any) -> ConfigFile:
 
     config = get_global_config()
 
-    if args.dev:
-        logger.info('DEV mode enabled')
-        config.settings.GitUseIdentity = False
-        config.settings.SkipCommit = True
-        config.settings.SkipPush = True
-    elif args.live:
+    if args.live:
         logger.info('LIVE mode enabled')
         config.settings.EnableGit = True
         config.settings.GitUseReset = True
         config.settings.GitUseIdentity = True
+    else:
+        logger.info('DEV mode enabled')
+        config.settings.GitUseIdentity = False
+        config.settings.SkipCommit = True
+        config.settings.SkipPush = True
 
     if args.stats:
         if int(args.stats) == 12:
