@@ -379,7 +379,7 @@ species:
                 0: "Body"
                 4: "Back Stripes"
                 5: "Inner Ear, Snout, Belly, Appendages"
-    /Game/PrimalEarth/Dinos/Ptero/Ptero_Minion_Character_Med:
+    /Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP:
         color_regions:
             region_names:
                 0: "Patterning"
