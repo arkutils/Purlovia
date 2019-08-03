@@ -200,6 +200,10 @@ class ValueProperty(UEBase, Real, ABC):
     def _deserialise(self, size=None):
         pass
 
+    # Not sure why we have to specifically override these, but we do
+    __eq__ = UEBase.__eq__
+    __hash__ = UEBase.__hash__
+
     def __bool__(self):
         assert self.is_serialised
         return bool(self.value)

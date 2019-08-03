@@ -1,63 +1,33 @@
-# Blah
+# Experimenting with
 
 #%% Setup
-from dataclasses import dataclass
-from typing import *
-
-from ue.properties import FloatProperty
-
-# props = gather_properties(export, include_defaults=True)
-# props.clean.MaxStatusValues[0]
-# props.clean['MaxStatusValues'][0]
-
-# props = gather_properties_raw(export, include_defaults=True)
-# props.raw.MaxStatusValues[0]
-# props.raw['MaxStatusValues'][0]
-
-#%% Default values
-DEFAULTS = {
-    '/Script/ShooterGame.PrimalDinoCharacter': {
-        'bUseBabyGestation': False,
-        'BabyGestationSpeed': FloatProperty.create(0.000035, bytes.fromhex('F7CC1238')),
-    },
-    '/Script/ShooterGame.PrimalDinoStatusComponent': {
-        'MaxStatusValues': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-        'ExtraTamedHealthMultiplier': (1.35, ),
-        'DinoMaxStatAddMultiplierImprinting': (0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0),
-        'TheMaxTorporIncreasePerBaseLevel': (0.06, ),
-    },
-}
+from ue.properties import FloatProperty, IntProperty
+from ue.proxy import *
 
 
-#% Structure
-class UEData:
-    pass
+#%% Proxy class
+class DCSC(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoStatusComponent'):
+    MaxStatusValues = uefloats(100.0, 100.0, 0.0, 100.0, 0, '00000000')
+    CanLevelUp = uebools(True, False, True, False)
 
 
-@dataclass(init=False)
-class DinoCharacterStatusComponent(UEData):
-    MaxStatusValues: Mapping[int, FloatProperty]
+#%% Tests
+dcsc1 = DCSC()
+dcsc2 = DCSC()
 
+#%% Show 1
+dcsc1.MaxStatusValues
 
-T = TypeVar('T', bound=UEData)
+#%% Show 2
+dcsc2.MaxStatusValues
 
+#%% Show
+dcsc1.MaxStatusValues[0] = 'one'
+dcsc2.MaxStatusValues[0] = 'two'
+#%% Update
+dcsc1.update({'MaxStatusValues': {0: FloatProperty.create(200)}})
 
-#%% Handler
-def prep_defaults(cls: Type[T]) -> T:
-    obj = cls()
-    d = vars(obj)
-    print(d)
-    for k in cls.__annotations__.keys():
-        d[k] = dict()
-    return obj
-
-
-# dcsc = DinoCharacterStatusComponent()
-dcsc = prep_defaults(DinoCharacterStatusComponent)
-# dcsc.MaxStatusValues = {0: FloatProperty.create(100.0)}
-
-print(dcsc.MaxStatusValues)
-dcsc.MaxStatusValues[0] = 100.0
-print(dcsc.MaxStatusValues[0] + 1)
+#%% Show 1
+dcsc1.MaxStatusValues
 
 #%%
