@@ -1,25 +1,48 @@
 from typing import *
 
+from ark.defaults import *
+
 from .asset import ExportTableItem, ImportTableItem, UAsset
+from .base import UEBase
 from .loader import AssetLoader
 from .properties import ObjectProperty
 from .proxy import proxy_for_type
 
 
-def gather_properties(export: ExportTableItem, include_defaults=True):
+def gather_properties(export: ExportTableItem):
     if isinstance(export, ObjectProperty):
-        return gather_properties(export.value, include_defaults=include_defaults)
+        return gather_properties(export.value)
 
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
 
     chain = _discover_inheritance_chain(export)
-    proxy = proxy_for_type(chain[0])
+    baseclass_fullname = chain.pop(0)
+    proxy = proxy_for_type(baseclass_fullname)
 
     if not proxy:
-        raise TypeError(f"No proxy type available for {chain[0]}")
+        raise TypeError(f"No proxy type available for {baseclass_fullname}")
+
+    for fullname in chain:
+        if fullname.startswith('/Script'):
+            continue  # Defaults are already in proxy - skip
+
+        props = _get_props_for_class(fullname, export.asset.loader)
+        proxy.update(props)
 
     return proxy
+
+
+def _get_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[str, Mapping[int, UEBase]]:
+    cls = loader.load_class(fullname)
+    asset = cls.asset
+
+    # Find the Default__ export for this class and return its properties
+    for export in asset.exports:
+        if str(export.name).startswith('Default__') and str(export.klass) == str(cls):
+            return export.properties.as_dict()
+
+    return {}
 
 
 def _discover_inheritance_chain(export: ExportTableItem) -> List[str]:
