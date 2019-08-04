@@ -25,14 +25,18 @@ class PrimalDinoStatusComponent(UEProxyStructure, uetype='/Script/ShooterGame.Pr
     AmountMaxGainedPerLevelUpValue = uefloats(*repeat(0, STAT_COUNT))
     AmountMaxGainedPerLevelUpValueTamed = uefloats(*repeat(0, STAT_COUNT))
     BaseFoodConsumptionRate = uefloats(-0.025000)  # TODO: needs raw data
+    bCanSuffocate = uebools(True)
+    bCanSuffocateIfTamed = uebools(False)
+    bForceGainOxygen = uebools(False)
     CanLevelUpValue = uefloats(*repeat(0, STAT_COUNT))
-    DinoMaxStatAddMultiplierImprinting = uefloats()
+    DinoMaxStatAddMultiplierImprinting = uefloats(0.2, 0, 0.2, 0, 0.2, 0.2, 0, 0.2, 0.2, 0.2, 0, 0)
     DontUseValue = uefloats(*repeat(0, STAT_COUNT))
-    ExtraTamedHealthMultiplier = uefloats(1.35, 'CDCCAC3F')  # TODO: Should verify the hex
+    ExtraTamedHealthMultiplier = uefloats(1.35)  # TODO: needs raw data
     KnockedOutTorpidityRecoveryRateMultiplier = uefloats(3.0)
     MaxStatusValues = uefloats(100, 100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0)
     ProneWaterFoodConsumptionMultiplier = uefloats(1.0)
     RecoveryRateStatusValue = uefloats(100.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    TamedBaseHealthMultiplier = uefloats(1.0)
     TamingMaxStatAdditions = uefloats(*repeat(0, STAT_COUNT))
     TamingMaxStatMultipliers = uefloats(*repeat(0, STAT_COUNT))
     TheMaxTorporIncreasePerBaseLevel = uefloats(0.06)  # TODO: needs raw data
@@ -46,10 +50,11 @@ DCSC = PrimalDinoStatusComponent
 
 class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoCharacter'):
     # DevKit Verified
-    BabyAgeSpeed = uefloats((0.033, '022B073D'))  # TODO: Should verify the hex
-    BabyGestationSpeed = uefloats((0.000035, 'F7CC1238'))  # TODO: Should verify the hex
+    BabyAgeSpeed = uefloats(0.033)  # TODO: needs raw data
+    BabyGestationSpeed = uefloats(0.000035)  # TODO: needs raw data
     bCanBeTamed = uebools(True)
     bCanBeTorpid = uebools(True)
+    bCanHaveBaby = uebools(False)
     bIgnoreAllImmobilizationTraps = uebools(False)
     bIsBossDino = uebools(False)
     bIsCorrupted = uebools(False)
@@ -58,11 +63,14 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     bPreventSleepingTame = uebools(False)
     bSupportWakingTame = uebools(False)
     bUseBabyGestation = uebools(False)
+    bUseColorization = uebools(False)
     CustomTag = uestrings('')  # NameProperty (Default: None)
-    DescriptiveName = uestrings('PrimalCharacter')  # StringProperty
+    DescriptiveName = uestrings('')  # StringProperty (Default: 'PrimalCharacter')
+    DinoNameTag = uestrings('')  # NameProperty (Default: None)
     DragWeight = uefloats(35.0)
     ExtraBabyAgeSpeedMultiplier = uefloats(1.0)
     ExtraBabyGestationSpeedMultiplier = uefloats(1.0)
+    ExtraTamedBaseHealthMultiplier = uefloats(1.0)
     NewFemaleMaxTimeBetweenMating = uefloats(172800.0)
     NewFemaleMinTimeBetweenMating = uefloats(64800.0)
     PreventColorizationRegions = uebytes(0, 0, 0, 0, 0, 0)
@@ -89,8 +97,9 @@ class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.Sho
 
 
 class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameData'):
-    pass
     # DevKit Verified
+    ModDescription = uestrings('')
+    ModName = uestrings('')
     #   ColorDefinitions (ArrayProperty) = []
     #   MasterDyeList (ArrayProperty) = []
 
@@ -99,10 +108,14 @@ class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameDat
 
 class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     # DevKit Verified
+    DescriptiveNameBase = uestrings('')
     EggLoseDurabilityPerSecond = uefloats(1.0)
     EggMaxTemperature = uefloats(30.0)
     EggMinTemperature = uefloats(15.0)
     ExtraEggLoseDurabilityPerSecondMultiplier = uefloats(1.0)
+    ItemDescription = uestrings('')
+    # BaseCraftingResourceRequirements (ArrayProperty) = []
+    # UseItemAddCharacterStatusValues (ArrayProperty) = []
 
     # DevKit Unverified
 
