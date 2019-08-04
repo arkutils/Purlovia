@@ -493,7 +493,9 @@ class StringProperty(UEBase):
         if not isinstance(value, str):
             raise ValueError("StringProperty requires an str value")
 
-        data = struct.pack('isb', len(value) + 1, value.encode('utf8'), 0)
+        byte_string = value.encode('utf8') + bytes.fromhex('00')
+        count = len(byte_string)
+        data = struct.pack(f'i{count}s', count, byte_string)
         asset = asset or _DummyAsset(asset=None)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise()
