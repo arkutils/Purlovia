@@ -177,7 +177,7 @@ def values_for_species(asset: UAsset,
 
     for i in statIndexes:
         use_stat = not stat_value(props, 'DontUseValue', i, DONTUSESTAT_VALUES)
-        if use_stat and not (i == 9 and doesntUseOxygen):
+        if use_stat and not (i == 3 and doesntUseOxygen):
             displayed_stats |= (1 << i)
 
     if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
