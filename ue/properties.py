@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from logging import NullHandler, getLogger
 from numbers import Real
-from typing import ByteString, Dict, List, Optional, Type, Union
+from typing import *
 
 from .base import UEBase
 from .coretypes import *
@@ -182,6 +182,8 @@ class Property(UEBase):
 
 
 class _DummyAsset(UEBase):
+    none_index = 9999
+
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
@@ -191,6 +193,11 @@ class _DummyAsset(UEBase):
 
     def _link(self):
         return super()._link()
+
+    def getName(self, index):
+        if index == self.none_index:
+            return StringProperty.create('None')
+        raise ValueError("Attempt to lookup a name in a dummy asset")
 
 
 class ValueProperty(UEBase, Real, ABC):
@@ -261,24 +268,47 @@ class FloatProperty(ValueProperty):
     rounded_value: float
 
     @classmethod
-    def create(cls, value: float = None, data: bytes = None):
+    def create(cls, inp: Union[float, str, Tuple[float, str]], asset: UEBase = None):
         '''Create a new FloatProperty directly.
 
-        To specify to raw data defining the float, provide it as `data`.
-        If `data` is supplied, `value` is ignored.'''
-        if value is None and data is None:
-            raise ValueError("FloatProperty requires either a value or raw data")
+        Specify as either:
+
+        * Simple float value
+        * Hex string representing the raw data
+        * Byte string representing the raw data
+        * A tuple of (float, hex/bytes)
+
+        If both raw data and a value is supplied the raw data will be used but only after a check that the
+        two arguments are equal (to 5 significant figures).'''
+
+        value: Optional[float] = None
+        data: Optional[Union[str, bytes]] = None
+
+        if isinstance(inp, tuple):
+            value, data = inp
+        elif isinstance(inp, float):
+            value = inp
+        elif isinstance(inp, Real):
+            value = float(inp)
+        elif isinstance(inp, (str, bytes)):
+            data = inp
+        else:
+            raise ValueError(f"Invalid inputs for FloatProperty.create: {inp!r}")
+
+        if isinstance(data, str):
+            assert len(data) == 8, "Hex value must be 8 digits"
+            data = bytes.fromhex(data)
+
+        if value is not None and data is not None:
+            # Check the two match, roughly
+            from_data = struct.unpack('f', data)[0]
+            assert f"{value:.5e}" == f"{from_data:.5e}", "Float value and raw data do not match"
 
         if data is None:
             data = struct.pack('f', value)
-        elif value is None:
-            pass
-        else:
-            # Check the two match, roughly
-            from_data = struct.unpack('f', data)[0]
-            assert f"{value:.5e}" == f"{from_data:.5e}"
 
-        obj = cls(_DummyAsset(asset=None), MemoryStream(data))
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
 
@@ -311,7 +341,7 @@ class DoubleProperty(UEBase):
     main_field = 'textual'
     display_fields = ['textual']
 
-    # value: float
+    value: float
     textual: str
     bytes: ByteString
     rounded: str
@@ -345,13 +375,14 @@ class IntProperty(ValueProperty):
     # value: int
 
     @classmethod
-    def create(cls, value: int):
+    def create(cls, value: int, asset: UEBase = None):
         '''Create a new IntProperty directly.'''
         if not isinstance(value, int):
             raise ValueError("IntProperty requires an int value")
 
         data = struct.pack('i', value)
-        obj = cls(_DummyAsset(asset=None), MemoryStream(data))
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
 
@@ -365,13 +396,14 @@ class BoolProperty(UEBase):
     value: bool
 
     @classmethod
-    def create(cls, value: bool):
+    def create(cls, value: bool, asset: UEBase = None):
         '''Create a new BoolProperty directly.'''
         if not isinstance(value, bool):
             raise ValueError("BoolProperty requires a boolean value")
 
         data = struct.pack('b', 1 if value else 0)
-        obj = cls(_DummyAsset(asset=None), MemoryStream(data))
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
 
@@ -384,16 +416,17 @@ class ByteProperty(ValueProperty):  # With optional enum type
     value: Union[NameIndex, int]  # type: ignore  (we *want* to override the base type)
 
     @classmethod
-    def create(cls, value: int, size: int):
+    def create(cls, value: int, size: int = 1, asset: UEBase = None):
         '''Create a new ByteProperty directly.'''
         if not isinstance(value, int):
             raise ValueError("ByteProperty requires an int value")
         if size != 1:
             raise ValueError("ByteProperty can only be created directly with size 1")
 
-        data = struct.pack('b', value)
-        obj = cls(_DummyAsset(asset=None), MemoryStream(data))
-        obj.deserialise()
+        asset = asset or _DummyAsset(asset=None)
+        data = struct.pack('iib', asset.none_index, 0, value)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise(size=size)
         return obj
 
     def _deserialise(self, size=None):
@@ -454,6 +487,18 @@ class StringProperty(UEBase):
 
     users: set
 
+    @classmethod
+    def create(cls, value: str, asset: UEBase = None):
+        '''Create a new StringProperty directly.'''
+        if not isinstance(value, str):
+            raise ValueError("StringProperty requires an str value")
+
+        data = struct.pack('isb', len(value) + 1, value.encode('utf8'), 0)
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise()
+        return obj
+
     def _deserialise(self, *args):
         self._newField('size', self.stream.readInt32())
         if self.size >= 0:
@@ -467,6 +512,9 @@ class StringProperty(UEBase):
 
     def register_user(self, user):
         self.users.add(user)
+
+    def __str__(self):
+        return self.value
 
 
 class Guid(UEBase):

@@ -1,13 +1,15 @@
 from typing import *
 
 from .base import UEBase
-from .properties import BoolProperty, ByteProperty, FloatProperty, IntProperty
+from .properties import (BoolProperty, ByteProperty, FloatProperty, IntProperty, StringProperty)
 
 __all__ = [
     'UEProxyStructure',
     'uefloats',
+    'uebytes',
     'uebools',
     'ueints',
+    'uestrings',
     'proxy_for_type',
 ]
 
@@ -86,8 +88,10 @@ Tval = TypeVar('Tval')
 Tele = TypeVar('Tele', bound=UEBase)
 
 
-def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]]) -> Mapping[int, Tele]:
+def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]], **kwargs) -> Mapping[int, Tele]:
     output: Dict[int, Tele] = dict()
+
+    asset: Optional[UEBase] = None
 
     for i, v in enumerate(args):
         if v is None:
@@ -96,20 +100,22 @@ def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]]) -> Mapping[int,
         if isinstance(v, UEBase):
             output[i] = v  # type: ignore
         else:
-            ele = uetype.create(v)  # type: ignore
+            ele = uetype.create(v, **kwargs)  # type: ignore
             output[i] = ele
+
+            if not asset:
+                asset = ele.asset
+                kwargs['asset'] = asset
 
     return output
 
 
-def uefloats(*args: Union[float, str]) -> Mapping[int, FloatProperty]:
-    values = [FloatProperty.create(data=bytes.fromhex(v)) if isinstance(v, str) else v for v in args]
-    return uemap(FloatProperty, values)
+def uefloats(*args: Union[float, str, Tuple[float, str]]) -> Mapping[int, FloatProperty]:
+    return uemap(FloatProperty, args)
 
 
 def uebytes(*args: int) -> Mapping[int, ByteProperty]:
-    values = [ByteProperty.create(v, 1) if isinstance(v, int) else v for v in args]
-    return uemap(ByteProperty, values)
+    return uemap(ByteProperty, args, size=1)
 
 
 def uebools(*args: bool) -> Mapping[int, BoolProperty]:
@@ -118,3 +124,7 @@ def uebools(*args: bool) -> Mapping[int, BoolProperty]:
 
 def ueints(*args: int) -> Mapping[int, IntProperty]:
     return uemap(IntProperty, args)
+
+
+def uestrings(*args: str) -> Mapping[int, StringProperty]:
+    return uemap(StringProperty, args)
