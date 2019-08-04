@@ -142,6 +142,10 @@ class ImportTableItem(UEBase):
         # References to this item
         self.users = set()
 
+    @property
+    def fullname(self) -> str:
+        return str(self.namespace.value.name) + '.' + str(self.name)
+
     def register_user(self, user):
         self.users.add(user)
 

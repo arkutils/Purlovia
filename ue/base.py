@@ -114,7 +114,7 @@ class UEBase(object):
             return self.string_format.format(**self.field_values)
 
         if self.main_field:
-            return str(self.field_values.get(self.main_field, f'<uninitialised {self.__class__.__name__}'))
+            return str(self.field_values.get(self.main_field, f'<uninitialised {self.__class__.__name__}>'))
 
         fields = self.display_fields or self.field_order
         fields_txt = ', '.join(str(self.field_values[name]) for name in fields)
