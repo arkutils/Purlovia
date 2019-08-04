@@ -37,10 +37,24 @@ class UEProxyStructure:
         if not uetype:
             raise ValueError("uetype must be specified for this proxy class")
 
+        if len(cls.__bases__) > 1:
+            raise TypeError('UEProxyStructure subclasses cannot inherit from more than one class')
+
         setattr(cls, _UETYPE, uetype)
         _register_proxy(uetype, cls)
 
         fields = dict()
+
+        base = cls
+        while True:
+            base = base.__base__
+            if base is object or base is UEProxyStructure:
+                break
+
+            for name, default in getattr(base, _UEFIELDS).items():
+                if name.startswith('_'):
+                    continue
+                fields[name] = default
 
         for name, default in cls.__dict__.items():
             if name.startswith('_'):
@@ -48,7 +62,8 @@ class UEProxyStructure:
             fields[name] = default
 
         for name in fields:
-            delattr(cls, name)
+            if hasattr(cls, name):
+                delattr(cls, name)
 
         setattr(cls, _UEFIELDS, fields)
 
@@ -77,6 +92,7 @@ def _register_proxy(uetype: str, cls: Type[UEProxyStructure]):
 
 
 def proxy_for_type(uetype: str):
+    global _proxies  # pylint: disable=global-statement
     cls = _proxies.get(uetype, None)
     if cls is None:
         return None

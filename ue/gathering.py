@@ -8,15 +8,23 @@ from .loader import AssetLoader
 from .properties import ObjectProperty
 from .proxy import proxy_for_type
 
+__all__ = [
+    'gather_properties',
+    'get_default_props_for_class',
+    'discover_inheritance_chain',
+    'get_parent_fullname',
+]
 
-def gather_properties(export: ExportTableItem):
+
+def gather_properties(export: ExportTableItem) -> UEProxyStructure:
+    '''Collect properties from an export, respecting the inheritance tree.'''
     if isinstance(export, ObjectProperty):
         return gather_properties(export.value)
 
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
 
-    chain = _discover_inheritance_chain(export)
+    chain = discover_inheritance_chain(export)
     baseclass_fullname = chain.pop(0)
     proxy = proxy_for_type(baseclass_fullname)
 
@@ -27,13 +35,14 @@ def gather_properties(export: ExportTableItem):
         if fullname.startswith('/Script'):
             continue  # Defaults are already in proxy - skip
 
-        props = _get_props_for_class(fullname, export.asset.loader)
+        props = get_default_props_for_class(fullname, export.asset.loader)
         proxy.update(props)
 
     return proxy
 
 
-def _get_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[str, Mapping[int, UEBase]]:
+def get_default_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[str, Mapping[int, UEBase]]:
+    '''Fetch properties from a Default__ export related to the supplied export.'''
     cls = loader.load_class(fullname)
     asset = cls.asset
 
@@ -45,7 +54,9 @@ def _get_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[str, Map
     return {}
 
 
-def _discover_inheritance_chain(export: ExportTableItem) -> List[str]:
+def discover_inheritance_chain(export: ExportTableItem) -> List[str]:
+    '''Return a list representing the inheritance chain of this export,
+    ordered with the most distant descandants first.'''
     assert export and export.asset and export.asset.loader and export.fullname
 
     chain: List[str] = list()
@@ -56,7 +67,7 @@ def _discover_inheritance_chain(export: ExportTableItem) -> List[str]:
 
     while True:
         # Find the full name of our parent
-        parent_fullname = _get_parent_fullname(current)
+        parent_fullname = get_parent_fullname(current)
         if not parent_fullname:
             break
 
@@ -75,7 +86,8 @@ def _discover_inheritance_chain(export: ExportTableItem) -> List[str]:
     return chain
 
 
-def _get_parent_fullname(export: ExportTableItem) -> Optional[str]:
+def get_parent_fullname(export: ExportTableItem) -> Optional[str]:
+    '''Calculate the parent class of the given export.'''
     klassref = export.klass and export.klass.value
 
     # Ignore klass if it is a built-in type
