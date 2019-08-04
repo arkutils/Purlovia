@@ -44,6 +44,15 @@ EPILOG = '''example: python -m automate --skip-install'''
 DESCRIPTION = '''Perform an automated run of Purlovia, optionally overriding config or individual parts of the process.'''
 
 
+def modlist(value: str) -> Tuple[str, ...]:
+    value = value.strip()
+    inputs = [v.strip() for v in value.split(',')]
+    mods = tuple(v for v in inputs if v)
+    for modid in mods:
+        as_int = int(modid)  # pylint: disable=unused-variable  # For type-checking only
+    return mods
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
@@ -58,6 +67,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
 
     parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format to export')
+
+    parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
 
     return parser
 
@@ -101,6 +112,9 @@ def handle_args(args: Any) -> ConfigFile:
 
     if args.skip_push:
         config.settings.SkipPush = True
+
+    if args.mods is not None:
+        config.mods = args.mods
 
     return config
 
