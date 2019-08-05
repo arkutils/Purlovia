@@ -108,6 +108,7 @@ class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameDat
 
 class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     # DevKit Verified
+    bSupportDragOntoOtherItem = uebools(False)
     DescriptiveNameBase = uestrings('')
     EggLoseDurabilityPerSecond = uefloats(1.0)
     EggMaxTemperature = uefloats(30.0)
@@ -116,6 +117,15 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     ItemDescription = uestrings('')
     # BaseCraftingResourceRequirements (ArrayProperty) = []
     # UseItemAddCharacterStatusValues (ArrayProperty) = []
+
+    # DevKit Unverified
+
+
+class PrimalItem_Dye(PrimalItem, uetype='/Script/ShooterGame.PrimalItem_Dye'):
+    bSupportDragOntoOtherItem = uebools(True)
+    # DevKit Verified
+    # DyeColor (LinearColor) = (0.0, 0.0, 0.0, 0.0)
+    # DyeUISceneTemplate (ObjectProperty) = None
 
     # DevKit Unverified
 
