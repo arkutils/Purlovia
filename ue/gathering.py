@@ -6,7 +6,7 @@ from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
 from .loader import AssetLoader
 from .properties import ObjectProperty
-from .proxy import proxy_for_type
+from .proxy import UEProxyStructure, proxy_for_type
 
 __all__ = [
     'gather_properties',
