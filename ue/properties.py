@@ -1,13 +1,17 @@
 import math
+import operator
 import struct
 import sys
 import uuid
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from logging import NullHandler, getLogger
-from typing import ByteString, Dict, List, Optional, Type, Union
+from numbers import Real
+from typing import *
 
 from .base import UEBase
 from .coretypes import *
+from .number import *
 from .stream import MemoryStream
 
 try:
@@ -15,6 +19,8 @@ try:
     support_pretty = True
 except ImportError:
     support_pretty = False
+
+#pylint: disable=unused-argument,arguments-differ
 
 dbg_structs = 0
 
@@ -66,7 +72,6 @@ class PropertyTable(UEBase):
         self._newField('values', values)
 
         while self.stream.offset < (self.stream.end - 8):
-            start_offset = self.stream.offset
             value = self._parseField()
             if value is None:
                 break
@@ -176,15 +181,136 @@ class Property(UEBase):
             p.pretty(self.value)
 
 
-class FloatProperty(UEBase):
+class _DummyAsset(UEBase):
+    none_index = 9999
+
+    def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
+        for k, v in kwargs.items():
+            vars(self).setdefault(k, v)
+
+    def _deserialise(self, *args, **kwargs):
+        return super()._deserialise(*args, **kwargs)
+
+    def _link(self):
+        return super()._link()
+
+    def getName(self, index):
+        if index == self.none_index:
+            return StringProperty.create('None')
+        raise ValueError("Attempt to lookup a name in a dummy asset")
+
+
+class ValueProperty(UEBase, Real, ABC):
+    value: Real
+
+    @abstractmethod
+    def _deserialise(self, size=None):
+        pass
+
+    # Not sure why we have to specifically override these, but we do
+    __eq__ = UEBase.__eq__
+    __hash__ = UEBase.__hash__
+
+    def __bool__(self):
+        assert self.is_serialised
+        return bool(self.value)
+
+    __nonzero__ = __bool__
+
+    def __float__(self):
+        assert self.is_serialised
+        return float(self.value)
+
+    def __int__(self):
+        assert self.is_serialised
+        return int(self.value)
+
+    __nonzero__ = __bool__
+
+    def __pos__(self):
+        assert self.is_serialised
+        return self.value
+
+    def __neg__(self):
+        assert self.is_serialised
+        return -self.value
+
+    __pow__, __rpow__ = make_binary_operators(pow)
+    __mod__, __rmod__ = make_binary_operators(operator.mod)
+    __add__, __radd__ = make_binary_operators(operator.add)
+    __sub__, __rsub__ = make_binary_operators(operator.sub)
+    __mul__, __rmul__ = make_binary_operators(operator.mul)
+    __truediv__, __rtruediv__ = make_binary_operators(operator.truediv)
+    __floordiv__, __rfloordiv__ = make_binary_operators(operator.floordiv)
+
+    __eq__ = make_binary_operator(operator.eq)
+    __ne__ = make_binary_operator(operator.ne)
+    __gt__ = make_binary_operator(operator.gt)
+    __lt__ = make_binary_operator(operator.lt)
+    __ge__ = make_binary_operator(operator.ge)
+    __le__ = make_binary_operator(operator.le)
+
+    __round__ = make_operator(round)
+    __ceil__ = make_operator(math.ceil)
+    __abs__ = make_operator(operator.abs)
+    __floor__ = make_operator(math.floor)
+    __trunc__ = make_operator(math.trunc)
+
+
+class FloatProperty(ValueProperty):
     main_field = 'textual'
     display_fields = ['textual']
 
-    value: float
+    # value: float
     textual: str
-    bytes: ByteString
+    raw_data: bytes
     rounded: str
     rounded_value: float
+
+    @classmethod
+    def create(cls, inp: Union[float, str, Tuple[float, str]], asset: UEBase = None):
+        '''Create a new FloatProperty directly.
+
+        Specify as either:
+
+        * Simple float value
+        * Hex string representing the raw data
+        * Byte string representing the raw data
+        * A tuple of (float, hex/bytes)
+
+        If both raw data and a value is supplied the raw data will be used but only after a check that the
+        two arguments are equal (to 5 significant figures).'''
+
+        value: Optional[float] = None
+        data: Optional[Union[str, bytes]] = None
+
+        if isinstance(inp, tuple):
+            value, data = inp
+        elif isinstance(inp, float):
+            value = inp
+        elif isinstance(inp, Real):
+            value = float(inp)
+        elif isinstance(inp, (str, bytes)):
+            data = inp
+        else:
+            raise ValueError(f"Invalid inputs for FloatProperty.create: {inp!r}")
+
+        if isinstance(data, str):
+            assert len(data) == 8, "Hex value must be 8 digits"
+            data = bytes.fromhex(data)
+
+        if value is not None and data is not None:
+            # Check the two match, roughly
+            from_data = struct.unpack('f', data)[0]
+            assert f"{value:.5e}" == f"{from_data:.5e}", "Float value and raw data do not match"
+
+        if data is None:
+            data = struct.pack('f', value)
+
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise()
+        return obj
 
     def _deserialise(self, size=None):
         # Read once as a float
@@ -193,7 +319,7 @@ class FloatProperty(UEBase):
 
         # Read again as plain bytes for exact exporting
         self.stream.offset = saved_offset
-        self._newField('bytes', self.stream.readBytes(4))
+        self._newField('raw_data', self.stream.readBytes(4))
 
         # Make a rounded textual version with (inexact) if required
         value = self.value
@@ -205,6 +331,10 @@ class FloatProperty(UEBase):
         if inexact:
             text += ' (inexact)'
         self._newField('textual', text)
+
+    def __bytes__(self):
+        assert self.is_serialised
+        return self.raw_data
 
 
 class DoubleProperty(UEBase):
@@ -238,11 +368,23 @@ class DoubleProperty(UEBase):
         self._newField('textual', text)
 
 
-class IntProperty(UEBase):
+class IntProperty(ValueProperty):
     string_format = '(int) {value}'
     main_field = 'value'
 
-    value: int
+    # value: int
+
+    @classmethod
+    def create(cls, value: int, asset: UEBase = None):
+        '''Create a new IntProperty directly.'''
+        if not isinstance(value, int):
+            raise ValueError("IntProperty requires an int value")
+
+        data = struct.pack('i', value)
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise()
+        return obj
 
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readInt32())
@@ -253,15 +395,43 @@ class BoolProperty(UEBase):
 
     value: bool
 
+    @classmethod
+    def create(cls, value: bool, asset: UEBase = None):
+        '''Create a new BoolProperty directly.'''
+        if not isinstance(value, bool):
+            raise ValueError("BoolProperty requires a boolean value")
+
+        data = struct.pack('b', 1 if value else 0)
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise()
+        return obj
+
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readBool8())
 
 
-class ByteProperty(UEBase):  # With optional enum type
+class ByteProperty(ValueProperty):  # With optional enum type
     enum: NameIndex
-    value: Union[NameIndex, int]
+    value: Union[NameIndex, int]  # type: ignore  (we *want* to override the base type)
 
-    def _deserialise(self, size):
+    @classmethod
+    def create(cls, value: int, size: int = 1, asset: UEBase = None):
+        '''Create a new ByteProperty directly.'''
+        if not isinstance(value, int):
+            raise ValueError("ByteProperty requires an int value")
+        if size != 1:
+            raise ValueError("ByteProperty can only be created directly with size 1")
+
+        asset = asset or _DummyAsset(asset=None)
+        data = struct.pack('iib', asset.none_index, 0, value)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise(size=size)
+        return obj
+
+    def _deserialise(self, size=None):
+        assert size is not None
+
         self._newField('enum', NameIndex(self))
         if size == 1:
             self._newField('value', self.stream.readUInt8())
@@ -315,6 +485,22 @@ class StringProperty(UEBase):
     size: int
     value: str
 
+    users: set
+
+    @classmethod
+    def create(cls, value: str, asset: UEBase = None):
+        '''Create a new StringProperty directly.'''
+        if not isinstance(value, str):
+            raise ValueError("StringProperty requires an str value")
+
+        byte_string = value.encode('utf8') + bytes.fromhex('00')
+        count = len(byte_string)
+        data = struct.pack(f'i{count}s', count, byte_string)
+        asset = asset or _DummyAsset(asset=None)
+        obj = cls(asset, MemoryStream(data))
+        obj.deserialise()
+        return obj
+
     def _deserialise(self, *args):
         self._newField('size', self.stream.readInt32())
         if self.size >= 0:
@@ -328,6 +514,9 @@ class StringProperty(UEBase):
 
     def register_user(self, user):
         self.users.add(user)
+
+    def __str__(self):
+        return self.value
 
 
 class Guid(UEBase):
@@ -600,7 +789,7 @@ class ArrayProperty(UEBase):
     count: int
     values: List[UEBase]
 
-    def _deserialise(self, size, with_type: Type = None):
+    def _deserialise(self, size, with_type: Type = None):  # type: ignore
         assert size >= 4, "Array size is required"
 
         self._newField('field_type', NameIndex(self))
@@ -642,7 +831,7 @@ class ArrayProperty(UEBase):
                 value.deserialise(field_size)
                 value.link()
                 values.append(value)
-            except Exception as err:
+            except Exception as err:  # pylint: disable=broad-except
                 values.append('<exception during decoding of array element>')
                 # logger.warning('exception during decoding of array element', exc_info=True)
                 assetname = '<unnamed asset>'
