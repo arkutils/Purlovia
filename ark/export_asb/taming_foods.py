@@ -55,4 +55,16 @@
 #                torpor_value = food_group.TorpidityEffectivenessMultiplier * food.BaseAmountToAdd
 #
 #   affinity = food_group.AffinityOverride
-#   foods.add({food_name=food, affinity=affinity, food=food_value})
+#   foods.add({food_name=food, affinity=affinity, food=food_value}) # health=health_value, stamina=stamina_value, torpor=torpor_value})
+#
+# for food in foods:
+#   for food_group in DinoSettings.ExtraFoodEffectivenessMultipliers:
+#       if food.has_parent(food_group.FoodItemParent):
+#           food.affinity = food_group.AffinityOverride
+#           food.food *= food_group.FoodEffectivenessMultiplier
+#           if food.stamina:
+#               food.stamina *= food_group.StaminaEffectivenessMultiplier
+#           if food.torpor:
+#               food.torpor *= food_group.TorpidityEffectivenessMultiplier
+#           if food.health:
+#               food.health *= food_group.HealthEffectivenessMultiplier
