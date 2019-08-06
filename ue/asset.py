@@ -4,7 +4,7 @@ from typing import *
 
 from .base import UEBase
 from .coretypes import *
-from .properties import (CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
+from .properties import (Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 
@@ -60,10 +60,13 @@ class UAsset(UEBase):
         self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
         self._newField('package_source', self.stream.readUInt32())
         self._newField('unknown_field', self.stream.readUInt64())  # TODO: Conditional on Ark???
-        self._newField('packages_to_cook', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
+        self._newField('packages_to_cook', Table(self).deserialise(StringProperty, self.stream.readUInt32()))
+        if self.legacy_ver > -7:
+            # Legacy field that is not used anymore
+            self._newField('texture_allocations', self.stream.readInt32())
         self._newField('asset_registry_data_offset', self.stream.readUInt32())
         self._newField('bulk_data_start_offset', self.stream.readUInt64())
-        self._newField('world_tile_info_data_offset', self.stream.readUInt32())
+        self._newField('world_tile_info_data_offset', self.stream.readUInt64())
 
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
@@ -72,10 +75,11 @@ class UAsset(UEBase):
         self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
         self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
 
-        bulk_stream = MemoryStream(self.stream, self.bulk_data_start_offset)
-        bulk_length = self.world_tile_info_data_offset - self.bulk_data_start_offset
-        self._newField('bulk_length', bulk_length)
-        self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
+        #self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
+
+        if self.world_tile_info_data_offset is not 0:
+            tile_info_stream = MemoryStream(self.stream, self.world_tile_info_data_offset)
+            self._newField('tile_info_data', WorldTileInfo(self, tile_info_stream))
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
@@ -254,3 +258,30 @@ class ExportTableItem(UEBase):
             result += ' from ' + pkg
 
         return result
+
+
+class WorldTileInfo(UEBase):
+    display_fields = ('layer_name', 'bounds')
+    fullname: Optional[str] = None
+
+    unknown_field1: int
+    bounds: Box
+    layer_name: StringProperty
+    unknown_field2: int
+    unknown_field3: int
+    unknown_field4: int
+    streaming_distance: int
+    distance_streaming_enabled: bool
+
+    def _deserialise(self):
+        self._newField('unknown_field1', self.stream.readUInt64())
+        self._newField('bounds', Box(self))
+        self._newField('layer_name', StringProperty(self))
+        self._newField('unknown_field2', self.stream.readUInt32())
+        self._newField('unknown_field3', self.stream.readUInt32())
+        self._newField('unknown_field4', self.stream.readUInt32())
+        self._newField('streaming_distance', self.stream.readInt32())
+        self._newField('distance_streaming_enabled', self.stream.readBool8())
+
+    def __str__(self):
+        return f'{self.layer_name} ({self.bounds})'

@@ -50,7 +50,6 @@ def find_world_settings(level: UAsset) -> dict:
     # Some maps have misnamed PrimalWorldSettings export
     # and that prevents usage of AssetLoader.load_class.
     for export in level.exports:
-        print(str(export.name))
         if str(export.klass.value.name) == 'PrimalWorldSettings':
             return export.properties.as_dict()
     #return level.loader.load_class(level.assetname + '.PrimalWorldSettings').properties.as_dict()

@@ -1,68 +1,67 @@
 from typing import *
 
 from config import get_global_config
+from ue.asset import UAsset
 from ue.loader import AssetLoader
 
 __all__ = [
-    'ToplevelMapsDiscoverer',
+    'SublevelDiscoverer',
 ]
 
 
 class ByRawData:
     '''Very fast/cheap method for bulk searching. Over-selects slightly.'''
-
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 
-    def is_persistent_level(self, assetname: str):
+    def is_world(self, assetname: str):
         '''Use binary string matching to check if an asset is a character.'''
         # Load asset as raw data
-        #print("  ** Doing the fast test")
         mem = self.loader._load_raw_asset(assetname)
 
-        # Check for the presence of required string
-        result = b'LevelScriptActor' in mem.obj
+        # Check whether the asset is possibly a world
+        result = b'World' in mem.obj
+        # Check whether the asset has references to zone managers
+        result = result and b'NPCZoneManager' in mem.obj
 
         return result
 
 
-class ByDefaultExportKlass:
-
+class ByWorldTileData:
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 
-    def is_persistent_level(self, assetname: str):
-        #print("  ** Doing the expensive test")
+    def is_sublevel(self, assetname: str):
         if not assetname.startswith('/Game'):
             return False
 
-        asset = self.loader[assetname]
+        asset = self.loader.partially_load_asset(assetname)
 
-        if asset.asset.default_export is not None:
-            if str(asset.asset.default_export.klass.value.super.value.name) == 'LevelScriptActor':
-                #print("  *** OK")
-                return True
+        if 'tile_info_data' in asset.field_values:
+            return True
 
-        del self.loader.cache[assetname]
+        # partially_load_asset does not cache the result.
+        #del self.loader.cache[assetname]
         return False
 
 
-class ToplevelMapsDiscoverer:
+class SublevelDiscoverer:
     def __init__(self, loader: AssetLoader):
         self.loader = loader
         self.testByRawData = ByRawData(self.loader)
-        self.testByExportKlass = ByDefaultExportKlass(self.loader)
+        self.testByTileInfo = ByWorldTileData(self.loader)
 
         self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
 
-    def _is_persistent_level(self, assetname: str) -> bool:
-        #print("TEST", assetname)
-        return self.testByRawData.is_persistent_level(assetname) and self.testByExportKlass.is_persistent_level(assetname)
+    def _is_a_world(self, assetname: str) -> bool:
+        return self.testByRawData.is_world(assetname) and self.testByTileInfo.is_sublevel(assetname)
 
-    def discover_vanilla_toplevel_maps(self) -> Iterator[str]:
-        # Scan /Game/Maps, excluding excludes from config
-        for level in self.loader.find_assetnames('.*', '/Game/Maps', exclude=('/Game/Maps/PGARK/PGARK', *self.global_excludes), extension='.umap'):
-            if self._is_persistent_level(level):
+    def discover_submaps(self, toplevel_map: UAsset) -> Iterator[str]:
+        base_path = toplevel_map.assetname.rsplit('/', 1)[0]
+
+        # Scan toplevel's map directory, excluding excludes from config
+        for level in self.loader.find_assetnames('.*', base_path, exclude=self.global_excludes, extension='.umap'):
+            if self._is_a_world(level):
                 yield level
 
         # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods

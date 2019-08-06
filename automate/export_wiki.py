@@ -14,6 +14,7 @@ from ark.export_wiki.map import MapData, get_settings_from_map
 from ark.export_wiki.npc_spawns import gather_npc_spawn_data
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
 from ark.export_wiki.sublevels import gather_sublevel_names
+from ark.worldcomposition import SublevelDiscoverer
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
@@ -52,7 +53,7 @@ class Exporter:
         self.arkman = arkman
         self.modids = modids
         self.loader = arkman.createLoader()
-        #self.discoverer = ark.map_discovery.ToplevelMapsDiscoverer(self.loader)
+        self.wc_discoverer = SublevelDiscoverer(self.loader)
         self.game_version = self.arkman.getGameVersion()
 
     def perform(self):
@@ -61,9 +62,7 @@ class Exporter:
         logger.info('Beginning export of maps')
         game_buildid = self.arkman.getGameBuildId()
         version = self._create_version(game_buildid)
-        #persistent_levels = self.discoverer.discover_vanilla_toplevel_maps()
-        persistent_levels = self.config.settings.Maps
-        self._export_levels(persistent_levels, version=version)
+        self._export_levels(self.config.maps, version=version)
 
     def _prepare_versions(self):
         if not self.game_version:
@@ -84,27 +83,18 @@ class Exporter:
 
     def _export_levels(self, persistent_levels: List, version: str, other: Dict = None, moddata: Optional[Dict] = None):
         for assetname in persistent_levels:
-            logger.info(f'Collecting data from {assetname} and its sublevels')
+            logger.info(f'Collecting data from the top-level {assetname}')
             asset = self.loader[assetname]
             map_data = get_settings_from_map(asset)
 
             self._gather_data_from_level(asset, map_data)
             del self.loader.cache[assetname]
-            #subasset = self.loader['/Game/Mods/Valguero/Valguero_Deinonychus_Spawns']
-            #self._gather_data_from_level(subasset, map_data)
             logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
 
-            for sublevel in gather_sublevel_names(asset):
-                # Naive, this needs to be changed.
-                sublevel = assetname.rsplit('/', 1)[0] + '/' + sublevel
-                try:
-                    if self._has_data_to_export(sublevel):
-                        subasset = self.loader[sublevel]
-                        self._gather_data_from_level(subasset, map_data)
-                        del self.loader.cache[sublevel]
-                except AssetNotFound:
-                    logger.warning(f'{sublevel} is missing but it is linked to a streaming volume in {assetname}.')
-                    continue
+            for sublevel in self.wc_discoverer.discover_submaps(asset):
+                subasset = self.loader[sublevel]
+                self._gather_data_from_level(subasset, map_data)
+                del self.loader.cache[sublevel]
 
             self._export_values(map_data.name, map_data.as_dict(), version)
 

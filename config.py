@@ -18,7 +18,6 @@ FILENAME = 'config/config.ini'
 
 class IniStringList(list):
     '''A validated type that converts a newline-separated string list into a proper Python list.'''
-
     @classmethod
     def __get_validators__(cls):
         yield cls.convert
@@ -40,8 +39,6 @@ class SettingsSection(BaseModel):
     PrettyJson: bool = False
 
     SeparateOfficialMods: IniStringList = IniStringList()
-
-    Maps: IniStringList = IniStringList()
 
     DataDir: Path = Path('livedata')
     GitDirectory: Path = Path('output')
@@ -101,6 +98,7 @@ class ConfigFile(BaseModel):
     settings: SettingsSection
     mods: Tuple[str, ...] = tuple()
     official_mods: ModIdAccess = ModIdAccess(dict())
+    maps: Tuple[str, ...] = tuple()
     optimisation: OptimisationSection
 
 
@@ -133,9 +131,10 @@ def _read_config(filename):
 
     managed_mods = list(parser['mods'].keys())
     official_mods = ModIdAccess(parser['official-mods'], keyed_by_id=False)
+    maps = list(parser['maps'].values())
 
     settings = SettingsSection(**parser['settings'])
     optimisation = OptimisationSection(**parser['optimisation'])
 
     global config
-    config = ConfigFile(settings=settings, mods=managed_mods, official_mods=official_mods, optimisation=optimisation)
+    config = ConfigFile(settings=settings, mods=managed_mods, official_mods=official_mods, maps=maps, optimisation=optimisation)

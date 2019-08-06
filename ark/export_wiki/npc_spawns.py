@@ -3,6 +3,7 @@ from logging import NullHandler, getLogger
 from typing import *
 
 from ark.export_wiki.geo import qowyn_format_location
+from ark.export_wiki.utils import get_blueprint_path
 from ue.asset import UAsset
 from ue.base import UEBase
 
@@ -64,10 +65,15 @@ def gather_npc_spawn_data(level: UAsset):
         is_enabled = manager_properties['bEnabled']
         if is_enabled and not is_enabled[0].value:
             continue
-
         collected_data = NPCSpawn()
-        entry_container = manager_properties['NPCSpawnEntriesContainerObject'][0].value.value.namespace.value
-        collected_data.spawn_group = str(entry_container.name)
+
+        if not 'NPCSpawnEntriesContainerObject' in manager_properties:
+            logger.warning(
+                f'A zone manager in {level.assetname} does not have spawn entries container linked, and it will be ignored.')
+            continue
+
+        entry_container = manager_properties['NPCSpawnEntriesContainerObject'][0]
+        collected_data.spawn_group = get_blueprint_path(entry_container.value.value)
 
         linked_zone_volumes = manager_properties['LinkedZoneVolumes'][0].values
         spawn_point_overrides = manager_properties['SpawnPointOverrides'][0]
