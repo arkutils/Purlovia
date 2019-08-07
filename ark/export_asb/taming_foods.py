@@ -68,3 +68,90 @@
 #               food.torpor *= food_group.TorpidityEffectivenessMultiplier
 #           if food.health:
 #               food.health *= food_group.HealthEffectivenessMultiplier
+
+#%%
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pprint import *
+from typing import *
+
+import ark.discovery
+from automate.ark import ArkSteamManager, readModData
+from ue.asset import UAsset
+from ue.gathering import discover_inheritance_chain
+
+arkman = ArkSteamManager()
+loader = arkman.createLoader()
+names_file = 'names.txt'
+inherit_file = 'inherit.txt'
+
+
+@dataclass  # simply to make instantiating easier
+class Item:
+    name: str
+    # parent_name: Optional[str]
+    # is_item: Optional[bool]
+    # other item data goes here
+
+
+@dataclass  # simply to make instantiating easier
+class Node:
+    item: Optional[Item] = field(default=None)
+    class_name: str = field(default='')
+    nodes: List[Node] = field(default_factory=list)  #pylint: disable=undefined-variable
+
+
+def walk_tree(node: Node, fn):
+    fn(node)
+    for child in node.nodes:
+        walk_tree(child, fn)
+
+
+def add_item(item_list: List[Item], node: Node):
+    if node.item is not None:
+        item_list.append(node.item)
+
+
+def find_all_of_type(node: Node) -> List[Item]:
+    found: List[Item] = list()
+    walk_tree(node, lambda n: add_item(found, n))
+    return found
+
+
+#%%
+def register_item(node_lookup: Dict[str, Node], asset: UAsset):
+    inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
+    parent_class: str = '/Script/ShooterGame'
+    for asset_str in inheritance:
+        current_node = Node()
+        if not node_lookup.get(asset_str):
+            node_lookup[parent_class].nodes.append(current_node)
+            node_lookup[asset_str] = current_node
+        parent_class = asset_str
+        # print(f'Evaluating {asset}\n{item}')
+    item = Item(name=inheritance[-1])  # Should call a function to gather item data
+    node_lookup[parent_class].item = item
+
+
+#%% Attempt to load assets and verify if they're a species asset or not
+root_base = '/Script/ShooterGame'
+
+tree = Node()
+lookup: Dict[str, Node] = dict()
+lookup[root_base] = tree
+
+inheritance_checker = ark.discovery.ByInheritance(loader)
+name_checker = ark.discovery.ByRawData(loader)
+
+asset_names = [
+    '/Game/PrimalEarth/Structures/Pipes/WaterPipe_Metal_Vertical', '/Game/PrimalEarth/Structures/TekTier/Beam_Tek',
+    '/Game/PrimalEarth/Structures/Wooden/Ramp_Wood_SM_New',
+    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_DinoPoopMedium',
+    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat',
+    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat_Jerky'
+]
+for asset_name in asset_names:
+    register_item(lookup, loader[asset_name])
+found_items = find_all_of_type(lookup['/Script/ShooterGame'])
+pprint(found_items)
