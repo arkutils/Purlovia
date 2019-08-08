@@ -73,18 +73,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from io import StringIO
 from pprint import *
+from time import perf_counter, process_time
 from typing import *
 
 import ark.discovery
 from automate.ark import ArkSteamManager, readModData
 from ue.asset import UAsset
 from ue.gathering import discover_inheritance_chain
+from ue.loader import AssetNotFound, ModNotFound
 
 arkman = ArkSteamManager()
 loader = arkman.createLoader()
-names_file = 'names.txt'
-inherit_file = 'inherit.txt'
+names_file = '__names.txt'
+straight_file = '__straight.txt'
+reverse_file = '__reverse.txt'
 
 
 @dataclass  # simply to make instantiating easier
@@ -121,7 +125,35 @@ def find_all_of_type(node: Node) -> List[Item]:
 
 #%%
 def register_item(node_lookup: Dict[str, Node], asset: UAsset):
-    inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
+    try:
+        inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
+    except ModNotFound:
+        return
+    except AssetNotFound:
+        return
+    branch = Node(item=Item(name=inheritance[-1]))  # Should call a function to gather item data
+    for asset_str in reversed(inheritance):
+        # An existing branch wasn't found, continue building the branch backwards
+        if not node_lookup.get(asset_str):
+            node_lookup[asset_str] = branch
+            branch = Node(nodes=[branch])
+
+        # An existing tree branch was found
+        else:
+            node_lookup[asset_str].nodes.append(branch)
+            return
+
+    # To be removed once proper "/Script" inheritance is implemented
+    node_lookup['/Script/ShooterGame'].nodes.append(branch)
+
+
+def register_item_straight(node_lookup: Dict[str, Node], asset: UAsset):
+    try:
+        inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
+    except ModNotFound:
+        return
+    except AssetNotFound:
+        return
     parent_class: str = '/Script/ShooterGame'
     for asset_str in inheritance:
         current_node = Node()
@@ -135,23 +167,83 @@ def register_item(node_lookup: Dict[str, Node], asset: UAsset):
 
 
 #%% Attempt to load assets and verify if they're a species asset or not
-root_base = '/Script/ShooterGame'
+def gather_names() -> Set[str]:
+    assets_from_name = set()
+    num_assets = 0
+    name_checker = ark.discovery.ByRawData(loader)
 
-tree = Node()
-lookup: Dict[str, Node] = dict()
-lookup[root_base] = tree
+    # Clear the file
+    with open(names_file, 'w') as names:
+        names.write('')
 
-inheritance_checker = ark.discovery.ByInheritance(loader)
-name_checker = ark.discovery.ByRawData(loader)
+    with open(names_file, 'a') as names:
+        for assetname in loader.find_assetnames('.*', toppath='/Game'):
+            num_assets += 1
+            if (num_assets % 100) == 0:
+                print(num_assets)
 
-asset_names = [
-    '/Game/PrimalEarth/Structures/Pipes/WaterPipe_Metal_Vertical', '/Game/PrimalEarth/Structures/TekTier/Beam_Tek',
-    '/Game/PrimalEarth/Structures/Wooden/Ramp_Wood_SM_New',
-    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_DinoPoopMedium',
-    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat',
-    '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat_Jerky'
-]
-for asset_name in asset_names:
-    register_item(lookup, loader[asset_name])
-found_items = find_all_of_type(lookup['/Script/ShooterGame'])
-pprint(found_items)
+            try:
+                _ = loader[assetname]
+                if name_checker.is_inventory_item(assetname):
+                    assets_from_name.add(assetname)
+                    names.write(f'{assetname}\n')
+
+            except:
+                continue
+
+            loader.wipe_cache_with_prefix(assetname)
+
+    return assets_from_name
+
+
+def test_suite():
+    # names = gather_names()
+    with open(names_file) as f:
+        names = f.readlines()
+    lookup = test_to_run(names, register_item)
+    print(to_graph(lookup['/Game/PrimalEarth/CoreBlueprints/Weapons/PrimalItem_WeaponBaseClub.PrimalItem_WeaponBaseClub_C']))
+
+
+def clean_name(name):
+    name = name.split('.')[-1]
+    if name.endswith('_C'):
+        name = name[:-2]
+    if name.endswith('BP'):
+        name = name[:-2]
+    if name in ('PrimalItem', 'PrimalItem_Base'):
+        return name
+    name = name.replace('PrimalItem', '')
+    name = name.strip('_')
+    return name
+
+
+def to_graph(tree: Node) -> str:
+    s = StringIO()
+    s.write('strict digraph {\n')
+
+    def draw_node(node: Node):
+        node_name = clean_name(node.item.name)
+        for child in node.nodes:
+            s.write(f'  "{clean_name(child.item.name)}" -> "{node_name}";\n')
+
+    walk_tree(tree, draw_node)
+    s.write('}\n')
+
+    return s.getvalue()
+
+
+def test_to_run(names: Set[str], func: Callable):
+    root_base = '/Script/ShooterGame'
+
+    tree = Node()
+    lookup: Dict[str, Node] = dict()
+    lookup[root_base] = tree
+    for asset_name in names:
+        func(lookup, loader[asset_name])
+    # found_items = find_all_of_type(lookup['/Script/ShooterGame'])
+    return lookup
+
+
+test_suite()
+
+#%%

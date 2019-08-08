@@ -28,12 +28,22 @@ class ByRawData:
         return result
 
     def is_structure(self, assetname: str):
-        '''Use binary string matching to check if an asset is a structure.'''
+        '''Use binary string matching to check if an asset is a placeable structure.'''
         # Load asset as raw data
         mem = self.loader._load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'StructureMesh' in mem.obj
+
+        return result
+
+    def is_inventory_item(self, assetname: str):
+        '''Use binary string matching to check if an asset is an inventory item.'''
+        # Load asset as raw data
+        mem = self.loader._load_raw_asset(assetname)
+
+        # Check for the presence of required string
+        result = b'DescriptiveNameBase' in mem.obj
 
         return result
 
