@@ -94,6 +94,7 @@ reverse_file = '__reverse.txt'
 @dataclass  # simply to make instantiating easier
 class Item:
     name: str
+    # asset: UAsset
     # parent_name: Optional[str]
     # is_item: Optional[bool]
     # other item data goes here
@@ -101,8 +102,7 @@ class Item:
 
 @dataclass  # simply to make instantiating easier
 class Node:
-    item: Optional[Item] = field(default=None)
-    class_name: str = field(default='')
+    item: Item
     nodes: List[Node] = field(default_factory=list)  #pylint: disable=undefined-variable
 
 
@@ -112,12 +112,11 @@ def walk_tree(node: Node, fn):
         walk_tree(child, fn)
 
 
-def add_item(item_list: List[Item], node: Node):
-    if node.item is not None:
-        item_list.append(node.item)
-
-
 def find_all_of_type(node: Node) -> List[Item]:
+    def add_item(item_list: List[Item], node: Node):
+        if node.item is not None:
+            item_list.append(node.item)
+
     found: List[Item] = list()
     walk_tree(node, lambda n: add_item(found, n))
     return found
@@ -136,7 +135,7 @@ def register_item(node_lookup: Dict[str, Node], asset: UAsset):
         # An existing branch wasn't found, continue building the branch backwards
         if not node_lookup.get(asset_str):
             node_lookup[asset_str] = branch
-            branch = Node(nodes=[branch])
+            branch = Node(item=Item(name=asset_str), nodes=[branch])
 
         # An existing tree branch was found
         else:
@@ -147,23 +146,23 @@ def register_item(node_lookup: Dict[str, Node], asset: UAsset):
     node_lookup['/Script/ShooterGame'].nodes.append(branch)
 
 
-def register_item_straight(node_lookup: Dict[str, Node], asset: UAsset):
-    try:
-        inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
-    except ModNotFound:
-        return
-    except AssetNotFound:
-        return
-    parent_class: str = '/Script/ShooterGame'
-    for asset_str in inheritance:
-        current_node = Node()
-        if not node_lookup.get(asset_str):
-            node_lookup[parent_class].nodes.append(current_node)
-            node_lookup[asset_str] = current_node
-        parent_class = asset_str
-        # print(f'Evaluating {asset}\n{item}')
-    item = Item(name=inheritance[-1])  # Should call a function to gather item data
-    node_lookup[parent_class].item = item
+# def register_item_straight(node_lookup: Dict[str, Node], asset: UAsset):
+#     try:
+#         inheritance = discover_inheritance_chain(asset.default_class)  #type: ignore
+#     except ModNotFound:
+#         return
+#     except AssetNotFound:
+#         return
+#     parent_class: str = '/Script/ShooterGame'
+#     for asset_str in inheritance:
+#         current_node = Node()
+#         if not node_lookup.get(asset_str):
+#             node_lookup[parent_class].nodes.append(current_node)
+#             node_lookup[asset_str] = current_node
+#         parent_class = asset_str
+#         # print(f'Evaluating {asset}\n{item}')
+#     item = Item(name=inheritance[-1])  # Should call a function to gather item data
+#     node_lookup[parent_class].item = item
 
 
 #%% Attempt to load assets and verify if they're a species asset or not
