@@ -73,6 +73,9 @@ class UEProxyStructure:
             value = {**default}
             setattr(self, name, value)
 
+    def __getitem__(self, name):
+        return getattr(self, name)
+
     def update(self, values: Mapping[str, Mapping[int, UEBase]]):
         target_dict = vars(self)
         for name, field_values in values.items():
