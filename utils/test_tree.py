@@ -65,3 +65,26 @@ def test_indexed_typed_tree():
     found = []
     t.root.walk(lambda n: found.append(n.data))
     assert repr(found) == "[MyDataType('root'), MyDataType('a'), MyDataType('a1'), MyDataType('b')]"
+
+
+def test_insert_segment():
+    # Make an indexed tree
+    t = IndexedTree[MyDataType](MyDataType('root'), attrgetter('name'))
+    t.add('root', MyDataType('a'))
+    t.add('root', MyDataType('b'))
+
+    # Make a simple separate tree segment
+    n = Node[str](MyDataType('segment'))
+    na = n.add(MyDataType('na'))
+    n.add(MyDataType('nb'))
+    na.add(MyDataType('naa'))
+
+    # Shove it right in there
+    t.insert_segment('b', n)
+    assert 'segment' in t
+    assert 'naa' in t
+
+    assert repr(t['naa']) == "Node(MyDataType('naa'))"
+    assert repr(t['b'].nodes) == "[Node(MyDataType('segment'))]"
+    assert repr(t['segment'].nodes) == "[Node(MyDataType('na')), Node(MyDataType('nb'))]"
+    assert repr(t['na'].nodes) == "[Node(MyDataType('naa'))]"

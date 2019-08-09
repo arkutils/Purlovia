@@ -5,6 +5,11 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Generic, List, TypeVar, Union
 
+__all__ = [
+    'Node',
+    'IndexedTree',
+]
+
 T = TypeVar('T')
 
 MISSING = object()
@@ -16,11 +21,11 @@ class Node(Generic[T]):
         self._nodes: List[Node[T]] = list()
 
     @property
-    def data(self):
+    def data(self) -> T:
         return self._data
 
     @property
-    def nodes(self):
+    def nodes(self) -> List[Node[T]]:
         return self._nodes
 
     def walk(self, fn: Callable[[Node], None]):
@@ -28,10 +33,11 @@ class Node(Generic[T]):
         for node in self.nodes:
             node.walk(fn)
 
-    def add(self, data: T) -> Node[T]:
-        new_node = Node[T](data)
-        self._nodes.append(new_node)
-        return new_node
+    def add(self, data: Union[T, Node[T]]) -> Node[T]:
+        if not isinstance(data, Node):
+            data = Node[T](data)
+        self._nodes.append(data)
+        return data
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
@@ -44,23 +50,27 @@ class IndexedTree(Generic[T]):
         self.root: Node[T] = Node[T](root)
         self._register(self.root)
 
-    def add(self, parent: Union[str, Node[T]], data: T) -> Node[T]:
-        parent_node: Node[T]
-        if isinstance(parent, str):
-            parent_node = self[parent]
-        elif isinstance(parent, Node):
-            parent_node = parent
-        else:
-            raise TypeError("Parent must be a key or a node")
+    def add(self, parent: Union[str, Node[T]], data: Union[T, Node[T]]) -> Node[T]:
+        parent_node = self._handle_parent_arg(parent)
 
-        new_node = Node[T](data)
-        self._register(new_node)
-        parent_node.nodes.append(new_node)
+        if not isinstance(data, Node):
+            data = Node[T](data)
 
-        return new_node
+        self._register(data)
+        parent_node.nodes.append(data)
+
+        return data
+
+    def insert_segment(self, parent: Union[str, Node[T]], partial_tree: Node[T]):
+        parent_node = self._handle_parent_arg(parent)
+        partial_tree.walk(self._register)
+        parent_node.nodes.append(partial_tree)
 
     def __getitem__(self, key: str):
         return self._lookup[key]
+
+    def __contains__(self, key: str):
+        return key in self._lookup
 
     def get(self, key: str, fallback=MISSING):
         if fallback is MISSING:
@@ -73,3 +83,14 @@ class IndexedTree(Generic[T]):
         if key in self._lookup:
             raise KeyError(f'Key already present: {key}')
         self._lookup[key] = node
+
+    def _handle_parent_arg(self, parent: Union[str, Node[T]]) -> Node[T]:
+        parent_node: Node[T]
+        if isinstance(parent, str):
+            parent_node = self[parent]
+        elif isinstance(parent, Node):
+            parent_node = parent
+        else:
+            raise TypeError("Parent must be a key or a node")
+
+        return parent_node
