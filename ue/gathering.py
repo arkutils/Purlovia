@@ -54,7 +54,7 @@ def get_default_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[s
     return {}
 
 
-def discover_inheritance_chain(export: ExportTableItem) -> List[str]:
+def discover_inheritance_chain(export: ExportTableItem, reverse=False) -> List[str]:
     '''Return a list representing the inheritance chain of this export,
     ordered with the most distant descandants first.'''
     assert export and export.asset and export.asset.loader and export.fullname
@@ -81,7 +81,8 @@ def discover_inheritance_chain(export: ExportTableItem) -> List[str]:
         # Load this asset and continue up the chain
         current = loader.load_class(parent_fullname)
 
-    chain.reverse()
+    if not reverse:
+        chain.reverse()
 
     return chain
 
