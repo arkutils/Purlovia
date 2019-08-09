@@ -13,6 +13,7 @@ __all__ = [
     'get_default_props_for_class',
     'discover_inheritance_chain',
     'get_parent_fullname',
+    'is_fullname_an_asset',
 ]
 
 
@@ -32,7 +33,7 @@ def gather_properties(export: ExportTableItem) -> UEProxyStructure:
         raise TypeError(f"No proxy type available for {baseclass_fullname}")
 
     for fullname in chain:
-        if fullname.startswith('/Script'):
+        if not is_fullname_an_asset(fullname):
             continue  # Defaults are already in proxy - skip
 
         props = get_default_props_for_class(fullname, export.asset.loader)
@@ -75,7 +76,7 @@ def discover_inheritance_chain(export: ExportTableItem, reverse=False) -> List[s
         chain.append(parent_fullname)
 
         # Stop if we hit the top
-        if parent_fullname.startswith('/Script'):
+        if not is_fullname_an_asset(parent_fullname):
             break
 
         # Load this asset and continue up the chain
@@ -93,7 +94,7 @@ def get_parent_fullname(export: ExportTableItem) -> Optional[str]:
 
     # Ignore klass if it is a built-in type
     if klassref and isinstance(klassref, ImportTableItem) and klassref.namespace and klassref.namespace.value:
-        if str(klassref.namespace.value.name).startswith('/Script'):
+        if str(klassref.namespace.value.name).startswith('/Script/Engine'):
             klassref = None
 
     # Parent can be a (useful) klass or any super
@@ -107,7 +108,7 @@ def get_parent_fullname(export: ExportTableItem) -> Optional[str]:
     if isinstance(parentref, ImportTableItem):
         # An import - maybe load it
         parent_fullname = parentref.fullname
-        if parent_fullname.startswith('/Script'):
+        if not is_fullname_an_asset(parent_fullname):
             return parent_fullname  # nowhere else to go
 
         parent = export.asset.loader.load_class(parent_fullname)
@@ -118,3 +119,7 @@ def get_parent_fullname(export: ExportTableItem) -> Optional[str]:
         raise TypeError(f"Can't handle parent {parentref} of type {type(parentref)}")
 
     return parent.fullname
+
+
+def is_fullname_an_asset(fullname: str):
+    return fullname.startswith('/Game')

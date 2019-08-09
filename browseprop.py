@@ -1,15 +1,13 @@
 import sys
-from tkinter import Tk
-from tkinter import ttk, filedialog
 from collections import defaultdict
+from tkinter import Tk, filedialog, ttk
 from typing import *
-
-from ue.base import UEBase
-from ue.loader import AssetLoader
-from ue.properties import Property, FloatProperty, StructProperty
 
 import ark.asset
 from automate.ark import ArkSteamManager
+from ue.base import UEBase
+from ue.loader import AssetLoader
+from ue.properties import FloatProperty, Property, StructProperty
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None
@@ -49,7 +47,7 @@ def get_value_as_string(value):
 
 
 def load_asset(assetname):
-    if assetname.startswith('/Script') or assetname.startswith('/Engine'):
+    if not assetname.startswith('/Game'):
         return
 
     assetname = loader.clean_asset_name(assetname)
