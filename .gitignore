@@ -4,6 +4,7 @@ livedata/
 logs/
 asb_json/
 id_*
+tmp/
 
 # Python profiling output
 *.prof
