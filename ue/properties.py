@@ -207,6 +207,9 @@ class ValueProperty(UEBase, Real, ABC):
     def _deserialise(self, size=None):
         pass
 
+    def format_for_json(self):
+        return self.value
+
     # Not sure why we have to specifically override these, but we do
     __eq__ = UEBase.__eq__
     __hash__ = UEBase.__hash__
@@ -457,6 +460,9 @@ class ByteProperty(ValueProperty):  # With optional enum type
                 p.text(', ')
                 p.pretty(self.value)
             p.text(')')
+        
+    def format_for_json(self):
+        return {"enum": str(self.enum), "value": self.value}
 
 
 class ObjectProperty(UEBase):
@@ -467,6 +473,9 @@ class ObjectProperty(UEBase):
 
     def _deserialise(self, size=None):
         self._newField('value', ObjectIndex(self))
+
+    def format_for_json(self):
+        return self.value.format_for_json()
 
 
 class NameProperty(UEBase):
@@ -842,6 +851,9 @@ class ArrayProperty(UEBase):
                 return
 
         self.stream.offset = saved_offset + size
+    
+    def format_for_json(self):
+        return [element.format_for_json() for element in self.values]
 
     if support_pretty:
 

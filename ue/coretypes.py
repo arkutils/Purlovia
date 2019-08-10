@@ -183,6 +183,12 @@ class ObjectIndex(UEBase):
 
         self._newField('value', value)
 
+    def format_for_json(self):
+        if not self.value:
+            return None
+
+        return f'{self.value.namespace.value.name}.{str(self.value.name).rstrip("_C")}'
+
     # if support_pretty:
 
     #     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
