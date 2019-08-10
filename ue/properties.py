@@ -181,12 +181,12 @@ class Property(UEBase):
             p.pretty(self.value)
 
 
-class _DummyAsset(UEBase):
-    none_index = 9999
-
+class DummyAsset(UEBase):
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
+        self.none_index = 9999
+        self.asset = self
 
     def _deserialise(self, *args, **kwargs):
         return super()._deserialise(*args, **kwargs)
@@ -307,7 +307,7 @@ class FloatProperty(ValueProperty):
         if data is None:
             data = struct.pack('f', value)
 
-        asset = asset or _DummyAsset(asset=None)
+        asset = asset or DummyAsset(asset=None)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
@@ -337,11 +337,11 @@ class FloatProperty(ValueProperty):
         return self.raw_data
 
 
-class DoubleProperty(UEBase):
+class DoubleProperty(ValueProperty):
     main_field = 'textual'
     display_fields = ['textual']
 
-    value: float
+    value: float  # type: ignore
     textual: str
     bytes: ByteString
     rounded: str
@@ -372,7 +372,7 @@ class IntProperty(ValueProperty):
     string_format = '(int) {value}'
     main_field = 'value'
 
-    # value: int
+    value: int  # type: ignore
 
     @classmethod
     def create(cls, value: int, asset: UEBase = None):
@@ -381,7 +381,7 @@ class IntProperty(ValueProperty):
             raise ValueError("IntProperty requires an int value")
 
         data = struct.pack('i', value)
-        asset = asset or _DummyAsset(asset=None)
+        asset = asset or DummyAsset(asset=None)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
@@ -390,10 +390,10 @@ class IntProperty(ValueProperty):
         self._newField('value', self.stream.readInt32())
 
 
-class BoolProperty(UEBase):
+class BoolProperty(ValueProperty):
     main_field = 'value'
 
-    value: bool
+    value: bool  # type: ignore
 
     @classmethod
     def create(cls, value: bool, asset: UEBase = None):
@@ -402,7 +402,7 @@ class BoolProperty(UEBase):
             raise ValueError("BoolProperty requires a boolean value")
 
         data = struct.pack('b', 1 if value else 0)
-        asset = asset or _DummyAsset(asset=None)
+        asset = asset or DummyAsset(asset=None)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj
@@ -423,7 +423,7 @@ class ByteProperty(ValueProperty):  # With optional enum type
         if size != 1:
             raise ValueError("ByteProperty can only be created directly with size 1")
 
-        asset = asset or _DummyAsset(asset=None)
+        asset = asset or DummyAsset(asset=None)
         data = struct.pack('iib', asset.none_index, 0, value)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise(size=size)
@@ -496,7 +496,7 @@ class StringProperty(UEBase):
         byte_string = value.encode('utf8') + bytes.fromhex('00')
         count = len(byte_string)
         data = struct.pack(f'i{count}s', count, byte_string)
-        asset = asset or _DummyAsset(asset=None)
+        asset = asset or DummyAsset(asset=None)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise()
         return obj

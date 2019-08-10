@@ -9,6 +9,12 @@ from .utils import get_clean_name, get_clean_namespaced_name
 
 dbg_getName = 0
 
+__all__ = [
+    'UAsset',
+    'ImportTableItem',
+    'ExportTableItem',
+]
+
 
 class UAsset(UEBase):
     display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size',

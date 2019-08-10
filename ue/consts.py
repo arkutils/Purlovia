@@ -1,0 +1,2 @@
+SCRIPT_ENGINE_PKG = '/Script/Engine'
+BLUEPRINT_GENERATED_CLASS_CLS = SCRIPT_ENGINE_PKG + '.BlueprintGeneratedClass'

@@ -1,10 +1,12 @@
 from typing import *
 
 from .base import UEBase
-from .properties import (BoolProperty, ByteProperty, FloatProperty, IntProperty, StringProperty)
+from .properties import (BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty, StringProperty)
 
 __all__ = [
     'UEProxyStructure',
+    'EmptyProxy',
+    'uemap',
     'uefloats',
     'uebytes',
     'uebools',
@@ -34,7 +36,7 @@ class UEProxyStructure:
         return getattr(cls, _UEFIELDS)
 
     def __init_subclass__(cls, uetype: str):
-        if not uetype:
+        if not uetype and not getattr(cls, '_EmptyProxy__is_empty_proxy', None):
             raise ValueError("uetype must be specified for this proxy class")
 
         if len(cls.__bases__) > 1:
@@ -103,6 +105,10 @@ def proxy_for_type(uetype: str):
     return proxy
 
 
+class EmptyProxy(UEProxyStructure, uetype=None):
+    __is_empty_proxy = True
+
+
 Tval = TypeVar('Tval')
 Tele = TypeVar('Tele', bound=UEBase)
 
@@ -110,7 +116,7 @@ Tele = TypeVar('Tele', bound=UEBase)
 def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]], **kwargs) -> Mapping[int, Tele]:
     output: Dict[int, Tele] = dict()
 
-    asset: Optional[UEBase] = None
+    asset: Optional[UEBase] = DummyAsset()
 
     for i, v in enumerate(args):
         if v is None:
@@ -120,6 +126,7 @@ def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]], **kwargs) -> Ma
             output[i] = v  # type: ignore
         else:
             ele = uetype.create(v, **kwargs)  # type: ignore
+            ele.asset = asset
             output[i] = ele
 
             if not asset:
