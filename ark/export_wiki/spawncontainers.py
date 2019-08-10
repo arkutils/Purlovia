@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
 from typing import List, Optional
 
-from ark.export_wiki.utils import get_blueprint_path
 from ark.properties import gather_properties, stat_value
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound
@@ -71,6 +70,7 @@ def gather_spawn_entries(asset: UAsset):
     properties = asset.properties.as_dict()
     entries = properties["NPCSpawnEntries"]
     if not entries:
+        # TODO: Support inherited NPCSpawnEntries
         logger.warning(f'TODO: {asset.name} does not have any spawn entries. They are probably inherited.')
         return
 
@@ -78,8 +78,8 @@ def gather_spawn_entries(asset: UAsset):
         entry_data = _struct_entry_array_to_dict(entry.values)
         entry_object = SpawnGroupEntry(str(entry_data['AnEntryName'].value))
         entry_object.weight = entry_data['EntryWeight'].value
-        entry_object.npcs_to_spawn = [get_blueprint_path(npc.value.value) for npc in entry_data['NPCsToSpawn'].values]
-        entry_object.npcs_spawn_offsets = [(offset.x.value, offset.y.value, offset.z.value)
+        entry_object.npcs_to_spawn = [npc.value for npc in entry_data['NPCsToSpawn'].values]
+        entry_object.npcs_spawn_offsets = [{'x': offset.x.value, 'y': offset.y.value, 'z': offset.z.value}
                                            for offset in entry_data['NPCsSpawnOffsets'].values]
         entry_object.npcs_to_spawn_chances = [chance.value for chance in entry_data['NPCsToSpawnPercentageChance'].values]
         entry_object.npc_min_level_offset = [offset.value for offset in entry_data['NPCMinLevelOffset'].values]
@@ -91,14 +91,15 @@ def gather_limit_entries(asset: UAsset):
     properties = asset.properties.as_dict()
     entries = properties["NPCSpawnLimits"]
     if not entries:
-        logger.warning(
-            f'TODO: {asset.name} does not have any limit entries. They are either inherited or the species in the container are not supposed to be spawned randomly.'
-        )
+        if not properties["NPCSpawnEntries"]:
+            logger.warning(
+                f'TODO:{asset.name} does not have any limit entries. They are probably inherited.'
+            )
         return
 
     for entry in entries[0].values:
         entry_data = _struct_entry_array_to_dict(entry.values)
-        entry_object = SpawnGroupLimitEntry(get_blueprint_path(entry_data['NPCClass'].value.value))
+        entry_object = SpawnGroupLimitEntry(entry_data['NPCClass'].value)
         if 'MaxDesiredNumEnemiesMultiplier' in entry_data:
             entry_object.max_percent_of_desired_num = entry_data['MaxDesiredNumEnemiesMultiplier'].value
         yield entry_object
@@ -111,7 +112,7 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
     try:
         asset = loader[asset_name]
     except AssetNotFound:
-        logger.warning(f'Spawn entry container {asset_name} does not exist. Broken reference from a map?')
+        logger.warning(f'Spawn entry container {full_asset_name} does not exist. Broken reference from a map?')
         return None
 
     container_data = asset.default_export
@@ -122,7 +123,7 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
 
     entries = list(gather_spawn_entries(container_data))
     limits = list(gather_limit_entries(container_data))
-    del loader.cache[asset_name]
+    del loader[asset_name]
 
     weight_sum = sum([entry.weight for entry in entries])
     for entry in entries:

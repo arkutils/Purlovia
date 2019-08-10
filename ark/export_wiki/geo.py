@@ -43,33 +43,3 @@ def gather_geo_data(level: UAsset, world_settings: dict):
     latitude = GeoData(lat_origin, lat_scale)
     longitude = GeoData(long_origin, long_scale)
     return (latitude, longitude)
-
-
-def qowyn_format_location(ue_coords: tuple, lat: GeoData, long: GeoData):
-    if len(ue_coords) is 2:
-        # XY pair
-        return {"lat": lat.from_units(ue_coords[1]), "long": long.from_units(ue_coords[0])}
-
-    if len(ue_coords) is 3:
-        # XYZ pair, common for resources
-        return {
-            "x": ue_coords[0],
-            "y": ue_coords[1],
-            "z": ue_coords[2],
-            "lat": lat.from_units(ue_coords[1]),
-            "long": long.from_units(ue_coords[0])
-        }
-
-    # min[XY]max[XY] flat pair
-    long_start = long.from_units(ue_coords[0])
-    lat_start = lat.from_units(ue_coords[1])
-    long_end = long.from_units(ue_coords[2])
-    lat_end = lat.from_units(ue_coords[3])
-    return {
-        "latStart": lat_start,
-        "longStart": long_start,
-        "latEnd": lat_end,
-        "longEnd": long_end,
-        "latCenter": (lat_end+lat_start) / 2,
-        "longCenter": (long_end+long_start) / 2,
-    }

@@ -1,133 +1,103 @@
-from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export_wiki.geo import qowyn_format_location
-from ark.export_wiki.utils import get_blueprint_path
-from ue.asset import UAsset
-from ue.base import UEBase
+from ark.export_wiki.map import MapData
+from ark.export_wiki.types import (ZONE_MANAGER_EXPORTED_PROPERTIES,
+                                   NPCZoneManager)
+from ark.export_wiki.utils import (export_properties_from_proxy,
+                                   format_location_for_export,
+                                   get_volume_worldspace_bounds)
+from ue.properties import ArrayProperty
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-@dataclass
-class NPCSpawn:
-    spawn_group: str = '<yet to be extracted>'
-    locations: list = field(default_factory=lambda: [])
-    spawn_locations: list = field(default_factory=lambda: [])
-    spawn_points: list = field(default_factory=lambda: [])
-    min_desired_npc_number: int = 0
-    never_spawn_in_water: bool = False
-    force_untameable: bool = False
+def export_npc_zone_manager(world: MapData, proxy: NPCZoneManager, log_identifier: str = 'a map') -> Optional[dict]:
+    if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
+        logger.warning(
+            f'Broken NPC zone manager found in {log_identifier}: no spawn entries container reference.'
+        )
+        return None
+    if not proxy.NPCSpawnEntriesContainerObject[0].value.value:
+        logger.warning(
+            f'Broken NPC zone manager found in {log_identifier}: spawn entries container reference points to nothing.'
+        )
+        return None
+    if not getattr(proxy, 'LinkedZoneVolumes', None):
+        logger.warning(
+            f'Broken NPC zone manager found in {log_identifier}: no zone volumes linked.'
+        )
+        return None
 
-    def as_dict(self, lat, long):
-        self_as_dict = {
-            "spawnGroups": self.spawn_group,
-            "minDesiredNumberOfNPC": self.min_desired_npc_number,
-            "bNeverSpawnInWater": self.never_spawn_in_water,
-            "bForceUntameable": self.force_untameable,
-            "locations": [qowyn_format_location(bounds, lat, long) for bounds in self.locations],
-        }
+    data = export_properties_from_proxy(proxy, ZONE_MANAGER_EXPORTED_PROPERTIES)
+    # Export zone volumes and check again if there's at least one linked
+    data['locations'] = [
+        format_location_for_export(bounds, world.latitude, world.longitude)
+        for bounds in gather_zone_volumes_bounds(proxy.LinkedZoneVolumes[0], log_identifier)
+    ]
+    if not data['locations']:
+        # We have probably already printed a warning.
+        return None
+    
+    # Export spawn points or locations
+    if getattr(proxy, 'SpawnPointOverrides', None):
+        data['spawnPoints'] = [
+            format_location_for_export(point, world.latitude, world.longitude)
+            for point in gather_zone_spawn_points(proxy.SpawnPointOverrides[0], log_identifier)
+        ]
+    elif getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
+        data['spawnLocations'] = [
+            {
+                'weight': weight,
+                **format_location_for_export(bounds, world.latitude, world.longitude)
+            }
+            for weight, bounds in gather_zone_spawn_volumes_bounds(proxy.LinkedZoneSpawnVolumeEntries[0], log_identifier)
+        ]
+    else:
+        logger.warning(
+            f'Broken NPC zone manager found in {log_identifier}: no spawn zone entries nor spawn points linked.'
+        )
+        return None
 
-        if self.spawn_points:
-            self_as_dict["spawnPoints"] = [qowyn_format_location(location, lat, long) for location in self.spawn_points]
-        else:
-            self_as_dict["spawnLocations"] = [qowyn_format_location(bounds, lat, long) for bounds in self.spawn_locations]
+    return data
 
-        return self_as_dict
-
-
-def _get_volume_worldspace_xy(volume):
-    brush_component = volume.properties.get_property("BrushComponent").value.value
-    body_setup = brush_component.properties.get_property("BrushBodySetup").value.value
-    agg_geom = body_setup.properties.get_property("AggGeom").values[0].value
-    convex_elems = agg_geom.values[0]
-    volume_location = brush_component.properties.get_property("RelativeLocation").values[0]
-    volume_box = convex_elems.as_dict()["ElemBox"].values[0]
-    return (
-        # Min
-        volume_box.min.x.value + volume_location.x.value,
-        volume_box.min.y.value + volume_location.y.value,
-        # Max
-        volume_box.max.x.value + volume_location.x.value,
-        volume_box.max.y.value + volume_location.y.value)
-
-
-def gather_npc_spawn_data(level: UAsset):
-    # Temporary; will move this check out once any other gatherer
-    # can be set up.
-    for export in level.exports:
-        if not str(export.klass.value.name).startswith('NPCZoneManager'):
-            continue
-        manager = export
-        manager_properties = manager.properties.as_dict()
-        is_enabled = manager_properties['bEnabled']
-        if is_enabled and not is_enabled[0].value:
-            continue
-        collected_data = NPCSpawn()
-
-        if not 'NPCSpawnEntriesContainerObject' in manager_properties:
+        
+def gather_zone_volumes_bounds(volumes: ArrayProperty, log_identifier: str = 'a map'):
+    for zone_volume in volumes.values:
+        zone_volume = zone_volume.value.value
+        if not zone_volume:
             logger.warning(
-                f'A zone manager in {level.assetname} does not have spawn entries container linked, and it will be ignored.')
+                f'Broken NPC zone manager found in {log_identifier}: zone volume reference does not point anywhere.'
+            )
+            continue
+            
+        yield get_volume_worldspace_bounds(zone_volume)
+
+
+def gather_zone_spawn_points(points: ArrayProperty, log_identifier: str = 'a map'):
+    for marker in points.values:
+        marker = marker.value.value
+        if not marker:
+            logger.warning(
+                f'Broken NPC zone manager found in {log_identifier}: spawn marker reference does not point anywhere.'
+            )
             continue
 
-        entry_container = manager_properties['NPCSpawnEntriesContainerObject'][0]
-        collected_data.spawn_group = get_blueprint_path(entry_container.value.value)
+        scene_component = marker.properties.get_property("RootComponent").value.value
+        marker_location = scene_component.properties.get_property("RelativeLocation").values[0]
+        yield marker_location.x.value, marker_location.y.value
 
-        linked_zone_volumes = manager_properties['LinkedZoneVolumes'][0].values
-        spawn_point_overrides = manager_properties['SpawnPointOverrides'][0]
-        linked_spawn_volumes = manager_properties['LinkedZoneSpawnVolumeEntries'][0]
-        if manager_properties['MinDesiredNumberOfNPC']:
-            collected_data.min_desired_npc_number = manager_properties['MinDesiredNumberOfNPC'][0].value
-        if manager_properties['bNeverSpawnInWater']:
-            collected_data.never_spawn_in_water = manager_properties['bNeverSpawnInWater'][0].value
-        if manager_properties['bForceUntameable']:
-            collected_data.force_untameable = manager_properties['bForceUntameable'][0].value
 
-        if linked_zone_volumes is None:
-            logger.warning(f'Zone manager for {collected_data.spawn_group} does not have any zone volumes linked.')
+def gather_zone_spawn_volumes_bounds(entries: ArrayProperty, log_identifier: str = 'a map'):
+    for entry in entries.values:
+        entry_data = entry.as_dict()
+        entry_weight = entry_data['EntryWeight'].value
+        spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
+        if not spawn_volume:
+            logger.warning(
+                f'Broken NPC zone manager found in {log_identifier}: spawn zone volume reference does not point anywhere.'
+            )
             continue
 
-        if linked_spawn_volumes is None and spawn_point_overrides is None:
-            logger.warning(f'Zone manager for {collected_data.spawn_group} does not have any spawn zone volumes linked.')
-            continue
-
-        # Locations
-        for zone_volume in linked_zone_volumes:
-            zone_volume = zone_volume.value.value
-            if zone_volume is not None:
-                collected_data.locations.append(_get_volume_worldspace_xy(zone_volume))
-                break
-        else:
-            logger.warning(f'A zone manager for {collected_data.spawn_group} is not linked to any volume.')
-            continue
-
-        # Determine whether we should export the spawn locations
-        # or the spawn points. The latter is always used over the
-        # spawn zones if present.
-        if spawn_point_overrides is None:
-            # Spawn Locations
-            for spawn_zone_entry in linked_spawn_volumes.values:
-                spawn_zone_properties = spawn_zone_entry.as_dict()
-                spawn_volume = spawn_zone_properties["LinkedZoneSpawnVolume"].value.value
-                if spawn_volume is None:
-                    logger.warning(
-                        f'A zone manager for {collected_data.spawn_group} has an entry but is not linked to a volume.')
-                    continue
-
-                collected_data.spawn_locations.append(_get_volume_worldspace_xy(spawn_volume))
-        else:
-            for spawn_point_marker in spawn_point_overrides.values:
-                spawn_point_marker = spawn_point_marker.value.value
-                if not spawn_point_marker:
-                    logger.warning(f'A zone manager for {collected_data.spawn_group} uses a spawn point that is missing.')
-                    continue
-
-                scene_component = spawn_point_marker.properties.get_property("RootComponent").value.value
-                marker_location = scene_component.properties.get_property("RelativeLocation").values[0]
-                collected_data.spawn_points.append((marker_location.x.value, marker_location.y.value))
-
-        if collected_data.spawn_locations and collected_data.spawn_points:
-            continue
-        yield collected_data
+        yield entry_weight, get_volume_worldspace_bounds(spawn_volume)

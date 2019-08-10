@@ -1,11 +1,14 @@
 from dataclasses import dataclass, field
 
 from ark.export_wiki.geo import GeoData, gather_geo_data
+from ark.export_wiki.types import *
 from ue.asset import UAsset
 
 
 @dataclass
 class MapData:
+    # pylint: enable=invalid-name
+
     name: str
     latitude: GeoData
     longitude: GeoData
@@ -20,7 +23,7 @@ class MapData:
     loot_crates: list = field(default_factory=lambda: [])
     biomes: list = field(default_factory=lambda: [])
     spawns: list = field(default_factory=lambda: [])
-    spawn_groups: dict = field(default_factory=lambda: {})
+    spawn_groups: list = field(default_factory=lambda: [])
 
     def as_dict(self):
         return {
@@ -42,7 +45,7 @@ class MapData:
             'lootCrates': self.loot_crates,
             'biomes': self.biomes,
             'spawns': self.spawns,
-            'spawnGroups': list(self.spawn_groups.values()),
+            'spawnGroups': self.spawn_groups,
         }
 
 

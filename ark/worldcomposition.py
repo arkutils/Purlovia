@@ -19,10 +19,15 @@ class ByRawData:
         # Load asset as raw data
         mem = self.loader._load_raw_asset(assetname)
 
-        # Check whether the asset is possibly a world
+        # Check whether the asset is a world
         result = b'World' in mem.obj
-        # Check whether the asset has references to zone managers
-        result = result and b'NPCZoneManager' in mem.obj
+        # Check whether the asset has occurences of names of possibly
+        # interesting exports.
+        config = get_global_config().wiki_settings
+        has_zone_managers = config.ExportSpawnData and b'NPCZoneManager' in mem.obj
+        has_biome_defs = config.ExportBiomeData and b'BiomeZoneVolume' in mem.obj
+        has_supply_drops = config.ExportSupplyCrateData and b'SupplyCrateSpawningVolume' in mem.obj
+        result = result and (has_zone_managers or has_biome_defs or has_supply_drops)
 
         return result
 
@@ -41,7 +46,7 @@ class ByWorldTileData:
             return True
 
         # partially_load_asset does not cache the result.
-        #del self.loader.cache[assetname]
+        #del self.loader[assetname]
         return False
 
 

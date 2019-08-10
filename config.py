@@ -56,6 +56,15 @@ class SettingsSection(BaseModel):
     SkipPush: bool = False
 
 
+class WikiSection(BaseModel):
+    SkipExtract: bool = False
+    ExportSpawnData: bool = False
+    ExportBiomeData: bool = False
+    ExportSupplyCrateData: bool = False
+
+    PublishDir: Path = Path('output/data/wiki')
+
+
 class OptimisationSection(BaseModel):
     SearchIgnore: IniStringList = IniStringList()
 
@@ -96,9 +105,10 @@ class ModIdAccess:
 
 class ConfigFile(BaseModel):
     settings: SettingsSection
+    wiki_settings: WikiSection
+    maps: Tuple[str, ...] = tuple()
     mods: Tuple[str, ...] = tuple()
     official_mods: ModIdAccess = ModIdAccess(dict())
-    maps: Tuple[str, ...] = tuple()
     optimisation: OptimisationSection
 
 
@@ -134,7 +144,13 @@ def _read_config(filename):
     maps = list(parser['maps'].values())
 
     settings = SettingsSection(**parser['settings'])
+    wiki_settings = WikiSection(**parser['wiki'])
     optimisation = OptimisationSection(**parser['optimisation'])
 
     global config
-    config = ConfigFile(settings=settings, mods=managed_mods, official_mods=official_mods, maps=maps, optimisation=optimisation)
+    config = ConfigFile(settings=settings,
+                        wiki_settings=wiki_settings,
+                        mods=managed_mods,
+                        official_mods=official_mods,
+                        maps=maps,
+                        optimisation=optimisation)
