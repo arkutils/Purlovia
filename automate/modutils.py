@@ -49,23 +49,19 @@ def unpackModFile(src: str, dst: str):
 
     assert sizeFound == sizeUnpacked, DecompressionError("Invalid chunk sizes in downloaded mod")
 
-    data = bytes()
-    for i, (csCompressed, csUncompressed) in enumerate(chunkSizes):
-        chunkData = f.readBytes(csCompressed)
-        uncompressedChunkData = zlib.decompress(chunkData)
-        del chunkData
+    with open(dst, 'wb', buffering=64 * 1024) as of:
+        for i, (csCompressed, csUncompressed) in enumerate(chunkSizes):
+            chunkData = f.readBytes(csCompressed)
+            uncompressedChunkData = zlib.decompress(chunkData)
+            del chunkData
 
-        assert len(uncompressedChunkData) == csUncompressed, DecompressionError(
-            "Decompression of downloaded mod chunk failed verification")
-        assert len(uncompressedChunkData) == sizeUnpackedChunk or i + 1 == len(chunkSizes), DecompressionError(
-            "Chunk of downloaded mod is not the expected size")
+            assert len(uncompressedChunkData) == csUncompressed, DecompressionError(
+                "Decompression of downloaded mod chunk failed verification")
+            assert len(uncompressedChunkData) == sizeUnpackedChunk or i + 1 == len(chunkSizes), DecompressionError(
+                "Chunk of downloaded mod is not the expected size")
 
-        data += uncompressedChunkData
-
-    with open(dst, 'wb') as of:
-        of.write(data)
-
-    del data
+            of.write(uncompressedChunkData)
+            del uncompressedChunkData
 
 
 def readACFFile(filename, outputType=dict):

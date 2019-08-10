@@ -11,6 +11,7 @@ from typing import *
 import ark.asset
 import ark.mod
 import ark.properties
+import ue.gathering
 from ark.common import *
 from automate.ark import ArkSteamManager
 from ue.asset import ExportTableItem, ImportTableItem, UAsset
@@ -70,8 +71,10 @@ loader = arkman.createLoader()
 
 # Experimenting with CharacterStatusComponentPriority
 # assetname = '/Game/PrimalEarth/Dinos/Bigfoot/Yeti_Character_BP'
-assetname = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP'
+# assetname = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP'
 # assetname = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP_Deinonychus'
+
+assetname = '/Game/PrimalEarth/CoreBlueprints/Items/PrimalItemDye_ActuallyMagenta'
 
 asset = loader[assetname]
 print('Decoding complete.')
@@ -91,12 +94,12 @@ print('Decoding complete.')
 #     pprint(export.properties)
 
 #%% Try to discover inheritance
-print('\nParent package:')
-if asset.default_export:
-    parent_pkg = ark.asset.findExportSourcePackage(asset.default_export)
-    print(parent_pkg)
-else:
-    print('-not found-')
+# print('\nParent package:')
+# if asset.default_export:
+#     parent_pkg = ark.asset.findExportSourcePackage(asset.default_export)
+#     print(parent_pkg)
+# else:
+#     print('-not found-')
 
 #%% Try to discover sub-components
 # print('\nComponents:')
@@ -226,18 +229,18 @@ def scan_asset(asset: UAsset, indent=0):
 
 
 #%% Break down assets into components and sub-components visually
-print()
-scan_asset(asset)
+# print()
+# scan_asset(asset)
 
-for parent in ark.asset.findParentPackages(asset):
-    scan_asset(loader[parent])
+# for parent in ark.asset.findParentPackages(asset):
+#     scan_asset(loader[parent])
 
-for comp in ark.asset.findSubComponentParentPackages(asset):
-    try:
-        comp_asset = loader[comp]
-    except AssetNotFound:
-        continue
-    scan_asset(comp_asset)
+# for comp in ark.asset.findSubComponentParentPackages(asset):
+#     try:
+#         comp_asset = loader[comp]
+#     except AssetNotFound:
+#         continue
+#     scan_asset(comp_asset)
 
 #%% Working out where to find taming info
 # for assetname in (
@@ -294,5 +297,13 @@ for comp in ark.asset.findSubComponentParentPackages(asset):
 #         print(f'  {guid} {srcasset}')
 
 # ...answer is they're copied all over the place, so useless
+
+#%%
+# ue.gathering._discover_inheritance_chain(asset.default_class)
+
+# dcsc_export = [e for e in asset.exports if 'Status' in str(e.name)][-1]
+# props = ue.gathering.gather_properties(dcsc_export)
+
+props = ue.gathering.gather_properties(asset.default_class)
 
 #%%

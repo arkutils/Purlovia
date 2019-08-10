@@ -4,6 +4,7 @@ from config import get_global_config
 from ue.loader import AssetLoader
 
 from .asset import findSubComponentParentPackages
+from .common import CHR_PKG, DCSC_PKG
 from .tree import inherits_from, walk_parents
 
 __all__ = [
@@ -28,12 +29,22 @@ class ByRawData:
         return result
 
     def is_structure(self, assetname: str):
-        '''Use binary string matching to check if an asset is a structure.'''
+        '''Use binary string matching to check if an asset is a placeable structure.'''
         # Load asset as raw data
         mem = self.loader._load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'StructureMesh' in mem.obj
+
+        return result
+
+    def is_inventory_item(self, assetname: str):
+        '''Use binary string matching to check if an asset is an inventory item.'''
+        # Load asset as raw data
+        mem = self.loader._load_raw_asset(assetname)
+
+        # Check for the presence of required string
+        result = b'DescriptiveNameBase' in mem.obj
 
         return result
 
@@ -44,13 +55,10 @@ class ByInheritance:
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 
-    CHARACTER_ASSET = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP'
-    DCSC_ASSET = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP'
-
     def is_species(self, assetname: str):
         '''
         Load the asset fully and check that it inherits from Character and it or one of
-        its parents has a component that inheritcs from DCSC.
+        its parents has a component that inherits from DCSC.
         '''
         if not assetname.startswith('/Game'):
             return False
@@ -58,7 +66,7 @@ class ByInheritance:
         asset = self.loader[assetname]
 
         # Must inherit from Character somewhere down the line
-        if not inherits_from(asset, ByInheritance.CHARACTER_ASSET):
+        if not inherits_from(asset, CHR_PKG):
             return False
 
         # Check all parents - if any has a sub-component that inherits from DCSC, we're good
@@ -71,7 +79,7 @@ class ByInheritance:
                 if not cmpassetname.startswith('/Game'):
                     continue
                 cmpasset = self.loader[cmpassetname]
-                if inherits_from(cmpasset, ByInheritance.DCSC_ASSET):
+                if inherits_from(cmpasset, DCSC_PKG):
                     return True  # finish walk early
 
         # Check this asset first
@@ -82,6 +90,18 @@ class ByInheritance:
         found_dcsc = walk_parents(asset, check_component)
 
         return found_dcsc
+
+    # def is_inventory_item(self, assetname: str):
+    #     '''
+    #     Load the asset fully and check that it inherits from PrimalItem and it or one of
+    #     its parents has a component that inherits from DCSC.
+    #     '''
+    #     if not assetname.startswith('/Game'):
+    #         return False
+
+    #     asset = self.loader[assetname]
+
+
 
 
 class SpeciesDiscoverer:

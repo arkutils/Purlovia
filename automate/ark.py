@@ -222,8 +222,12 @@ class ArkSteamManager:
     def _fetchModTitleFromPGD(self, moddata):
         resolver = FixedModResolver({moddata['name']: moddata['id']})
         loader = AssetLoader(resolver, self.asset_path)
-        pgd_asset = loader[moddata['package']]
-        title = pgd_asset.default_export.properties.get_property('ModName').value
+        pkg = moddata['package']
+        if pkg:
+            pgd_asset = loader[moddata['package']]
+            title = pgd_asset.default_export.properties.get_property('ModName').value
+        else:
+            title = moddata['id']
         return title
 
     def _removeMods(self, modids):

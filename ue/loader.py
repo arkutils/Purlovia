@@ -198,11 +198,10 @@ class AssetLoader:
         if isinstance(obj, ImportTableItem):
             assetname = str(obj.namespace.value.name.value)
             loader = obj.asset.loader
-            logger.debug(f'Found related: {assetname}')
             asset = loader[assetname]
             return asset
 
-        raise ValueError(f"Unsupported type for load_releated '{type(obj)}'")
+        raise ValueError(f"Unsupported type for load_related '{type(obj)}'")
 
     def load_class(self, fullname: str, fallback=NO_FALLBACK) -> ExportTableItem:
         (assetname, clsname) = fullname.split('.')
@@ -219,7 +218,6 @@ class AssetLoader:
 
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
-        logger.debug(f"Loading file: {filename}")
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
         try:
@@ -231,8 +229,6 @@ class AssetLoader:
     def _load_raw_asset(self, name: str):
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
-        logger.debug(f"Loading asset: {name}")
-
         mem = None
         for ext in ('.uasset', '.umap'):
             filename = self.convert_asset_name_to_path(name, ext=ext)
@@ -261,6 +257,7 @@ class AssetLoader:
         return asset
 
     def _load_asset(self, assetname: str, doNotLink=False):
+        logger.debug(f"Loading asset: {assetname}")
         mem = self._load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(weakref.proxy(stream))
