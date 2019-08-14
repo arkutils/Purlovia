@@ -15,11 +15,6 @@ logger.addHandler(NullHandler())
 
 
 def export_biome_zone_volume(world: MapData, export: UEBase, proxy: BiomeZoneVolume, log_identifier: str = 'a map') -> Optional[dict]:
-    if str(proxy.BiomeZoneName[0]) == '':
-        logger.warning(
-            f'TODO:Special biome zone volume found in {log_identifier}: no name.'
-        )
-
     data = export_properties_from_proxy(proxy, BIOME_VOLUME_EXPORTED_PROPERTIES)
     bounds = get_volume_worldspace_bounds(export, True)
     data['boxes'] = {

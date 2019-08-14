@@ -123,11 +123,11 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
 
     entries = list(gather_spawn_entries(container_data))
     limits = list(gather_limit_entries(container_data))
-    del loader[asset_name]
+    #del loader[asset_name]
 
     weight_sum = sum([entry.weight for entry in entries])
     for entry in entries:
         entry.chance = entry.weight / weight_sum
-    entries.sort(key=lambda entry: entry.chance)
+    entries.sort(key=lambda entry: entry.chance, reverse=True)
 
     return SpawnGroupObject(full_asset_name, max_desired_enemy_num_mult, entries, limits)

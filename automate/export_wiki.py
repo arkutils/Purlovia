@@ -125,7 +125,7 @@ class Exporter:
                     if spawn_group not in map_data.spawn_groups:
                         map_data.spawn_groups.append(spawn_group)
             elif isinstance(proxy, BiomeZoneVolume):
-                if not self.config.wiki_settings.ExportBiomeData:
+                if not self.config.wiki_settings.ExportBiomeData or proxy.bHidden[0].value:
                     continue
 
                 data = export_biome_zone_volume(map_data,
@@ -135,7 +135,7 @@ class Exporter:
                 if data:
                     map_data.biomes.append(data)
             elif isinstance(proxy, SupplyCrateSpawningVolume):
-                if not self.config.wiki_settings.ExportSupplyCrateData:
+                if not self.config.wiki_settings.ExportSupplyCrateData or proxy.bHidden[0].value:
                     continue
 
                 data = export_supply_crate_volume(map_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')
