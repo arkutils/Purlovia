@@ -42,7 +42,7 @@ class ByWorldTileData:
 
         asset = self.loader.partially_load_asset(assetname)
 
-        if 'tile_info_data' in asset.field_values:
+        if 'tile_info' in asset.field_values:
             return True
 
         # partially_load_asset does not cache the result.

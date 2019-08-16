@@ -75,11 +75,9 @@ class UAsset(UEBase):
         self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
         self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
 
-        #self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
-
         if self.world_tile_info_data_offset is not 0:
             tile_info_stream = MemoryStream(self.stream, self.world_tile_info_data_offset)
-            self._newField('tile_info_data', WorldTileInfo(self, tile_info_stream))
+            self._newField('tile_info', WorldTileInfo(self, tile_info_stream))
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''

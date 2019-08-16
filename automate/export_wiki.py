@@ -11,12 +11,12 @@ import ark.properties
 from ark.common import PGD_PKG
 from ark.export_wiki.biomes import export_biome_zone_volume
 from ark.export_wiki.geo import GeoData, gather_geo_data
-from ark.export_wiki.map import MapData, get_settings_from_map
-from ark.export_wiki.npc_spawns import export_npc_zone_manager
+from ark.export_wiki.map import WorldData
+from ark.export_wiki.npc_spawns import (export_npc_zone_manager, gather_random_npc_class_weights)
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
 from ark.export_wiki.sublevels import gather_sublevel_names
 from ark.export_wiki.supply_drops import export_supply_crate_volume
-from ark.export_wiki.types import (BiomeZoneVolume, NPCZoneManager, SupplyCrateSpawningVolume)
+from ark.export_wiki.types import (BiomeZoneVolume, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume)
 from ark.export_wiki.utils import property_serializer
 from ark.worldcomposition import SublevelDiscoverer
 from automate.ark import ArkSteamManager
@@ -26,6 +26,7 @@ from ue.asset import UAsset
 from ue.base import UEBase
 from ue.gathering import gather_properties
 from ue.loader import AssetNotFound
+from utils.strings import get_valid_filename
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -76,10 +77,17 @@ class Exporter:
     def perform(self):
         self._prepare_versions()
 
-        logger.info('Beginning export of maps')
-        game_buildid = self.arkman.getGameBuildId()
-        version = self._create_version(game_buildid)
-        self._export_levels(self.config.maps, version=version)
+        if self.config.wiki_settings.ExportVanillaMaps:
+            logger.info('Beginning export of vanilla maps')
+            self._export_vanilla()
+
+        for modid in self.modids:
+            logger.info(f'Beginning mod {modid} export')
+            self._export_mod(modid)
+
+            # Remove assets with this mod's prefix from the cache
+            prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
+            self.loader.wipe_cache_with_prefix(prefix)
 
     def _prepare_versions(self):
         if not self.game_version:
@@ -88,26 +96,72 @@ class Exporter:
     def _create_version(self, timestamp: str) -> str:
         return createExportVersion(self.game_version, timestamp)  # type: ignore
 
-    def _export_levels(self, persistent_levels: List, version: str, other: Dict = None, moddata: Optional[Dict] = None):
-        for assetname in persistent_levels:
-            logger.info(f'Collecting data from the top-level {assetname}')
-            asset = self.loader[assetname]
-            map_data = get_settings_from_map(asset)
+    def _export_vanilla(self):
+        game_buildid = self.arkman.getGameBuildId()
+        version = self._create_version(game_buildid)
 
-            self._gather_data_from_level(asset, map_data)
-            del self.loader[assetname]
-            logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
+        for asset_name in self.config.maps:
+            world_data = self._export_level(asset_name)
+            self._export_world_data(world_data, version)
+            del world_data
 
-            for sublevel in self.wc_discoverer.discover_submaps(asset):
-                subasset = self.loader[sublevel]
-                self._gather_data_from_level(subasset, map_data)
-                del self.loader[sublevel]
+    def _export_mod(self, modid: str):
+        moddata = self.arkman.getModData(modid)
+        if not moddata:
+            raise ValueError("Mod not installed or ArkSteamManager not yet initialised")
+        version = self._create_version(moddata['version'])
 
-            self._gather_spawn_groups(map_data)
-            self._export_values(map_data.name, map_data.as_dict(), version)
-            del map_data
+        if int(moddata.get('type', 1)) != 2:
+            logger.debug(f'Skipping export of mod {modid}: not a map.')
+            return
 
-    def _gather_data_from_level(self, level: UAsset, map_data: MapData):
+        map_list = moddata.get('maps', None)
+        if map_list:
+            for map_name in map_list:
+                world_data = self._export_level(f'/Game/Mods/{modid}/{map_name}')
+                self._export_world_data(world_data, version, moddata)
+                del world_data
+        else:
+            logger.warning(f'Mod {modid} is missing its list of maps.')
+
+    def _export_world_data(self, world_data: WorldData, version: str, moddata: Optional[Dict] = None):
+        values: Dict[str, Any] = dict()
+        values['map'] = world_data.name
+
+        if moddata:
+            filename = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
+            filename = get_valid_filename(filename)
+            title = moddata['title'] or moddata['name']
+            values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
+        else:
+            filename = get_valid_filename(world_data.name)
+
+        values['version'] = version
+        values.update(world_data.format_for_json())
+
+        fullpath = (self.config.wiki_settings.PublishDir / filename).with_suffix('.json')
+        self._save_json_if_changed(values, fullpath)
+
+    def _export_level(self, asset_name: str):
+        logger.info(f'Collecting data from a persistent level: {asset_name}')
+        asset = self.loader[asset_name]
+        world_data = WorldData(asset)
+
+        world_data.random_spawn_classes = list(gather_random_npc_class_weights(world_data.world_settings))
+
+        self._gather_data_from_level(asset, world_data)
+        del self.loader[asset_name]
+        logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
+
+        for sublevel in self.wc_discoverer.discover_submaps(asset):
+            subasset = self.loader[sublevel]
+            self._gather_data_from_level(subasset, world_data)
+            del self.loader[sublevel]
+        self._gather_spawn_groups(world_data)
+
+        return world_data
+
+    def _gather_data_from_level(self, level: UAsset, world_data: WorldData):
         for export in level.exports:
             if str(export.klass.value.name) not in KNOWN_KLASS_NAMES:
                 continue
@@ -117,49 +171,42 @@ class Exporter:
                 if not self.config.wiki_settings.ExportSpawnData or not proxy.bEnabled[0].value:
                     continue
 
-                data = export_npc_zone_manager(map_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')
+                data = export_npc_zone_manager(world_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')
                 if data:
-                    map_data.spawns.append(data)
+                    world_data.spawns.append(data)
 
                     spawn_group = data['spawnGroup'].format_for_json()
-                    if spawn_group not in map_data.spawn_groups:
-                        map_data.spawn_groups.append(spawn_group)
+                    if spawn_group not in world_data.spawn_groups:
+                        world_data.spawn_groups.append(spawn_group)
             elif isinstance(proxy, BiomeZoneVolume):
                 if not self.config.wiki_settings.ExportBiomeData or proxy.bHidden[0].value:
                     continue
 
-                data = export_biome_zone_volume(map_data,
+                data = export_biome_zone_volume(world_data,
                                                 export,
                                                 proxy,
                                                 log_identifier=f'{level.assetname} (export "{export.name}")')
                 if data:
-                    map_data.biomes.append(data)
+                    world_data.biomes.append(data)
             elif isinstance(proxy, SupplyCrateSpawningVolume):
                 if not self.config.wiki_settings.ExportSupplyCrateData or proxy.bHidden[0].value:
                     continue
 
-                data = export_supply_crate_volume(map_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')
+                data = export_supply_crate_volume(world_data,
+                                                  proxy,
+                                                  log_identifier=f'{level.assetname} (export "{export.name}")')
                 if data:
-                    map_data.loot_crates.append(data)
+                    world_data.loot_crates.append(data)
             else:
                 logger.error(f'{proxy.get_ue_type()} is not going to be exported (unknown destination).')
 
             del proxy
 
-    def _gather_spawn_groups(self, world: MapData):
+    def _gather_spawn_groups(self, world: WorldData):
         for index in range(len(world.spawn_groups)):
             group_data = get_spawn_entry_container_data(self.loader, world.spawn_groups[index])
             if group_data:
                 world.spawn_groups[index] = group_data.as_dict()
-
-    def _export_values(self, level_name: str, values: dict, version: str):
-        level_name = level_name.rstrip('_C')
-        level_name = level_name.rstrip('_P')
-
-        versioned_values = {"map": level_name, "version": version}
-        versioned_values.update(values)
-        fullpath = (self.config.wiki_settings.PublishDir / level_name).with_suffix('.json')
-        self._save_json_if_changed(versioned_values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
         changed, version = _should_save_json(values, fullpath)

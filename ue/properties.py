@@ -393,6 +393,13 @@ class IntProperty(ValueProperty):
         self._newField('value', self.stream.readInt32())
 
 
+class UInt32Property(IntProperty):
+    string_format = '(uint) {value}'
+
+    def _deserialise(self, size=None):
+        self._newField('value', self.stream.readUInt32())
+
+
 class BoolProperty(ValueProperty):
     main_field = 'value'
 
@@ -996,6 +1003,7 @@ TYPE_MAP = {
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
+    'UInt32Property': UInt32Property,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,

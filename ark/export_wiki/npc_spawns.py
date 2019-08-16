@@ -3,10 +3,11 @@ from typing import *
 
 from ark.export_wiki.map import MapData
 from ark.export_wiki.types import (ZONE_MANAGER_EXPORTED_PROPERTIES,
-                                   NPCZoneManager)
+                                   NPCZoneManager, PrimalWorldSettings)
 from ark.export_wiki.utils import (export_properties_from_proxy,
                                    format_location_for_export,
-                                   get_volume_worldspace_bounds)
+                                   get_volume_worldspace_bounds,
+                                   struct_entries_array_to_dict)
 from ue.properties import ArrayProperty
 
 logger = getLogger(__name__)
@@ -101,3 +102,15 @@ def gather_zone_spawn_volumes_bounds(entries: ArrayProperty, log_identifier: str
             continue
 
         yield entry_weight, get_volume_worldspace_bounds(spawn_volume)
+
+def gather_random_npc_class_weights(world_settings: PrimalWorldSettings):
+    if not getattr(world_settings, 'NPCRandomSpawnClassWeights', None):
+        return
+    
+    for random_class_weight in world_settings.NPCRandomSpawnClassWeights[0].values:
+        data = struct_entries_array_to_dict(random_class_weight.values)
+        yield {
+            'from': data['FromClass'],
+            'to': data['ToClasses'],
+            'chances': data['Weights']
+        }

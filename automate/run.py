@@ -64,6 +64,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all species completely')
     parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting vanilla species')
+    parser.add_argument('--skip-map-extract', action='store_true', help='skip extracting all maps completely')
+    parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawn data from maps')
+    parser.add_argument('--skip-biome-data', action='store_true', help='skip extracting biome data from maps')
+    parser.add_argument('--skip-supply-drop-data', action='store_true', help='skip extracting supply drops from maps')
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
 
@@ -104,6 +108,18 @@ def handle_args(args: Any) -> ConfigFile:
 
     if args.skip_extract:
         config.settings.SkipExtract = True
+
+    if args.skip_map_extract:
+        config.wiki_settings.SkipExtract = True
+
+    if args.skip_spawn_data:
+        config.wiki_settings.ExportSpawnData = False
+
+    if args.skip_biome_data:
+        config.wiki_settings.ExportBiomeData = False
+
+    if args.skip_supply_drop_data:
+        config.wiki_settings.ExportSupplyCrateData = False
 
     if args.skip_vanilla:
         config.settings.ExportVanillaSpecies = False

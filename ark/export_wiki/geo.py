@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ue.asset import UAsset
+from ark.export_wiki.types import PrimalWorldSettings
 from ue.loader import AssetLoader
 
 
@@ -25,20 +25,23 @@ class GeoData:
     def from_units(self, units: int):
         return self.offset(units) / self.multiplier
 
+    def format_for_json(self):
+        return {
+            "Origin": self.origin,
+            "Scale": self.scale,
+            "Multi": self.multiplier,
+            "Shift": self.shift
+        }
+
     def __str__(self):
         return f'GeoData (Origin {self.origin}, Scale {self.scale})'
 
 
-def gather_geo_data(level: UAsset, world_settings: dict):
-    def _get(properties, key, default):
-        if key in properties:
-            return properties[key][0].value
-        return default
-
-    lat_origin = _get(world_settings, "LatitudeOrigin", -400000.0)
-    long_origin = _get(world_settings, "LongitudeOrigin", -400000.0)
-    lat_scale = _get(world_settings, "LatitudeScale", 800.0)
-    long_scale = _get(world_settings, "LongitudeScale", 800.0)
+def gather_geo_data(world_settings: PrimalWorldSettings):
+    lat_origin = world_settings.LatitudeOrigin[0].value
+    long_origin = world_settings.LongitudeOrigin[0].value
+    lat_scale = world_settings.LatitudeScale[0].value
+    long_scale = world_settings.LongitudeScale[0].value
 
     latitude = GeoData(lat_origin, lat_scale)
     longitude = GeoData(long_origin, long_scale)

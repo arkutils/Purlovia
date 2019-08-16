@@ -5,11 +5,24 @@ from ue.properties import ArrayProperty, ObjectProperty
 from ue.proxy import *
 
 __all__ = [
+    'WORLD_SETTINGS_EXPORTED_PROPERTIES',
     'ZONE_MANAGER_EXPORTED_PROPERTIES',
     'BIOME_VOLUME_EXPORTED_PROPERTIES',
+    'SUPPLY_DROP_EXPORTED_PROPERTIES',
+    'PrimalWorldSettings',
     'NPCZoneManager',
-    'BiomeZoneVolume'
+    'BiomeZoneVolume',
+    'SupplyCrateSpawningVolume'
 ]
+
+WORLD_SETTINGS_EXPORTED_PROPERTIES = {
+    'OverrideDifficultyMax': 'difficultyMax',
+    'OverrideWeaponMapTextureEmpty': 'heldMapEmpty',
+    'OverrideWeaponMapTextureFilled': 'heldMap',
+    'OverrideUIMapTextureEmpty': 'mapEmpty',
+    'OverrideUIMapTextureFilled': 'bigMap',
+    'OverrideUIMapTextureSmall': 'smallMap',
+}
 
 ZONE_MANAGER_EXPORTED_PROPERTIES = {
     'NPCSpawnEntriesContainerObject': 'spawnGroup',
@@ -81,10 +94,23 @@ SUPPLY_DROP_EXPORTED_PROPERTIES = {
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
     # DevKit Verified
+    LatitudeOrigin = uefloats(400_000.0)
+    LongitudeOrigin = uefloats(400_000.0)
+    LatitudeScale = uefloats(800.0)
+    LongitudeScale = uefloats(800.0)
 
     # DevKit Unverified
     Title = uestrings('')
     OverrideDifficultyMax = uefloats(1)
+    OverrideWeaponMapTextureEmpty = uestrings('')
+    OverrideWeaponMapTextureFilled = uestrings('')
+    OverrideUIMapTextureEmpty = uestrings('')
+    OverrideUIMapTextureFilled = uestrings('')
+    OverrideUIMapTextureSmall = uestrings('')
+    OverrideWeaponMapTextureEmpty = uestrings('')
+    OverrideWeaponMapTextureEmpty = uestrings('')
+    
+    NPCRandomSpawnClassWeights: Mapping[int, ArrayProperty]
 
 
 class NPCZoneManager(UEProxyStructure, uetype='/Script/ShooterGame.NPCZoneManager'):

@@ -81,9 +81,9 @@ def gather_spawn_entries(asset: UAsset):
         entry_object.npcs_to_spawn = [npc.value for npc in entry_data['NPCsToSpawn'].values]
         entry_object.npcs_spawn_offsets = [{'x': offset.x.value, 'y': offset.y.value, 'z': offset.z.value}
                                            for offset in entry_data['NPCsSpawnOffsets'].values]
-        entry_object.npcs_to_spawn_chances = [chance.value for chance in entry_data['NPCsToSpawnPercentageChance'].values]
-        entry_object.npc_min_level_offset = [offset.value for offset in entry_data['NPCMinLevelOffset'].values]
-        entry_object.npc_max_level_offset = [offset.value for offset in entry_data['NPCMaxLevelOffset'].values]
+        entry_object.npcs_to_spawn_chances = entry_data['NPCsToSpawnPercentageChance']
+        entry_object.npc_min_level_offset = entry_data['NPCMinLevelOffset']
+        entry_object.npc_max_level_offset = entry_data['NPCMaxLevelOffset']
         yield entry_object
 
 

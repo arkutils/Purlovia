@@ -58,6 +58,7 @@ class SettingsSection(BaseModel):
 
 class WikiSection(BaseModel):
     SkipExtract: bool = False
+    ExportVanillaMaps: bool = True
     ExportSpawnData: bool = False
     ExportBiomeData: bool = False
     ExportSupplyCrateData: bool = False
