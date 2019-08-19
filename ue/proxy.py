@@ -1,7 +1,9 @@
 from typing import *
 
 from .base import UEBase
-from .properties import (BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty, StringProperty)
+from .properties import (
+    BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty,
+    StringProperty)
 
 __all__ = [
     'UEProxyStructure',
@@ -17,6 +19,7 @@ __all__ = [
 
 _UETYPE = '__uetype'
 _UEFIELDS = '__uefields'
+_UEOVERRIDDEN = '__ueoverridden'
 
 
 class UEProxyStructure:
@@ -42,11 +45,12 @@ class UEProxyStructure:
         if len(cls.__bases__) > 1:
             raise TypeError('UEProxyStructure subclasses cannot inherit from more than one class')
 
+        # Register this cls as available for proxy creation
         setattr(cls, _UETYPE, uetype)
         _register_proxy(uetype, cls)
 
+        # Record the defaults into _UEFIELDS
         fields = dict()
-
         base = cls
         while True:
             base = base.__base__
@@ -70,15 +74,20 @@ class UEProxyStructure:
         setattr(cls, _UEFIELDS, fields)
 
     def __init__(self):
+        # Initialise the proxy with a *copy* of the defaults from _UEFIELDS
         fields = getattr(self, _UEFIELDS)
         for name, default in fields.items():
             value = {**default}
             setattr(self, name, value)
 
+        # Initialise the empty set of overridden fields
+        setattr(self, _UEOVERRIDDEN, set())
+
     def __getitem__(self, name):
         return getattr(self, name)
 
     def update(self, values: Mapping[str, Mapping[int, UEBase]]):
+        overrides = getattr(self, _UEOVERRIDDEN)
         target_dict = vars(self)
         for name, field_values in values.items():
             if name not in target_dict:
@@ -86,6 +95,11 @@ class UEProxyStructure:
             target_field = target_dict[name]
             for i, value in field_values.items():
                 target_field[i] = value
+                overrides.add((name, i))
+
+    def has_override(self, name: str, index: int = 0):
+        '''Returns True if a value has bee set (excluding the defaults).'''
+        return (name, index) in getattr(self, _UEOVERRIDDEN)
 
 
 _proxies: Dict[str, Type[UEProxyStructure]] = dict()
