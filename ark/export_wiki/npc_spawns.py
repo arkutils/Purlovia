@@ -1,7 +1,7 @@
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export_wiki.map import MapData
+from ark.export_wiki.map import WorldData
 from ark.export_wiki.types import (ZONE_MANAGER_EXPORTED_PROPERTIES,
                                    NPCZoneManager, PrimalWorldSettings)
 from ark.export_wiki.utils import (export_properties_from_proxy,
@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-def export_npc_zone_manager(world: MapData, proxy: NPCZoneManager, log_identifier: str = 'a map') -> Optional[dict]:
+def export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identifier: str = 'a map') -> Optional[dict]:
     if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
         logger.warning(
             f'Broken NPC zone manager found in {log_identifier}: no spawn entries container reference.'
@@ -31,7 +31,7 @@ def export_npc_zone_manager(world: MapData, proxy: NPCZoneManager, log_identifie
         )
         return None
 
-    data = export_properties_from_proxy(proxy, ZONE_MANAGER_EXPORTED_PROPERTIES)
+    data = dict(export_properties_from_proxy(proxy, ZONE_MANAGER_EXPORTED_PROPERTIES))
     # Export zone volumes and check again if there's at least one linked
     data['locations'] = [
         format_location_for_export(bounds, world.latitude, world.longitude)

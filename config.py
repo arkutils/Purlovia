@@ -56,7 +56,7 @@ class SettingsSection(BaseModel):
     SkipPush: bool = False
 
 
-class WikiSection(BaseModel):
+class SettingsWikiSection(BaseModel):
     SkipExtract: bool = False
     ExportVanillaMaps: bool = True
     ExportSpawnData: bool = False
@@ -106,7 +106,7 @@ class ModIdAccess:
 
 class ConfigFile(BaseModel):
     settings: SettingsSection
-    wiki_settings: WikiSection
+    wiki_settings: SettingsWikiSection
     maps: Tuple[str, ...] = tuple()
     mods: Tuple[str, ...] = tuple()
     official_mods: ModIdAccess = ModIdAccess(dict())
@@ -145,7 +145,7 @@ def _read_config(filename):
     maps = list(parser['maps'].values())
 
     settings = SettingsSection(**parser['settings'])
-    wiki_settings = WikiSection(**parser['wiki'])
+    wiki_settings = SettingsWikiSection(**parser['settings-wiki'])
     optimisation = OptimisationSection(**parser['optimisation'])
 
     global config

@@ -1,7 +1,9 @@
 import json
+from typing import Optional
 
 from ark.export_wiki.geo import GeoData
 from ue.base import UEBase
+from ue.proxy import UEProxyStructure
 
 
 def get_blueprint_path(obj):
@@ -12,8 +14,12 @@ def unpack_defaultdict_value(obj):
     return obj[0] if obj else None
 
 
-def export_properties_from_proxy(proxy, target_keys):
-    return {target_keys[key]: unpack_defaultdict_value(getattr(proxy, key, None)) for key in target_keys.keys()}
+def export_properties_from_proxy(proxy: UEProxyStructure, target_keys, only_overriden=False):
+    for key in target_keys:
+        if only_overriden and not proxy.has_override(key):
+            continue
+        
+        yield target_keys[key], unpack_defaultdict_value(getattr(proxy, key, None))
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
     if len(ue_coords) is 2:

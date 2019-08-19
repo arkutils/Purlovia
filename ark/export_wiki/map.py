@@ -56,5 +56,3 @@ class WorldData:
             'spawnGroups': self.spawn_groups,
         })
         return data
-
-MapData = WorldData

@@ -7,7 +7,9 @@ from ue.proxy import *
 __all__ = [
     'WORLD_SETTINGS_EXPORTED_PROPERTIES',
     'ZONE_MANAGER_EXPORTED_PROPERTIES',
+    'BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES',
     'BIOME_VOLUME_EXPORTED_PROPERTIES',
+    'SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES',
     'SUPPLY_DROP_EXPORTED_PROPERTIES',
     'PrimalWorldSettings',
     'NPCZoneManager',
@@ -31,12 +33,14 @@ ZONE_MANAGER_EXPORTED_PROPERTIES = {
     'bForceUntameable': 'bForceUntameable',
 }
 
-BIOME_VOLUME_EXPORTED_PROPERTIES = {
+BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES = {
     'BiomeZoneName': 'BiomeZoneName',
     'BiomeZonePriority': 'BiomeZonePriority',
     'bIsOutside': 'bIsOutside',
     'bPreventCrops': 'bPreventCrops',
+}
 
+BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'FinalTemperatureMultiplier': 'FinalTemperatureMultiplier',
     'FinalTemperatureExponent': 'FinalTemperatureExponent',
     'FinalTemperatureAddition': 'FinalTemperatureAddition',
@@ -76,7 +80,7 @@ BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'FinalWindAddition': 'FinalWindAddition'
 }
 
-SUPPLY_DROP_EXPORTED_PROPERTIES = {
+SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES = {
     'MaxNumCrates': 'maxNumCrates',
     'DelayBeforeFirstCrate': 'delayBeforeFirstCrate',
     'MaxDelayBeforeFirstCrate': 'maxDelayBeforeFirstCrate',
@@ -84,11 +88,14 @@ SUPPLY_DROP_EXPORTED_PROPERTIES = {
     'MaxIntervalBetweenCrateSpawns': 'maxIntervalBetweenCrateSpawns',
     'IntervalBetweenMaxedCrateSpawns': 'intervalBetweenMaxedCrateSpawns',
     'MaxIntervalBetweenMaxedCrateSpawns': 'maxIntervalBetweenMaxedCrateSpawns',
+    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
+}
+
+SUPPLY_DROP_EXPORTED_PROPERTIES = {
     'SP_IntervalBetweenCrateSpawns': 'SP_IntervalBetweenCrateSpawns',
     'SP_MaxIntervalBetweenCrateSpawns': 'SP_MaxIntervalBetweenCrateSpawns',
     'SP_IntervalBetweenMaxedCrateSpawns': 'SP_IntervalBetweenMaxedCrateSpawns',
     'SP_MaxIntervalBetweenMaxedCrateSpawns': 'SP_MaxIntervalBetweenMaxedCrateSpawns',
-    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
 }
 
 

@@ -1,8 +1,9 @@
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export_wiki.map import MapData
-from ark.export_wiki.types import (SUPPLY_DROP_EXPORTED_PROPERTIES,
+from ark.export_wiki.map import WorldData
+from ark.export_wiki.types import (SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES,
+                                   SUPPLY_DROP_EXPORTED_PROPERTIES,
                                    SupplyCrateSpawningVolume)
 from ark.export_wiki.utils import (export_properties_from_proxy,
                                    format_location_for_export,
@@ -15,7 +16,7 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-def export_supply_crate_volume(world: MapData, proxy: SupplyCrateSpawningVolume, log_identifier: str = 'a map') -> Optional[dict]:
+def export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolume, log_identifier: str = 'a map') -> Optional[dict]:
     if not proxy.MaxNumCrates[0].value:
         logger.warning(
             f'TODO:Perhaps a supply crate volume in {log_identifier} should be skipped: MaxNumCrates == 0.'
@@ -27,7 +28,8 @@ def export_supply_crate_volume(world: MapData, proxy: SupplyCrateSpawningVolume,
         logger.warning(f'Broken supply crate volume found in {log_identifier}: no linked spawn points.')
         return None
 
-    data = export_properties_from_proxy(proxy, SUPPLY_DROP_EXPORTED_PROPERTIES)
+    data = dict(export_properties_from_proxy(proxy, SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES))
+    data.update(export_properties_from_proxy(proxy, SUPPLY_DROP_EXPORTED_PROPERTIES, True))
 
     # Crate classes
     data['crateClasses'] = [
