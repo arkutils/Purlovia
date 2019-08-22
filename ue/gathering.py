@@ -30,8 +30,10 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
         raise TypeError("ExportTableItem required")
 
     chain = discover_inheritance_chain(export)
-    baseclass_fullname = chain.pop(0)
-    proxy = proxy_for_type(baseclass_fullname)
+    proxy = None
+    while not proxy and chain:
+        baseclass_fullname = chain.pop(0)
+        proxy = proxy_for_type(baseclass_fullname)
 
     if not proxy:
         raise TypeError(f"No proxy type available for {baseclass_fullname}")
