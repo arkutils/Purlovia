@@ -1,7 +1,7 @@
 from itertools import repeat
 from typing import Mapping
 
-from ue.properties import ArrayProperty, ObjectProperty
+from ue.properties import ArrayProperty, NameProperty, ObjectProperty
 from ue.proxy import *
 
 __all__ = [
@@ -14,7 +14,8 @@ __all__ = [
     'PrimalWorldSettings',
     'NPCZoneManager',
     'BiomeZoneVolume',
-    'SupplyCrateSpawningVolume'
+    'SupplyCrateSpawningVolume',
+    'CustomActorList'
 ]
 
 WORLD_SETTINGS_EXPORTED_PROPERTIES = {
@@ -204,3 +205,16 @@ class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.Su
 
     LinkedSupplyCrateEntries: Mapping[int, ArrayProperty]
     LinkedSpawnPointEntries: Mapping[int, ArrayProperty]
+
+class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorList'):
+    # No properties we can assume type for.
+    CustomTag: Mapping[int, NameProperty]
+    ActorList: Mapping[int, ArrayProperty]
+
+class OilVein(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty] # SceneComponent
+
+class WaterVein(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty] # SceneComponent

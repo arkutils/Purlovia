@@ -23,6 +23,10 @@ class WorldData:
     random_spawn_classes: list = field(default_factory=lambda: [])
     loot_crates: list = field(default_factory=lambda: [])
     biomes: list = field(default_factory=lambda: [])
+
+    water_veins: list = field(default_factory=lambda: [])
+    oil_veins: list = field(default_factory=lambda: [])
+
     spawns: list = field(default_factory=lambda: [])
     spawn_groups: list = field(default_factory=lambda: [])
 
@@ -52,6 +56,8 @@ class WorldData:
             'npcRandomSpawnClassWeights': self.random_spawn_classes,
             'lootCrates': self.loot_crates,
             'biomes': self.biomes,
+            'oilVeins': self.oil_veins,
+            'waterVeins': self.water_veins,
             'spawns': self.spawns,
             'spawnGroups': self.spawn_groups,
         })

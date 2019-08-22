@@ -62,6 +62,7 @@ class SettingsWikiSection(BaseModel):
     ExportSpawnData: bool = False
     ExportBiomeData: bool = False
     ExportSupplyCrateData: bool = False
+    ExportVeinLocations: bool = False
 
     PublishDir: Path = Path('output/data/wiki')
 

@@ -14,6 +14,7 @@ from ark.export_asb_values import values_for_species, values_from_pgd
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
+from ue.utils import property_serialiser
 from utils.strings import get_valid_filename
 
 logger = getLogger(__name__)
@@ -247,13 +248,13 @@ SHRINK_EMPTY_COLOR_REGEX = re.compile(r"\{\n\s+(\"\w+\": \w+)\n\s+\}")
 
 def _format_json(data, pretty=False):
     if pretty:
-        json_string = json.dumps(data, indent='\t')
+        json_string = json.dumps(data, default=property_serialiser, indent='\t')
         json_string = re.sub(JOIN_LINES_REGEX, r" \1", json_string)
         json_string = re.sub(JOIN_COLORS_REGEX, r"[ \1, \2 ]", json_string)
         json_string = re.sub(SHRINK_EMPTY_COLOR_REGEX, r"{ \1 }", json_string)
         json_string = re.sub(r'(\d)\]', r'\1 ]', json_string)
     else:
-        json_string = json.dumps(data, indent=None, separators=(',', ':'))
+        json_string = json.dumps(data, default=property_serialiser, indent=None, separators=(',', ':'))
     return json_string
 
 

@@ -3,8 +3,6 @@ from ue.asset import UAsset
 
 # Gathers sublevels that are streamed into the persistent
 # level at any point of its existence.
-# Not a generator, so we can unload the main level once
-# we don't need it.
 def gather_sublevel_names(level: UAsset):
     sublevels = []
 

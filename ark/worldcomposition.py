@@ -27,7 +27,8 @@ class ByRawData:
         has_zone_managers = config.ExportSpawnData and b'NPCZoneManager' in mem.obj
         has_biome_defs = config.ExportBiomeData and b'BiomeZoneVolume' in mem.obj
         has_supply_drops = config.ExportSupplyCrateData and b'SupplyCrateSpawningVolume' in mem.obj
-        result = result and (has_zone_managers or has_biome_defs or has_supply_drops)
+        has_nests = b'CustomActorList' in mem.obj
+        result = result and (has_zone_managers or has_biome_defs or has_supply_drops or has_nests )
 
         return result
 

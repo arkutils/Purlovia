@@ -50,13 +50,34 @@ def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
         "longCenter": (long_end+long_start) / 2,
     }
 
+def get_actor_worldspace_location(actor):
+    '''Retrieves actor's world-space location in a form of (x,y,z) tuple.'''
+    
+    if isinstance(actor, UEProxyStructure):
+        scene_component = actor.RootComponent[0].value.value
+    else:
+        scene_component = actor.properties.get_property("RootComponent").value.value
+    actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
+    
+    return (
+        actor_location.x.value,
+        actor_location.y.value,
+        actor_location.z.value
+    )
+
+
 def get_volume_worldspace_bounds(volume, include_altitude=False):
-    brush_component = volume.properties.get_property("BrushComponent").value.value
+    if isinstance(volume, UEProxyStructure):
+        brush_component = volume.BrushComponent[0].value.value
+    else:
+        brush_component = volume.properties.get_property("BrushComponent").value.value
+
     body_setup = brush_component.properties.get_property("BrushBodySetup").value.value
     agg_geom = body_setup.properties.get_property("AggGeom").values[0].value
     convex_elems = agg_geom.values[0]
     volume_location = brush_component.properties.get_property("RelativeLocation").values[0]
     volume_box = convex_elems.as_dict()["ElemBox"].values[0]
+
     if include_altitude:
         # min[XYZ]max[XYZ] format
         return (
@@ -67,7 +88,8 @@ def get_volume_worldspace_bounds(volume, include_altitude=False):
             # Max
             volume_box.max.x.value + volume_location.x.value,
             volume_box.max.y.value + volume_location.y.value,
-            volume_box.max.z.value + volume_location.z.value)
+            volume_box.max.z.value + volume_location.z.value
+        )
 
     # min[XY]max[XY] format
     return (
@@ -76,16 +98,8 @@ def get_volume_worldspace_bounds(volume, include_altitude=False):
         volume_box.min.y.value + volume_location.y.value,
         # Max
         volume_box.max.x.value + volume_location.x.value,
-        volume_box.max.y.value + volume_location.y.value)
-
-def property_serializer(obj):
-    if hasattr(obj, 'format_for_json'):
-        return obj.format_for_json()
-
-    if isinstance(obj, UEBase):
-        return str(obj)
-
-    return json._default_encoder.default(obj)
+        volume_box.max.y.value + volume_location.y.value
+    )
 
 
 def struct_entries_array_to_dict(struct_entries):
