@@ -1,20 +1,26 @@
-from typing import Optional
+from typing import Optional, Union
 
 from ark.export_wiki.types import PrimalWorldSettings
 from ue.loader import AssetLoader
+from ue.properties import FloatProperty
 
 
 class GeoData:
-    origin: float
-    scale: float
-    multiplier: float
-    shift: float
+    origin: Union[float, FloatProperty]
+    scale: Union[float, FloatProperty]
+    multiplier: Union[float, FloatProperty]
+    shift: Union[float, FloatProperty]
 
-    def __init__(self, origin: float, scale: float):
+    def __init__(self, origin: Union[float, FloatProperty], scale: Union[float, FloatProperty]):
         self.origin = origin
         self.scale = scale
         self.multiplier = scale * 10
         self.shift = (scale*1000 - abs(origin)) / self.multiplier
+
+    # Offsets a coordinate in UE units by the map origin.
+    # Lets us skip the shift completely during the calculations.
+    def offset(self, centimeters: Union[float, FloatProperty]):
+        return abs(self.origin) + centimeters
 
     # Calculates geo coords from UE units.
     def from_units(self, units: int):
@@ -33,10 +39,10 @@ class GeoData:
 
 
 def gather_geo_data(world_settings: PrimalWorldSettings):
-    lat_origin = world_settings.LatitudeOrigin[0].value
-    long_origin = world_settings.LongitudeOrigin[0].value
-    lat_scale = world_settings.LatitudeScale[0].value
-    long_scale = world_settings.LongitudeScale[0].value
+    lat_origin = world_settings.LatitudeOrigin[0]
+    long_origin = world_settings.LongitudeOrigin[0]
+    lat_scale = world_settings.LatitudeScale[0]
+    long_scale = world_settings.LongitudeScale[0]
 
     latitude = GeoData(lat_origin, lat_scale)
     longitude = GeoData(long_origin, long_scale)

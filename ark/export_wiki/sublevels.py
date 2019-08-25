@@ -1,10 +1,12 @@
+from typing import List
+
 from ue.asset import UAsset
 
 
 # Gathers sublevels that are streamed into the persistent
 # level at any point of its existence.
 def gather_sublevel_names(level: UAsset):
-    sublevels = []
+    sublevels: List[str] = []
 
     for export in level.exports:
         if str(export.klass.value.name) != 'TileStreamingVolume':

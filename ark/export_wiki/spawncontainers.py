@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from ark.properties import gather_properties, stat_value
 from ue.asset import UAsset
@@ -16,7 +16,7 @@ class SpawnGroupEntry:
     chance: float = 0.0
     weight: float = 1.0
     npcs_to_spawn: List[str] = field(default_factory=lambda: [])
-    npcs_spawn_offsets: List[tuple] = field(default_factory=lambda: [])
+    npcs_spawn_offsets: List[Dict[str,Any]] = field(default_factory=lambda: [])
     npcs_to_spawn_chances: List[float] = field(default_factory=lambda: [])
     npc_min_level_offset: List[float] = field(default_factory=lambda: [])
     npc_max_level_offset: List[float] = field(default_factory=lambda: [])

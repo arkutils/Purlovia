@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export_wiki.geo import qowyn_format_location
 from ue.asset import UAsset
 from ue.base import UEBase
 

@@ -66,6 +66,7 @@ class SublevelDiscoverer:
         return self.testByRawData.is_world(assetname) and self.testByTileInfo.is_sublevel(assetname)
 
     def discover_submaps(self, toplevel_map: UAsset) -> Iterator[str]:
+        assert toplevel_map.assetname
         base_path = toplevel_map.assetname.rsplit('/', 1)[0]
 
         # Scan toplevel's map directory, excluding excludes from config

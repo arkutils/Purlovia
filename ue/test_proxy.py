@@ -1,6 +1,6 @@
 from typing import *
 
-import pytest
+import pytest  # type: ignore
 
 from .proxy import UEProxyStructure, proxy_for_type, ueints
 
