@@ -130,9 +130,12 @@ def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: Overrid
             if region_name and settings.capitalize:
                 region_name = region_name[0].upper() + region_name[1:]
 
-            color['name'] = region_name
-            if region_name and color_names:
-                color['colors'] = sorted(color_names)
+            if not region_name:
+                color = None  # type: ignore
+            else:
+                color['name'] = region_name
+                if region_name and color_names:
+                    color['colors'] = sorted(color_names)
 
         colors.append(color)
 
