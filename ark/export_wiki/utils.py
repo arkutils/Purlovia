@@ -1,9 +1,10 @@
 import json
 from typing import Optional
 
-from ark.export_wiki.geo import GeoData
 from ue.base import UEBase
 from ue.proxy import UEProxyStructure
+
+from .geo import GeoData
 
 
 def get_blueprint_path(obj):
@@ -18,7 +19,7 @@ def export_properties_from_proxy(proxy: UEProxyStructure, target_keys, only_over
     for key in target_keys:
         if only_overriden and not proxy.has_override(key):
             continue
-        
+
         yield target_keys[key], unpack_defaultdict_value(getattr(proxy, key, None))
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
@@ -52,13 +53,13 @@ def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
 
 def get_actor_worldspace_location(actor):
     '''Retrieves actor's world-space location in a form of (x,y,z) tuple.'''
-    
+
     if isinstance(actor, UEProxyStructure):
         scene_component = actor.RootComponent[0].value.value
     else:
         scene_component = actor.properties.get_property("RootComponent").value.value
     actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
-    
+
     return (
         actor_location.x.value,
         actor_location.y.value,

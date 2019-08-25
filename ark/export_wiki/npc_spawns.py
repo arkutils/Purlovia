@@ -1,14 +1,13 @@
 from logging import NullHandler, getLogger
 from typing import *
 
-from ark.export_wiki.map import WorldData
-from ark.export_wiki.types import (ZONE_MANAGER_EXPORTED_PROPERTIES,
-                                   NPCZoneManager, PrimalWorldSettings)
-from ark.export_wiki.utils import (export_properties_from_proxy,
-                                   format_location_for_export,
-                                   get_volume_worldspace_bounds,
-                                   struct_entries_array_to_dict)
 from ue.properties import ArrayProperty
+
+from .map import WorldData
+from .types import (ZONE_MANAGER_EXPORTED_PROPERTIES, NPCZoneManager,
+                    PrimalWorldSettings)
+from .utils import (export_properties_from_proxy, format_location_for_export,
+                    get_volume_worldspace_bounds, struct_entries_array_to_dict)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -40,7 +39,7 @@ def export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identif
     if not data['locations']:
         # We have probably already printed a warning.
         return None
-    
+
     # Export spawn points or locations
     if getattr(proxy, 'SpawnPointOverrides', None):
         data['spawnPoints'] = [
@@ -63,7 +62,7 @@ def export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identif
 
     return data
 
-        
+
 def gather_zone_volumes_bounds(volumes: ArrayProperty, log_identifier: str = 'a map'):
     for zone_volume in volumes.values:
         zone_volume = zone_volume.value.value
@@ -72,7 +71,7 @@ def gather_zone_volumes_bounds(volumes: ArrayProperty, log_identifier: str = 'a 
                 f'Broken NPC zone manager found in {log_identifier}: zone volume reference does not point anywhere.'
             )
             continue
-            
+
         yield get_volume_worldspace_bounds(zone_volume)
 
 
@@ -106,7 +105,7 @@ def gather_zone_spawn_volumes_bounds(entries: ArrayProperty, log_identifier: str
 def gather_random_npc_class_weights(world_settings: PrimalWorldSettings):
     if not getattr(world_settings, 'NPCRandomSpawnClassWeights', None):
         return
-    
+
     for random_class_weight in world_settings.NPCRandomSpawnClassWeights[0].values:
         data = struct_entries_array_to_dict(random_class_weight.values)
         yield {

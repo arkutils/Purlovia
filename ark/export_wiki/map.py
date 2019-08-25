@@ -1,12 +1,12 @@
 from dataclasses import InitVar, dataclass, field
 from logging import NullHandler, getLogger
 
-from ark.export_wiki.geo import GeoData, gather_geo_data
-from ark.export_wiki.types import (WORLD_SETTINGS_EXPORTED_PROPERTIES,
-                                   PrimalWorldSettings)
-from ark.export_wiki.utils import export_properties_from_proxy
 from ue.asset import UAsset
 from ue.gathering import gather_properties
+
+from .geo import GeoData, gather_geo_data
+from .types import WORLD_SETTINGS_EXPORTED_PROPERTIES, PrimalWorldSettings
+from .utils import export_properties_from_proxy
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())

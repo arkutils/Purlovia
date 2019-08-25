@@ -1,8 +1,9 @@
 from typing import Optional, Union
 
-from ark.export_wiki.types import PrimalWorldSettings
 from ue.loader import AssetLoader
 from ue.properties import FloatProperty
+
+from .types import PrimalWorldSettings
 
 
 class GeoData:

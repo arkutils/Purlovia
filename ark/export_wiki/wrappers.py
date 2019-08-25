@@ -1,15 +1,14 @@
 from logging import NullHandler, getLogger
 
-from ark.export_wiki.biomes import export_biome_zone_volume
-from ark.export_wiki.consts import ACTOR_FIELD_MAP
-from ark.export_wiki.map import WorldData
-from ark.export_wiki.npc_spawns import export_npc_zone_manager
-from ark.export_wiki.supply_drops import export_supply_crate_volume
-from ark.export_wiki.types import (BiomeZoneVolume, NPCZoneManager,
-                                   SupplyCrateSpawningVolume)
-from ark.export_wiki.utils import (format_location_for_export,
-                                   get_actor_worldspace_location)
 from config import get_global_config
+
+from .biomes import export_biome_zone_volume
+from .consts import ACTOR_FIELD_MAP
+from .map import WorldData
+from .npc_spawns import export_npc_zone_manager
+from .supply_drops import export_supply_crate_volume
+from .types import BiomeZoneVolume, NPCZoneManager, SupplyCrateSpawningVolume
+from .utils import format_location_for_export, get_actor_worldspace_location
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
