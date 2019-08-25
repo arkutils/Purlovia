@@ -59,7 +59,9 @@ class UAsset(UEBase):
         self._newField('compression_flags', self.stream.readUInt32())
         self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
         self._newField('package_source', self.stream.readUInt32())
-        self._newField('unknown_field', self.stream.readUInt64())  # TODO: Conditional on Ark???
+        if self.licensee_ver >= 10:
+            # This field isn't present in some older ARK mods
+            self._newField('unknown_field', self.stream.readUInt64())
         self._newField('packages_to_cook', Table(self).deserialise(StringProperty, self.stream.readUInt32()))
         if self.legacy_ver > -7:
             # Legacy field that is not used anymore
