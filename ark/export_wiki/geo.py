@@ -16,14 +16,9 @@ class GeoData:
         self.multiplier = scale * 10
         self.shift = (scale*1000 - abs(origin)) / self.multiplier
 
-    # Offsets a coordinate in UE units by the map origin.
-    # Lets us skip the shift completely during the calculations.
-    def offset(self, centimeters: float):
-        return abs(self.origin) + centimeters
-
     # Calculates geo coords from UE units.
     def from_units(self, units: int):
-        return self.offset(units) / self.multiplier
+        return units / self.multiplier + self.shift
 
     def format_for_json(self):
         return {

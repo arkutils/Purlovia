@@ -117,7 +117,6 @@ class Exporter:
         logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
 
         for sublevel in self.wc_discoverer.discover_submaps(asset):
-            print('**', sublevel)
             subasset = self.loader[sublevel]
             self._gather_data_from_level(subasset, world_data)
             del self.loader[sublevel]

@@ -9,7 +9,7 @@ KNOWN_KLASS_NAMES = [
     # Supply Drops
     'SupplyCrateSpawningVolume',
     # Nests and Veins
-    'CustomActorList',  # Wyverns, Deinonychuses
+    #'CustomActorList',  # Wyverns, Deinonychuses
     'WaterVein_Base_BP_C',
     'OilVein_Base_BP_C',
     'OilVein_2_BP_C'

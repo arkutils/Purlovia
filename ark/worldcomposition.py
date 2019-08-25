@@ -1,5 +1,6 @@
 from typing import *
 
+from ark.export_wiki.consts import KNOWN_KLASS_NAMES
 from config import get_global_config
 from ue.asset import UAsset
 from ue.loader import AssetLoader
@@ -24,11 +25,13 @@ class ByRawData:
         # Check whether the asset has occurences of names of possibly
         # interesting exports.
         config = get_global_config().wiki_settings
-        has_zone_managers = config.ExportSpawnData and b'NPCZoneManager' in mem.obj
-        has_biome_defs = config.ExportBiomeData and b'BiomeZoneVolume' in mem.obj
-        has_supply_drops = config.ExportSupplyCrateData and b'SupplyCrateSpawningVolume' in mem.obj
-        has_nests = b'CustomActorList' in mem.obj
-        result = result and (has_zone_managers or has_biome_defs or has_supply_drops or has_nests )
+        any_klass_name_found = False
+        for klass_name in KNOWN_KLASS_NAMES:
+            if klass_name.encode() in mem.obj:
+                any_klass_name_found = True
+                break
+        
+        result = result and any_klass_name_found
 
         return result
 
