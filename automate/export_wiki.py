@@ -10,10 +10,12 @@ from typing import *
 from ark.export_wiki.biomes import export_biome_zone_volume
 from ark.export_wiki.consts import KNOWN_KLASS_NAMES
 from ark.export_wiki.map import WorldData
-from ark.export_wiki.npc_spawns import (export_npc_zone_manager, gather_random_npc_class_weights)
+from ark.export_wiki.npc_spawns import (export_npc_zone_manager,
+                                        gather_random_npc_class_weights)
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
 from ark.export_wiki.supply_drops import export_supply_crate_volume
-from ark.export_wiki.types import (BiomeZoneVolume, CustomActorList, NPCZoneManager, PrimalWorldSettings,
+from ark.export_wiki.types import (BiomeZoneVolume, CustomActorList,
+                                   NPCZoneManager, PrimalWorldSettings,
                                    SupplyCrateSpawningVolume)
 from ark.export_wiki.wrappers import PROXY_TYPE_MAP
 from ark.worldcomposition import SublevelDiscoverer
@@ -133,7 +135,7 @@ class Exporter:
 
             proxy_exporter = PROXY_TYPE_MAP.get(proxy.get_ue_type(), None)
             if proxy_exporter:
-                proxy_exporter(world_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')
+                proxy_exporter(world_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')  # type:ignore
             else:
                 logger.error(f'Unsupported type: no export mapping exists for "{proxy.get_ue_type()}".')
 

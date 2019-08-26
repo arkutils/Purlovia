@@ -26,6 +26,10 @@ class WorldData:
 
     water_veins: list = field(default_factory=lambda: [])
     oil_veins: list = field(default_factory=lambda: [])
+    wyvern_nests: list = field(default_factory=lambda: [])
+    ice_wyvern_nests: list = field(default_factory=lambda: [])
+    drake_nests: list = field(default_factory=lambda: [])
+    deinonychus_nests: list = field(default_factory=lambda: [])
 
     spawns: list = field(default_factory=lambda: [])
     spawn_groups: list = field(default_factory=lambda: [])
@@ -58,6 +62,10 @@ class WorldData:
             'biomes': self.biomes,
             'oilVeins': self.oil_veins,
             'waterVeins': self.water_veins,
+            'wyvernNests': self.wyvern_nests,
+            'iceWyvernNests': self.ice_wyvern_nests,
+            'drakeNests': self.drake_nests,
+            'deinonychusNests': self.deinonychus_nests,
             'spawns': self.spawns,
             'spawnGroups': self.spawn_groups,
         })

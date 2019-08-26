@@ -5,23 +5,14 @@ from typing import *
 from ue.asset import UAsset
 from ue.base import UEBase
 
+from .map import WorldData
+from .types import CustomActorList
+from .utils import format_location_for_export, get_actor_worldspace_location
+
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-def gather_nest_locations(level: UAsset):
-    # Temporary; will move this check out once any other gatherer
-    # can be set up.
-    for export in level.exports:
-        if str(export.klass.value.name) != 'CustomActorList':
-            continue
-        actor_list_export = export
-
-        list_properties = actor_list_export.properties.as_dict()
-        markers = list_properties['ActorList'][0]
-
-        for nest_marker in markers.values:
-            marker_properties = nest_marker.value.value.properties.as_dict()
-            scene_component = marker_properties['RootComponent'][0].value.value
-            marker_location = scene_component.properties.get_property("RelativeLocation").values[0]
-            yield (marker_location.x.value, marker_location.y.value, marker_location.z.value)
+def export_nest_locations(world: WorldData, proxy: CustomActorList, _log_identifier: str = 'a map'):
+    for nest_marker in proxy.ActorList[0].values:
+        yield format_location_for_export(get_actor_worldspace_location(nest_marker.value.value), world.latitude, world.longitude)

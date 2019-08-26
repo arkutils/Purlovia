@@ -31,9 +31,7 @@ class ByRawData:
                 any_klass_name_found = True
                 break
         
-        result = result and any_klass_name_found
-
-        return result
+        return result and any_klass_name_found
 
 
 class ByWorldTileData:

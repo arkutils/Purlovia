@@ -15,7 +15,10 @@ __all__ = [
     'NPCZoneManager',
     'BiomeZoneVolume',
     'SupplyCrateSpawningVolume',
-    'CustomActorList'
+    'CustomActorList',
+    'VeinBase',
+    'OilVein',
+    'WaterVein'
 ]
 
 WORLD_SETTINGS_EXPORTED_PROPERTIES = {
@@ -25,6 +28,7 @@ WORLD_SETTINGS_EXPORTED_PROPERTIES = {
     'OverrideUIMapTextureEmpty': 'mapEmpty',
     'OverrideUIMapTextureFilled': 'bigMap',
     'OverrideUIMapTextureSmall': 'smallMap',
+    'AllowDownloadDinoClasses': 'allowDownloadDinoClasses'
 }
 
 ZONE_MANAGER_EXPORTED_PROPERTIES = {
@@ -211,10 +215,9 @@ class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorL
     CustomTag: Mapping[int, NameProperty]
     ActorList: Mapping[int, ArrayProperty]
 
-class OilVein(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'):
+class VeinBase(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty] # SceneComponent
 
-class WaterVein(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'):
-    # No properties we can assume type for.
-    RootComponent: Mapping[int, ObjectProperty] # SceneComponent
+class OilVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'): pass
+class WaterVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'): pass
