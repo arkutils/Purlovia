@@ -20,19 +20,18 @@ class WorldData:
     latitude: GeoData = field(init=False)
     longitude: GeoData = field(init=False)
 
-    random_spawn_classes: list = field(default_factory=lambda: [])
-    loot_crates: list = field(default_factory=lambda: [])
+    npcRandomSpawnClassWeights: list = field(default_factory=lambda: [])
+    lootCrates: list = field(default_factory=lambda: [])
     biomes: list = field(default_factory=lambda: [])
-
-    water_veins: list = field(default_factory=lambda: [])
-    oil_veins: list = field(default_factory=lambda: [])
-    wyvern_nests: list = field(default_factory=lambda: [])
-    ice_wyvern_nests: list = field(default_factory=lambda: [])
-    drake_nests: list = field(default_factory=lambda: [])
-    deinonychus_nests: list = field(default_factory=lambda: [])
-
     spawns: list = field(default_factory=lambda: [])
-    spawn_groups: list = field(default_factory=lambda: [])
+    spawnGroups: list = field(default_factory=lambda: [])
+    # Veins & Nests
+    waterVeins: list = field(default_factory=lambda: [])
+    oilVeins: list = field(default_factory=lambda: [])
+    wyvernNests: list = field(default_factory=lambda: [])
+    iceWyvernNests: list = field(default_factory=lambda: [])
+    drakeNests: list = field(default_factory=lambda: [])
+    deinonychusNests: list = field(default_factory=lambda: [])
 
     def __post_init__(self, _level):
         # Some maps have misnamed PrimalWorldSettings export
@@ -56,17 +55,7 @@ class WorldData:
         data.update({f'latitude{key}': value for key, value in self.latitude.format_for_json().items()})
         data.update({f'longitude{key}': value for key, value in self.longitude.format_for_json().items()})
         data.update(export_properties_from_proxy(self.world_settings, WORLD_SETTINGS_EXPORTED_PROPERTIES))
-        data.update({
-            'npcRandomSpawnClassWeights': self.random_spawn_classes,
-            'lootCrates': self.loot_crates,
-            'biomes': self.biomes,
-            'oilVeins': self.oil_veins,
-            'waterVeins': self.water_veins,
-            'wyvernNests': self.wyvern_nests,
-            'iceWyvernNests': self.ice_wyvern_nests,
-            'drakeNests': self.drake_nests,
-            'deinonychusNests': self.deinonychus_nests,
-            'spawns': self.spawns,
-            'spawnGroups': self.spawn_groups,
-        })
+        for field_name, field_type in self.__annotations__.items(): # pylint:disable=E1101
+            if field_type is list and getattr(self, field_name):
+                data[field_name] = getattr(self, field_name)
         return data

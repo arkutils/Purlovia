@@ -7,7 +7,8 @@ from .map import WorldData
 from .types import (ZONE_MANAGER_EXPORTED_PROPERTIES, NPCZoneManager,
                     PrimalWorldSettings)
 from .utils import (export_properties_from_proxy, format_location_for_export,
-                    get_volume_worldspace_bounds, struct_entries_array_to_dict)
+                    get_actor_worldspace_location,
+                    get_volume_worldspace_bounds)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -84,9 +85,7 @@ def gather_zone_spawn_points(points: ArrayProperty, log_identifier: str = 'a map
             )
             continue
 
-        scene_component = marker.properties.get_property("RootComponent").value.value
-        marker_location = scene_component.properties.get_property("RelativeLocation").values[0]
-        yield marker_location.x.value, marker_location.y.value
+        yield get_actor_worldspace_location(marker)[:2]
 
 
 def gather_zone_spawn_volumes_bounds(entries: ArrayProperty, log_identifier: str = 'a map'):
@@ -107,7 +106,7 @@ def gather_random_npc_class_weights(world_settings: PrimalWorldSettings):
         return
 
     for random_class_weight in world_settings.NPCRandomSpawnClassWeights[0].values:
-        data = struct_entries_array_to_dict(random_class_weight.values)
+        data = random_class_weight.as_dict()
         yield {
             'from': data['FromClass'],
             'to': data['ToClasses'],

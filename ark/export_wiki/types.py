@@ -106,24 +106,20 @@ SUPPLY_DROP_EXPORTED_PROPERTIES = {
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
     # DevKit Verified
+    Title = uestrings('')
     LatitudeOrigin = uefloats(400_000.0)
     LongitudeOrigin = uefloats(400_000.0)
     LatitudeScale = uefloats(800.0)
     LongitudeScale = uefloats(800.0)
+    OverrideDifficultyMax = uefloats(5.0)
 
     # DevKit Unverified
-    Title = uestrings('')
-    OverrideDifficultyMax = uefloats(1)
-    OverrideWeaponMapTextureEmpty = uestrings('')
-    OverrideWeaponMapTextureFilled = uestrings('')
-    OverrideUIMapTextureEmpty = uestrings('')
-    OverrideUIMapTextureFilled = uestrings('')
-    OverrideUIMapTextureSmall = uestrings('')
-    OverrideWeaponMapTextureEmpty = uestrings('')
-    OverrideWeaponMapTextureEmpty = uestrings('')
     
-    NPCRandomSpawnClassWeights: Mapping[int, ArrayProperty]
-
+    OverrideWeaponMapTextureEmpty: Mapping[int, ArrayProperty]
+    OverrideWeaponMapTextureFilled: Mapping[int, ObjectProperty]
+    OverrideUIMapTextureEmpty: Mapping[int, ObjectProperty]
+    OverrideUIMapTextureFilled: Mapping[int, ObjectProperty]
+    OverrideUIMapTextureSmall: Mapping[int, ObjectProperty]
 
 class NPCZoneManager(UEProxyStructure, uetype='/Script/ShooterGame.NPCZoneManager'):
     # DevKit Verified

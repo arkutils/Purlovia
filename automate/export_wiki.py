@@ -111,19 +111,16 @@ class Exporter:
         logger.info(f'Collecting data from a persistent level: {asset_name}')
         asset = self.loader[asset_name]
         world_data = WorldData(asset)
-
-        world_data.random_spawn_classes = list(gather_random_npc_class_weights(world_data.world_settings))
+        world_data.npcRandomSpawnClassWeights = list(gather_random_npc_class_weights(world_data.world_settings))
 
         self._gather_data_from_level(asset, world_data)
         del self.loader[asset_name]
         logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
-
         for sublevel in self.wc_discoverer.discover_submaps(asset):
             subasset = self.loader[sublevel]
             self._gather_data_from_level(subasset, world_data)
             del self.loader[sublevel]
         self._gather_spawn_groups(world_data)
-
         self._export_world_data(world_data, version, moddata)
         del world_data
 
@@ -142,10 +139,10 @@ class Exporter:
             del proxy
 
     def _gather_spawn_groups(self, world: WorldData):
-        for index in range(len(world.spawn_groups)):
-            group_data = get_spawn_entry_container_data(self.loader, world.spawn_groups[index])
+        for index in range(len(world.spawnGroups)):
+            group_data = get_spawn_entry_container_data(self.loader, world.spawnGroups[index])
             if group_data:
-                world.spawn_groups[index] = group_data.as_dict()
+                world.spawnGroups[index] = group_data.as_dict()
 
     def _export_world_data(self, world_data: WorldData, version: str, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()

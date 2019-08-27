@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
 from typing import Any, Dict, List, Optional
 
-from ark.properties import gather_properties, stat_value
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound
+from ue.properties import ArrayProperty, StringProperty
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -12,58 +12,48 @@ logger.addHandler(NullHandler())
 
 @dataclass
 class SpawnGroupEntry:
-    name: str
+    name: StringProperty
     chance: float = 0.0
     weight: float = 1.0
-    npcs_to_spawn: List[str] = field(default_factory=lambda: [])
-    npcs_spawn_offsets: List[Dict[str,Any]] = field(default_factory=lambda: [])
-    npcs_to_spawn_chances: List[float] = field(default_factory=lambda: [])
-    npc_min_level_offset: List[float] = field(default_factory=lambda: [])
-    npc_max_level_offset: List[float] = field(default_factory=lambda: [])
+    npcsToSpawn: List[str] = field(default_factory=lambda: [])
+    npcsSpawnOffsets: List[Dict[str,Any]] = field(default_factory=lambda: [])
+    npcsToSpawnPercentageChance: List[float] = field(default_factory=lambda: [])
+    npcMinLevelOffset: List[float] = field(default_factory=lambda: [])
+    npcMaxLevelOffset: List[float] = field(default_factory=lambda: [])
 
-    def as_dict(self):
-        return {
-            'name': self.name,
-            'chance': self.chance,
-            'weight': self.weight,
-            'npcsToSpawn': self.npcs_to_spawn,
-            'npcsSpawnOffsets': self.npcs_spawn_offsets,
-            'npcsToSpawnPercentageChance': self.npcs_to_spawn_chances,
-            'npcMinLevelOffset': self.npc_min_level_offset,
-            'npcMaxLevelOffset': self.npc_max_level_offset
-        }
+    def format_for_json(self):
+        data = {}
+        for field_name in self.__annotations__: # pylint:disable=E1101
+            field_value = getattr(self, field_name)
+            if not field_value or isinstance(field_value, ArrayProperty) and not field_value.values:
+                continue
+            data[field_name] = field_value
+        return data
 
 
 @dataclass
 class SpawnGroupLimitEntry:
-    npc_class: str
-    max_percent_of_desired_num: float = 1.0
+    npcClass: str
+    maxPercentageOfDesiredNumToAllow: float = 1.0
 
-    def as_dict(self):
-        return {'path': self.npc_class, 'maxPercentageOfDesiredNumToAllow': self.max_percent_of_desired_num}
+    def format_for_json(self):
+        return {'path': self.npcClass, 'maxPercentageOfDesiredNumToAllow': self.maxPercentageOfDesiredNumToAllow}
 
 
 @dataclass
 class SpawnGroupObject:
-    path: str
-    max_desired_enemies_num_multiplier: float = 1.0
+    blueprintPath: str
+    maxDesiredNumEnemiesMultiplier: float = 1.0
     entries: List[SpawnGroupEntry] = field(default_factory=lambda: [])
     limits: List[SpawnGroupLimitEntry] = field(default_factory=lambda: [])
 
     def as_dict(self):
         return {
-            "path": self.path,
-            "maxDesiredNumEnemiesMultiplier": self.max_desired_enemies_num_multiplier,
-            "entries": [entry.as_dict() for entry in self.entries],
-            "limits": [limit.as_dict() for limit in self.limits]
+            "path": self.blueprintPath,
+            "maxDesiredNumEnemiesMultiplier": self.maxDesiredNumEnemiesMultiplier,
+            "entries": self.entries,
+            "limits": self.limits
         }
-
-
-def _struct_entry_array_to_dict(struct_entries):
-    entry_data = {}
-    for struct_entry in struct_entries:
-        entry_data[str(struct_entry.name)] = struct_entry.value
-    return entry_data
 
 
 def gather_spawn_entries(asset: UAsset):
@@ -75,15 +65,15 @@ def gather_spawn_entries(asset: UAsset):
         return
 
     for entry in entries[0].values:
-        entry_data = _struct_entry_array_to_dict(entry.values)
-        entry_object = SpawnGroupEntry(str(entry_data['AnEntryName'].value))
-        entry_object.weight = entry_data['EntryWeight'].value
-        entry_object.npcs_to_spawn = [npc.value for npc in entry_data['NPCsToSpawn'].values]
-        entry_object.npcs_spawn_offsets = [{'x': offset.x.value, 'y': offset.y.value, 'z': offset.z.value}
+        entry_data = entry.as_dict()
+        entry_object = SpawnGroupEntry(entry_data['AnEntryName'])
+        entry_object.weight = entry_data['EntryWeight']
+        entry_object.npcsToSpawn = entry_data['NPCsToSpawn']
+        entry_object.npcsSpawnOffsets = [{'x': offset.x.value, 'y': offset.y.value, 'z': offset.z.value}
                                            for offset in entry_data['NPCsSpawnOffsets'].values]
-        entry_object.npcs_to_spawn_chances = entry_data['NPCsToSpawnPercentageChance']
-        entry_object.npc_min_level_offset = entry_data['NPCMinLevelOffset']
-        entry_object.npc_max_level_offset = entry_data['NPCMaxLevelOffset']
+        entry_object.npcsToSpawnPercentageChance = entry_data['NPCsToSpawnPercentageChance']
+        entry_object.npcMinLevelOffset = entry_data['NPCMinLevelOffset']
+        entry_object.npcMaxLevelOffset = entry_data['NPCMaxLevelOffset']
         yield entry_object
 
 
@@ -98,10 +88,10 @@ def gather_limit_entries(asset: UAsset):
         return
 
     for entry in entries[0].values:
-        entry_data = _struct_entry_array_to_dict(entry.values)
-        entry_object = SpawnGroupLimitEntry(entry_data['NPCClass'].value)
+        entry_data = entry.as_dict()
+        entry_object = SpawnGroupLimitEntry(entry_data['NPCClass'])
         if 'MaxDesiredNumEnemiesMultiplier' in entry_data:
-            entry_object.max_percent_of_desired_num = entry_data['MaxDesiredNumEnemiesMultiplier'].value
+            entry_object.maxPercentageOfDesiredNumToAllow = entry_data['MaxDesiredNumEnemiesMultiplier'].value
         yield entry_object
 
 

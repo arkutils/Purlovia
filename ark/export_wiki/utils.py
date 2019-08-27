@@ -23,12 +23,12 @@ def export_properties_from_proxy(proxy: UEProxyStructure, target_keys, only_over
         yield target_keys[key], unpack_defaultdict_value(getattr(proxy, key, None))
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
-    if len(ue_coords) is 2:
+    if len(ue_coords) == 2:
         # XY pair
         return {"lat": lat.from_units(ue_coords[1]), "long": long.from_units(ue_coords[0])}
 
-    if len(ue_coords) is 3:
-        # XYZ pair, common for resources
+    if len(ue_coords) == 3:
+        # Resources (XYZ) and veins
         return {
             "x": ue_coords[0],
             "y": ue_coords[1],
@@ -37,7 +37,7 @@ def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
             "long": long.from_units(ue_coords[0])
         }
 
-    # min[XY]max[XY] flat pair
+    # 2D bounds (min[XY]max[XY])
     long_start = long.from_units(ue_coords[0])
     lat_start = lat.from_units(ue_coords[1])
     long_end = long.from_units(ue_coords[2])
@@ -68,6 +68,8 @@ def get_actor_worldspace_location(actor):
 
 
 def get_volume_worldspace_bounds(volume, include_altitude=False):
+    '''Retrieves volume's world-space bounds in a form of (min_x,max_y,max_x,max_y) tuple.'''
+
     if isinstance(volume, UEProxyStructure):
         brush_component = volume.BrushComponent[0].value.value
     else:
@@ -101,7 +103,3 @@ def get_volume_worldspace_bounds(volume, include_altitude=False):
         volume_box.max.x.value + volume_location.x.value,
         volume_box.max.y.value + volume_location.y.value
     )
-
-
-def struct_entries_array_to_dict(struct_entries):
-    return {str(struct_entry.name): struct_entry.value for struct_entry in struct_entries}

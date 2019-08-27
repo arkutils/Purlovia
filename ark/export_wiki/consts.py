@@ -16,14 +16,14 @@ KNOWN_KLASS_NAMES = [
 ]
 
 ACTOR_FIELD_MAP = {
-    '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': 'oil_veins',
-    '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': 'water_veins',
+    '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': 'oilVeins',
+    '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': 'waterVeins',
 }
 
 ACTOR_LIST_TAG_FIELD_MAP = {
-    'DragonNestSpawns': 'wyvern_nests',
-    'IceNestSpawns': 'ice_wyvern_nests',
-    'DrakeNestSpawns': 'drake_nests',
-    'DeinonychusNestSpawns': 'deinonychus_nests',
-    'AB_DeinonychusNestSpawns': 'deinonychus_nests'
+    'DragonNestSpawns': 'wyvernNests',
+    'IceNestSpawns': 'iceWyvernNests',
+    'DrakeNestSpawns': 'drakeNests',
+    'DeinonychusNestSpawns': 'deinonychusNests',
+    'AB_DeinonychusNestSpawns': 'deinonychusNests'
 }

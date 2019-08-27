@@ -27,8 +27,8 @@ def _export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identi
     if data:
         world.spawns.append(data)
         spawn_group = data['spawnGroup'].format_for_json()
-        if spawn_group not in world.spawn_groups:
-            world.spawn_groups.append(spawn_group)
+        if spawn_group not in world.spawnGroups:
+            world.spawnGroups.append(spawn_group)
 
 
 def _export_biome_zone_volume(world: WorldData, proxy: BiomeZoneVolume, log_identifier: str = 'a map'):
@@ -46,7 +46,7 @@ def _export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolu
 
     data = export_supply_crate_volume(world, proxy, log_identifier)
     if data:
-        world.loot_crates.append(data)
+        world.lootCrates.append(data)
 
 
 def _export_vein_location(world: WorldData, proxy: VeinBase, log_identifier: str = 'a map'):

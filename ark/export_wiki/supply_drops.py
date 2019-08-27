@@ -8,7 +8,7 @@ from .map import WorldData
 from .types import (SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES,
                     SUPPLY_DROP_EXPORTED_PROPERTIES, SupplyCrateSpawningVolume)
 from .utils import (export_properties_from_proxy, format_location_for_export,
-                    get_volume_worldspace_bounds, struct_entries_array_to_dict)
+                    get_actor_worldspace_location)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -30,10 +30,7 @@ def export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolum
     data.update(export_properties_from_proxy(proxy, SUPPLY_DROP_EXPORTED_PROPERTIES, True))
 
     # Crate classes
-    data['crateClasses'] = [
-        struct_entries_array_to_dict(entry.values)['CrateTemplate']
-        for entry in proxy.LinkedSupplyCrateEntries[0].values
-    ]
+    data['crateClasses'] = [ entry.as_dict()['CrateTemplate'] for entry in proxy.LinkedSupplyCrateEntries[0].values ]
 
     # Crate locations
     data['crateLocations'] = [
@@ -45,14 +42,11 @@ def export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolum
 
 def gather_crate_spawn_points(point_entries: ArrayProperty, log_identifier: str = 'a map'):
     for point_entry in point_entries.values:
-        entry_data = struct_entries_array_to_dict(point_entry.values)
-        marker = entry_data['LinkedSpawnPoint'].value.value
+        marker = point_entry.as_dict()['LinkedSpawnPoint'].value.value
         if not marker:
             logger.warning(
                 f'Broken supply crate volume found in {log_identifier}: spawn point marker reference does not point anywhere.'
             )
             continue
 
-        scene_component = marker.properties.get_property("RootComponent").value.value
-        marker_location = scene_component.properties.get_property("RelativeLocation").values[0]
-        yield marker_location.x.value, marker_location.y.value
+        yield get_actor_worldspace_location(marker)
