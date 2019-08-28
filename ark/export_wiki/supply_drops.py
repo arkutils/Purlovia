@@ -15,15 +15,13 @@ logger.addHandler(NullHandler())
 
 
 def export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolume, log_identifier: str = 'a map') -> Optional[dict]:
-    if not proxy.MaxNumCrates[0].value:
-        logger.warning(
-            f'TODO:Perhaps a supply crate volume in {log_identifier} should be skipped: MaxNumCrates == 0.'
-        )
+    #if not proxy.MaxNumCrates[0].value:
+    #    logger.debug(f'Perhaps a supply crate volume in {log_identifier} should be skipped: MaxNumCrates == 0.')
     if not getattr(proxy, 'LinkedSupplyCrateEntries', None):
-        logger.warning(f'Broken supply crate volume found in {log_identifier}: no linked crate entries.')
+        #logger.debug(f'Broken supply crate volume found in {log_identifier}: no linked crate entries.')
         return None
     if not getattr(proxy, 'LinkedSpawnPointEntries', None):
-        logger.warning(f'Broken supply crate volume found in {log_identifier}: no linked spawn points.')
+        #logger.debug(f'Broken supply crate volume found in {log_identifier}: no linked spawn points.')
         return None
 
     data = dict(export_properties_from_proxy(proxy, SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES))
@@ -44,9 +42,7 @@ def gather_crate_spawn_points(point_entries: ArrayProperty, log_identifier: str 
     for point_entry in point_entries.values:
         marker = point_entry.as_dict()['LinkedSpawnPoint'].value.value
         if not marker:
-            logger.warning(
-                f'Broken supply crate volume found in {log_identifier}: spawn point marker reference does not point anywhere.'
-            )
+            #logger.debug(f'Broken supply crate volume found in {log_identifier}: spawn point marker reference does not point anywhere.')
             continue
 
         yield get_actor_worldspace_location(marker)

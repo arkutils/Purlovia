@@ -1,3 +1,4 @@
+DAMAGE_TYPE_RADIATION = '/Game/Aberration/CoreBlueprints/DamageTypes/DmgType_Radiation'
 KNOWN_KLASS_NAMES = [
     # NPC spawns
     'NPCZoneManager',
@@ -8,6 +9,8 @@ KNOWN_KLASS_NAMES = [
     'BiomeZoneVolume',
     # Supply Drops
     'SupplyCrateSpawningVolume',
+    # Radiation Volumes
+    'TogglePainVolume',
     # Nests and Veins
     'CustomActorList', # Nests of Wyverns, Deinonychus
     'WaterVein_Base_BP_C',

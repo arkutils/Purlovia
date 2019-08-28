@@ -16,17 +16,17 @@ logger.addHandler(NullHandler())
 
 def export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identifier: str = 'a map') -> Optional[dict]:
     if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
-        logger.warning(
+        logger.debug(
             f'Broken NPC zone manager found in {log_identifier}: no spawn entries container reference.'
         )
         return None
     if not proxy.NPCSpawnEntriesContainerObject[0].value.value:
-        logger.warning(
+        logger.debug(
             f'Broken NPC zone manager found in {log_identifier}: spawn entries container reference points to nothing.'
         )
         return None
     if not getattr(proxy, 'LinkedZoneVolumes', None):
-        logger.warning(
+        logger.debug(
             f'Broken NPC zone manager found in {log_identifier}: no zone volumes linked.'
         )
         return None
@@ -56,7 +56,7 @@ def export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager, log_identif
             for weight, bounds in gather_zone_spawn_volumes_bounds(proxy.LinkedZoneSpawnVolumeEntries[0], log_identifier)
         ]
     else:
-        logger.warning(
+        logger.debug(
             f'Broken NPC zone manager found in {log_identifier}: no spawn zone entries nor spawn points linked.'
         )
         return None
@@ -68,7 +68,7 @@ def gather_zone_volumes_bounds(volumes: ArrayProperty, log_identifier: str = 'a 
     for zone_volume in volumes.values:
         zone_volume = zone_volume.value.value
         if not zone_volume:
-            logger.warning(
+            logger.debug(
                 f'Broken NPC zone manager found in {log_identifier}: zone volume reference does not point anywhere.'
             )
             continue
@@ -80,7 +80,7 @@ def gather_zone_spawn_points(points: ArrayProperty, log_identifier: str = 'a map
     for marker in points.values:
         marker = marker.value.value
         if not marker:
-            logger.warning(
+            logger.debug(
                 f'Broken NPC zone manager found in {log_identifier}: spawn marker reference does not point anywhere.'
             )
             continue
@@ -94,7 +94,7 @@ def gather_zone_spawn_volumes_bounds(entries: ArrayProperty, log_identifier: str
         entry_weight = entry_data['EntryWeight'].value
         spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
         if not spawn_volume:
-            logger.warning(
+            logger.debug(
                 f'Broken NPC zone manager found in {log_identifier}: spawn zone volume reference does not point anywhere.'
             )
             continue

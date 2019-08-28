@@ -61,7 +61,7 @@ def gather_spawn_entries(asset: UAsset):
     entries = properties["NPCSpawnEntries"]
     if not entries:
         # TODO: Support inherited NPCSpawnEntries
-        logger.warning(f'TODO: {asset.name} does not have any spawn entries. They are probably inherited.')
+        logger.debug(f'TODO: {asset.name} does not have any spawn entries. They are probably inherited.')
         return
 
     for entry in entries[0].values:
@@ -82,9 +82,7 @@ def gather_limit_entries(asset: UAsset):
     entries = properties["NPCSpawnLimits"]
     if not entries:
         if not properties["NPCSpawnEntries"]:
-            logger.warning(
-                f'TODO:{asset.name} does not have any limit entries. They are probably inherited.'
-            )
+            logger.debug(f'TODO:{asset.name} does not have any limit entries. They are probably inherited.')
         return
 
     for entry in entries[0].values:
@@ -102,7 +100,7 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
     try:
         asset = loader[asset_name]
     except AssetNotFound:
-        logger.warning(f'Spawn entry container {full_asset_name} does not exist. Broken reference from a map?')
+        logger.debug(f'Spawn entry container {full_asset_name} is referenced but missing.')
         return None
 
     container_data = asset.default_export

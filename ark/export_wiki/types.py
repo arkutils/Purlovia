@@ -206,6 +206,13 @@ class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.Su
     LinkedSupplyCrateEntries: Mapping[int, ArrayProperty]
     LinkedSpawnPointEntries: Mapping[int, ArrayProperty]
 
+
+class TogglePainVolume(UEProxyStructure, uetype='/Script/ShooterGame.TogglePainVolume'):
+    # No properties we can assume type for.
+    ActorClassesToExclude: Mapping[int, ArrayProperty]
+    DamageType: Mapping[int, ObjectProperty]
+    RootComponent: Mapping[int, ObjectProperty] # SceneComponent
+
 class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorList'):
     # No properties we can assume type for.
     CustomTag: Mapping[int, NameProperty]

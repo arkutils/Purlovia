@@ -21,6 +21,7 @@ class WorldData:
     longitude: GeoData = field(init=False)
 
     npcRandomSpawnClassWeights: list = field(default_factory=lambda: [])
+    radiationVolumes: list = field(default_factory=lambda: [])
     lootCrates: list = field(default_factory=lambda: [])
     biomes: list = field(default_factory=lambda: [])
     spawns: list = field(default_factory=lambda: [])

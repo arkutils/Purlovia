@@ -16,7 +16,7 @@ class ByRawData:
         self.loader = loader
 
     def is_world(self, assetname: str):
-        '''Use binary string matching to check if an asset is a character.'''
+        '''Use binary string matching to check if an asset contains data to export.'''
         # Load asset as raw data
         mem = self.loader._load_raw_asset(assetname)
 
@@ -71,11 +71,3 @@ class SublevelDiscoverer:
         for level in self.loader.find_assetnames('.*', base_path, exclude=self.global_excludes, extension='.umap'):
             if self._is_a_world(level):
                 yield level
-
-        # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
-        #official_modids = set(get_global_config().official_mods.ids())
-        #official_modids -= set(get_global_config().settings.SeparateOfficialMods)
-        #for modid in official_modids:
-        #    for species in self.loader.find_assetnames('.*', f'/Game/Mods/{modid}', exclude=self.global_excludes):
-        #        if self._is_persistent_level(level):
-        #            yield level
