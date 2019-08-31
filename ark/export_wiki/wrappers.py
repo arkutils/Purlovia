@@ -52,6 +52,8 @@ def _export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolu
 
 
 def _export_pain_volume(world: WorldData, proxy: TogglePainVolume, log_identifier: str = 'a map'):
+    if not getattr(proxy, 'DamageType', None):
+        return
     if str(proxy.DamageType[0].value.value.namespace.value.name) != DAMAGE_TYPE_RADIATION:
         return
 
