@@ -1,22 +1,10 @@
-import hashlib
-import json
-import re
-from datetime import datetime
 from logging import NullHandler, getLogger
-from operator import attrgetter
 from pathlib import Path
 from typing import *
 
-from ark.export_wiki.biomes import export_biome_zone_volume
 from ark.export_wiki.consts import KNOWN_KLASS_NAMES
 from ark.export_wiki.map import WorldData
-from ark.export_wiki.npc_spawns import (export_npc_zone_manager,
-                                        gather_random_npc_class_weights)
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
-from ark.export_wiki.supply_drops import export_supply_crate_volume
-from ark.export_wiki.types import (BiomeZoneVolume, CustomActorList,
-                                   NPCZoneManager, PrimalWorldSettings,
-                                   SupplyCrateSpawningVolume)
 from ark.export_wiki.wrappers import PROXY_TYPE_MAP
 from ark.worldcomposition import SublevelDiscoverer
 from automate.ark import ArkSteamManager
@@ -108,18 +96,20 @@ class Exporter:
             logger.warning(f'Mod {modid} is missing its list of maps.')
 
     def _export_level(self, asset_name: str, version: str, moddata: Optional[Dict] = None):
-        logger.info(f'Collecting data from a persistent level: {asset_name}')
+        logger.info(f'Collecting data from a map: {asset_name}')
+        # Gather data from the persistent level and create a container
         asset = self.loader[asset_name]
         world_data = WorldData(asset)
-        world_data.npcRandomSpawnClassWeights = list(gather_random_npc_class_weights(world_data.world_settings))
-
         self._gather_data_from_level(asset, world_data)
         del self.loader[asset_name]
-        logger.info('Persistent level extracted and unloaded. Sublevels will now be loaded.')
+
+        # Load sublevels and gather data from them
         for sublevel in self.wc_discoverer.discover_submaps(asset):
             subasset = self.loader[sublevel]
             self._gather_data_from_level(subasset, world_data)
             del self.loader[sublevel]
+
+        # Gather spawn groups and save the data
         self._gather_spawn_groups(world_data)
         self._export_world_data(world_data, version, moddata)
         del world_data
@@ -128,14 +118,13 @@ class Exporter:
         for export in level.exports:
             if str(export.klass.value.name) not in KNOWN_KLASS_NAMES:
                 continue
-            proxy = gather_properties(export)  # type:ignore
 
-            proxy_exporter = PROXY_TYPE_MAP.get(proxy.get_ue_type(), None)
-            if proxy_exporter:
-                proxy_exporter(world_data, proxy, log_identifier=f'{level.assetname} (export "{export.name}")')  # type:ignore
+            proxy = gather_properties(export)  # type:ignore
+            export_function = PROXY_TYPE_MAP.get(proxy.get_ue_type(), None)
+            if export_function:
+                export_function(world_data, proxy)  # type:ignore
             else:
                 logger.error(f'Unsupported type: no export mapping exists for "{proxy.get_ue_type()}".')
-
             del proxy
 
     def _gather_spawn_groups(self, world: WorldData):

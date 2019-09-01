@@ -1,4 +1,3 @@
-from itertools import repeat
 from typing import Mapping
 
 from ue.properties import ArrayProperty, NameProperty, ObjectProperty

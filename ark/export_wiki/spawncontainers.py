@@ -100,7 +100,7 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
     try:
         asset = loader[asset_name]
     except AssetNotFound:
-        logger.debug(f'Spawn entry container {full_asset_name} is referenced but missing.')
+        #logger.debug(f'Spawn entry container {full_asset_name} is referenced but missing.')
         return None
 
     container_data = asset.default_export

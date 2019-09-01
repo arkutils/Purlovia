@@ -1,26 +1,19 @@
-import json
-from typing import Optional
-
-from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 
 from .geo import GeoData
 
 
-def get_blueprint_path(obj):
-    return f'{str(obj.namespace.value.name)}.{str(obj.name).rstrip("_C")}'
-
-
 def unpack_defaultdict_value(obj):
     return obj[0] if obj else None
 
-
-def export_properties_from_proxy(proxy: UEProxyStructure, target_keys, only_overriden=False):
-    for key in target_keys:
+def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=False):
+    data = {}
+    for key in key_list:
         if only_overriden and not proxy.has_override(key):
             continue
 
-        yield target_keys[key], unpack_defaultdict_value(getattr(proxy, key, None))
+        data[key_list[key]] = unpack_defaultdict_value(getattr(proxy, key, None))
+    return data
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
     if len(ue_coords) == 2:

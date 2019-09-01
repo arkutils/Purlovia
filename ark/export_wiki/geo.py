@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 from ue.loader import AssetLoader
 from ue.properties import FloatProperty
