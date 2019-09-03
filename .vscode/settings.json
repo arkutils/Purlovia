@@ -20,5 +20,16 @@
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+
+    "cSpell.words": [
+        "asdict",
+        "buildid",
+        "mkdirs",
+        "modid",
+        "modutils",
+        "optionxform",
+        "pydantic",
+        "steamcmd"
+    ]
 }

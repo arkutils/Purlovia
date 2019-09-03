@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import *
 
 from ark.export_wiki.consts import KNOWN_KLASS_NAMES
+from ark.export_wiki.exporters import PROXY_TYPE_MAP
 from ark.export_wiki.map import WorldData
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
-from ark.export_wiki.wrappers import PROXY_TYPE_MAP
 from ark.worldcomposition import SublevelDiscoverer
 from automate.ark import ArkSteamManager
 from automate.export import _save_as_json, _should_save_json
@@ -25,12 +25,12 @@ __all__ = [
 
 def export_map_data(arkman: ArkSteamManager, modids: Set[str], config: ConfigFile):
     logger.info('Wiki export beginning')
-    if config.wiki_settings.SkipExtract:
+    if config.settings.SkipExtract or config.export_wiki.Skip:
         logger.info('(skipped)')
         return
 
     # Ensure the output directory exists
-    outdir = config.wiki_settings.PublishDir
+    outdir = config.settings.OutputPath
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
@@ -52,7 +52,7 @@ class Exporter:
     def perform(self):
         self._prepare_versions()
 
-        if self.config.wiki_settings.ExportVanillaMaps:
+        if self.config.export_wiki.ExportVanillaMaps:
             logger.info('Beginning export of vanilla maps')
             self._export_vanilla()
 
@@ -148,13 +148,13 @@ class Exporter:
         values['version'] = version
         values.update(world_data.format_for_json())
 
-        fullpath = (self.config.wiki_settings.PublishDir / filename).with_suffix('.json')
+        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / filename).with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
         changed, version = _should_save_json(values, fullpath)
         if changed:
-            pretty = self.config.settings.PrettyJson
+            pretty = self.config.export_wiki.PrettyJson
             logger.info(f'Saving export to {fullpath} with version {version}')
             values['version'] = version
             _save_as_json(values, fullpath, pretty=pretty)

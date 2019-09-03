@@ -21,17 +21,15 @@ class ByRawData:
         mem = self.loader._load_raw_asset(assetname)
 
         # Check whether the asset is a world
-        result = b'World' in mem.obj
+        if b'World' not in mem.obj:
+            return False
         # Check whether the asset has occurences of names of possibly
         # interesting exports.
-        config = get_global_config().wiki_settings
-        any_klass_name_found = False
         for klass_name in KNOWN_KLASS_NAMES:
             if klass_name.encode() in mem.obj:
-                any_klass_name_found = True
-                break
+                return True
         
-        return result and any_klass_name_found
+        return False
 
 
 class ByWorldTileData:

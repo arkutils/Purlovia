@@ -32,7 +32,7 @@ def export_values(arkman: ArkSteamManager, modids: Set[str], config: ConfigFile)
         return
 
     # Ensure the output directory exists
-    outdir = config.settings.PublishDir
+    outdir = config.settings.OutputPath
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
@@ -54,7 +54,7 @@ class Exporter:
     def perform(self):
         self._prepare_versions()
 
-        if self.config.settings.ExportVanillaSpecies:
+        if self.config.export_asb.ExportVanillaSpecies:
             logger.info('Beginning export of vanilla species')
             self._export_vanilla()
 
@@ -134,7 +134,7 @@ class Exporter:
                 species_values = values_for_species(asset,
                                                     props,
                                                     allFields=True,
-                                                    fullStats=not self.config.settings.Export8Stats,
+                                                    fullStats=not self.config.export_asb.Export8Stats,
                                                     includeBreeding=True,
                                                     includeColor=True)
             except:  # pylint: disable=bare-except
@@ -163,13 +163,13 @@ class Exporter:
         if other:
             values.update(other)
 
-        fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')
+        fullpath = (self.config.settings.OutputPath / self.config.export_asb.PublishSubDir / filename).with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
         changed, version = _should_save_json(values, fullpath)
         if changed:
-            pretty = self.config.settings.PrettyJson
+            pretty = self.config.export_asb.PrettyJson
             logger.info(f'Saving export to {fullpath} with version {version}')
             values['version'] = version
             _save_as_json(values, fullpath, pretty=pretty)
@@ -181,7 +181,7 @@ def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str
     '''
     Works out if a file needs to be saved and with which version number.
 
-    This is calcualted using the digest of its content, excluding the version field.
+    This is calculated using the digest of its content, excluding the version field.
     Also handles cases where the content has changed but the version has not, by bumping the build number.
 
     Returns a tuple of (changed, version), where `changed` is a boolean saying whether the data needs to be
@@ -212,6 +212,7 @@ def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str
         return (False, old_version or new_version)
 
     # Content has changed... if the version is changed also then we're done
+    assert old_version
     old_parts = [int(v) for v in old_version.strip().split('.')]
     new_parts = [int(v) for v in new_version.strip().split('.')]
     if old_parts[:3] != new_parts[:3]:

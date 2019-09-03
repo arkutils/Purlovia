@@ -85,23 +85,23 @@ def handle_args(args: Any) -> ConfigFile:
 
     if args.live:
         logger.info('LIVE mode enabled')
-        config.settings.EnableGit = True
-        config.settings.GitUseReset = True
-        config.settings.GitUseIdentity = True
+        config.settings.SkipGit = False
+        config.git.UseReset = True
+        config.git.UseIdentity = True
     else:
         logger.info('DEV mode enabled')
-        config.settings.GitUseIdentity = False
-        config.settings.SkipCommit = True
-        config.settings.SkipPush = True
+        config.git.UseIdentity = False
+        config.git.SkipCommit = True
+        config.git.SkipPush = True
 
     if args.stats:
         if int(args.stats) == 12:
-            config.settings.Export8Stats = False
+            config.export_asb.Export8Stats = False
         else:
-            config.settings.Export8Stats = True
+            config.export_asb.Export8Stats = True
 
     if args.skip_pull:
-        config.settings.SkipPull = True
+        config.git.SkipPull = True
 
     if args.skip_install:
         config.settings.SkipInstall = True
@@ -122,13 +122,13 @@ def handle_args(args: Any) -> ConfigFile:
         config.wiki_settings.ExportSupplyCrateData = False
 
     if args.skip_vanilla:
-        config.settings.ExportVanillaSpecies = False
+        config.export_asb.ExportVanillaSpecies = False
 
     if args.skip_commit:
-        config.settings.SkipCommit = True
+        config.git.SkipCommit = True
 
     if args.skip_push:
-        config.settings.SkipPush = True
+        config.git.SkipPush = True
 
     if args.mods is not None:
         config.mods = args.mods
@@ -160,10 +160,12 @@ def run(config: ConfigFile):
         export_map_data(arkman, set(mods), config)
 
         # Update the manifest file
-        update_manifest(config=config)
+        update_manifest(config.settings.OutputPath / config.export_asb.PublishSubDir)
+        # TODO: for each export system
 
         # Commit any changes
-        git.after_exports()
+        git.after_exports(config.export_asb.PublishSubDir, config.export_asb.CommitHeader)
+        # TODO: for each export system
 
         logger.info('Automation completed')
 
