@@ -3,6 +3,7 @@ import os
 import tempfile
 from logging import NullHandler, getLogger
 from pathlib import Path
+from typing import Optional
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
@@ -20,13 +21,10 @@ MESSAGE_HEADER = "Raptor Claus just dropped some files off"
 class GitManager:
     def __init__(self, config: ConfigFile = None):
         self.config = config or get_global_config()
-        self.git = Git(str(self.config.settings.GitDirectory))
-
-        # Just the parts of PublishDir that live "inside" GitDirectory (e.g. output/data/asb -> data/asb)
-        self.relative_publish_path = str(self.config.settings.PublishDir.relative_to(self.config.settings.GitDirectory))
+        self.git = Git(str(self.config.settings.OutputPath))
 
     def before_exports(self):
-        if not self.config.settings.EnableGit:
+        if self.config.settings.SkipGit:
             logger.info('Git interaction disabled')
             return
 
@@ -43,23 +41,23 @@ class GitManager:
 
         logger.info('Git repo is setup and ready to go')
 
-    def after_exports(self):
-        if not self.config.settings.EnableGit:
+    def after_exports(self, relative_path: Path, commit_header: str):
+        if self.config.settings.SkipGit:
             return
 
         # Perform pull, if configured
         self._do_pull()
 
         # If no files changed, return
-        if not self._any_local_changes():
+        if not self._any_local_changes(relative_path):
             logger.info('No local changes, aborting')
             return
 
         # Add changed files
-        self._do_add()
+        self._do_add(relative_path)
 
         # Construct commit message using a simple message plus names and versions of changed files
-        message = self._create_commit_msg()
+        message = self._create_commit_msg(relative_path, commit_header)
 
         # Commit
         self._do_commit(message)
@@ -69,46 +67,46 @@ class GitManager:
 
         logger.info('Git automation complete')
 
-    def _any_local_changes(self):
-        output = self.git.status('-s', '--', self.relative_publish_path).strip()
+    def _any_local_changes(self, relative_path: Path):
+        output = self.git.status('-s', '--', str(relative_path)).strip()
         return bool(output)
 
     def _do_reset(self):
-        if self.config.settings.GitUseReset:
+        if self.config.git.UseReset:
             logger.info('Performing hard reset to remote HEAD')
-            if not self.config.settings.SkipPull:
+            if not self.config.git.SkipPull:
                 self.git.fetch()
-                self.git.reset('--hard', 'origin/' + self.config.settings.GitBranch)
+                self.git.reset('--hard', 'origin/' + self.config.git.Branch)
             else:
                 logger.info('(skipped)')
 
     def _do_pull(self):
-        if not self.config.settings.GitUseReset:
+        if not self.config.git.UseReset:
             logger.info('Performing pull')
-            if not self.config.settings.SkipPull:
+            if not self.config.git.SkipPull:
                 self.git.pull('--no-rebase', '--ff-only')
             else:
                 logger.info('(skipped)')
 
-    def _do_add(self):
-        if self.config.settings.SkipCommit:
+    def _do_add(self, relative_path: Path):
+        if self.config.git.SkipCommit:
             logger.info('(skipped by request)')
         else:
-            self.git.add('--', self.relative_publish_path)
+            self.git.add('--', str(relative_path))
 
     def _do_push(self):
-        if self.config.settings.SkipPush:
+        if self.config.git.SkipPush:
             logger.info('(push skipped by request)')
-        elif not self.config.settings.GitUseIdentity:
+        elif not self.config.git.UseIdentity:
             logger.warning('Push skipped due to lack of git identity')
         else:
             logger.info('Pushing changes')
             self.git.push()
 
     def _do_commit(self, message):
-        if self.config.settings.SkipCommit:
+        if self.config.git.SkipCommit:
             logger.info('(commit skipped by request)')
-        elif not self.config.settings.GitUseIdentity:
+        elif not self.config.git.UseIdentity:
             logger.warning('Commit skipped due to lack of git identity')
         else:
             logger.info('Performing commit')
@@ -130,7 +128,7 @@ class GitManager:
         # This will throw if there's no git repo here
         self.git.status()
 
-        if self.config.settings.GitUseIdentity:
+        if self.config.git.UseIdentity:
             # Check a custom user has been configured and is using a custom ssh identity
             username: str = '<unset>'
             try:
@@ -149,14 +147,14 @@ class GitManager:
     def _set_branch(self):
         branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()
 
-        if branch != self.config.settings.GitBranch:
-            self.git.checkout(self.config.settings.GitBranch)
+        if branch != self.config.git.Branch:
+            self.git.checkout(self.config.git.Branch)
 
-    def _create_commit_msg(self):
-        message = MESSAGE_HEADER
+    def _create_commit_msg(self, relative_path: Path, commit_header: str):
+        message = commit_header
 
         lines = []
-        status_output = self.git.status('-s', '--', self.relative_publish_path)
+        status_output = self.git.status('-s', '--', str(relative_path))
         filelist = [line[3:].strip() for line in status_output.split('\n')]
         for filename in filelist:
             if ' -> ' in filename:
@@ -174,7 +172,7 @@ class GitManager:
         return message
 
     def _generate_info_line_from_file(self, filename: str):
-        path: Path = self.config.settings.GitDirectory / filename
+        path: Path = self.config.settings.OutputPath / filename
 
         if not path.is_file:
             return f'{path.name} removed'
