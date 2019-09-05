@@ -18,17 +18,17 @@ class ByRawData:
     def is_world(self, assetname: str):
         '''Use binary string matching to check if an asset contains data to export.'''
         # Load asset as raw data
-        mem = self.loader._load_raw_asset(assetname)
+        mem = self.loader.load_raw_asset(assetname)
 
         # Check whether the asset is a world
         if b'World' not in mem.obj:
             return False
-        # Check whether the asset has occurences of names of possibly
+        # Check whether the asset has occurrences of names of possibly
         # interesting exports.
         for klass_name in KNOWN_KLASS_NAMES:
             if klass_name.encode() in mem.obj:
                 return True
-        
+
         return False
 
 

@@ -1,7 +1,8 @@
+from logging import NullHandler, getLogger
 from typing import *
 
 from config import get_global_config
-from ue.loader import AssetLoader
+from ue.loader import AssetLoader, AssetLoadException
 
 from .asset import findSubComponentParentPackages
 from .common import CHR_PKG, DCSC_PKG
@@ -11,6 +12,8 @@ __all__ = [
     'SpeciesDiscoverer',
 ]
 
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 class ByRawData:
     '''Very fast/cheap method for bulk searching. Over-selects slightly.'''
@@ -21,7 +24,7 @@ class ByRawData:
     def is_species(self, assetname: str):
         '''Use binary string matching to check if an asset is a character.'''
         # Load asset as raw data
-        mem = self.loader._load_raw_asset(assetname)
+        mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'ShooterCharacterMovement' in mem.obj
@@ -31,7 +34,7 @@ class ByRawData:
     def is_structure(self, assetname: str):
         '''Use binary string matching to check if an asset is a placeable structure.'''
         # Load asset as raw data
-        mem = self.loader._load_raw_asset(assetname)
+        mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'StructureMesh' in mem.obj
@@ -41,7 +44,7 @@ class ByRawData:
     def is_inventory_item(self, assetname: str):
         '''Use binary string matching to check if an asset is an inventory item.'''
         # Load asset as raw data
-        mem = self.loader._load_raw_asset(assetname)
+        mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'DescriptiveNameBase' in mem.obj
@@ -74,13 +77,19 @@ class ByInheritance:
             if not assetname.startswith('/Game'):
                 return False
 
-            asset = self.loader[assetname]
-            for cmpassetname in findSubComponentParentPackages(asset):
-                if not cmpassetname.startswith('/Game'):
-                    continue
-                cmpasset = self.loader[cmpassetname]
-                if inherits_from(cmpasset, DCSC_PKG):
-                    return True  # finish walk early
+            try:
+                asset = self.loader[assetname]
+
+                for cmpassetname in findSubComponentParentPackages(asset):
+                    if not cmpassetname.startswith('/Game'):
+                        continue
+                    cmpasset = self.loader[cmpassetname]
+                    if inherits_from(cmpasset, DCSC_PKG):
+                        return True  # finish walk early
+
+            except AssetLoadException as ex:
+                logger.warning("Failed to check inheritance of potential species: %s", str(ex))
+                return False # abort early
 
         # Check this asset first
         if check_component(assetname):

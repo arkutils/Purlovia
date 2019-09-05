@@ -19,6 +19,7 @@ logger.addHandler(NullHandler())
 __all__ = (
     'ModNotFound',
     'AssetNotFound',
+    'AssetLoadException',
     'AssetLoader',
     'load_file_into_memory',
     'ModResolver',
@@ -28,12 +29,16 @@ __all__ = (
 NO_FALLBACK = object()
 
 
-class ModNotFound(Exception):
+class AssetLoadException(Exception):
+    pass
+
+
+class ModNotFound(AssetLoadException):
     def __init__(self, mod_name: str):
         super().__init__(f'Mod {mod_name} not found')
 
 
-class AssetNotFound(Exception):
+class AssetNotFound(AssetLoadException):
     def __init__(self, asset_name: str):
         super().__init__(f'Asset {asset_name} not found')
 
@@ -160,14 +165,17 @@ class AssetLoader:
             mod = self.modresolver.get_id_from_name(mod)
         return mod
 
-    def find_assetnames(self, regex, toppath='/', exclude: Union[str, Tuple[str, ...]] = None, extension='.uasset'):
-        excludes: Tuple[str, ...] = ()
-        if exclude is None:
-            excludes = ()
-        elif isinstance(exclude, str):
-            excludes = (exclude, )
-        else:
-            excludes = exclude
+    def find_assetnames(self,
+                        regex,
+                        toppath='/',
+                        exclude: Union[str, Iterable[str]] = None,
+                        extension: Union[str, Iterable[str]] = '.uasset',
+                        return_extension=False):
+
+        excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
+        extensions: Tuple[str, ...] = tuple(extension, ) if isinstance(extension, str) else tuple(extension or ())
+        extensions = tuple(ext.lower() for ext in extensions)
+        assert extensions
 
         toppath = self.convert_asset_name_to_path(toppath, partial=True)
         for path, _, files in os.walk(toppath):
@@ -175,7 +183,7 @@ class AssetLoader:
                 fullpath = os.path.join(path, filename)
                 name, ext = os.path.splitext(fullpath)
 
-                if not ext.lower() == extension:
+                if ext.lower() not in extensions:
                     continue
 
                 match = re.match(regex, name)
@@ -188,7 +196,10 @@ class AssetLoader:
                 if any(re.match(exclude, assetname) for exclude in excludes):
                     continue
 
-                yield assetname
+                if return_extension:
+                    yield (assetname, ext)
+                else:
+                    yield assetname
 
     def load_related(self, obj: UEBase):
         if isinstance(obj, Property):
@@ -226,7 +237,7 @@ class AssetLoader:
             raise AssetNotFound(filename)
         return mem
 
-    def _load_raw_asset(self, name: str):
+    def load_raw_asset(self, name: str):
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
         mem = None
@@ -258,7 +269,7 @@ class AssetLoader:
 
     def _load_asset(self, assetname: str, doNotLink=False):
         logger.debug(f"Loading asset: {assetname}")
-        mem = self._load_raw_asset(assetname)
+        mem = self.load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(weakref.proxy(stream))
         asset.loader = self

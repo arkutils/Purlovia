@@ -23,13 +23,31 @@
     "git.ignoreLimitWarning": true,
 
     "cSpell.words": [
+        "DCSC",
+        "Deque",
+        "Dinos",
+        "Posix",
+        "Purlovia",
+        "Tproxy",
+        "Valguero",
         "asdict",
         "buildid",
+        "cls",
+        "deserialise",
+        "functools",
+        "isabs",
+        "isnumeric",
+        "klass",
         "mkdirs",
         "modid",
         "modutils",
         "optionxform",
         "pydantic",
-        "steamcmd"
+        "pylint",
+        "pytest",
+        "rsplit",
+        "steamcmd",
+        "uasset",
+        "umap"
     ]
 }

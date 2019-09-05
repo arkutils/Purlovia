@@ -14,6 +14,7 @@ from ark.export_asb_values import values_for_species, values_from_pgd
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
+from ue.loader import AssetLoadException
 from ue.utils import property_serialiser
 from utils.strings import get_valid_filename
 
@@ -118,6 +119,8 @@ class Exporter:
             props = None
             try:
                 props = ark.properties.gather_properties(asset)
+            except AssetLoadException as ex:
+                logger.warning(f'Gathering properties failed for {assetname}: %s', str(ex))
             except:  # pylint: disable=bare-except
                 logger.warning(f'Gathering properties failed for {assetname}', exc_info=True)
 
