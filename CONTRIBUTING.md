@@ -19,18 +19,18 @@ Any editor could be used, but VSCode is preconfigured to:
 
 ## Testing
 
-There are a few `PyTest` tests present, but many have been removed to avoid using game assets.
+There are a few `PyTest` tests present, but many have been removed to avoid using game assets. Some still require a game install and the presence of the PurloviaTEST mod.
 
 Run the tests in the editor or using:
 ```sh
-pytest
+pytest -m "not uses_copyright_material"
 ```
 
 Test files **and** functions must be prefixed `test_`, but `doctest`-style tests are discovered and run automatically anywhere in the code.
 
 ## Formatting
 
-The project *strictly* uses `yapf` for formatting, and VSCode is set to format on save.
+The project *strictly* uses `yapf` for formatting, and VSCode is set to format on save. Imports are also sorted.
 
 ## Linting
 
