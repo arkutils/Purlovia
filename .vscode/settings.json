@@ -23,10 +23,13 @@
     "git.ignoreLimitWarning": true,
 
     "cSpell.words": [
+        "Tproxy",
         "asdict",
         "buildid",
+        "consts",
         "deserialise",
         "functools",
+        "klass",
         "mkdirs",
         "modid",
         "modutils",
@@ -36,6 +39,8 @@
         "pylint",
         "pytest",
         "steamcmd",
+        "uasset",
+        "umap",
         "xlocal"
     ]
 }
