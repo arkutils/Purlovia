@@ -173,7 +173,7 @@ class AssetLoader:
                         return_extension=False):
 
         excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
-        extensions: Tuple[str, ...] = tuple(extension, ) if isinstance(extension, str) else tuple(extension or ())
+        extensions: Tuple[str, ...] = tuple((extension, )) if isinstance(extension, str) else tuple(extension or ())
         extensions = tuple(ext.lower() for ext in extensions)
         assert extensions
 
