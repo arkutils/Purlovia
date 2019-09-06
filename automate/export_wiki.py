@@ -2,12 +2,13 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-from ark.export_wiki.consts import KNOWN_KLASS_NAMES
+from ark.export_wiki.common import KNOWN_KLASS_NAMES
 from ark.export_wiki.exporters import PROXY_TYPE_MAP
 from ark.export_wiki.map import WorldData
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
-from ark.worldcomposition import SublevelDiscoverer
+from ark.export_wiki.sublevel_discovery import SublevelTester
 from automate.ark import ArkSteamManager
+from automate.discovery import Discoverer
 from automate.export import _save_as_json, _should_save_json
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
@@ -46,8 +47,9 @@ class Exporter:
         self.arkman = arkman
         self.modids = modids
         self.loader = arkman.createLoader()
-        self.wc_discoverer = SublevelDiscoverer(self.loader)
         self.game_version = self.arkman.getGameVersion()
+        self.discoverer = Discoverer(self.loader)
+        self.discoverer.register_asset_tester(SublevelTester())
 
     def perform(self):
         self._prepare_versions()
@@ -104,7 +106,8 @@ class Exporter:
         del self.loader[asset_name]
 
         # Load sublevels and gather data from them
-        for sublevel in self.wc_discoverer.discover_submaps(asset):
+        sublevels = self.discoverer.run(asset_name[:asset_name.rfind('/')])['sublevels']
+        for sublevel in sublevels:
             subasset = self.loader[sublevel]
             self._gather_data_from_level(subasset, world_data)
             del self.loader[sublevel]

@@ -16,11 +16,11 @@ logger.addHandler(NullHandler())
 class SpeciesTester(AssetTester):
     @classmethod
     def get_category_name(cls) -> str:
-        return "species"
+        return 'species'
 
     @classmethod
     def get_file_extensions(cls) -> Iterable[str]:
-        return (".uasset", )
+        return ('.uasset', )
 
     @classmethod
     def get_requires_properties(cls) -> bool:
@@ -59,7 +59,7 @@ class SpeciesTester(AssetTester):
                     if inherits_from(cmp_asset, DCSC_PKG):
                         return True  # finish walk early
             except AssetLoadException as ex:
-                logger.warning("Failed to check inheritance of potential species: %s", str(ex))
+                logger.warning('Failed to check inheritance of potential species: %s', str(ex))
                 return False  # abort early
 
             return False

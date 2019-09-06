@@ -1,10 +1,10 @@
 from ue.properties import ArrayProperty
 
+from .common import (format_location_for_export, get_volume_worldspace_bounds,
+                     proxy_properties_as_dict)
 from .map import WorldData
 from .types import (BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES,
                     BIOME_VOLUME_EXPORTED_PROPERTIES, BiomeZoneVolume)
-from .utils import (format_location_for_export, get_volume_worldspace_bounds,
-                    proxy_properties_as_dict)
 
 
 def extract_biome_zone_volume(world: WorldData, proxy: BiomeZoneVolume) -> dict:

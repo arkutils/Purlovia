@@ -3,9 +3,9 @@ from dataclasses import InitVar, dataclass, field
 from ue.asset import UAsset
 from ue.gathering import gather_properties
 
+from .common import proxy_properties_as_dict
 from .geo import GeoData, gather_geo_data
 from .types import WORLD_SETTINGS_EXPORTED_PROPERTIES, PrimalWorldSettings
-from .utils import proxy_properties_as_dict
 
 
 @dataclass

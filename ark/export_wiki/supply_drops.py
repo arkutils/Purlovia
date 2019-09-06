@@ -2,11 +2,11 @@ from typing import Optional
 
 from ue.properties import ArrayProperty
 
+from .common import (format_location_for_export, get_actor_worldspace_location,
+                     proxy_properties_as_dict)
 from .map import WorldData
 from .types import (SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES,
                     SUPPLY_DROP_EXPORTED_PROPERTIES, SupplyCrateSpawningVolume)
-from .utils import (format_location_for_export, get_actor_worldspace_location,
-                    proxy_properties_as_dict)
 
 
 def extract_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolume) -> Optional[dict]:

@@ -2,11 +2,11 @@ from typing import *
 
 from ue.properties import ArrayProperty
 
+from .common import (format_location_for_export, get_actor_worldspace_location,
+                     get_volume_worldspace_bounds, proxy_properties_as_dict)
 from .map import WorldData
 from .types import (ZONE_MANAGER_EXPORTED_PROPERTIES, NPCZoneManager,
                     PrimalWorldSettings)
-from .utils import (format_location_for_export, get_actor_worldspace_location,
-                    get_volume_worldspace_bounds, proxy_properties_as_dict)
 
 
 def extract_npc_zone_manager(world: WorldData, proxy: NPCZoneManager) -> Optional[dict]:
