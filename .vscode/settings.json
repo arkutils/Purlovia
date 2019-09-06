@@ -25,11 +25,17 @@
     "cSpell.words": [
         "asdict",
         "buildid",
+        "deserialise",
+        "functools",
         "mkdirs",
         "modid",
         "modutils",
+        "mypy",
         "optionxform",
         "pydantic",
-        "steamcmd"
+        "pylint",
+        "pytest",
+        "steamcmd",
+        "xlocal"
     ]
 }
