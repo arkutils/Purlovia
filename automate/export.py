@@ -28,7 +28,7 @@ __all__ = [
 
 def export_values(arkman: ArkSteamManager, modids: Set[str], config: ConfigFile):
     logger.info('Export beginning')
-    if config.settings.SkipExtract:
+    if config.settings.SkipExtract or config.export_asb.Skip:
         logger.info('(skipped)')
         return
 
