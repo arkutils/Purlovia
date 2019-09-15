@@ -26,9 +26,8 @@ def _export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager):
         return
 
     world.spawns.append(data)
-    spawn_group = data['spawnGroup'].format_for_json()
-    if spawn_group not in world.spawnGroups:
-        world.spawnGroups.append(spawn_group)
+    if data['spawnGroup'] not in world.spawnGroups:
+        world.spawnGroups.append(data['spawnGroup'])
 
 
 def _export_biome_zone_volume(world: WorldData, proxy: BiomeZoneVolume):

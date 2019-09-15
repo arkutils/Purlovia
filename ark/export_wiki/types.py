@@ -106,8 +106,8 @@ SUPPLY_DROP_EXPORTED_PROPERTIES = {
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
     # DevKit Verified
     Title = uestrings('')
-    LatitudeOrigin = uefloats(400_000.0)
-    LongitudeOrigin = uefloats(400_000.0)
+    LatitudeOrigin = uefloats(-400_000.0)
+    LongitudeOrigin = uefloats(-400_000.0)
     LatitudeScale = uefloats(800.0)
     LongitudeScale = uefloats(800.0)
     OverrideDifficultyMax = uefloats(5.0)

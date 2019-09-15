@@ -62,8 +62,8 @@ class WorldData:
 
     def format_for_json(self):
         data = dict(
-            **{f'latitude{key}': value for key, value in self.latitude.format_for_json().items()},
-            **{f'longitude{key}': value for key, value in self.longitude.format_for_json().items()},
+            **{f'lat{key}': value for key, value in self.latitude.format_for_json().items()},
+            **{f'long{key}': value for key, value in self.longitude.format_for_json().items()},
             **proxy_properties_as_dict(self.world_settings, key_list=WORLD_SETTINGS_EXPORTED_PROPERTIES)
         )
         for field_name, field_type in self.__annotations__.items(): # pylint:disable=E1101

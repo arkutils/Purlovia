@@ -50,7 +50,10 @@ def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=F
         if only_overriden and not proxy.has_override(key):
             continue
 
-        data[key_list[key]] = unpack_defaultdict_value(getattr(proxy, key, None))
+        value = unpack_defaultdict_value(getattr(proxy, key, None))
+        if hasattr(value, 'format_for_json'):
+            value = value.format_for_json()
+        data[key_list[key]] = value
     return data
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):

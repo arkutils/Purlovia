@@ -32,7 +32,7 @@ def extract_npc_zone_manager(world: WorldData, proxy: NPCZoneManager) -> Optiona
     elif getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
         data['spawnLocations'] = [
             {
-                'weight': weight,
+                'weight': weight.format_for_json(),
                 **format_location_for_export(bounds, world.latitude, world.longitude)
             } for weight, bounds in gather_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0])
         ]
@@ -63,7 +63,7 @@ def gather_spawn_points(points: ArrayProperty):
 def gather_spawn_volumes(entries: ArrayProperty):
     for entry in entries.values:
         entry_data = entry.as_dict()
-        entry_weight = entry_data['EntryWeight'].value
+        entry_weight = entry_data['EntryWeight']
         spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
 
         if not spawn_volume:

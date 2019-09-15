@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import Union
 
 from ue.loader import AssetLoader
@@ -6,22 +7,21 @@ from ue.properties import FloatProperty
 from .types import PrimalWorldSettings
 
 
+@dataclass
 class GeoData:
     origin: Union[float, FloatProperty]
     scale: Union[float, FloatProperty]
-    multiplier: Union[float, FloatProperty]
-    shift: Union[float, FloatProperty]
+    multiplier: Union[float, FloatProperty] = field(init=False)
+    shift: Union[float, FloatProperty] = field(init=False)
 
-    def __init__(self, origin: Union[float, FloatProperty], scale: Union[float, FloatProperty]):
-        self.origin = origin
-        self.scale = scale
-        self.multiplier = scale * 10
-        self.shift = (scale*1000 - abs(origin)) / self.multiplier
-
-    # Offsets a coordinate in UE units by the map origin.
-    # Lets us skip the shift completely during the calculations.
-    def offset(self, centimeters: Union[float, FloatProperty]):
-        return abs(self.origin) + centimeters
+    def __post_init__(self):
+        '''
+        Origin is the location of the top left corner of the map.
+        Scale is the distance from the top left corner to the opposite
+        (bottom right) corner.
+        '''
+        self.multiplier = self.scale * 10
+        self.shift = (self.scale*1000 + self.origin) / self.multiplier
 
     # Calculates geo coords from UE units.
     def from_units(self, units: int):

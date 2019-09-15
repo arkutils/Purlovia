@@ -18,7 +18,7 @@ def extract_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolu
         **proxy_properties_as_dict(proxy, key_list=SUPPLY_DROP_EXPORTED_PROPERTIES, only_overriden=True),
         # Crate classes
         'crateClasses': [
-            entry.as_dict()['CrateTemplate'] for entry in proxy.LinkedSupplyCrateEntries[0].values
+            entry.as_dict()['CrateTemplate'].format_for_json() for entry in proxy.LinkedSupplyCrateEntries[0].values
         ],
         # Crate locations
         'crateLocations': [
