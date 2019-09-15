@@ -90,6 +90,9 @@ PROXY_TYPE_MAP = {
     '/Script/ShooterGame.CustomActorList': _export_actor_list,
     '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': _export_vein_location,
     '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': _export_vein_location,
+    '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP': _export_vein_location,
+    '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode': _export_vein_location,
+    '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild': _export_vein_location,
 }
 
 __all__ = [

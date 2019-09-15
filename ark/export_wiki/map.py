@@ -26,6 +26,9 @@ class WorldData:
     # Veins & Nests
     waterVeins: list = field(default_factory=lambda: [])
     oilVeins: list = field(default_factory=lambda: [])
+    gasVeins: list = field(default_factory=lambda: [])
+    chargeNodes: list = field(default_factory=lambda: [])
+    plantZNodes: list = field(default_factory=lambda: [])
     wyvernNests: list = field(default_factory=lambda: [])
     iceWyvernNests: list = field(default_factory=lambda: [])
     drakeNests: list = field(default_factory=lambda: [])

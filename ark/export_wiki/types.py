@@ -223,3 +223,6 @@ class VeinBase(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/
 
 class OilVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'): pass
 class WaterVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'): pass
+class GasVein(VeinBase, uetype='/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP'): pass
+class PrimalStructurePowerNode(VeinBase, uetype='/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode'): pass
+class WildPlantSpeciesZ(VeinBase, uetype='/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild'): pass

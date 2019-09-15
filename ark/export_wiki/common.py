@@ -20,11 +20,17 @@ KNOWN_KLASS_NAMES = [
     'WaterVein_Base_BP_C',
     'OilVein_Base_BP_C',
     'OilVein_2_BP_C'
+    'GasVein_Base_BP',
+    'Structure_PlantSpeciesZ_Wild',
+    'PrimalStructurePowerNode',
 ]
 
 ACTOR_FIELD_MAP = {
     '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': 'oilVeins',
     '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': 'waterVeins',
+    '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP': 'gasVeins',
+    '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode': 'chargeNodes',
+    '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild': 'plantZNodes',
 }
 
 ACTOR_LIST_TAG_FIELD_MAP = {
