@@ -141,17 +141,19 @@ class Exporter:
         values['map'] = world_data.name
 
         if moddata:
-            filename = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
-            filename = get_valid_filename(filename)
+            dirname = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
+            dirname = get_valid_filename(dirname)
             title = moddata['title'] or moddata['name']
             values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
         else:
-            filename = get_valid_filename(world_data.name)
+            dirname = get_valid_filename(world_data.name)
 
         values['version'] = version
         values.update(world_data.format_for_json())
 
-        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / filename).with_suffix('.json')
+        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+        fullpath.mkdir(parents=True, exist_ok=True)
+        fullpath = (fullpath / 'map').with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
