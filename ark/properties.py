@@ -73,8 +73,12 @@ def gather_properties_internal(asset: UAsset,
     for subcomponent in ark.asset.findSubComponentExports(asset):
         if report: print(f'{indent}|   subcomponent: {subcomponent.fullname}')
         if ark.tree.export_inherits_from(subcomponent, dcsc):
-            pri = int(clean_value(get_property(subcomponent, "CharacterStatusComponentPriority") or 0))
+            pri = clean_value(get_property(subcomponent, "CharacterStatusComponentPriority"))
+            if pri is None:
+                dcsc_cls = asset.loader.load_related(subcomponent.klass.value).default_export
+                pri = clean_value(get_property(dcsc_cls, "CharacterStatusComponentPriority"))
             if report: print(f'{indent}|   (postponing dcsc: priority={pri})')
+            pri = pri or 0
             dcscs.append((pri, subcomponent))
         else:
             if report: print(f'{indent}|   (gather properties)')
