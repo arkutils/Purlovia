@@ -2,6 +2,7 @@ import argparse
 import logging
 import logging.config
 import os
+import sys
 from pathlib import Path
 from typing import *
 
@@ -13,6 +14,7 @@ from .ark import ArkSteamManager
 from .export import export_values
 from .git import GitManager
 from .manifest import update_manifest
+from .notification import handle_exception
 
 # pylint: enable=invalid-name
 
@@ -65,6 +67,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting vanilla species')
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
+    parser.add_argument('--notify', action='store_true', help='enable sending error notifications')
 
     parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format to export')
 
@@ -83,17 +86,22 @@ def handle_args(args: Any) -> ConfigFile:
         config.settings.SkipGit = False
         config.git.UseReset = True
         config.git.UseIdentity = True
+        config.errors.SendNotifications = True
     else:
         logger.info('DEV mode enabled')
         config.git.UseIdentity = False
         config.git.SkipCommit = True
         config.git.SkipPush = True
+        config.errors.SendNotifications = False
 
     if args.stats:
         if int(args.stats) == 12:
             config.export_asb.Export8Stats = False
         else:
             config.export_asb.Export8Stats = True
+
+    if args.notify:  # to enable notifications in dev mode
+        config.errors.SendNotifications = True
 
     if args.skip_pull:
         config.git.SkipPull = True
@@ -150,6 +158,7 @@ def run(config: ConfigFile):
         logger.info('Automation completed')
 
     except:  # pylint: disable=bare-except
+        handle_exception(logfile='logs/errors.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
 
 
