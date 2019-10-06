@@ -5,6 +5,12 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Generic, List, TypeVar, Union
 
+try:
+    from IPython.lib.pretty import PrettyPrinter  # type: ignore
+    support_pretty = True
+except ImportError:
+    support_pretty = False
+
 __all__ = [
     'Node',
     'IndexedTree',
@@ -41,6 +47,19 @@ class Node(Generic[T]):
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.pretty(self._data)
+            with p.group(4, ':', ''):
+                for node in self._nodes:
+                    p.break_()
+                    p.pretty(node)
 
 
 class IndexedTree(Generic[T]):
@@ -94,3 +113,13 @@ class IndexedTree(Generic[T]):
             raise TypeError("Parent must be a key or a node")
 
         return parent_node
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.text('Tree ')
+            p.pretty(self.root)
