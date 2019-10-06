@@ -110,16 +110,16 @@ def handle_args(args: Any) -> ConfigFile:
         config.settings.SkipExtract = True
 
     if args.skip_map_extract:
-        config.wiki_settings.SkipExtract = True
+        config.export_wiki.Skip = True
 
     if args.skip_spawn_data:
-        config.wiki_settings.ExportSpawnData = False
+        config.export_wiki.ExportSpawnData = False
 
     if args.skip_biome_data:
-        config.wiki_settings.ExportBiomeData = False
+        config.export_wiki.ExportBiomeData = False
 
     if args.skip_supply_drop_data:
-        config.wiki_settings.ExportSupplyCrateData = False
+        config.export_wiki.ExportSupplyCrateData = False
 
     if args.skip_vanilla:
         config.export_asb.ExportVanillaSpecies = False
