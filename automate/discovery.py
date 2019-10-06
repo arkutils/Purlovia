@@ -110,7 +110,11 @@ class Discoverer:
         # Load and parse the asset
         # TODO: Don't parse properties if we don't need them
         # need_props = any(tester.get_requires_properties() for tester in fast_matches)
-        asset: UAsset = self.loader[assetname]
+        try:
+            asset: UAsset = self.loader[assetname]
+        except Exception:  # pylint: disable=broad-except
+            print("Failed to load asset: " + assetname)
+            return []
 
         # Test fully only for the ones that matched quickly
         full_matches = [tester for tester in fast_matches if tester.is_a_full_match(asset)]

@@ -24,6 +24,7 @@
 
     "cSpell.words": [
         "Tproxy",
+        "Valguero",
         "asdict",
         "buildid",
         "consts",
@@ -40,6 +41,7 @@
         "pydantic",
         "pylint",
         "pytest",
+        "rfind",
         "steamcmd",
         "uasset",
         "umap",

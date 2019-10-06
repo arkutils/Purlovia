@@ -56,7 +56,7 @@ class Node(Generic[T]):
                 return
 
             p.pretty(self._data)
-            with p.group(4, ':', ''):
+            with p.group(4, '', ''):
                 for node in self._nodes:
                     p.break_()
                     p.pretty(node)
