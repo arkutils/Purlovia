@@ -57,6 +57,45 @@ class ModResolver(ABC):
         pass
 
 
+class CacheManager(ABC):
+    @abstractmethod
+    def lookup(self, name) -> Optional[UAsset]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def add(self, name: str, asset: UAsset):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove(self, name: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def wipe(self, prefix: str = ''):
+        raise NotImplementedError
+
+
+class DictCacheManager(CacheManager):
+    def __init__(self):
+        self.cache: Dict[str, UAsset] = dict()
+
+    def lookup(self, name) -> Optional[UAsset]:
+        return self.cache.get(name, None)
+
+    def add(self, name: str, asset: UAsset):
+        self.cache[name] = asset
+
+    def remove(self, name):
+        del self.cache[name]
+
+    def wipe(self, prefix: str = ''):
+        if not prefix:
+            self.cache = dict()
+        else:
+            for name in list(key for key in self.cache if key.startswith(prefix)):
+                del self.cache[name]
+
+
 class IniModResolver(ModResolver):
     '''Old-style mod resolution by hand-crafted mods.ini.'''
     def __init__(self, filename='mods.ini'):
@@ -81,8 +120,8 @@ class IniModResolver(ModResolver):
 
 
 class AssetLoader:
-    def __init__(self, modresolver: ModResolver, assetpath='.'):
-        self.cache: Dict[str, UAsset] = dict()
+    def __init__(self, modresolver: ModResolver, assetpath='.', cache_manager: CacheManager = None):
+        self.cache: CacheManager = cache_manager or DictCacheManager()
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
@@ -113,12 +152,10 @@ class AssetLoader:
         return result
 
     def wipe_cache(self):
-        self.cache = dict()
+        self.cache.wipe()
 
     def wipe_cache_with_prefix(self, prefix: str):
-        cache = self.cache
-        for assetname in list(key for key in cache.keys() if key.startswith(prefix)):
-            del cache[assetname]
+        self.cache.wipe(prefix)
 
     def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset'):
         '''Get the filename from which an asset can be loaded.'''
@@ -215,17 +252,17 @@ class AssetLoader:
         raise ValueError(f"Unsupported type for load_related '{type(obj)}'")
 
     def load_class(self, fullname: str, fallback=NO_FALLBACK) -> ExportTableItem:
-        (assetname, clsname) = fullname.split('.')
+        (assetname, cls_name) = fullname.split('.')
         assetname = self.clean_asset_name(assetname)
         asset = self[assetname]
         for export in asset.exports:
-            if str(export.name) == clsname:
+            if str(export.name) == cls_name:
                 return export
 
         if fallback is not NO_FALLBACK:
             return fallback
 
-        raise KeyError(f"Export {clsname} not found")
+        raise KeyError(f"Export {cls_name} not found")
 
     def _load_raw_asset_from_file(self, filename: str):
         '''Load an asset given its filename into memory without parsing it.'''
@@ -255,13 +292,13 @@ class AssetLoader:
     def __getitem__(self, assetname: str):
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
         assetname = self.clean_asset_name(assetname)
-        asset = self.cache.get(assetname, None) or self._load_asset(assetname)
+        asset = self.cache.lookup(assetname) or self._load_asset(assetname)
         return asset
 
     def __delitem__(self, assetname: str):
         '''Remove the specified assetname from the cache.'''
         assetname = self.clean_asset_name(assetname)
-        del self.cache[assetname]
+        self.cache.remove(assetname)
 
     def partially_load_asset(self, assetname: str):
         asset = self._load_asset(assetname, doNotLink=True)
@@ -288,7 +325,7 @@ class AssetLoader:
         if asset.default_export:
             asset.default_class = asset.default_export.klass.value
 
-        self.cache[assetname] = asset
+        self.cache.add(assetname, asset)
         return asset
 
 

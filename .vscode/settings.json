@@ -29,6 +29,8 @@
         "consts",
         "deserialise",
         "functools",
+        "isabs",
+        "isnumeric",
         "klass",
         "mkdirs",
         "modid",
