@@ -9,6 +9,8 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
+import psutil
+
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
 from .properties import ObjectIndex, ObjectProperty, Property
@@ -133,10 +135,13 @@ class UsageBasedCacheManager(CacheManager):
 
     We use the guaranteed ordering of Python dicts to track the most recently used entries.
     '''
-    def __init__(self, max_count=5000, amount_to_free=3000):
+    def __init__(self, max_count=5000, max_memory=6 * 1024 * 1024 * 1024, keep_count=1000):
         self.cache: Dict[str, UAsset] = dict()
         self.max_count = max_count
-        self.amount_to_free = amount_to_free
+        self.max_memory = max_memory
+        self.keep_count = keep_count
+
+        self.highest_memory_seen = 0
 
     def lookup(self, name: str):
         '''
@@ -188,11 +193,21 @@ class UsageBasedCacheManager(CacheManager):
                 del self.cache[name]
 
     def _maybe_purge(self):
-        if len(self.cache) < self.max_count:
-            return
+        mem_used = psutil.Process().memory_info().rss
+        if mem_used > self.highest_memory_seen:
+            self.highest_memory_seen = mem_used
 
-        # Purge enough entries to leave remaining_count
-        to_cull = list(islice(self.cache, self.amount_to_free))
+        cache_count = len(self.cache)
+
+        if cache_count >= self.max_count:
+            logger.info("Asset cache purge due to too many items")
+            self._purge(cache_count - self.keep_count)
+        elif mem_used >= self.max_memory and cache_count > self.keep_count:
+            logger.info("Asset cache purge due to high memory usage (with %d items)", cache_count)
+            self._purge(cache_count - self.keep_count)
+
+    def _purge(self, amount: int):
+        to_cull = list(islice(self.cache, amount))
         for name in to_cull:
             del self.cache[name]
 
