@@ -1,80 +1,86 @@
-'/':
+'/Script/ShooterGame.Object':
+- '/Script/ShooterGame.Actor':
+    - '/Script/ShooterGame.DroppedItem': # Done
+        - '/Script/ShooterGame.DroppedItemEgg'
+        - '/Script/ShooterGame.DroppedItemLowQuality':
+            - '/Script/ShooterGame.DroppedItemTorch'
+    - '/Script/ShooterGame.Info': # Done
+        - '/Script/ShooterGame.DayCycleManager'
+        - '/Script/ShooterGame.GameMode':
+            - '/Script/ShooterGame.LocalSpawnGameMode'
+            - '/Script/ShooterGame.ShooterGame_Menu'
+            - '/Script/ShooterGame.ShooterGameMode':
+                - '/Script/ShooterGame.CustomGameMode'
+        - '/Script/ShooterGame.GameState':
+            - '/Script/ShooterGame.ShooterGameState':
+                - '/Script/ShooterGame.BattleGameState'
+                - '/Script/ShooterGame.CustomGameState'
+        - '/Script/ShooterGame.MatineeActorManager'
+        - '/Script/ShooterGame.NPCZoneManager'
+        - '/Script/ShooterGame.PlayerState':
+            - '/Script/ShooterGame.ShooterPlayerState'
+        - '/Script/ShooterGame.PrimalStructurePlacer'
+        - '/Script/ShooterGame.SkyLight'
+    - '/Script/ShooterGame.PrimalTargetableActor': # Done
+        - '/Script/ShooterGame.PrimalStructure':
+            - '/Script/ShooterGame.PrimalStructureBearTrap'
+            - '/Script/ShooterGame.PrimalStructureDoor':
+                - '/Script/ShooterGame.PrimalStructureSkeletalDoor'
+            - '/Script/ShooterGame.PrimalStructureElevatorPlatform'
+            - '/Script/ShooterGame.PrimalStructureExplosive':
+                - '/Script/ShooterGame.PrimalStructureExplosiveTransGPS'
+                - '/Script/ShooterGame.PrimalStructureTripwire'
+            - '/Script/ShooterGame.PrimalStructureItemContainer':
+                - '/Script/ShooterGame.PrimalStructureElevatorTrack'
+                - '/Script/ShooterGame.PrimalStructureItemContainer_CropPlot':
+                    - '/Script/ShooterGame.PrimalStructureItemContainer_CropPlot_VisualItems'
+                - '/Script/ShooterGame.PrimalStructureItemContainer_SupplyCrate':
+                    - '/Script/ShooterGame.PrimalStructureItemContainer_HordeCrate'
+                - '/Script/ShooterGame.PrimalStructureItemContainer_VisualItems'
+                - '/Script/ShooterGame.PrimalStructureKeypad'
+                - '/Script/ShooterGame.PrimalStructureMovingContainer'
+                - '/Script/ShooterGame.PrimalStructureSeating':
+                    - '/Script/ShooterGame.PrimalStructureBed'
+                    - '/Script/ShooterGame.PrimalStructureSeatingMusic'
+                    - '/Script/ShooterGame.PrimalStructureTurretBallista'
+                - '/Script/ShooterGame.PrimalStructureTurret':
+                    - '/Script/ShooterGame.PrimalStructureTurretPlant'
+                - '/Script/ShooterGame.PrimalStructureUnderwaterBase'
+            - '/Script/ShooterGame.PrimalStructureLadder':
+                - '/Script/ShooterGame.PrimalStructurePortableLadder'
+            - '/Script/ShooterGame.PrimalStructureSeaMine'
+            - '/Script/ShooterGame.PrimalStructureSign'
+            - '/Script/ShooterGame.PrimalStructureWaterPipe'
+    - '/Script/ShooterGame.ShooterProjectile': # Done
+        - '/Script/ShooterGame.PrimalProjectileArrow':
+            - '/Script/ShooterGame.PrimalProjectileBoomerang'
+            - '/Script/ShooterGame.PrimalProjectileNetGun'
+        - '/Script/ShooterGame.PrimalProjectileDilo'
+        - '/Script/ShooterGame.PrimalProjectileFlare'
+        - '/Script/ShooterGame.PrimalProjectileGrapplingHook'
+        - '/Script/ShooterGame.PrimalProjectileSpiderAcid'
+        - '/Script/ShooterGame.ShooterProjectile_Swarm'
+    - '/Script/ShooterGame.ShooterWeapon': # Done
+        - '/Script/ShooterGame.ShooterWeapon_ChainSaw'
+        - '/Script/ShooterGame.ShooterWeapon_FlameThrower'
+        - '/Script/ShooterGame.ShooterWeapon_Instant':
+            - '/Script/ShooterGame.ShooterWeapon_InstantPenetrating'
+        - '/Script/ShooterGame.ShooterWeapon_Melee':
+            - '/Script/ShooterGame.PrimalWeaponElectronicBinoculars'
+            - '/Script/ShooterGame.PrimalWeaponGPS'
+            - '/Script/ShooterGame.ShooterWeapon_Climb'
+            - '/Script/ShooterGame.ShooterWeapon_Whip'
+        - '/Script/ShooterGame.ShooterWeapon_Placer':
+            - '/Script/ShooterGame.ShooterWeapon_PlacerTransGPS'
+        - '/Script/ShooterGame.ShooterWeapon_Projectile':
+            - '/Script/ShooterGame.PrimalWeaponBow':
+                - '/Script/ShooterGame.PrimalWeaponBoomerang'
+            - '/Script/ShooterGame.PrimalWeaponGrapplingHook'
+            - '/Script/ShooterGame.PrimalWeaponGrenade'
+- '/Script/ShooterGame.ActorComponent':
+    - '/Script/ShooterGame.PrimalInventoryComponent':
+        - '/Script/ShooterGame.PrimalInventoryComponent_Static'
 - '/Script/ShooterGame.PrimalItem':
     - '/Script/ShooterGame.PrimalItem_Dye'
     - '/Script/ShooterGame.PrimalItem_Radio'
-
-- '/Script/ShooterGame.PrimalInventoryComponent':
-    - '/Script/ShooterGame.PrimalInventoryComponent_Static'
-
-- '/Script/ShooterGame.ShooterWeapon':
-    - '/Script/ShooterGame.ShooterWeapon_Climb'
-    - '/Script/ShooterGame.ShooterWeapon_Instant'
-    - '/Script/ShooterGame.ShooterWeapon_Melee'
-    - '/Script/ShooterGame.ShooterWeapon_Placer':
-        - '/Script/ShooterGame.ShooterWeapon_PlacerTransGPS'
-
-    - '/Script/ShooterGame.ShooterWeapon_Projectile'
-    - '/Script/ShooterGame.ShooterWeapon_ChainSaw'
-    - '/Script/ShooterGame.ShooterWeapon_FlameThrower'
-    - '/Script/ShooterGame.ShooterWeapon_InstantPenetrating'
-    - '/Script/ShooterGame.ShooterWeapon_Whip'
-
-- '/Script/ShooterGame.PrimalProjectile':
-    - '/Script/ShooterGame.PrimalProjectileArrow'
-    - '/Script/ShooterGame.PrimalProjectileBoomerang'
-    - '/Script/ShooterGame.PrimalProjectileDilo'
-    - '/Script/ShooterGame.PrimalProjectileFlare'
-    - '/Script/ShooterGame.PrimalProjectileGrapplingHook'
-    - '/Script/ShooterGame.PrimalProjectileSpiderAcid'
-
-- '/Script/ShooterGame.PrimalStructure':
-    - '/Script/ShooterGame.PrimalStructureBearTrap'
-    - '/Script/ShooterGame.PrimalStructureBed'
-    - '/Script/ShooterGame.PrimalStructureDoor'
-    - '/Script/ShooterGame.PrimalStructureElevatorPlatform'
-    - '/Script/ShooterGame.PrimalStructureElevatorTrack'
-    - '/Script/ShooterGame.PrimalStructureExplosive':
-        - '/Script/ShooterGame.PrimalStructureExplosiveTransGPS'
-
-    - '/Script/ShooterGame.PrimalStructureItemContainer':
-        - '/Script/ShooterGame.PrimalStructureItemContainer_HordeCrate'
-        - '/Script/ShooterGame.PrimalStructureItemContainer_SupplyCrate'
-        - '/Script/ShooterGame.PrimalStructureItemContainer_CropPlot':
-            - '/Script/ShooterGame.PrimalStructureItemContainer_CropPlot_VisualItems'
-
-        - '/Script/ShooterGame.PrimalStructureItemContainer_VisualItems'
-
-    - '/Script/ShooterGame.PrimalStructureKeypad'
-    - '/Script/ShooterGame.PrimalStructureLadder'
-    - '/Script/ShooterGame.PrimalStructureMovingContainer'
-    - '/Script/ShooterGame.PrimalStructurePlacer'
-    - '/Script/ShooterGame.PrimalStructurePortableLadder'
-    - '/Script/ShooterGame.PrimalStructureSeaMine'
-    - '/Script/ShooterGame.PrimalStructureSeating':
-        - '/Script/ShooterGame.PrimalStructureSeatingMusic'
-
-    - '/Script/ShooterGame.PrimalStructureSettings'
-    - '/Script/ShooterGame.PrimalStructureSign'
-    - '/Script/ShooterGame.PrimalStructureSkeletalDoor'
-    - '/Script/ShooterGame.PrimalStructureTripwire'
-    - '/Script/ShooterGame.PrimalStructureTurret':
-        - '/Script/ShooterGame.PrimalStructureTurretBallista'
-        - '/Script/ShooterGame.PrimalStructureTurretPlant'
-
-    - '/Script/ShooterGame.PrimalStructureUnderwaterBase'
-    - '/Script/ShooterGame.PrimalStructureWaterPipe'
-
-- '/Script/ShooterGame.PrimalWeapon':
-    - '/Script/ShooterGame.PrimalWeaponBoomerang'
-    - '/Script/ShooterGame.PrimalWeaponBow'
-    - '/Script/ShooterGame.PrimalWeaponGPS'
-    - '/Script/ShooterGame.PrimalWeaponGrapplingHook'
-    - '/Script/ShooterGame.PrimalWeaponGrenade'
-
-- '/Script/ShooterGame.DroppedItem':
-    - '/Script/ShooterGame.DroppedItemEgg'
-    - '/Script/ShooterGame.DroppedItemLowQuality'
-    - '/Script/ShooterGame.DroppedItemTorch'
-
-- '/Script/ShooterGame.ShooterProjectile':
-    - '/Script/ShooterGame.ShooterProjectile_Swarm'
+- '/Script/ShooterGame.PrimalStructureSettings'
