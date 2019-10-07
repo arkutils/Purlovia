@@ -4,8 +4,9 @@ import sys
 import weakref
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
+from itertools import islice
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import *
 
 from .asset import ExportTableItem, ImportTableItem, UAsset
@@ -17,9 +18,10 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 __all__ = (
+    'AssetLoadException',
     'ModNotFound',
     'AssetNotFound',
-    'AssetLoadException',
+    'AssetParseError',
     'AssetLoader',
     'load_file_into_memory',
     'ModResolver',
@@ -43,6 +45,11 @@ class AssetNotFound(AssetLoadException):
         super().__init__(f'Asset {asset_name} not found')
 
 
+class AssetParseError(AssetLoadException):
+    def __init__(self, asset_name: str):
+        super().__init__(f'Error parsing asset {asset_name}')
+
+
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
     def initialise(self):
@@ -55,45 +62,6 @@ class ModResolver(ABC):
     @abstractmethod
     def get_id_from_name(self, name: str) -> str:
         pass
-
-
-class CacheManager(ABC):
-    @abstractmethod
-    def lookup(self, name) -> Optional[UAsset]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def add(self, name: str, asset: UAsset):
-        raise NotImplementedError
-
-    @abstractmethod
-    def remove(self, name: str):
-        raise NotImplementedError
-
-    @abstractmethod
-    def wipe(self, prefix: str = ''):
-        raise NotImplementedError
-
-
-class DictCacheManager(CacheManager):
-    def __init__(self):
-        self.cache: Dict[str, UAsset] = dict()
-
-    def lookup(self, name) -> Optional[UAsset]:
-        return self.cache.get(name, None)
-
-    def add(self, name: str, asset: UAsset):
-        self.cache[name] = asset
-
-    def remove(self, name):
-        del self.cache[name]
-
-    def wipe(self, prefix: str = ''):
-        if not prefix:
-            self.cache = dict()
-        else:
-            for name in list(key for key in self.cache if key.startswith(prefix)):
-                del self.cache[name]
 
 
 class IniModResolver(ModResolver):
@@ -119,9 +87,119 @@ class IniModResolver(ModResolver):
         return modid
 
 
+class CacheManager(ABC):
+    @abstractmethod
+    def lookup(self, name) -> Optional[UAsset]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def add(self, name: str, asset: UAsset):
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove(self, name: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def wipe(self, prefix: str = ''):
+        raise NotImplementedError
+
+
+class DictCacheManager(CacheManager):
+    '''A cache manager implementing the old unintelligent mechanism.'''
+    def __init__(self):
+        self.cache: Dict[str, UAsset] = dict()
+
+    def lookup(self, name: str) -> Optional[UAsset]:
+        return self.cache.get(name, None)
+
+    def add(self, name: str, asset: UAsset):
+        self.cache[name] = asset
+
+    def remove(self, name):
+        del self.cache[name]
+
+    def wipe(self, prefix: str = ''):
+        if not prefix:
+            self.cache = dict()
+        else:
+            for name in list(key for key in self.cache if key.startswith(prefix)):
+                del self.cache[name]
+
+
+class UsageBasedCacheManager(CacheManager):
+    '''
+    A cache manager that prioritises the most recently used entries.
+
+    We use the guaranteed ordering of Python dicts to track the most recently used entries.
+    '''
+    def __init__(self, max_count=5000, amount_to_free=3000):
+        self.cache: Dict[str, UAsset] = dict()
+        self.max_count = max_count
+        self.amount_to_free = amount_to_free
+
+    def lookup(self, name: str):
+        '''
+        Lookup an asset in the cache.
+
+        Note that this marks it as recently used, and hence less likely to be purged.
+        '''
+        # Pull out the value, if present
+        result = self.cache.pop(name, None)
+        if result:
+            # Re-insert at the end
+            self.cache[name] = result
+
+        return result
+
+    def add(self, name: str, asset: UAsset):
+        '''
+        Add an asset to the cache, replacing any previous asset with the same name.
+
+        Note that this marks it as recently used, and hence less likely to be purged.
+        '''
+        # Discard any previous version
+        self.cache.pop(name, None)
+
+        # Add to the end of the cache
+        self.cache[name] = asset
+
+        # Check if we have too many assets
+        self._maybe_purge()
+
+    def remove(self, name: str):
+        '''
+        Remove the named asset from the cache.
+        '''
+        self.cache.pop(name, None)
+
+    def wipe(self, prefix: str = ''):
+        '''
+        Remove cache entries that begin with the given prefix.
+
+        An empty or None prefix wipes the entire cache.
+        '''
+        if not prefix:
+            # Full wipe
+            self.cache = dict()
+        else:
+            to_cull = list(key for key in self.cache if key.startswith(prefix))
+            for name in to_cull:
+                del self.cache[name]
+
+    def _maybe_purge(self):
+        if len(self.cache) < self.max_count:
+            return
+
+        # Purge enough entries to leave remaining_count
+        to_cull = list(islice(self.cache, self.amount_to_free))
+        for name in to_cull:
+            del self.cache[name]
+
+
 class AssetLoader:
     def __init__(self, modresolver: ModResolver, assetpath='.', cache_manager: CacheManager = None):
-        self.cache: CacheManager = cache_manager or DictCacheManager()
+        self.cache: CacheManager = cache_manager or UsageBasedCacheManager()
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
@@ -312,10 +390,14 @@ class AssetLoader:
         asset.loader = self
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
-        asset.deserialise()
-        if doNotLink:
-            return asset
-        asset.link()
+
+        try:
+            asset.deserialise()
+            if doNotLink:
+                return asset
+            asset.link()
+        except Exception as ex:
+            raise AssetParseError(assetname) from ex
 
         exports = [export for export in asset.exports.values if str(export.name).startswith('Default__')]
         if len(exports) > 1:
