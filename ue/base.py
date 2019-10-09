@@ -95,6 +95,9 @@ class UEBase(object):
         if isinstance(value, UEBase) and not value.is_serialised:
             value.deserialise(*extraArgs)
 
+    def format_for_json(self):
+        return str(self)
+
     def __eq__(self, other):
         return self is other  # only the same object is considered the equal
 
