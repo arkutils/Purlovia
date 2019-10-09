@@ -14,6 +14,7 @@ from .export import export_values
 from .export_wiki import export_map_data
 from .git import GitManager
 from .manifest import update_manifest
+from .manifest_wiki import update_manifest_wiki
 
 # pylint: enable=invalid-name
 
@@ -161,6 +162,7 @@ def run(config: ConfigFile):
 
         # Update the manifest file
         update_manifest(config.settings.OutputPath / config.export_asb.PublishSubDir)
+        update_manifest_wiki(config.settings.OutputPath / config.export_wiki.PublishSubDir)
         # TODO: for each export system
 
         # Commit any changes
