@@ -1,6 +1,7 @@
 from typing import List, Type, Union
 
 from .base import UEBase
+from .context import INCLUDE_METADATA
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
@@ -58,7 +59,7 @@ class Table(UEBase):
     def __len__(self):
         return len(self.values)
 
-    if support_pretty:
+    if support_pretty and INCLUDE_METADATA:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''

@@ -8,6 +8,8 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import *
 
+import psutil
+
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
 from .properties import ObjectIndex, ObjectProperty, Property
@@ -82,6 +84,9 @@ class AssetLoader:
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
+
+        self.max_memory = 0
+        self.max_cache = 0
 
     def clean_asset_name(self, name: str):
         # Remove class name, if present
@@ -245,6 +250,15 @@ class AssetLoader:
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
         assetname = self.clean_asset_name(assetname)
         asset = self.cache.get(assetname, None) or self._load_asset(assetname)
+
+        # Keep track of some stats
+        mem_used = psutil.Process().memory_info().rss
+        if mem_used > self.max_memory:
+            self.max_memory = mem_used
+        cache_used = len(self.cache)
+        if cache_used > self.max_cache:
+            self.max_cache = cache_used
+
         return asset
 
     def __delitem__(self, assetname: str):

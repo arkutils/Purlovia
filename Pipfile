@@ -12,6 +12,7 @@ mypy = "*"
 jupyter = "*"
 deepdiff = "*"
 pygments = "*"
+psutil = "*"
 
 [packages]
 requests = "~=2.22.0"

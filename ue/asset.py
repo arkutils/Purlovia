@@ -1,11 +1,22 @@
 import weakref
+from logging import NullHandler, getLogger
 from typing import *
 
 from .base import UEBase
+from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
 from .properties import CustomVersion, Guid, PropertyTable, StringProperty
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
+
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        support_pretty = True
+    except ImportError:
+        support_pretty = False
+else:
+    support_pretty = False
 
 dbg_getName = 0
 
@@ -14,6 +25,9 @@ __all__ = [
     'ImportTableItem',
     'ExportTableItem',
 ]
+
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
 
 class UAsset(UEBase):
@@ -63,14 +77,18 @@ class UAsset(UEBase):
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
+        if not get_ctx().link:
+            return
+
         super()._link()
         self.names.link()
         self._findNoneName()
         self.imports.link()
         self.exports.link()
 
-        for export in self.exports:
-            export.deserialise_properties()
+        if get_ctx().properties:
+            for export in self.exports:
+                export.deserialise_properties()
 
     def getName(self, index):
         '''Get a name for the given index.'''
@@ -89,7 +107,7 @@ class UAsset(UEBase):
             raise IndexError(f'Invalid name index 0x{index:08X} ({index})') from err
 
         if (flags or extraIndex) and dbg_getName:
-            print(f'getName for "{name}" ignoring flags 0x{flags:08X} and extraIndex 0x{extraIndex:08X}')
+            logger.warning('getName for "%s" ignoring flags 0x%08X and extraIndex 0x%08X', name, flags, extraIndex)
 
         # TODO: Do something with extraIndex?
         return name
@@ -138,33 +156,38 @@ class ImportTableItem(UEBase):
     klass: NameIndex
     namespace: ObjectIndex
     name: NameIndex
+    users: Set[UEBase]
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         self._newField('package', NameIndex(self))  # item type/class namespace
         self._newField('klass', NameIndex(self))  # item type/class
         self._newField('namespace', ObjectIndex(self))  # item namespace
         self._newField('name', NameIndex(self))  # item name
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     @property
     def fullname(self) -> str:
         return str(self.namespace.value.name) + '.' + str(self.name)
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
-    def _repr_pretty_(self, p, cycle):
-        if cycle:
-            p.text('Import(<cyclic>)')
-        else:
-            parent = get_clean_name(self.klass, 'class')
-            pkg = get_clean_name(self.namespace)
-            if pkg:
-                p.text(f'Import({self.name} ({parent}) from {pkg})')
+    if support_pretty and INCLUDE_METADATA:
+
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('Import(<cyclic>)')
             else:
-                p.text(f'Import({self.name} ({parent})')
+                parent = get_clean_name(self.klass, 'class')
+                pkg = get_clean_name(self.namespace)
+                if pkg:
+                    p.text(f'Import({self.name} ({parent}) from {pkg})')
+                else:
+                    p.text(f'Import({self.name} ({parent})')
 
     def __str__(self):
         parent = get_clean_name(self.klass, 'class')
@@ -185,6 +208,7 @@ class ExportTableItem(UEBase):
     namespace: ObjectIndex
     name: NameIndex
     properties: PropertyTable
+    users: Set[UEBase]
 
     def _deserialise(self):
         self._newField('klass', ObjectIndex(self))  # item type/class
@@ -201,8 +225,9 @@ class ExportTableItem(UEBase):
         self._newField('package_flags', self.stream.readUInt32())
         self._newField('not_for_editor_game', self.stream.readBool32())
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     def _link(self):
         super()._link()
@@ -210,7 +235,8 @@ class ExportTableItem(UEBase):
             self.fullname = self.asset.assetname + '.' + str(self.name)
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
     def deserialise_properties(self):
         if 'properties' in self.field_values:
