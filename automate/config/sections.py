@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Tuple
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, UrlStr
 
 from utils.name_convert import snake_to_kebab
 
@@ -38,6 +38,14 @@ class GitSection(BaseModel):
     SkipCommit: bool = False
     SkipPull: bool = False
     SkipPush: bool = False
+
+    class Config:
+        extra = Extra.forbid
+
+
+class ErrorsSection(BaseModel):
+    SendNotifications: bool = False
+    MessageHeader: str = 'Purlovia ran into an error:'
 
     class Config:
         extra = Extra.forbid
@@ -86,6 +94,7 @@ class ConfigFile(BaseModel):
     settings: SettingsSection
     steamcmd: SteamCmdSection
     git: GitSection
+    errors: ErrorsSection
     optimisation: OptimisationSection
 
     export_asb: ExportASBSection

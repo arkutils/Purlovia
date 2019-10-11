@@ -1,11 +1,15 @@
 from typing import *
 
-from ue.stream import MemoryStream
+from .context import INCLUDE_METADATA
+from .stream import MemoryStream
 
-try:
-    from IPython.lib.pretty import PrettyPrinter  # type: ignore
-    support_pretty = True
-except ImportError:
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        support_pretty = True
+    except ImportError:
+        support_pretty = False
+else:
     support_pretty = False
 
 
@@ -21,14 +25,15 @@ class UEBase(object):
         self.asset = owner.asset  # type: ignore
         self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
         self.field_values: Dict[str, Any] = {}
-        self.field_order: List[str] = []
+        self.start_offset: Optional[int] = None
         self.is_serialising = False
         self.is_serialised = False
         self.is_linking = False
         self.is_linked = False
         self.is_inside_array = False
-        self.start_offset: Optional[int] = None
-        self.end_offset: Optional[int] = None
+        if INCLUDE_METADATA:
+            self.field_order: List[str] = []
+            self.end_offset: Optional[int] = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -48,7 +53,8 @@ class UEBase(object):
         self.start_offset = self.stream.offset
         self.is_serialising = True
         self._deserialise(*args, **kwargs)
-        self.end_offset = self.stream.offset - 1
+        if INCLUDE_METADATA:
+            self.end_offset = self.stream.offset - 1
         self.is_serialising = False
         self.is_serialised = True
 
@@ -86,11 +92,13 @@ class UEBase(object):
 
     def _newField(self, name: str, value, *extraArgs):
         '''Internal method used by subclasses to define new fields.'''
-        if name in self.field_order:
+        if name in self.field_values:
             raise NameError(f'Field "{name}" is already defined')
 
-        self.field_order.append(name)
         self.field_values[name] = value
+
+        if INCLUDE_METADATA:
+            self.field_order.append(name)
 
         if isinstance(value, UEBase) and not value.is_serialised:
             value.deserialise(*extraArgs)
@@ -119,11 +127,11 @@ class UEBase(object):
         if self.main_field:
             return str(self.field_values.get(self.main_field, f'<uninitialised {self.__class__.__name__}>'))
 
-        fields = self.display_fields or self.field_order
+        fields = self.display_fields or list(self.field_values.keys())
         fields_txt = ', '.join(str(self.field_values[name]) for name in fields)
         return f'{self.__class__.__name__}({fields_txt})'
 
-    if support_pretty:
+    if support_pretty and INCLUDE_METADATA:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''

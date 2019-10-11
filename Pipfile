@@ -12,7 +12,6 @@ mypy = "*"
 jupyter = "*"
 deepdiff = "*"
 pygments = "*"
-pytest-mock = "*"
 
 [packages]
 requests = "~=2.22.0"

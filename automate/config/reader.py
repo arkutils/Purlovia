@@ -7,6 +7,7 @@ SIMPLE_SECTION_TYPES = {
     'settings': SettingsSection,
     'steamcmd': SteamCmdSection,
     'git': GitSection,
+    'errors': ErrorsSection,
     'export-defaults': ExportDefaultsSection,
     'optimisation': OptimisationSection,
 }
