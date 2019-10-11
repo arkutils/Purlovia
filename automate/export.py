@@ -65,6 +65,9 @@ class Exporter:
             prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
             self.loader.wipe_cache_with_prefix(prefix)
 
+        logger.info('Max memory: %6.2f Mb', self.loader.max_memory / 1024.0 / 1024.0)
+        logger.info('Max cache entries: %d', self.loader.max_cache)
+
     def _prepare_versions(self):
         if not self.game_version:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")

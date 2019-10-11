@@ -10,14 +10,18 @@ from numbers import Real
 from typing import *
 
 from .base import UEBase
+from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
 from .number import *
 from .stream import MemoryStream
 
-try:
-    from IPython.lib.pretty import PrettyPrinter, pprint, pretty  # type: ignore
-    support_pretty = True
-except ImportError:
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        support_pretty = True
+    except ImportError:
+        support_pretty = False
+else:
     support_pretty = False
 
 #pylint: disable=unused-argument,arguments-differ
@@ -112,7 +116,7 @@ class PropertyTable(UEBase):
     def __len__(self):
         return len(self.values)
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -166,7 +170,7 @@ class Property(UEBase):
             self._newField('value', f'<unsupported type {str(self.header.type)}>')
             self.stream.offset += self.header.size
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Clean property format: Name[index] = (type) value'''
@@ -441,7 +445,7 @@ class ByteProperty(ValueProperty):  # With optional enum type
             self._newField('value', '<skipped bytes>')
             self.stream.offset += size
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -485,7 +489,7 @@ class StringProperty(UEBase):
     size: int
     value: str
 
-    users: set
+    users: Set[UEBase]
 
     @classmethod
     def create(cls, value: str, asset: UEBase = None):
@@ -509,11 +513,13 @@ class StringProperty(UEBase):
             self.size = -self.size
             self._newField('value', self.stream.readTerminatedWideString(self.size))
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
     def __str__(self):
         return self.value
@@ -764,11 +770,11 @@ class StructProperty(UEBase):
 
     def __str__(self):
         if self.values and len(self.values) == 1:
-            return pretty(self.values[0])
+            return str(self.values[0])
 
         return f'{self.count} entries'
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -837,13 +843,13 @@ class ArrayProperty(UEBase):
                 assetname = '<unnamed asset>'
                 if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
                     assetname = self.asset.assetname
-                logger.debug(f'Skippable exception parsing {assetname}: {err}')
+                logger.debug('Skippable exception parsing %s: %s', assetname, err)
                 self.stream.offset = saved_offset + size
                 return
 
         self.stream.offset = saved_offset + size
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -919,7 +925,7 @@ class Quat(UEBase):
 
 
 class Transform(UEBase):
-    rotatio: Quat
+    rotation: Quat
     translation: Vector
     scale: Vector
 

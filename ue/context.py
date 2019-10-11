@@ -1,65 +1,86 @@
+'''
+with ue_parsing_context(metadata=True, link=True, properties=True):
+    # GUI stuff
+
+with ue_parsing_context(metadata=False, link=True, properties=False):
+    # hierarchy gathering
+
+    with ue_parsing_context(properties=True):
+        # exporting
+        # inherits metadata=False, link=True
+'''
+
 import threading
 from collections import namedtuple
 from contextlib import ContextDecorator
+from dataclasses import dataclass
 from enum import IntEnum, auto
 from logging import NullHandler, getLogger
-from typing import Optional, cast
+from typing import NamedTuple, Optional, cast
 
 from utils.xlocal import xlocal
 
 __all__ = [
-    'ParseDepth',
-    'ParseMeta',
-    'parsing_context',
+    'ParsingContext',
+    'ue_parsing_context',
     'get_ctx',
 ]
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
-
-class ParseDepth(IntEnum):
-    MEMORY = auto()
-    HEADER = auto()
-    PROPERTIES = auto()
-    # BULKDATA = auto()
-
-    DEFAULT = PROPERTIES
-    FULL = PROPERTIES
+INCLUDE_METADATA = True
 
 
-class ParseMeta(IntEnum):
-    NONE = auto()
-    FULL = auto()
-
-    DEFAULT = NONE
+def disable_metadata():
+    global INCLUDE_METADATA  # pylint: disable=global-statement
+    INCLUDE_METADATA = False
 
 
-current_ctx = xlocal(depth=ParseDepth.DEFAULT, meta=ParseMeta.DEFAULT)
+@dataclass
+class ParsingContext:
+    # metadata: bool
+    link: bool
+    properties: bool
+    bulk_data: bool
+    context_level: int
 
 
-class Context:
-    depth: ParseDepth
-    meta: ParseMeta
+DEFAULT_CONTEXT = ParsingContext(
+    # metadata=True,
+    link=True,
+    properties=True,
+    bulk_data=False,
+    context_level=1,
+)
+
+__current_ctx = xlocal(**vars(DEFAULT_CONTEXT))
 
 
-def get_ctx() -> Context:
-    return cast(Context, current_ctx)
+def get_ctx() -> ParsingContext:
+    return cast(ParsingContext, __current_ctx)
 
 
-def parsing_context(depth: Optional[ParseDepth] = None, meta: Optional[ParseMeta] = None):
+def ue_parsing_context(
+        *,
+        #    metadata: Optional[bool] = None,
+        link: Optional[bool] = None,
+        properties: Optional[bool] = None,
+        bulk_data: Optional[bool] = None):
     '''
     Change the current UE parsing context.
     This is a context manager for use in a `with` statement.
 
     Usage:
-        with parsing_context(ParseDepth.PROPERTIES, ParseMeta.NONE):
+        with ue_parsing_context(metadata=False, properties=False):
             asset = loader[assetname]
     '''
-    # Only override what is changed
-    if depth is None and meta is None:
-        return current_ctx()
-    if depth is None:
-        return current_ctx(meta=meta)
+    fields = dict(context_level=__current_ctx.context_level + 1)
 
-    return current_ctx(depth=depth)
+    # if metadata is not None: fields['metadata'] = metadata
+    if link is not None: fields['link'] = link
+    if properties is not None: fields['properties'] = properties
+    if bulk_data is not None: fields['bulk_data'] = bulk_data
+
+    ctx = __current_ctx(**fields)
+    return ctx
