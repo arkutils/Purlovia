@@ -23,7 +23,8 @@ class WorldData:
     biomes: list = field(default_factory=lambda: [])
     spawns: list = field(default_factory=lambda: [])
     spawnGroups: list = field(default_factory=lambda: [])
-    # Veins & Nests
+    # Actor Locations
+    Notes: list = field(default_factory=lambda: [])
     waterVeins: list = field(default_factory=lambda: [])
     oilVeins: list = field(default_factory=lambda: [])
     gasVeins: list = field(default_factory=lambda: [])

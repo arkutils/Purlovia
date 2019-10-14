@@ -1,8 +1,11 @@
 from ue.proxy import UEProxyStructure
 
 from .geo import GeoData
+from .types import (CHARGE_NODE_PATH, DAMAGE_TYPE_RADIATION,
+                    EXPLORER_CHEST_BASE_PATH, GAS_VEIN_BASE_PATH,
+                    OIL_VEIN_BASE_PATH, WATER_VEIN_BASE_PATH,
+                    WILD_PLANT_SPECIES_Z_PATH)
 
-DAMAGE_TYPE_RADIATION = '/Game/Aberration/CoreBlueprints/DamageTypes/DmgType_Radiation'
 KNOWN_KLASS_NAMES = [
     # NPC spawns
     'NPCZoneManager',
@@ -15,22 +18,24 @@ KNOWN_KLASS_NAMES = [
     'SupplyCrateSpawningVolume',
     # Radiation Volumes
     'TogglePainVolume',
-    # Nests and Veins
-    'CustomActorList', # Nests of Wyverns, Deinonychus
-    'WaterVein_Base_BP_C',
-    'OilVein_Base_BP_C',
-    'OilVein_2_BP_C'
-    'GasVein_Base_BP',
-    'Structure_PlantSpeciesZ_Wild',
-    'PrimalStructurePowerNode',
+    # Miscellaneous
+    'CustomActorList', # Nests of Wyverns, Deinonychus, ...
+    'PrimalStructurePowerNode', # Charge Nodes
+    'WaterVein_Base_BP_C', # Water Veins
+    'OilVein_Base_BP_C', # Oil Veins
+    'OilVein_2_BP_C',
+    'GasVein_Base_BP', # Aberration Gas Veins
+    'Structure_PlantSpeciesZ_Wild', # Plant Species Z
+    'ExplorerChest_Base_C' # Explorer Notes
 ]
 
 ACTOR_FIELD_MAP = {
-    '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': 'oilVeins',
-    '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': 'waterVeins',
-    '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP': 'gasVeins',
-    '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode': 'chargeNodes',
-    '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild': 'plantZNodes',
+    EXPLORER_CHEST_BASE_PATH: 'Notes',
+    OIL_VEIN_BASE_PATH: 'oilVeins',
+    WATER_VEIN_BASE_PATH: 'waterVeins',
+    GAS_VEIN_BASE_PATH: 'gasVeins',
+    CHARGE_NODE_PATH: 'chargeNodes',
+    WILD_PLANT_SPECIES_Z_PATH: 'plantZNodes',
 }
 
 ACTOR_LIST_TAG_FIELD_MAP = {

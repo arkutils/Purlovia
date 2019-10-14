@@ -5,13 +5,16 @@ from config import get_global_config
 from .actor_lists import extract_actor_list
 from .biomes import extract_biome_zone_volume
 from .common import (ACTOR_FIELD_MAP, ACTOR_LIST_TAG_FIELD_MAP,
-                     DAMAGE_TYPE_RADIATION, format_location_for_export,
-                     get_actor_worldspace_location,
+                     format_location_for_export, get_actor_worldspace_location,
                      get_volume_worldspace_bounds)
 from .map import WorldData
 from .npc_spawns import extract_npc_zone_manager
 from .supply_drops import extract_supply_crate_volume
-from .types import (BiomeZoneVolume, CustomActorList, NPCZoneManager,
+from .types import (CHARGE_NODE_PATH, DAMAGE_TYPE_RADIATION,
+                    EXPLORER_CHEST_BASE_PATH, GAS_VEIN_BASE_PATH,
+                    OIL_VEIN_BASE_PATH, WATER_VEIN_BASE_PATH,
+                    WILD_PLANT_SPECIES_Z_PATH, BiomeZoneVolume,
+                    CustomActorList, ExplorerNote, NPCZoneManager,
                     SupplyCrateSpawningVolume, TogglePainVolume, VeinBase)
 
 logger = getLogger(__name__)
@@ -57,7 +60,8 @@ def _export_pain_volume(world: WorldData, proxy: TogglePainVolume):
         'immune': proxy.ActorClassesToExclude[0]
     })
 
-def _export_vein_location(world: WorldData, proxy: VeinBase):
+
+def _export_actor_location(world: WorldData, proxy: VeinBase):
     if not get_global_config().export_wiki.ExportVeinLocations:
         return
 
@@ -67,7 +71,12 @@ def _export_vein_location(world: WorldData, proxy: VeinBase):
         return
 
     data = get_actor_worldspace_location(proxy)
-    getattr(world, data_field_name).append(format_location_for_export(data, world.latitude, world.longitude))
+    data = format_location_for_export(data, world.latitude, world.longitude)
+    if isinstance(proxy, ExplorerNote):
+        data = { **data, 'noteIndex': proxy.ExplorerNoteIndex[0] }
+
+    getattr(world, data_field_name).append(data)
+
 
 def _export_actor_list(world: WorldData, proxy: CustomActorList):
     if not get_global_config().export_wiki.ExportNestLocations or not getattr(proxy, 'CustomTag', None):
@@ -87,11 +96,12 @@ PROXY_TYPE_MAP = {
     '/Script/ShooterGame.SupplyCrateSpawningVolume': _export_supply_crate_volume,
     '/Script/ShooterGame.TogglePainVolume': _export_pain_volume,
     '/Script/ShooterGame.CustomActorList': _export_actor_list,
-    '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C': _export_vein_location,
-    '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C': _export_vein_location,
-    '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP': _export_vein_location,
-    '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode': _export_vein_location,
-    '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild': _export_vein_location,
+    EXPLORER_CHEST_BASE_PATH: _export_actor_location,
+    OIL_VEIN_BASE_PATH: _export_actor_location,
+    WATER_VEIN_BASE_PATH: _export_actor_location,
+    GAS_VEIN_BASE_PATH: _export_actor_location,
+    CHARGE_NODE_PATH: _export_actor_location,
+    WILD_PLANT_SPECIES_Z_PATH: _export_actor_location,
 }
 
 __all__ = [

@@ -3,7 +3,22 @@ from typing import Mapping
 from ue.properties import ArrayProperty, NameProperty, ObjectProperty
 from ue.proxy import *
 
+DAMAGE_TYPE_RADIATION = '/Game/Aberration/CoreBlueprints/DamageTypes/DmgType_Radiation'
+EXPLORER_CHEST_BASE_PATH = '/Game/PrimalEarth/CoreBlueprints/ExplorerChest/ExplorerChest_Base.ExplorerChest_Base_C'
+OIL_VEIN_BASE_PATH = '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'
+WATER_VEIN_BASE_PATH = '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'
+GAS_VEIN_BASE_PATH = '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP_C'
+CHARGE_NODE_PATH = '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode_C'
+WILD_PLANT_SPECIES_Z_PATH = '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild_C'
+
 __all__ = [
+    'DAMAGE_TYPE_RADIATION',
+    'EXPLORER_CHEST_BASE_PATH',
+    'OIL_VEIN_BASE_PATH',
+    'WATER_VEIN_BASE_PATH',
+    'GAS_VEIN_BASE_PATH',
+    'CHARGE_NODE_PATH',
+    'WILD_PLANT_SPECIES_Z_PATH',
     'WORLD_SETTINGS_EXPORTED_PROPERTIES',
     'ZONE_MANAGER_EXPORTED_PROPERTIES',
     'BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES',
@@ -14,10 +29,15 @@ __all__ = [
     'NPCZoneManager',
     'BiomeZoneVolume',
     'SupplyCrateSpawningVolume',
+    'TogglePainVolume',
     'CustomActorList',
     'VeinBase',
     'OilVein',
-    'WaterVein'
+    'WaterVein',
+    'GasVein',
+    'PrimalStructurePowerNode',
+    'WildPlantSpeciesZ',
+    'ExplorerNote'
 ]
 
 WORLD_SETTINGS_EXPORTED_PROPERTIES = {
@@ -221,8 +241,11 @@ class VeinBase(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty] # SceneComponent
 
-class OilVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'): pass
-class WaterVein(VeinBase, uetype='/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'): pass
-class GasVein(VeinBase, uetype='/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP'): pass
-class PrimalStructurePowerNode(VeinBase, uetype='/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode'): pass
-class WildPlantSpeciesZ(VeinBase, uetype='/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild'): pass
+class OilVein(VeinBase, uetype=OIL_VEIN_BASE_PATH): pass
+class WaterVein(VeinBase, uetype=WATER_VEIN_BASE_PATH): pass
+class GasVein(VeinBase, uetype=GAS_VEIN_BASE_PATH): pass
+class PrimalStructurePowerNode(VeinBase, uetype=CHARGE_NODE_PATH): pass
+class WildPlantSpeciesZ(VeinBase, uetype=WILD_PLANT_SPECIES_Z_PATH): pass
+class ExplorerNote(VeinBase, uetype=EXPLORER_CHEST_BASE_PATH):
+    # DevKit Unverified
+    ExplorerNoteIndex = ueints(0)
