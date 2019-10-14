@@ -3,22 +3,11 @@ from typing import Mapping
 from ue.properties import ArrayProperty, NameProperty, ObjectProperty
 from ue.proxy import *
 
-DAMAGE_TYPE_RADIATION = '/Game/Aberration/CoreBlueprints/DamageTypes/DmgType_Radiation'
-EXPLORER_CHEST_BASE_PATH = '/Game/PrimalEarth/CoreBlueprints/ExplorerChest/ExplorerChest_Base.ExplorerChest_Base_C'
-OIL_VEIN_BASE_PATH = '/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'
-WATER_VEIN_BASE_PATH = '/Game/ScorchedEarth/Structures/WaterWell/WaterVein_Base_BP.WaterVein_Base_BP_C'
-GAS_VEIN_BASE_PATH = '/Game/Aberration/Structures/GasCollector/GasVein_Base_BP.GasVein_Base_BP_C'
-CHARGE_NODE_PATH = '/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode_C'
-WILD_PLANT_SPECIES_Z_PATH = '/Game/Aberration/WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild_C'
+from .consts import (ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS,
+                     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS,
+                     WILD_PLANT_SPECIES_Z_CLS)
 
 __all__ = [
-    'DAMAGE_TYPE_RADIATION',
-    'EXPLORER_CHEST_BASE_PATH',
-    'OIL_VEIN_BASE_PATH',
-    'WATER_VEIN_BASE_PATH',
-    'GAS_VEIN_BASE_PATH',
-    'CHARGE_NODE_PATH',
-    'WILD_PLANT_SPECIES_Z_PATH',
     'WORLD_SETTINGS_EXPORTED_PROPERTIES',
     'ZONE_MANAGER_EXPORTED_PROPERTIES',
     'BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES',
@@ -31,7 +20,7 @@ __all__ = [
     'SupplyCrateSpawningVolume',
     'TogglePainVolume',
     'CustomActorList',
-    'VeinBase',
+    'Actor',
     'OilVein',
     'WaterVein',
     'GasVein',
@@ -237,15 +226,15 @@ class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorL
     CustomTag: Mapping[int, NameProperty]
     ActorList: Mapping[int, ArrayProperty]
 
-class VeinBase(UEProxyStructure, uetype='/Game/ScorchedEarth/Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'):
+class Actor(UEProxyStructure, uetype=ACTOR_CLS):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty] # SceneComponent
 
-class OilVein(VeinBase, uetype=OIL_VEIN_BASE_PATH): pass
-class WaterVein(VeinBase, uetype=WATER_VEIN_BASE_PATH): pass
-class GasVein(VeinBase, uetype=GAS_VEIN_BASE_PATH): pass
-class PrimalStructurePowerNode(VeinBase, uetype=CHARGE_NODE_PATH): pass
-class WildPlantSpeciesZ(VeinBase, uetype=WILD_PLANT_SPECIES_Z_PATH): pass
-class ExplorerNote(VeinBase, uetype=EXPLORER_CHEST_BASE_PATH):
+class OilVein(Actor, uetype=OIL_VEIN_CLS): pass
+class WaterVein(Actor, uetype=WATER_VEIN_CLS): pass
+class GasVein(Actor, uetype=GAS_VEIN_CLS): pass
+class PrimalStructurePowerNode(Actor, uetype=CHARGE_NODE_CLS): pass
+class WildPlantSpeciesZ(Actor, uetype=WILD_PLANT_SPECIES_Z_CLS): pass
+class ExplorerNote(Actor, uetype=EXPLORER_CHEST_BASE_CLS):
     # DevKit Unverified
     ExplorerNoteIndex = ueints(0)

@@ -7,15 +7,15 @@ from .biomes import extract_biome_zone_volume
 from .common import (ACTOR_FIELD_MAP, ACTOR_LIST_TAG_FIELD_MAP,
                      format_location_for_export, get_actor_worldspace_location,
                      get_volume_worldspace_bounds)
+from .consts import (CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG,
+                     EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, OIL_VEIN_CLS,
+                     WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS)
 from .map import WorldData
 from .npc_spawns import extract_npc_zone_manager
 from .supply_drops import extract_supply_crate_volume
-from .types import (CHARGE_NODE_PATH, DAMAGE_TYPE_RADIATION,
-                    EXPLORER_CHEST_BASE_PATH, GAS_VEIN_BASE_PATH,
-                    OIL_VEIN_BASE_PATH, WATER_VEIN_BASE_PATH,
-                    WILD_PLANT_SPECIES_Z_PATH, BiomeZoneVolume,
-                    CustomActorList, ExplorerNote, NPCZoneManager,
-                    SupplyCrateSpawningVolume, TogglePainVolume, VeinBase)
+from .types import (Actor, BiomeZoneVolume, CustomActorList, ExplorerNote,
+                    NPCZoneManager, SupplyCrateSpawningVolume,
+                    TogglePainVolume)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -52,7 +52,7 @@ def _export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolu
 
 
 def _export_pain_volume(world: WorldData, proxy: TogglePainVolume):
-    if not getattr(proxy, 'DamageType', None) or str(proxy.DamageType[0].value.value.namespace.value.name) != DAMAGE_TYPE_RADIATION:
+    if not getattr(proxy, 'DamageType', None) or str(proxy.DamageType[0].value.value.namespace.value.name) != DAMAGE_TYPE_RADIATION_PKG:
         return
     bounds = get_volume_worldspace_bounds(proxy)
     world.radiationVolumes.append({
@@ -61,7 +61,7 @@ def _export_pain_volume(world: WorldData, proxy: TogglePainVolume):
     })
 
 
-def _export_actor_location(world: WorldData, proxy: VeinBase):
+def _export_actor_location(world: WorldData, proxy: Actor):
     if not get_global_config().export_wiki.ExportVeinLocations:
         return
 
@@ -91,17 +91,17 @@ def _export_actor_list(world: WorldData, proxy: CustomActorList):
 
 
 PROXY_TYPE_MAP = {
-    '/Script/ShooterGame.NPCZoneManager': _export_npc_zone_manager,
-    '/Script/ShooterGame.BiomeZoneVolume': _export_biome_zone_volume,
-    '/Script/ShooterGame.SupplyCrateSpawningVolume': _export_supply_crate_volume,
-    '/Script/ShooterGame.TogglePainVolume': _export_pain_volume,
-    '/Script/ShooterGame.CustomActorList': _export_actor_list,
-    EXPLORER_CHEST_BASE_PATH: _export_actor_location,
-    OIL_VEIN_BASE_PATH: _export_actor_location,
-    WATER_VEIN_BASE_PATH: _export_actor_location,
-    GAS_VEIN_BASE_PATH: _export_actor_location,
-    CHARGE_NODE_PATH: _export_actor_location,
-    WILD_PLANT_SPECIES_Z_PATH: _export_actor_location,
+    NPCZoneManager.get_ue_type(): _export_npc_zone_manager,
+    BiomeZoneVolume.get_ue_type(): _export_biome_zone_volume,
+    SupplyCrateSpawningVolume.get_ue_type(): _export_supply_crate_volume,
+    TogglePainVolume.get_ue_type(): _export_pain_volume,
+    CustomActorList.get_ue_type(): _export_actor_list,
+    ExplorerNote.get_ue_type(): _export_actor_location,
+    OIL_VEIN_CLS: _export_actor_location,
+    WATER_VEIN_CLS: _export_actor_location,
+    GAS_VEIN_CLS: _export_actor_location,
+    CHARGE_NODE_CLS: _export_actor_location,
+    WILD_PLANT_SPECIES_Z_CLS: _export_actor_location,
 }
 
 __all__ = [

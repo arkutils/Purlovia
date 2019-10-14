@@ -1,10 +1,8 @@
 from ue.proxy import UEProxyStructure
 
+from .consts import (CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS,
+                     OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS)
 from .geo import GeoData
-from .types import (CHARGE_NODE_PATH, DAMAGE_TYPE_RADIATION,
-                    EXPLORER_CHEST_BASE_PATH, GAS_VEIN_BASE_PATH,
-                    OIL_VEIN_BASE_PATH, WATER_VEIN_BASE_PATH,
-                    WILD_PLANT_SPECIES_Z_PATH)
 
 KNOWN_KLASS_NAMES = [
     # NPC spawns
@@ -30,12 +28,12 @@ KNOWN_KLASS_NAMES = [
 ]
 
 ACTOR_FIELD_MAP = {
-    EXPLORER_CHEST_BASE_PATH: 'Notes',
-    OIL_VEIN_BASE_PATH: 'oilVeins',
-    WATER_VEIN_BASE_PATH: 'waterVeins',
-    GAS_VEIN_BASE_PATH: 'gasVeins',
-    CHARGE_NODE_PATH: 'chargeNodes',
-    WILD_PLANT_SPECIES_Z_PATH: 'plantZNodes',
+    EXPLORER_CHEST_BASE_CLS: 'Notes',
+    OIL_VEIN_CLS: 'oilVeins',
+    WATER_VEIN_CLS: 'waterVeins',
+    GAS_VEIN_CLS: 'gasVeins',
+    CHARGE_NODE_CLS: 'chargeNodes',
+    WILD_PLANT_SPECIES_Z_CLS: 'plantZNodes',
 }
 
 ACTOR_LIST_TAG_FIELD_MAP = {

@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import *
 
 from ark.export_wiki.common import KNOWN_KLASS_NAMES
+from ark.export_wiki.discovery import CompositionSublevelTester
 from ark.export_wiki.exporters import PROXY_TYPE_MAP
 from ark.export_wiki.map import WorldData
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
-from ark.export_wiki.sublevel_discovery import SublevelTester
 from automate.ark import ArkSteamManager
 from automate.discovery import Discoverer
 from automate.export import _save_as_json, _should_save_json
@@ -49,7 +49,7 @@ class Exporter:
         self.loader = arkman.createLoader()
         self.game_version = self.arkman.getGameVersion()
         self.discoverer = Discoverer(self.loader)
-        self.discoverer.register_asset_tester(SublevelTester())
+        self.discoverer.register_asset_tester(CompositionSublevelTester())
 
     def perform(self):
         self._prepare_versions()
@@ -79,6 +79,7 @@ class Exporter:
 
         for asset_name in self.config.maps:
             self._export_level(asset_name, version)
+            self.loader.wipe_cache_with_prefix(asset_name[:asset_name.rfind('/')])
 
     def _export_mod(self, modid: str):
         moddata = self.arkman.getModData(modid)
@@ -103,14 +104,14 @@ class Exporter:
         asset = self.loader[asset_name]
         world_data = WorldData(asset)
         self._gather_data_from_level(asset, world_data)
-        del self.loader[asset_name]
+        self.loader.cache.remove(asset_name)
 
         # Load sublevels and gather data from them
-        sublevels = self.discoverer.run(asset_name[:asset_name.rfind('/')])['sublevels']
-        for sublevel in sublevels:
-            subasset = self.loader[sublevel]
-            self._gather_data_from_level(subasset, world_data)
-            del self.loader[sublevel]
+        map_directory = asset_name[:asset_name.rfind('/')]
+        composition_levels = self.discoverer.run(map_directory)['worldcomposition']
+        for sublevel_name in composition_levels:
+            self._gather_data_from_level(self.loader[sublevel_name], world_data)
+            self.loader.cache.remove(sublevel_name)
 
         # Gather spawn groups and save the data
         self._gather_spawn_groups(world_data)
