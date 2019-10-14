@@ -1,6 +1,6 @@
 from typing import *
 
-from .context import INCLUDE_METADATA
+from .context import INCLUDE_METADATA, get_ctx
 from .stream import MemoryStream
 
 if INCLUDE_METADATA:
@@ -62,6 +62,9 @@ class UEBase(object):
 
     def link(self):
         if self.is_linked or self.is_linking:
+            return
+
+        if not get_ctx().link:
             return
 
         self.is_linking = True

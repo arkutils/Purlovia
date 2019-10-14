@@ -13,6 +13,7 @@ import psutil
 
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
+from .context import ParsingContext, get_ctx
 from .properties import ObjectIndex, ObjectProperty, Property
 from .stream import MemoryStream
 
@@ -222,9 +223,39 @@ class UsageBasedCacheManager(CacheManager):
             del self.cache[name]
 
 
+class ContextAwareCacheWrapper(CacheManager):
+    def __init__(self, submanager: CacheManager):
+        self.manager = submanager
+
+    def lookup(self, name) -> Optional[UAsset]:
+        current_ctx = get_ctx()
+        asset = self.manager.lookup(name)
+        if not asset:
+            return None
+
+        # Ensure the found asset satisfies the requirements of the current parsing context
+        if not asset.is_context_satisfied(current_ctx):
+            logger.warning("Re-parsing asset for more data: %s", name)
+            return None
+
+        return asset
+
+    def add(self, name: str, asset: UAsset):
+        return self.manager.add(name, asset)
+
+    def remove(self, name: str):
+        return self.manager.remove(name)
+
+    def wipe(self, prefix: str = ''):
+        self.manager.wipe(prefix)
+
+    def get_count(self):
+        return self.manager.get_count()
+
+
 class AssetLoader:
     def __init__(self, modresolver: ModResolver, assetpath='.', cache_manager: CacheManager = None):
-        self.cache: CacheManager = cache_manager or UsageBasedCacheManager()
+        self.cache: CacheManager = cache_manager or ContextAwareCacheWrapper(UsageBasedCacheManager())
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
@@ -233,7 +264,7 @@ class AssetLoader:
         self.max_memory = 0
         self.max_cache = 0
 
-    def clean_asset_name(self, name: str):
+    def clean_asset_name(self, name: str) -> str:
         # Remove class name, if present
         if '.' in name:
             name = name[:name.index('.')]
@@ -257,13 +288,13 @@ class AssetLoader:
         # print(result)
         return result
 
-    def wipe_cache(self):
+    def wipe_cache(self) -> None:
         self.cache.wipe()
 
-    def wipe_cache_with_prefix(self, prefix: str):
+    def wipe_cache_with_prefix(self, prefix: str) -> None:
         self.cache.wipe(prefix)
 
-    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset'):
+    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset') -> str:
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
         parts = name.strip('/').split('/')
@@ -344,7 +375,7 @@ class AssetLoader:
                 else:
                     yield assetname
 
-    def load_related(self, obj: UEBase):
+    def load_related(self, obj: UEBase) -> UAsset:
         if isinstance(obj, Property):
             return self.load_related(obj.value)
         if isinstance(obj, ObjectProperty):
@@ -370,7 +401,7 @@ class AssetLoader:
 
         raise KeyError(f"Export {cls_name} not found")
 
-    def _load_raw_asset_from_file(self, filename: str):
+    def _load_raw_asset_from_file(self, filename: str) -> memoryview:
         '''Load an asset given its filename into memory without parsing it.'''
         if not os.path.isabs(filename):
             filename = os.path.join(self.asset_path, filename)
@@ -380,7 +411,7 @@ class AssetLoader:
             raise AssetNotFound(filename)
         return mem
 
-    def load_raw_asset(self, name: str):
+    def load_raw_asset(self, name: str) -> memoryview:
         '''Load an asset given its asset name into memory without parsing it.'''
         name = self.clean_asset_name(name)
         mem = None
@@ -395,7 +426,7 @@ class AssetLoader:
 
         return mem
 
-    def __getitem__(self, assetname: str):
+    def __getitem__(self, assetname: str) -> UAsset:
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
         assetname = self.clean_asset_name(assetname)
         asset = self.cache.lookup(assetname) or self._load_asset(assetname)
@@ -410,16 +441,16 @@ class AssetLoader:
 
         return asset
 
-    def __delitem__(self, assetname: str):
+    def __delitem__(self, assetname: str) -> None:
         '''Remove the specified assetname from the cache.'''
         assetname = self.clean_asset_name(assetname)
         self.cache.remove(assetname)
 
-    def partially_load_asset(self, assetname: str):
+    def partially_load_asset(self, assetname: str) -> UAsset:
         asset = self._load_asset(assetname, doNotLink=True)
         return asset
 
-    def _load_asset(self, assetname: str, doNotLink=False):
+    def _load_asset(self, assetname: str, doNotLink=False) -> UAsset:
         logger.debug(f"Loading asset: {assetname}")
         mem = self.load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))

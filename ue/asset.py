@@ -6,7 +6,8 @@ from typing import *
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
-from .properties import (Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
+from .properties import (Box, CustomVersion, EngineVersion, Guid,
+                         PropertyTable, StringProperty)
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 
@@ -44,9 +45,13 @@ class UAsset(UEBase):
         self.name: Optional[str] = None
         self.default_export: Optional['ExportTableItem'] = None
         self.default_class: Optional['ExportTableItem'] = None
+        self.has_properties = False
+        self.has_bulk_data = False
         super().__init__(self, stream)
 
     def _deserialise(self):
+        ctx = get_ctx()
+
         # Header top
         self._newField('tag', self.stream.readUInt32())
         self._newField('legacy_ver', self.stream.readInt32())
@@ -91,28 +96,46 @@ class UAsset(UEBase):
         self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
         self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
 
+        if ctx.bulk_data and self.bulk_data_start_offset:
+            bulk_stream = MemoryStream(self.stream, self.bulk_data_start_offset)
+            bulk_length = self.world_tile_info_data_offset - self.bulk_data_start_offset
+            self._newField('bulk_length', bulk_length)
+            self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
+
         if self.world_tile_info_data_offset is not 0:
             tile_info_stream = MemoryStream(self.stream, self.world_tile_info_data_offset)
             self._newField('tile_info', WorldTileInfo(self, tile_info_stream))
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
-        if not get_ctx().link:
-            return
-
         super()._link()
         self.names.link()
         self._findNoneName()
         self.imports.link()
         self.exports.link()
 
-        if get_ctx().bulk_data:
+        ctx = get_ctx()
+
+        if ctx.bulk_data:
             bulk_chunk = namedtuple('FakeChunkPtr', ['offset', 'count'])(self.bulk_data_start_offset, self.bulk_length)
             self._newField('bulk', self._parseTable(bulk_chunk, PropertyTable))
+            self.has_bulk_data = True
 
-        if get_ctx().properties:
+        if ctx.properties:
             for export in self.exports:
                 export.deserialise_properties()
+            self.has_properties = True
+
+    def is_context_satisfied(self, ctx):
+        # Check that each of the context parameters is satisfied
+        if not self.is_linked and ctx.link:
+            return False
+        if not self.has_properties and ctx.properties:
+            return False
+        if not self.has_bulk_data and ctx.bulk_data:
+            return False
+
+        return True
 
     def getName(self, index):
         '''Get a name for the given index.'''
