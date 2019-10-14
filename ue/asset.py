@@ -6,8 +6,7 @@ from typing import *
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
-from .properties import (Box, CustomVersion, EngineVersion, Guid,
-                         PropertyTable, StringProperty)
+from .properties import (Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 
@@ -37,6 +36,8 @@ class UAsset(UEBase):
                       'package_group', 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset',
                       'string_assets', 'thumbnail_offset', 'guid')
 
+    none_index: int
+
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
         self.asset = self
@@ -49,7 +50,7 @@ class UAsset(UEBase):
         self.has_bulk_data = False
         super().__init__(self, stream)
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         ctx = get_ctx()
 
         # Header top
@@ -141,7 +142,7 @@ class UAsset(UEBase):
         '''Get a name for the given index.'''
         names = self.names
         assert index is not None
-        assert type(index) == int
+        assert isinstance(index, int)
         assert names is not None
 
         extraIndex = index >> 32
@@ -257,7 +258,7 @@ class ExportTableItem(UEBase):
     properties: PropertyTable
     users: Set[UEBase]
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         self._newField('klass', ObjectIndex(self))  # item type/class
         self._newField('super', ObjectIndex(self))  # item type/class namespace
         self._newField('namespace', ObjectIndex(self))  # item namespace
@@ -323,7 +324,7 @@ class WorldTileInfo(UEBase):
     streaming_distance: int
     distance_streaming_enabled: bool
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         self._newField('unknown_field1', self.stream.readUInt64())
         self._newField('bounds', Box(self))
         self._newField('layer_name', StringProperty(self))

@@ -28,7 +28,7 @@ def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
         # TODO: Verify if these should really default to 1 - seems odd
         gestation_speed = gestation_speed or 1
         extra_gestation_speed_m = extra_gestation_speed_m or 1
-        # 'gestationTime' = 1 / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplie)
+        # 'gestationTime' = 1 / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplier)
         data['gestationTime'] = (1 / gestation_speed /
                                  extra_gestation_speed_m) if gestation_speed and extra_gestation_speed_m else None
 

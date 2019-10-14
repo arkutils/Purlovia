@@ -9,7 +9,7 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-import psutil
+import psutil  # type: ignore
 
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
@@ -59,16 +59,19 @@ class ModResolver(ABC):
         pass
 
     @abstractmethod
-    def get_name_from_id(self, modid: str) -> str:
+    def get_name_from_id(self, modid: str) -> Optional[str]:
         pass
 
     @abstractmethod
-    def get_id_from_name(self, name: str) -> str:
+    def get_id_from_name(self, name: str) -> Optional[str]:
         pass
 
 
 class IniModResolver(ModResolver):
     '''Old-style mod resolution by hand-crafted mods.ini.'''
+    mods_id_to_names: Dict[str, str]
+    mods_names_to_ids: Dict[str, str]
+
     def __init__(self, filename='mods.ini'):
         self.filename = filename
 
@@ -81,11 +84,11 @@ class IniModResolver(ModResolver):
         # self.mods_id_to_longnames = dict(config['names'])
         return self
 
-    def get_name_from_id(self, modid: str) -> str:
+    def get_name_from_id(self, modid: str) -> Optional[str]:
         name = self.mods_id_to_names.get(modid, None)
         return name
 
-    def get_id_from_name(self, name: str) -> str:
+    def get_id_from_name(self, name: str) -> Optional[str]:
         modid = self.mods_names_to_ids.get(name.lower(), None)
         return modid
 
@@ -276,6 +279,8 @@ class AssetLoader:
         # Convert mod names to numbers
         if len(parts) > 2 and parts[1].lower() == 'mods' and parts[2].isnumeric():
             mod_name = self.modresolver.get_name_from_id(parts[2])
+            if not mod_name:
+                raise ModNotFound(parts[2])
             parts[2] = mod_name
 
         # Change Content back to name, for cache consistency
@@ -301,7 +306,10 @@ class AssetLoader:
 
         # Convert mod names to numbers
         if len(parts) > 2 and parts[1].lower() == 'mods' and not parts[2].isnumeric():
-            parts[2] = self.modresolver.get_id_from_name(parts[2])
+            modid = self.modresolver.get_id_from_name(parts[2])
+            if not modid:
+                raise ModNotFound(parts[2])
+            parts[2] = modid
 
         # Game is replaced with Content
         if parts and parts[0].lower() == 'game':
@@ -321,8 +329,8 @@ class AssetLoader:
             return None
         if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
             return None
-        mod = parts[2]
-        if mod.isnumeric():
+        mod: Optional[str] = parts[2]
+        if mod and mod.isnumeric():
             mod = self.modresolver.get_name_from_id(mod)
         return mod
 
@@ -334,8 +342,8 @@ class AssetLoader:
             return None
         if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
             return None
-        mod = parts[2]
-        if not mod.isnumeric():
+        mod: Optional[str] = parts[2]
+        if mod and not mod.isnumeric():
             mod = self.modresolver.get_id_from_name(mod)
         return mod
 
@@ -469,8 +477,7 @@ class AssetLoader:
 
         exports = [export for export in asset.exports.values if str(export.name).startswith('Default__')]
         if len(exports) > 1:
-            import warnings
-            warnings.warn(f'Found more than one component in {assetname}!')
+            logger.warning(f'Found more than one component in {assetname}!')
         asset.default_export = exports[0] if exports else None
         if asset.default_export:
             asset.default_class = asset.default_export.klass.value

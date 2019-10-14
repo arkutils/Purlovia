@@ -4,21 +4,19 @@ from config import get_global_config
 
 from .actor_lists import extract_actor_list
 from .biomes import extract_biome_zone_volume
-from .common import (ACTOR_FIELD_MAP, ACTOR_LIST_TAG_FIELD_MAP,
-                     format_location_for_export, get_actor_worldspace_location,
+from .common import (ACTOR_FIELD_MAP, ACTOR_LIST_TAG_FIELD_MAP, format_location_for_export, get_actor_worldspace_location,
                      get_volume_worldspace_bounds)
-from .consts import (CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG,
-                     EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, OIL_VEIN_CLS,
+from .consts import (CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, OIL_VEIN_CLS,
                      WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS)
 from .map import WorldData
 from .npc_spawns import extract_npc_zone_manager
 from .supply_drops import extract_supply_crate_volume
-from .types import (Actor, BiomeZoneVolume, CustomActorList, ExplorerNote,
-                    NPCZoneManager, SupplyCrateSpawningVolume,
+from .types import (Actor, BiomeZoneVolume, CustomActorList, ExplorerNote, NPCZoneManager, SupplyCrateSpawningVolume,
                     TogglePainVolume)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
+
 
 def _export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager):
     if not get_global_config().export_wiki.ExportSpawnData or not proxy.bEnabled[0].value:
@@ -52,12 +50,13 @@ def _export_supply_crate_volume(world: WorldData, proxy: SupplyCrateSpawningVolu
 
 
 def _export_pain_volume(world: WorldData, proxy: TogglePainVolume):
-    if not getattr(proxy, 'DamageType', None) or str(proxy.DamageType[0].value.value.namespace.value.name) != DAMAGE_TYPE_RADIATION_PKG:
+    if not getattr(proxy, 'DamageType',
+                   None) or str(proxy.DamageType[0].value.value.namespace.value.name) != DAMAGE_TYPE_RADIATION_PKG:
         return
     bounds = get_volume_worldspace_bounds(proxy)
     world.radiationVolumes.append({
-        **format_location_for_export(bounds, world.latitude, world.longitude),
-        'immune': proxy.ActorClassesToExclude[0]
+        **format_location_for_export(bounds, world.latitude, world.longitude), 'immune':
+        proxy.ActorClassesToExclude[0]
     })
 
 
@@ -73,7 +72,7 @@ def _export_actor_location(world: WorldData, proxy: Actor):
     data = get_actor_worldspace_location(proxy)
     data = format_location_for_export(data, world.latitude, world.longitude)
     if isinstance(proxy, ExplorerNote):
-        data = { **data, 'noteIndex': proxy.ExplorerNoteIndex[0] }
+        data = {**data, 'noteIndex': proxy.ExplorerNoteIndex[0]}
 
     getattr(world, data_field_name).append(data)
 
@@ -104,6 +103,4 @@ PROXY_TYPE_MAP = {
     WILD_PLANT_SPECIES_Z_CLS: _export_actor_location,
 }
 
-__all__ = [
-    'PROXY_TYPE_MAP'
-]
+__all__ = ['PROXY_TYPE_MAP']

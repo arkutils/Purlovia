@@ -96,7 +96,7 @@ class Discoverer:
         '''Check the given asset against the registered testers, yielding the names of ones that match.'''
         # Load and test against the raw memory first, to be as fast as possible
         mem_view = self.loader.load_raw_asset(assetname)
-        mem: bytes = mem_view.obj
+        mem: bytes = mem_view.obj  # type: ignore # missing from typedef of native module
 
         ext_testers = self.testers_by_ext[ext.lower()]
         fast_matches: List[AssetTester] = [tester for tester in ext_testers if tester.is_a_fast_match(mem)]

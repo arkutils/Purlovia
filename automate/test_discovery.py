@@ -1,7 +1,7 @@
 from typing import Iterable
 
-import pytest
-from pytest_mock import MockFixture
+import pytest  # type: ignore
+from pytest_mock import MockFixture  # type: ignore
 
 from ark.export_asb.species_discovery import SpeciesTester
 from automate.ark import ArkSteamManager

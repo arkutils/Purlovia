@@ -1,6 +1,6 @@
 from __future__ import with_statement
 
-import pytest
+import pytest  # type: ignore
 
 from . import xlocal as xlocal_import
 

@@ -2,10 +2,9 @@ from dataclasses import InitVar, dataclass, field
 from logging import NullHandler, getLogger
 from typing import Any, Dict, List, Optional, Union
 
-from ue.asset import UAsset
+from ue.asset import ExportTableItem
 from ue.loader import AssetLoader, AssetNotFound
-from ue.properties import (ArrayProperty, FloatProperty, StringProperty,
-                           StructProperty)
+from ue.properties import (ArrayProperty, FloatProperty, StringProperty, StructProperty)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -19,7 +18,7 @@ class SpawnGroupEntry:
     chance: Union[float, FloatProperty] = 0.0
     weight: Union[float, FloatProperty] = 1.0
     npcsToSpawn: List[str] = field(default_factory=lambda: [])
-    npcsSpawnOffsets: List[Dict[str,Any]] = field(default_factory=lambda: [])
+    npcsSpawnOffsets: List[Dict[str, Any]] = field(default_factory=lambda: [])
     npcsToSpawnPercentageChance: List[float] = field(default_factory=lambda: [])
     npcMinLevelOffset: List[float] = field(default_factory=lambda: [])
     npcMaxLevelOffset: List[float] = field(default_factory=lambda: [])
@@ -29,14 +28,18 @@ class SpawnGroupEntry:
         self.name = data['AnEntryName']
         self.weight = data['EntryWeight']
         self.npcsToSpawn = data['NPCsToSpawn']
-        self.npcsSpawnOffsets = [{'x': offset.x.value, 'y': offset.y.value, 'z': offset.z.value} for offset in data['NPCsSpawnOffsets'].values]
+        self.npcsSpawnOffsets = [{
+            'x': offset.x.value,
+            'y': offset.y.value,
+            'z': offset.z.value
+        } for offset in data['NPCsSpawnOffsets'].values]
         self.npcsToSpawnPercentageChance = data['NPCsToSpawnPercentageChance']
         self.npcMinLevelOffset = data['NPCMinLevelOffset']
         self.npcMaxLevelOffset = data['NPCMaxLevelOffset']
 
     def format_for_json(self):
         data = {}
-        for field_name in self.__annotations__: # pylint:disable=E1101
+        for field_name in self.__annotations__:  # pylint:disable=E1101
             field_value = getattr(self, field_name, None)
             if not field_value:
                 continue
@@ -69,7 +72,7 @@ class SpawnGroupObject:
 
     def calculate_chances(self):
         weight_sum = sum([entry.weight for entry in self.entries])
-        
+
         if not weight_sum:
             #logger.debug(f'Sum of entry weights in {self.blueprintPath} is zero.')
             return
@@ -85,29 +88,30 @@ class SpawnGroupObject:
             "entries": self.entries,
             "limits": self.limits
         }
-    
+
     def format_for_json(self):
         return self.as_dict()
 
 
-def gather_spawn_entries(asset: UAsset):
-    properties = asset.properties.as_dict()
+def gather_spawn_entries(export: ExportTableItem):
+    properties = export.properties.as_dict()
     entries = properties["NPCSpawnEntries"]
     if not entries:
         # TODO: Support inherited NPCSpawnEntries
-        logger.debug(f'TODO: {asset.name} does not have any spawn entries. They are probably inherited.')
+        logger.debug(f'TODO: {export.name} does not have any spawn entries. They are probably inherited.')
         return
 
     for entry in entries[0].values:
         yield SpawnGroupEntry(entry)
 
 
-def gather_limit_entries(asset: UAsset):
-    properties = asset.properties.as_dict()
+def gather_limit_entries(export: ExportTableItem):
+    properties = export.properties.as_dict()
     entries = properties["NPCSpawnLimits"]
     if not entries:
         if not properties["NPCSpawnEntries"]:
-            logger.debug(f'TODO:{asset.name} does not have any limit entries. They are probably inherited.')
+            # TODO: Support inherited NPCSpawnEntries
+            logger.debug(f'TODO:{export.name} does not have any limit entries. They are probably inherited.')
         return
 
     for entry in entries[0].values:
@@ -125,6 +129,8 @@ def get_spawn_entry_container_data(loader: AssetLoader, full_asset_name: str) ->
         return None
 
     container_data = asset.default_export
+    if not container_data:
+        return None
     properties = container_data.properties.as_dict()
     max_desired_enemy_num_mult = 1.0
     if "MaxDesiredNumEnemiesMultiplier" in properties:

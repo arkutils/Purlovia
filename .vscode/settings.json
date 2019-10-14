@@ -23,21 +23,27 @@
     "git.ignoreLimitWarning": true,
 
     "cSpell.words": [
+        "DCSC",
+        "Mult",
         "Purlovia",
+        "Struct",
         "Tproxy",
         "Valguero",
         "asdict",
         "buildid",
         "consts",
         "deserialise",
+        "deserialising",
         "functools",
         "isabs",
         "isnumeric",
         "itertools",
         "klass",
+        "mkdir",
         "mkdirs",
         "modid",
         "modutils",
+        "mults",
         "mypy",
         "optionxform",
         "psutil",
@@ -49,5 +55,6 @@
         "uasset",
         "umap",
         "xlocal"
-    ]
+    ],
+    "cSpell.diagnosticLevel": "Hint",
 }

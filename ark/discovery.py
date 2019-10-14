@@ -15,9 +15,9 @@ __all__ = [
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
+
 class ByRawData:
     '''Very fast/cheap method for bulk searching. Over-selects slightly.'''
-
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 
@@ -27,7 +27,7 @@ class ByRawData:
         mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
-        result = b'ShooterCharacterMovement' in mem.obj
+        result = b'ShooterCharacterMovement' in mem.obj  # type: ignore # just a bad type definition
 
         return result
 
@@ -37,7 +37,7 @@ class ByRawData:
         mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
-        result = b'StructureMesh' in mem.obj
+        result = b'StructureMesh' in mem.obj  # type: ignore # just a bad type definition
 
         return result
 
@@ -47,14 +47,13 @@ class ByRawData:
         mem = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
-        result = b'DescriptiveNameBase' in mem.obj
+        result = b'DescriptiveNameBase' in mem.obj  # type: ignore # just a bad type definition
 
         return result
 
 
 class ByInheritance:
     '''Totally accurate but expensive method, to be used to verify results from other discovery methods.'''
-
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 
@@ -89,7 +88,7 @@ class ByInheritance:
 
             except AssetLoadException as ex:
                 logger.warning("Failed to check inheritance of potential species: %s", str(ex))
-                return False # abort early
+                return False  # abort early
 
         # Check this asset first
         if check_component(assetname):
@@ -109,8 +108,6 @@ class ByInheritance:
     #         return False
 
     #     asset = self.loader[assetname]
-
-
 
 
 class SpeciesDiscoverer:

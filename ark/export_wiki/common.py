@@ -17,14 +17,14 @@ KNOWN_KLASS_NAMES = [
     # Radiation Volumes
     'TogglePainVolume',
     # Miscellaneous
-    'CustomActorList', # Nests of Wyverns, Deinonychus, ...
-    'PrimalStructurePowerNode', # Charge Nodes
-    'WaterVein_Base_BP_C', # Water Veins
-    'OilVein_Base_BP_C', # Oil Veins
+    'CustomActorList',  # Nests of Wyverns, Deinonychus, ...
+    'PrimalStructurePowerNode',  # Charge Nodes
+    'WaterVein_Base_BP_C',  # Water Veins
+    'OilVein_Base_BP_C',  # Oil Veins
     'OilVein_2_BP_C',
-    'GasVein_Base_BP', # Aberration Gas Veins
-    'Structure_PlantSpeciesZ_Wild', # Plant Species Z
-    'ExplorerChest_Base_C' # Explorer Notes
+    'GasVein_Base_BP',  # Aberration Gas Veins
+    'Structure_PlantSpeciesZ_Wild',  # Plant Species Z
+    'ExplorerChest_Base_C'  # Explorer Notes
 ]
 
 ACTOR_FIELD_MAP = {
@@ -44,8 +44,10 @@ ACTOR_LIST_TAG_FIELD_MAP = {
     'AB_DeinonychusNestSpawns': 'deinonychusNests'
 }
 
+
 def unpack_defaultdict_value(obj):
     return obj[0] if obj else None
+
 
 def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=False):
     data = {}
@@ -58,6 +60,7 @@ def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=F
             value = value.format_for_json()
         data[key_list[key]] = value
     return data
+
 
 def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
     if len(ue_coords) == 2:
@@ -88,6 +91,7 @@ def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
         "longCenter": (long_end+long_start) / 2,
     }
 
+
 def get_actor_worldspace_location(actor):
     '''Retrieves actor's world-space location in a form of (x,y,z) tuple.'''
 
@@ -97,11 +101,7 @@ def get_actor_worldspace_location(actor):
         scene_component = actor.properties.get_property("RootComponent").value.value
     actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
 
-    return (
-        actor_location.x.value,
-        actor_location.y.value,
-        actor_location.z.value
-    )
+    return (actor_location.x.value, actor_location.y.value, actor_location.z.value)
 
 
 def get_volume_worldspace_bounds(volume, include_altitude=False):
@@ -128,8 +128,7 @@ def get_volume_worldspace_bounds(volume, include_altitude=False):
             # Max
             volume_box.max.x.value + volume_location.x.value,
             volume_box.max.y.value + volume_location.y.value,
-            volume_box.max.z.value + volume_location.z.value
-        )
+            volume_box.max.z.value + volume_location.z.value)
 
     # min[XY]max[XY] format
     return (
@@ -138,5 +137,4 @@ def get_volume_worldspace_bounds(volume, include_altitude=False):
         volume_box.min.y.value + volume_location.y.value,
         # Max
         volume_box.max.x.value + volume_location.x.value,
-        volume_box.max.y.value + volume_location.y.value
-    )
+        volume_box.max.y.value + volume_location.y.value)
