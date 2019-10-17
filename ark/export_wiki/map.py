@@ -63,6 +63,7 @@ class WorldData:
 
     def format_for_json(self):
         data = dict(
+            map=self.name,
             **{f'lat{key}': value for key, value in self.latitude.format_for_json().items()},
             **{f'long{key}': value for key, value in self.longitude.format_for_json().items()},
             **proxy_properties_as_dict(self.world_settings, key_list=WORLD_SETTINGS_EXPORTED_PROPERTIES)

@@ -6,6 +6,7 @@ from ark.export_wiki.common import KNOWN_KLASS_NAMES
 from ark.export_wiki.discovery import CompositionSublevelTester
 from ark.export_wiki.exporters import PROXY_TYPE_MAP
 from ark.export_wiki.map import WorldData
+from ark.export_wiki.mod_gathering import gather_spawn_groups_from_pgd
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
 from automate.ark import ArkSteamManager
 from automate.discovery import Discoverer
@@ -88,8 +89,7 @@ class Exporter:
         version = self._create_version(moddata['version'])
 
         if int(moddata.get('type', 1)) != 2:
-            logger.debug(f'Skipping export of mod {modid}: not a map.')
-            return
+            return self._export_modded_spawn_groups(modid, version, moddata)
 
         map_list = moddata.get('maps', None)
         if map_list:
@@ -137,9 +137,31 @@ class Exporter:
             if group_data:
                 world.spawnGroups[index] = group_data.as_dict()
 
+    def _export_modded_spawn_groups(self, modid: str, version: str, moddata: dict):
+        mod_pgd = moddata.get('package', None)
+        if not mod_pgd:
+            logger.warning(f'PrimalGameData information missing for mod {modid}')
+            return
+        pgd = self.loader[mod_pgd]
+        groups = gather_spawn_groups_from_pgd(self.loader, pgd)
+        if not groups:
+            return
+
+        values: Dict[str, Any] = dict()
+        dirname = f"{moddata['id']}-{moddata['name']}"
+        dirname = get_valid_filename(dirname)
+        title = moddata['title'] or moddata['name']
+        values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
+        values['version'] = version
+        values['spawnGroups'] = groups
+
+        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+        fullpath.mkdir(parents=True, exist_ok=True)
+        fullpath = (fullpath / 'spawningGroups').with_suffix('.json')
+        self._save_json_if_changed(values, fullpath)
+
     def _export_world_data(self, world_data: WorldData, version: str, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
-        values['map'] = world_data.name
 
         if moddata:
             dirname = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
