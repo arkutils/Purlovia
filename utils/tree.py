@@ -85,17 +85,17 @@ class IndexedTree(Generic[T]):
         partial_tree.walk(self._register)
         parent_node.nodes.append(partial_tree)
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Node[T]:
         return self._lookup[key]
 
-    def __contains__(self, key: str):
+    def __contains__(self, key: str) -> bool:
         return key in self._lookup
 
-    def get(self, key: str, fallback=MISSING):
+    def get(self, key: str, fallback=MISSING) -> Node[T]:
         if fallback is MISSING:
             return self._lookup[key]
-        else:
-            return self._lookup.get(key, fallback)
+
+        return self._lookup.get(key, fallback)
 
     def _register(self, node: Node[T]):
         key = self._key_fn(node.data)
