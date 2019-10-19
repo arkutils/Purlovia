@@ -3,6 +3,7 @@ import operator
 import struct
 import sys
 import uuid
+import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from logging import NullHandler, getLogger
@@ -161,7 +162,8 @@ class Property(UEBase):
         try:
             propertyType = getPropertyType(self.header.type.value.value)
         except TypeError:
-            logger.debug(f'Encountered unknown property type {self.header.type.value.value}... attempting to skip')
+            if self.header.type.value.value not in SKIPPABLE_STRUCTS:
+                warnings.warn(f'Skipping unknown property type {self.header.type.value.value}')
 
         if propertyType:
             self._newField('value', propertyType(self), self.header.size)
@@ -636,6 +638,7 @@ STRUCT_TYPES_TO_ABORT_ON = (
 SKIPPABLE_STRUCTS = {
     # 'name': byte length
     'DelegateProperty': 12,
+    'MulticastDelegateProperty': 12,  # TODO: Verify
     'LazyObjectProperty': 16,
     'Vector4': 16,
     # 'Transform': 4*4 + 3*4 + 3*4,
