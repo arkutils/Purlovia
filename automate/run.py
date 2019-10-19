@@ -162,20 +162,18 @@ def run(config: ConfigFile):
         git = GitManager(config=config)
         git.before_exports()
 
-        # Export vanilla and/or requested mods
+        # Export species data for ASB, update manifest, commit
         export_values(arkman, set(mods), config)
-
-        # Export vanilla and/or requested mods
-        export_map_data(arkman, set(mods), config)
-
-        # Update the manifest file
         update_manifest(config.settings.OutputPath / config.export_asb.PublishSubDir)
-        update_manifest_wiki(config.settings.OutputPath / config.export_wiki.PublishSubDir)
-        # TODO: for each export system
-
-        # Commit any changes
         git.after_exports(config.export_asb.PublishSubDir, config.export_asb.CommitHeader)
-        # TODO: for each export system
+
+        # Export map data for the Ark Wiki, update manifest, commit
+        export_map_data(arkman, set(mods), config)
+        update_manifest_wiki(config.settings.OutputPath / config.export_wiki.PublishSubDir)
+        git.after_exports(config.export_wiki.PublishSubDir, config.export_wiki.CommitHeader)
+
+        # Push any changes
+        git.finish()
 
         logger.info('Automation completed')
 

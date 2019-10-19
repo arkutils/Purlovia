@@ -36,17 +36,14 @@ class GitManager:
         # Check branch is correct
         self._set_branch()
 
-        # Perform reset, if configured
-        self._do_reset()
+        # Perform reset or pull, if configured
+        self._do_reset_or_pull()
 
         logger.info('Git repo is setup and ready to go')
 
     def after_exports(self, relative_path: Path, commit_header: str):
         if self.config.settings.SkipGit:
             return
-
-        # Perform pull, if configured
-        self._do_pull()
 
         # If no files changed, return
         if not self._any_local_changes(relative_path):
@@ -60,7 +57,15 @@ class GitManager:
         message = self._create_commit_msg(relative_path, commit_header)
 
         # Commit
-        self._do_commit(message)
+        self._do_commit(message, relative_path)
+
+    def finish(self):
+        if self.config.settings.SkipGit:
+            return
+
+        # If no changes to push, return
+        if not self._any_changes_to_push():
+            return
 
         # Push
         self._do_push()
@@ -71,26 +76,24 @@ class GitManager:
         output = self.git.status('-s', '--', str(relative_path)).strip()
         return bool(output)
 
-    def _do_reset(self):
-        if self.config.git.UseReset:
-            logger.info('Performing hard reset to remote HEAD')
-            if not self.config.git.SkipPull:
-                self.git.fetch()
-                self.git.reset('--hard', 'origin/' + self.config.git.Branch)
-            else:
-                logger.info('(skipped)')
+    def _any_changes_to_push(self):
+        output = self.git.diff('--shortstat', 'HEAD', 'origin/' + self.config.git.Branch).strip()
+        return bool(output)
 
-    def _do_pull(self):
-        if not self.config.git.UseReset:
+    def _do_reset_or_pull(self):
+        if self.config.git.SkipPull:
+            logger.info('(pull/reset skipped by reset)')
+        elif self.config.git.UseReset:
+            logger.info('Performing hard reset to remote HEAD')
+            self.git.fetch()
+            self.git.reset('--hard', 'origin/' + self.config.git.Branch)
+        else:
             logger.info('Performing pull')
-            if not self.config.git.SkipPull:
-                self.git.pull('--no-rebase', '--ff-only')
-            else:
-                logger.info('(skipped)')
+            self.git.pull('--no-rebase', '--ff-only')
 
     def _do_add(self, relative_path: Path):
         if self.config.git.SkipCommit:
-            logger.info('(skipped by request)')
+            logger.info('(add skipped by request)')
         else:
             self.git.add('--', str(relative_path))
 
@@ -103,7 +106,7 @@ class GitManager:
             logger.info('Pushing changes')
             self.git.push()
 
-    def _do_commit(self, message):
+    def _do_commit(self, message: str, relative_path: Path):
         if self.config.git.SkipCommit:
             logger.info('(commit skipped by request)')
         elif not self.config.git.UseIdentity:
@@ -119,7 +122,7 @@ class GitManager:
                     f.write(message)
 
                 # Run the commit
-                self.git.commit('-F', f.name, '--', self.relative_publish_path)
+                self.git.commit('-F', f.name, '--', str(relative_path))
             finally:
                 if tmpfilename:
                     os.unlink(tmpfilename)
@@ -185,9 +188,15 @@ class GitManager:
                 data = json.load(f)
 
             version = data.get('version', None)
+
             title = data.get('mod', dict()).get('title', None)
             if title:
                 return f'"{title}" updated to version {version}'
-            return f'{path.name} updated to version {version}'
+
+            mapname = data.get('map', None)
+            if mapname:
+                return f'"{mapname}" map updated to version {version}'
+
+            return f'{filename} updated to version {version}'
 
         return None

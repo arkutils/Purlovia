@@ -49,6 +49,10 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
             key = str(filename.relative_to(directory))
             files[key] = info
 
+    if not files:
+        logger.info(f'No files present - aborting manifest creation')
+        return
+
     # Try to make directory the file lives in
     if not output_file.parent.is_dir:
         output_file.parent.mkdirs(parents=True, exists_ok=True)
