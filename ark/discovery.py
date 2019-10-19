@@ -24,7 +24,7 @@ class ByRawData:
     def is_species(self, assetname: str):
         '''Use binary string matching to check if an asset is a character.'''
         # Load asset as raw data
-        mem = self.loader.load_raw_asset(assetname)
+        mem, _ = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'ShooterCharacterMovement' in mem.obj  # type: ignore # just a bad type definition
@@ -34,7 +34,7 @@ class ByRawData:
     def is_structure(self, assetname: str):
         '''Use binary string matching to check if an asset is a placeable structure.'''
         # Load asset as raw data
-        mem = self.loader.load_raw_asset(assetname)
+        mem, _ = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'StructureMesh' in mem.obj  # type: ignore # just a bad type definition
@@ -44,7 +44,7 @@ class ByRawData:
     def is_inventory_item(self, assetname: str):
         '''Use binary string matching to check if an asset is an inventory item.'''
         # Load asset as raw data
-        mem = self.loader.load_raw_asset(assetname)
+        mem, _ = self.loader.load_raw_asset(assetname)
 
         # Check for the presence of required string
         result = b'DescriptiveNameBase' in mem.obj  # type: ignore # just a bad type definition

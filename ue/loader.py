@@ -419,20 +419,20 @@ class AssetLoader:
             raise AssetNotFound(filename)
         return mem
 
-    def load_raw_asset(self, name: str) -> memoryview:
-        '''Load an asset given its asset name into memory without parsing it.'''
+    def load_raw_asset(self, name: str) -> Tuple[memoryview, str]:
+        '''
+        Load an asset given its asset name into memory without parsing it.
+        Returns (memoryview, ext).
+        '''
         name = self.clean_asset_name(name)
         mem = None
         for ext in ('.uasset', '.umap'):
             filename = self.convert_asset_name_to_path(name, ext=ext)
             if Path(filename).is_file():
                 mem = load_file_into_memory(filename)
-                break
+                return (mem, ext)
 
-        if mem is None:
-            raise AssetNotFound(name)
-
-        return mem
+        raise AssetNotFound(name)
 
     def __getitem__(self, assetname: str) -> UAsset:
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
@@ -460,12 +460,13 @@ class AssetLoader:
 
     def _load_asset(self, assetname: str, doNotLink=False) -> UAsset:
         logger.debug(f"Loading asset: {assetname}")
-        mem = self.load_raw_asset(assetname)
+        mem, ext = self.load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(weakref.proxy(stream))
         asset.loader = self
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
+        asset.file_ext = ext
 
         try:
             asset.deserialise()
@@ -482,7 +483,9 @@ class AssetLoader:
         if asset.default_export:
             asset.default_class = asset.default_export.klass.value
 
+        # TODO: Potentially treat .umap assets different for caching purposes
         self.cache.add(assetname, asset)
+
         return asset
 
 

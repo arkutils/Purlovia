@@ -44,6 +44,7 @@ class UAsset(UEBase):
         self.loader: Optional['AssetLoader'] = None
         self.assetname: Optional[str] = None
         self.name: Optional[str] = None
+        self.file_ext: Optional[str] = None
         self.default_export: Optional['ExportTableItem'] = None
         self.default_class: Optional['ExportTableItem'] = None
         self.has_properties = False

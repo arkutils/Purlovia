@@ -96,7 +96,7 @@ class Discoverer:
     def _test_asset(self, assetname: str, ext: str) -> Iterable[str]:
         '''Check the given asset against the registered testers, yielding the names of ones that match.'''
         # Load and test against the raw memory first, to be as fast as possible
-        mem_view = self.loader.load_raw_asset(assetname)
+        mem_view, _ = self.loader.load_raw_asset(assetname)
         mem: bytes = mem_view.obj  # type: ignore # missing from typedef of native module
 
         ext_testers = self.testers_by_ext[ext.lower()]
