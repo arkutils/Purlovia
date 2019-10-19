@@ -23,7 +23,6 @@ class UEBase(object):
         assert owner is not None, "Owner must be specified"
         self.stream: MemoryStream = stream or owner.stream
         self.asset = owner.asset  # type: ignore
-        self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
         self.field_values: Dict[str, Any] = {}
         self.start_offset: Optional[int] = None
         self.is_serialising = False
@@ -32,6 +31,7 @@ class UEBase(object):
         self.is_linked = False
         self.is_inside_array = False
         if INCLUDE_METADATA:
+            self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
             self.field_order: List[str] = []
             self.end_offset: Optional[int] = None
 

@@ -123,7 +123,8 @@ class NameIndex(UEBase):
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
-        self.value.register_user(self.parent or self)
+        if INCLUDE_METADATA:
+            self.value.register_user(self.parent or self)
         if self.instance:
             self.field_values['value'] = f'{self.value}_{self.instance}'
 
