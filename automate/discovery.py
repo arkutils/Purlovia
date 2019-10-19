@@ -52,11 +52,12 @@ class AssetTester(ABC):
 
 
 class Discoverer:
-    def __init__(self, loader: AssetLoader, config: ConfigFile = get_global_config()):
+    def __init__(self, loader: AssetLoader, *, remove_assets_from_cache: bool = False, config: ConfigFile = get_global_config()):
         self.testers: Set[AssetTester] = set()
         self.loader = loader
         self.global_excludes: Set[str] = set(config.optimisation.SearchIgnore)
         self.testers_by_ext: Dict[str, Set[AssetTester]] = dict()
+        self.remove_assets_from_cache = bool(remove_assets_from_cache)
 
     def register_asset_tester(self, tester: AssetTester):
         self.testers.add(tester)
@@ -116,8 +117,14 @@ class Discoverer:
             print("Failed to load asset: " + assetname)
             return []
 
+        assert asset.assetname
+
         # Test fully only for the ones that matched quickly
         full_matches = [tester for tester in fast_matches if tester.is_a_full_match(asset)]
+
+        # Remove the asset from the cache, if requested
+        if self.remove_assets_from_cache:
+            self.loader.cache.remove(asset.assetname)
 
         # Return the matching category names
         return [tester.get_category_name() for tester in full_matches]

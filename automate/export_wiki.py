@@ -49,7 +49,7 @@ class Exporter:
         self.modids = modids
         self.loader = arkman.createLoader()
         self.game_version = self.arkman.getGameVersion()
-        self.discoverer = Discoverer(self.loader)
+        self.discoverer = Discoverer(self.loader, remove_assets_from_cache=True)
         self.discoverer.register_asset_tester(CompositionSublevelTester())
 
     def perform(self):
