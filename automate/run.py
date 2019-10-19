@@ -63,19 +63,23 @@ def create_parser() -> argparse.ArgumentParser:
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('--live', action='store_true', help='enable live mode [requires git identity]')
 
-    parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
-    parser.add_argument('--skip-extract', action='store_true', help='skip extracting all species completely')
-    parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting vanilla species')
-    parser.add_argument('--skip-map-extract', action='store_true', help='skip extracting all maps completely')
+    parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
+
+    parser.add_argument('--skip-extract-asb', action='store_true', help='skip extracting all ASB data completely')
+    parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting ASB vanilla species')
+    parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format for species')
+
+    parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
     parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawn data from maps')
     parser.add_argument('--skip-biome-data', action='store_true', help='skip extracting biome data from maps')
     parser.add_argument('--skip-supply-drop-data', action='store_true', help='skip extracting supply drops from maps')
-    parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
-    parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
-    parser.add_argument('--notify', action='store_true', help='enable sending error notifications')
 
-    parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format to export')
+    parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
+    parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
+    parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
+
+    parser.add_argument('--notify', action='store_true', help='enable sending error notifications')
 
     parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
 
@@ -118,7 +122,10 @@ def handle_args(args: Any) -> ConfigFile:
     if args.skip_extract:
         config.settings.SkipExtract = True
 
-    if args.skip_map_extract:
+    if args.skip_extract_asb:
+        config.export_asb.Skip = True
+
+    if args.skip_extract_wiki:
         config.export_wiki.Skip = True
 
     if args.skip_spawn_data:
