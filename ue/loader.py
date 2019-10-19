@@ -187,7 +187,10 @@ class UsageBasedCacheManager(CacheManager):
         '''
         Remove the named asset from the cache.
         '''
-        self.cache.pop(name, None)
+        logger.debug('Removing cache entry: %s', name)
+        found = self.cache.pop(name, None)
+        if not found:
+            logger.warning('Attempt to remove asset that was not found: %s', name)
 
     def wipe(self, prefix: str = ''):
         '''
@@ -196,9 +199,11 @@ class UsageBasedCacheManager(CacheManager):
         An empty or None prefix wipes the entire cache.
         '''
         if not prefix:
+            logger.debug('Wiping cache completely')
             # Full wipe
             self.cache = dict()
         else:
+            logger.debug('Wiping cache with prefix: %s', prefix)
             to_cull = list(key for key in self.cache if key.startswith(prefix))
             for name in to_cull:
                 del self.cache[name]
