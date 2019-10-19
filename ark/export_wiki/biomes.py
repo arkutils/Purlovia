@@ -12,7 +12,7 @@ def extract_biome_zone_volume(world: WorldData, proxy: BiomeZoneVolume) -> dict:
     return {
         **proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES, only_overriden=False),
         **proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_EXPORTED_PROPERTIES, only_overriden=True),
-        'bounds': {
+        'boxes': {
             'min': format_location_for_export(bounds[:3], world.latitude, world.longitude),
             'max': format_location_for_export(bounds[3:], world.latitude, world.longitude)
         }

@@ -54,6 +54,8 @@ class Exporter:
 
     def perform(self):
         self._prepare_versions()
+        # Clear the cache after other exports
+        self.loader.wipe_cache()
 
         if self.config.export_wiki.ExportVanillaMaps:
             logger.info('Beginning export of vanilla maps')
@@ -66,6 +68,9 @@ class Exporter:
             # Remove assets with this mod's prefix from the cache
             prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
             self.loader.wipe_cache_with_prefix(prefix)
+
+        logger.info('Max memory: %6.2f Mb', self.loader.max_memory / 1024.0 / 1024.0)
+        logger.info('Max cache entries: %d', self.loader.max_cache)
 
     def _prepare_versions(self):
         if not self.game_version:
