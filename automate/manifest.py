@@ -20,13 +20,12 @@ DEFAULT_IGNORES = ('_manifest.json', )
 SHRINK_MOD_REGEX = r"{\n\s+(.+: .*),\n\s+(.+: .*),\n\s+(.+: .*)\n\s+}"
 
 
-def update_manifest(config=get_global_config()):
-    '''Update manifest file in the exports directory.'''
-    outdir = config.settings.PublishDir
-    manifest = outdir / '_manifest.json'
+def update_manifest(path: Path):
+    '''Update manifest file in the output directory.'''
+    manifest = path / '_manifest.json'
 
     logger.info('Updating manifest file')
-    generate_manifest(outdir, manifest, ignores=['_manifest.json'])
+    generate_manifest(path, manifest, ignores=['_manifest.json'])
 
 
 def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str] = DEFAULT_IGNORES):
@@ -49,6 +48,10 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
         if info:
             key = str(filename.relative_to(directory))
             files[key] = info
+
+    if not files:
+        logger.info(f'No files present - aborting manifest creation')
+        return
 
     # Try to make directory the file lives in
     if not output_file.parent.is_dir:

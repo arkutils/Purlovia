@@ -1,11 +1,23 @@
 import weakref
+from collections import namedtuple
+from logging import NullHandler, getLogger
 from typing import *
 
 from .base import UEBase
+from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
-from .properties import CustomVersion, Guid, PropertyTable, StringProperty
+from .properties import (Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
+
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        support_pretty = True
+    except ImportError:
+        support_pretty = False
+else:
+    support_pretty = False
 
 dbg_getName = 0
 
@@ -15,11 +27,16 @@ __all__ = [
     'ExportTableItem',
 ]
 
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
+
 
 class UAsset(UEBase):
     display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size',
                       'package_group', 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset',
                       'string_assets', 'thumbnail_offset', 'guid')
+
+    none_index: int
 
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
@@ -27,11 +44,16 @@ class UAsset(UEBase):
         self.loader: Optional['AssetLoader'] = None
         self.assetname: Optional[str] = None
         self.name: Optional[str] = None
+        self.file_ext: Optional[str] = None
         self.default_export: Optional['ExportTableItem'] = None
         self.default_class: Optional['ExportTableItem'] = None
+        self.has_properties = False
+        self.has_bulk_data = False
         super().__init__(self, stream)
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
+        ctx = get_ctx()
+
         # Header top
         self._newField('tag', self.stream.readUInt32())
         self._newField('legacy_ver', self.stream.readInt32())
@@ -53,6 +75,21 @@ class UAsset(UEBase):
 
         # Remaining header
         self._newField('guid', Guid(self))
+        self._newField('generations', Table(self).deserialise(GenerationInfo, self.stream.readUInt32()))
+        self._newField('engine_version_saved', EngineVersion(self))
+        self._newField('compression_flags', self.stream.readUInt32())
+        self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
+        self._newField('package_source', self.stream.readUInt32())
+        if self.licensee_ver >= 10:
+            # This field isn't present in some older ARK mods
+            self._newField('unknown_field', self.stream.readUInt64())
+        self._newField('packages_to_cook', Table(self).deserialise(StringProperty, self.stream.readUInt32()))
+        if self.legacy_ver > -7:
+            # Legacy field that is not used anymore
+            self._newField('texture_allocations', self.stream.readInt32())
+        self._newField('asset_registry_data_offset', self.stream.readUInt32())
+        self._newField('bulk_data_start_offset', self.stream.readUInt64())
+        self._newField('world_tile_info_data_offset', self.stream.readUInt64())
 
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
@@ -60,6 +97,16 @@ class UAsset(UEBase):
         self._newField('names', self._parseTable(self.names_chunk, StringProperty))
         self._newField('imports', self._parseTable(self.imports_chunk, ImportTableItem))
         self._newField('exports', self._parseTable(self.exports_chunk, ExportTableItem))
+
+        if ctx.bulk_data and self.bulk_data_start_offset:
+            bulk_stream = MemoryStream(self.stream, self.bulk_data_start_offset)
+            bulk_length = self.world_tile_info_data_offset - self.bulk_data_start_offset
+            self._newField('bulk_length', bulk_length)
+            self._newField('bulk_data', bulk_stream.readBytes(bulk_length))
+
+        if self.world_tile_info_data_offset is not 0:
+            tile_info_stream = MemoryStream(self.stream, self.world_tile_info_data_offset)
+            self._newField('tile_info', WorldTileInfo(self, tile_info_stream))
 
     def _link(self):
         '''Override linking phase to support hidden table fields.'''
@@ -69,14 +116,34 @@ class UAsset(UEBase):
         self.imports.link()
         self.exports.link()
 
-        for export in self.exports:
-            export.deserialise_properties()
+        ctx = get_ctx()
+
+        if ctx.bulk_data:
+            bulk_chunk = namedtuple('FakeChunkPtr', ['offset', 'count'])(self.bulk_data_start_offset, self.bulk_length)
+            self._newField('bulk', self._parseTable(bulk_chunk, PropertyTable))
+            self.has_bulk_data = True
+
+        if ctx.properties:
+            for export in self.exports:
+                export.deserialise_properties()
+            self.has_properties = True
+
+    def is_context_satisfied(self, ctx):
+        # Check that each of the context parameters is satisfied
+        if not self.is_linked and ctx.link:
+            return False
+        if not self.has_properties and ctx.properties:
+            return False
+        if not self.has_bulk_data and ctx.bulk_data:
+            return False
+
+        return True
 
     def getName(self, index):
         '''Get a name for the given index.'''
         names = self.names
         assert index is not None
-        assert type(index) == int
+        assert isinstance(index, int)
         assert names is not None
 
         extraIndex = index >> 32
@@ -89,7 +156,7 @@ class UAsset(UEBase):
             raise IndexError(f'Invalid name index 0x{index:08X} ({index})') from err
 
         if (flags or extraIndex) and dbg_getName:
-            print(f'getName for "{name}" ignoring flags 0x{flags:08X} and extraIndex 0x{extraIndex:08X}')
+            logger.warning('getName for "%s" ignoring flags 0x%08X and extraIndex 0x%08X', name, flags, extraIndex)
 
         # TODO: Do something with extraIndex?
         return name
@@ -138,33 +205,38 @@ class ImportTableItem(UEBase):
     klass: NameIndex
     namespace: ObjectIndex
     name: NameIndex
+    users: Set[UEBase]
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         self._newField('package', NameIndex(self))  # item type/class namespace
         self._newField('klass', NameIndex(self))  # item type/class
         self._newField('namespace', ObjectIndex(self))  # item namespace
         self._newField('name', NameIndex(self))  # item name
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     @property
     def fullname(self) -> str:
         return str(self.namespace.value.name) + '.' + str(self.name)
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
-    def _repr_pretty_(self, p, cycle):
-        if cycle:
-            p.text('Import(<cyclic>)')
-        else:
-            parent = get_clean_name(self.klass, 'class')
-            pkg = get_clean_name(self.namespace)
-            if pkg:
-                p.text(f'Import({self.name} ({parent}) from {pkg})')
+    if support_pretty and INCLUDE_METADATA:
+
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('Import(<cyclic>)')
             else:
-                p.text(f'Import({self.name} ({parent})')
+                parent = get_clean_name(self.klass, 'class')
+                pkg = get_clean_name(self.namespace)
+                if pkg:
+                    p.text(f'Import({self.name} ({parent}) from {pkg})')
+                else:
+                    p.text(f'Import({self.name} ({parent})')
 
     def __str__(self):
         parent = get_clean_name(self.klass, 'class')
@@ -185,8 +257,9 @@ class ExportTableItem(UEBase):
     namespace: ObjectIndex
     name: NameIndex
     properties: PropertyTable
+    users: Set[UEBase]
 
-    def _deserialise(self):
+    def _deserialise(self):  # pylint: disable=arguments-differ
         self._newField('klass', ObjectIndex(self))  # item type/class
         self._newField('super', ObjectIndex(self))  # item type/class namespace
         self._newField('namespace', ObjectIndex(self))  # item namespace
@@ -201,8 +274,9 @@ class ExportTableItem(UEBase):
         self._newField('package_flags', self.stream.readUInt32())
         self._newField('not_for_editor_game', self.stream.readBool32())
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     def _link(self):
         super()._link()
@@ -210,7 +284,8 @@ class ExportTableItem(UEBase):
             self.fullname = self.asset.assetname + '.' + str(self.name)
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
     def deserialise_properties(self):
         if 'properties' in self.field_values:
@@ -235,3 +310,30 @@ class ExportTableItem(UEBase):
             result += ' from ' + pkg
 
         return result
+
+
+class WorldTileInfo(UEBase):
+    display_fields = ('layer_name', 'bounds')
+    fullname: Optional[str] = None
+
+    unknown_field1: int
+    bounds: Box
+    layer_name: StringProperty
+    unknown_field2: int
+    unknown_field3: int
+    unknown_field4: int
+    streaming_distance: int
+    distance_streaming_enabled: bool
+
+    def _deserialise(self):  # pylint: disable=arguments-differ
+        self._newField('unknown_field1', self.stream.readUInt64())
+        self._newField('bounds', Box(self))
+        self._newField('layer_name', StringProperty(self))
+        self._newField('unknown_field2', self.stream.readUInt32())
+        self._newField('unknown_field3', self.stream.readUInt32())
+        self._newField('unknown_field4', self.stream.readUInt32())
+        self._newField('streaming_distance', self.stream.readInt32())
+        self._newField('distance_streaming_enabled', self.stream.readBool8())
+
+    def __str__(self):
+        return f'{self.layer_name} ({self.bounds})'

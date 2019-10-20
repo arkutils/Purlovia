@@ -1,5 +1,13 @@
-IPython
-deepdiff
+requests~=2.22.0
 pydantic~=0.30.1
 pyyaml~=5.1.1
-requests~=2.22.0
+psutil~=5.6.3
+yapf
+rope
+pytest
+pylint
+mypy
+jupyter
+deepdiff
+pygments
+pytest-mock

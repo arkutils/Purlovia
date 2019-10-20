@@ -3,6 +3,7 @@ import operator
 import struct
 import sys
 import uuid
+import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from logging import NullHandler, getLogger
@@ -10,14 +11,18 @@ from numbers import Real
 from typing import *
 
 from .base import UEBase
+from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
 from .number import *
 from .stream import MemoryStream
 
-try:
-    from IPython.lib.pretty import PrettyPrinter, pprint, pretty  # type: ignore
-    support_pretty = True
-except ImportError:
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        support_pretty = True
+    except ImportError:
+        support_pretty = False
+else:
     support_pretty = False
 
 #pylint: disable=unused-argument,arguments-differ
@@ -112,7 +117,7 @@ class PropertyTable(UEBase):
     def __len__(self):
         return len(self.values)
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -157,7 +162,8 @@ class Property(UEBase):
         try:
             propertyType = getPropertyType(self.header.type.value.value)
         except TypeError:
-            logger.debug(f'Encountered unknown property type {self.header.type.value.value}... attempting to skip')
+            if self.header.type.value.value not in SKIPPABLE_STRUCTS:
+                warnings.warn(f'Skipping unknown property type {self.header.type.value.value}')
 
         if propertyType:
             self._newField('value', propertyType(self), self.header.size)
@@ -166,7 +172,7 @@ class Property(UEBase):
             self._newField('value', f'<unsupported type {str(self.header.type)}>')
             self.stream.offset += self.header.size
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Clean property format: Name[index] = (type) value'''
@@ -206,6 +212,9 @@ class ValueProperty(UEBase, Real, ABC):
     @abstractmethod
     def _deserialise(self, size=None):
         pass
+
+    def format_for_json(self):
+        return self.value
 
     # Not sure why we have to specifically override these, but we do
     __eq__ = UEBase.__eq__
@@ -390,6 +399,13 @@ class IntProperty(ValueProperty):
         self._newField('value', self.stream.readInt32())
 
 
+class UInt32Property(IntProperty):
+    string_format = '(uint) {value}'
+
+    def _deserialise(self, size=None):
+        self._newField('value', self.stream.readUInt32())
+
+
 class BoolProperty(ValueProperty):
     main_field = 'value'
 
@@ -441,7 +457,7 @@ class ByteProperty(ValueProperty):  # With optional enum type
             self._newField('value', '<skipped bytes>')
             self.stream.offset += size
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -458,6 +474,9 @@ class ByteProperty(ValueProperty):  # With optional enum type
                 p.pretty(self.value)
             p.text(')')
 
+    def format_for_json(self):
+        return {"enum": str(self.enum), "value": self.value}
+
 
 class ObjectProperty(UEBase):
     main_field = 'value'
@@ -467,6 +486,9 @@ class ObjectProperty(UEBase):
 
     def _deserialise(self, size=None):
         self._newField('value', ObjectIndex(self))
+
+    def format_for_json(self):
+        return self.value.format_for_json()
 
 
 class NameProperty(UEBase):
@@ -485,7 +507,7 @@ class StringProperty(UEBase):
     size: int
     value: str
 
-    users: set
+    users: Set[UEBase]
 
     @classmethod
     def create(cls, value: str, asset: UEBase = None):
@@ -509,11 +531,13 @@ class StringProperty(UEBase):
             self.size = -self.size
             self._newField('value', self.stream.readTerminatedWideString(self.size))
 
-        # References to this item
-        self.users = set()
+        if INCLUDE_METADATA:
+            # References to this item
+            self.users = set()
 
     def register_user(self, user):
-        self.users.add(user)
+        if INCLUDE_METADATA:
+            self.users.add(user)
 
     def __str__(self):
         return self.value
@@ -614,7 +638,7 @@ STRUCT_TYPES_TO_ABORT_ON = (
 SKIPPABLE_STRUCTS = {
     # 'name': byte length
     'DelegateProperty': 12,
-    'IntPoint': 8,
+    'MulticastDelegateProperty': 12,  # TODO: Verify
     'LazyObjectProperty': 16,
     'Vector4': 16,
     # 'Transform': 4*4 + 3*4 + 3*4,
@@ -622,6 +646,7 @@ SKIPPABLE_STRUCTS = {
 
 TYPED_ARRAY_CONTENT = {
     'VertexData': 'Vector',
+    'NPCsSpawnOffsets': 'Vector',
 }
 
 
@@ -764,11 +789,11 @@ class StructProperty(UEBase):
 
     def __str__(self):
         if self.values and len(self.values) == 1:
-            return pretty(self.values[0])
+            return str(self.values[0])
 
         return f'{self.count} entries'
 
-    if support_pretty:
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -837,13 +862,16 @@ class ArrayProperty(UEBase):
                 assetname = '<unnamed asset>'
                 if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
                     assetname = self.asset.assetname
-                logger.debug(f'Skippable exception parsing {assetname}: {err}')
+                logger.debug('Skippable exception parsing %s: %s', assetname, err)
                 self.stream.offset = saved_offset + size
                 return
 
         self.stream.offset = saved_offset + size
 
-    if support_pretty:
+    def format_for_json(self):
+        return [element.format_for_json() for element in self.values]
+
+    if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -919,7 +947,7 @@ class Quat(UEBase):
 
 
 class Transform(UEBase):
-    rotatio: Quat
+    rotation: Quat
     translation: Vector
     scale: Vector
 
@@ -954,12 +982,37 @@ class LinearColor(UEBase):
         return tuple(v.value for v in self.field_values.values())
 
 
+class IntPoint(UEBase):
+    x: int
+    y: int
+
+    def _deserialise(self, size=None):
+        self._newField('x', self.stream.readInt32())
+        self._newField('y', self.stream.readInt32())
+
+
+class EngineVersion(UEBase):
+    major: int
+    minor: int
+    patch: int
+    changelist: int
+    branch: str
+
+    def _deserialise(self):
+        self._newField('major', self.stream.readUInt16())
+        self._newField('minor', self.stream.readUInt16())
+        self._newField('patch', self.stream.readUInt16())
+        self._newField('changelist', self.stream.readUInt32())
+        self._newField('branch', StringProperty(self))
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
     'BoolProperty': BoolProperty,
     'ByteProperty': ByteProperty,
     'IntProperty': IntProperty,
+    'UInt32Property': UInt32Property,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,
@@ -974,6 +1027,7 @@ TYPE_MAP = {
     'Color': Color,
     'LinearColor': LinearColor,
     'Box': Box,
+    'IntPoint': IntPoint,
     # 'Transform': Transform, # no worky
 }
 
@@ -986,4 +1040,5 @@ def getPropertyType(typeName: str, throw=True):
 
 
 # Types to export from this module
-__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion')
+__all__ = tuple(set(cls.__name__
+                    for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion', 'EngineVersion')

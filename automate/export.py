@@ -14,6 +14,8 @@ from ark.export_asb_values import values_for_species, values_from_pgd
 from automate.ark import ArkSteamManager
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
+from ue.loader import AssetLoadException
+from ue.utils import property_serialiser
 from utils.strings import get_valid_filename
 
 logger = getLogger(__name__)
@@ -26,12 +28,12 @@ __all__ = [
 
 def export_values(arkman: ArkSteamManager, modids: Set[str], config: ConfigFile):
     logger.info('Export beginning')
-    if config.settings.SkipExtract:
+    if config.settings.SkipExtract or config.export_asb.Skip:
         logger.info('(skipped)')
         return
 
     # Ensure the output directory exists
-    outdir = config.settings.PublishDir
+    outdir = config.settings.OutputPath
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
@@ -53,7 +55,7 @@ class Exporter:
     def perform(self):
         self._prepare_versions()
 
-        if self.config.settings.ExportVanillaSpecies:
+        if self.config.export_asb.ExportVanillaSpecies:
             logger.info('Beginning export of vanilla species')
             self._export_vanilla()
 
@@ -64,6 +66,9 @@ class Exporter:
             # Remove assets with this mod's prefix from the cache
             prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
             self.loader.wipe_cache_with_prefix(prefix)
+
+        logger.info('Max memory: %6.2f Mb', self.loader.max_memory / 1024.0 / 1024.0)
+        logger.info('Max cache entries: %d', self.loader.max_cache)
 
     def _prepare_versions(self):
         if not self.game_version:
@@ -117,6 +122,8 @@ class Exporter:
             props = None
             try:
                 props = ark.properties.gather_properties(asset)
+            except AssetLoadException as ex:
+                logger.warning(f'Gathering properties failed for {assetname}: %s', str(ex))
             except:  # pylint: disable=bare-except
                 logger.warning(f'Gathering properties failed for {assetname}', exc_info=True)
 
@@ -133,7 +140,7 @@ class Exporter:
                 species_values = values_for_species(asset,
                                                     props,
                                                     allFields=True,
-                                                    fullStats=not self.config.settings.Export8Stats,
+                                                    fullStats=not self.config.export_asb.Export8Stats,
                                                     includeBreeding=True,
                                                     includeColor=True)
             except:  # pylint: disable=bare-except
@@ -162,13 +169,13 @@ class Exporter:
         if other:
             values.update(other)
 
-        fullpath = (self.config.settings.PublishDir / filename).with_suffix('.json')
+        fullpath = (self.config.settings.OutputPath / self.config.export_asb.PublishSubDir / filename).with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
         changed, version = _should_save_json(values, fullpath)
         if changed:
-            pretty = self.config.settings.PrettyJson
+            pretty = self.config.export_asb.PrettyJson
             logger.info(f'Saving export to {fullpath} with version {version}')
             values['version'] = version
             _save_as_json(values, fullpath, pretty=pretty)
@@ -180,7 +187,7 @@ def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str
     '''
     Works out if a file needs to be saved and with which version number.
 
-    This is calcualted using the digest of its content, excluding the version field.
+    This is calculated using the digest of its content, excluding the version field.
     Also handles cases where the content has changed but the version has not, by bumping the build number.
 
     Returns a tuple of (changed, version), where `changed` is a boolean saying whether the data needs to be
@@ -211,6 +218,7 @@ def _should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str
         return (False, old_version or new_version)
 
     # Content has changed... if the version is changed also then we're done
+    assert old_version
     old_parts = [int(v) for v in old_version.strip().split('.')]
     new_parts = [int(v) for v in new_version.strip().split('.')]
     if old_parts[:3] != new_parts[:3]:
@@ -247,13 +255,13 @@ SHRINK_EMPTY_COLOR_REGEX = re.compile(r"\{\n\s+(\"\w+\": \w+)\n\s+\}")
 
 def _format_json(data, pretty=False):
     if pretty:
-        json_string = json.dumps(data, indent='\t')
+        json_string = json.dumps(data, default=property_serialiser, indent='\t')
         json_string = re.sub(JOIN_LINES_REGEX, r" \1", json_string)
         json_string = re.sub(JOIN_COLORS_REGEX, r"[ \1, \2 ]", json_string)
         json_string = re.sub(SHRINK_EMPTY_COLOR_REGEX, r"{ \1 }", json_string)
         json_string = re.sub(r'(\d)\]', r'\1 ]', json_string)
     else:
-        json_string = json.dumps(data, indent=None, separators=(',', ':'))
+        json_string = json.dumps(data, default=property_serialiser, indent=None, separators=(',', ':'))
     return json_string
 
 

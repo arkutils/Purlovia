@@ -5,6 +5,12 @@ from __future__ import annotations
 
 from typing import Callable, Dict, Generic, List, TypeVar, Union
 
+try:
+    from IPython.lib.pretty import PrettyPrinter  # type: ignore
+    support_pretty = True
+except ImportError:
+    support_pretty = False
+
 __all__ = [
     'Node',
     'IndexedTree',
@@ -42,6 +48,19 @@ class Node(Generic[T]):
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
 
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.pretty(self._data)
+            with p.group(4, '', ''):
+                for node in self._nodes:
+                    p.break_()
+                    p.pretty(node)
+
 
 class IndexedTree(Generic[T]):
     def __init__(self, root: T, key_fn: Callable[[T], str]):
@@ -66,17 +85,17 @@ class IndexedTree(Generic[T]):
         partial_tree.walk(self._register)
         parent_node.nodes.append(partial_tree)
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Node[T]:
         return self._lookup[key]
 
-    def __contains__(self, key: str):
+    def __contains__(self, key: str) -> bool:
         return key in self._lookup
 
-    def get(self, key: str, fallback=MISSING):
+    def get(self, key: str, fallback=MISSING) -> Node[T]:
         if fallback is MISSING:
             return self._lookup[key]
-        else:
-            return self._lookup.get(key, fallback)
+
+        return self._lookup.get(key, fallback)
 
     def _register(self, node: Node[T]):
         key = self._key_fn(node.data)
@@ -94,3 +113,13 @@ class IndexedTree(Generic[T]):
             raise TypeError("Parent must be a key or a node")
 
         return parent_node
+
+    if support_pretty:
+
+        def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
+            if cycle:
+                p.text(self.__class__.__name__ + '(<cyclic>)')
+                return
+
+            p.text('Tree ')
+            p.pretty(self.root)

@@ -77,7 +77,7 @@ def save_as_json(data, filename, pretty=False):
 
 # # Smarter search for potential assets
 # for assetname in loader.find_assetnames('.*', f'/Game/Mods/{mod_name}'):
-#     mem = loader._load_raw_asset(assetname)
+#     mem, _ = loader.load_raw_asset(assetname)
 #     if b'ShooterCharacterMovement' in mem.obj:
 #         asset = loader[assetname]
 #         props = ark.mod.gather_properties(asset)

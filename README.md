@@ -16,11 +16,11 @@ Covering:
  * Species multipliers
  * Breeding times, multipliers
  * Color regions and sets
+ * Bone damage multipliers
+ * Immobilzed-by list
  * *(future)* Taming stats and foods
- * *(future)* Immobilzed-by list
- * *(future)* Bone damage multipliers
 
-*This project does not contain assets from Ark. It install and updates them via regular Steam tools.*
+*This project does not contain assets from Ark. It installs and updates them via regular Steam tools.*
 
 ### Getting Started
 
@@ -46,6 +46,6 @@ This will:
 
 Browse asset properties with `browseprop.py`, for example:
 ```sh
-python browseprop.py /Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant
+python browseprop.py Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant
 ```
 Or look at the guts of an asset with `browseasset.py`.

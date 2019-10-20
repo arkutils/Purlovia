@@ -74,8 +74,9 @@ def inherits_from(asset: UAsset, targetname: str) -> bool:
     '''Check if the asset inherits from the given package.'''
     return walk_parents(asset, lambda parentname: True if parentname == targetname else None) or False
 
+T = TypeVar('T')
 
-def walk_parents(asset: UAsset, fn: Callable[[str], Optional[Any]]) -> Optional[Any]:
+def walk_parents(asset: UAsset, fn: Callable[[str], Optional[T]]) -> Optional[T]:
     '''Walk up the inheritance hierarchy, calling the supplied function for each node.
 
     To terminate the walk early return anything other than None from the supplied function.

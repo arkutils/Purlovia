@@ -118,7 +118,7 @@ class ArkSteamManager:
         logger.info('Ensuring mods are installed and up to date')
 
         modids_requested: Set[str] = set(str(modid) for modid in modids)
-        uninstallOthers = self.config.settings.UninstallUnusedMods
+        uninstallOthers = self.config.steamcmd.UninstallUnusedMods
         dryRun = self.config.settings.SkipInstall
 
         # Remove any request to manage official mods

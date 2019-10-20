@@ -1,6 +1,7 @@
 from typing import List, Type, Union
 
 from .base import UEBase
+from .context import INCLUDE_METADATA
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
@@ -13,6 +14,8 @@ __all__ = (
     'ChunkPtr',
     'NameIndex',
     'ObjectIndex',
+    'GenerationInfo',
+    'CompressedChunk',
 )
 
 
@@ -58,7 +61,7 @@ class Table(UEBase):
     def __len__(self):
         return len(self.values)
 
-    if support_pretty:
+    if support_pretty and INCLUDE_METADATA:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -84,6 +87,28 @@ class ChunkPtr(UEBase):
         self._newField('offset', self.stream.readUInt32())
 
 
+class GenerationInfo(UEBase):
+    export_count: int
+    name_count: int
+
+    def _deserialise(self):
+        self._newField('export_count', self.stream.readUInt32())
+        self._newField('name_count', self.stream.readUInt32())
+
+
+class CompressedChunk(UEBase):
+    uncompressed_offset: int
+    uncompressed_size: int
+    compressed_offset: int
+    compressed_size: int
+
+    def _deserialise(self):
+        self._newField('uncompressed_offset', self.stream.readUInt32())
+        self._newField('uncompressed_size', self.stream.readUInt32())
+        self._newField('compressed_offset', self.stream.readUInt32())
+        self._newField('compressed_size', self.stream.readUInt32())
+
+
 class NameIndex(UEBase):
     main_field = 'value'
 
@@ -98,7 +123,8 @@ class NameIndex(UEBase):
 
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
-        self.value.register_user(self.parent or self)
+        if INCLUDE_METADATA:
+            self.value.register_user(self.parent or self)
         if self.instance:
             self.field_values['value'] = f'{self.value}_{self.instance}'
 
@@ -158,6 +184,12 @@ class ObjectIndex(UEBase):
                 value.register_user(self)
 
         self._newField('value', value)
+
+    def format_for_json(self):
+        if not self.value:
+            return None
+
+        return f'{self.value.namespace.value.name}.{str(self.value.name).rstrip("_C")}'
 
     # if support_pretty:
 

@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 from ue.base import UEBase
@@ -32,3 +33,13 @@ def get_property(export, name) -> Optional[UEBase]:
             return prop.value
 
     return None
+
+
+def property_serialiser(obj):
+    if hasattr(obj, 'format_for_json'):
+        return obj.format_for_json()
+
+    if isinstance(obj, UEBase):
+        return str(obj)
+
+    return json._default_encoder.default(obj)
