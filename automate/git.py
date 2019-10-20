@@ -87,6 +87,7 @@ class GitManager:
             logger.info('Performing hard reset to remote HEAD')
             self.git.fetch()
             self.git.reset('--hard', 'origin/' + self.config.git.Branch)
+            self.git.clean('-dfq')
         else:
             logger.info('Performing pull')
             self.git.pull('--no-rebase', '--ff-only')
