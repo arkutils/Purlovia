@@ -24,6 +24,7 @@
 
     "cSpell.words": [
         "DCSC",
+        "Dinos",
         "Mult",
         "Purlovia",
         "Struct",
@@ -51,6 +52,7 @@
         "pylint",
         "pytest",
         "rfind",
+        "serialiser",
         "steamcmd",
         "uasset",
         "umap",

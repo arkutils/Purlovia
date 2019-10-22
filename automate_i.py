@@ -39,7 +39,7 @@ arkman.ensureModsUpdated([
 print()
 
 #%% Check assets load properly
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 print(f'\nChecking loader:\n')
 
 assetnames = (

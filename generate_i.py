@@ -25,7 +25,7 @@ from ark.export_asb_values import values_for_species
 from automate.ark import ArkSteamManager, readModData
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 
 version_string = None
 

@@ -40,7 +40,7 @@ class PGDTester(AssetTester):
 @pytest.fixture(name='loader')
 def fixture_loader() -> AssetLoader:
     arkman = ArkSteamManager()
-    loader = arkman.createLoader()
+    loader = arkman.getLoader()
     return loader
 
 

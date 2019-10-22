@@ -22,7 +22,7 @@ def fixture_config() -> ConfigFile:
 @pytest.fixture(name='loader')
 def fixture_loader(config: ConfigFile) -> AssetLoader:
     arkman = ArkSteamManager(config=config)
-    loader = arkman.createLoader()
+    loader = arkman.getLoader()
     return loader
 
 

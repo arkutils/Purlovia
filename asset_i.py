@@ -23,7 +23,7 @@ from ue.stream import MemoryStream
 from ue.utils import get_clean_name
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 
 #%% Select asset
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)

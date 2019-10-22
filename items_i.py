@@ -18,7 +18,7 @@ from ue.loader import AssetLoader, AssetNotFound, ModNotFound
 from utils.tree import IndexedTree, Node
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 
 
 #%%

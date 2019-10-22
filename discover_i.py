@@ -30,7 +30,7 @@ arkman = ArkSteamManager(config=config)
 arkman.ensureSteamCmd()
 arkman.ensureGameUpdated()
 arkman.ensureModsUpdated(config.mods)
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 
 #%%
 discoverer = Hierarchy(loader, config=config)

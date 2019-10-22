@@ -7,7 +7,7 @@ from automate.ark import ArkSteamManager, readModData
 import ark.discovery
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 names_file = 'names.txt'
 inherit_file = 'inherit.txt'
 

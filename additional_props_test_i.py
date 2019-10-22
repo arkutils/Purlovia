@@ -43,7 +43,7 @@ def get_color_defs(asset):
 
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 
 # Get Colors
 core_media = loader['/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP']

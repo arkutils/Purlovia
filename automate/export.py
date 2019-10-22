@@ -48,7 +48,7 @@ class Exporter:
         self.config = config
         self.arkman = arkman
         self.modids = modids
-        self.loader = arkman.createLoader()
+        self.loader = arkman.getLoader()
         self.discoverer = ark.discovery.SpeciesDiscoverer(self.loader)
         self.game_version = self.arkman.getGameVersion()
 

@@ -42,4 +42,4 @@ def property_serialiser(obj):
     if isinstance(obj, UEBase):
         return str(obj)
 
-    return json._default_encoder.default(obj)
+    return json._default_encoder.default(obj)  # pylint: disable=protected-access
