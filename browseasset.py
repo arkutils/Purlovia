@@ -1,13 +1,12 @@
-import os, sys
-from tkinter import Tk, EventType  # type: ignore
-from tkinter import ttk
+import os
+import sys
 from collections.abc import Iterable
+from tkinter import EventType, Tk, ttk  # type: ignore
 from typing import *
 
+from automate.ark import ArkSteamManager
 from ue.base import UEBase
 from ue.loader import AssetLoader
-
-from automate.ark import ArkSteamManager
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None

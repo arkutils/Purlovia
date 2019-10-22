@@ -7,6 +7,7 @@ from ue.proxy import *
 STAT_COUNT = 12
 COLOR_REGION_COUNT = 6
 
+
 class PrimalDinoStatusComponent(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoStatusComponent'):
     # DevKit Verified
     AmountMaxGainedPerLevelUpValue = uefloats(*repeat(0, STAT_COUNT))
@@ -67,10 +68,10 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     WakingTameFoodAffinityMultiplier = uefloats(1.6)  # TODO: needs raw data
     WakingTameFoodIncreaseMultiplier = uefloats(1.0)
 
-    RandomColorSetsMale: Mapping[int, ObjectProperty] # = 'None'
-    RandomColorSetsFemale: Mapping[int, ObjectProperty] # = 'None'
-    FertilizedEggItemsToSpawn: Mapping[int, ArrayProperty] # = []
-    BoneDamageAdjusters: Mapping[int, ArrayProperty] # = []
+    RandomColorSetsMale: Mapping[int, ObjectProperty]  # = 'None'
+    RandomColorSetsFemale: Mapping[int, ObjectProperty]  # = 'None'
+    FertilizedEggItemsToSpawn: Mapping[int, ArrayProperty]  # = []
+    BoneDamageAdjusters: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
 
@@ -87,8 +88,8 @@ class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameDat
     ModDescription = uestrings('')
     ModName = uestrings('')
 
-    ColorDefinitions: Mapping[int, ArrayProperty] # = []
-    MasterDyeList: Mapping[int, ArrayProperty] # = []
+    ColorDefinitions: Mapping[int, ArrayProperty]  # = []
+    MasterDyeList: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
 
@@ -103,8 +104,8 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     ExtraEggLoseDurabilityPerSecondMultiplier = uefloats(1.0)
     ItemDescription = uestrings('')
 
-    BaseCraftingResourceRequirements: Mapping[int, ArrayProperty] # = []
-    UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty] # = []
+    BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
+    UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
 
@@ -112,8 +113,8 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
 class PrimalItem_Dye(PrimalItem, uetype='/Script/ShooterGame.PrimalItem_Dye'):
     bSupportDragOntoOtherItem = uebools(True)
     # DevKit Verified
-    DyeColor: Mapping[int, LinearColor] # = (0.0, 0.0, 0.0, 0.0)
-    DyeUISceneTemplate: Mapping[int, ObjectProperty] # = None
+    DyeColor: Mapping[int, LinearColor]  # = (0.0, 0.0, 0.0, 0.0)
+    DyeUISceneTemplate: Mapping[int, ObjectProperty]  # = None
 
     # DevKit Unverified
 
@@ -124,10 +125,10 @@ class PrimalDinoSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDin
     TamingAffinityNoFoodDecreasePercentageSpeed = uefloats(0.0075)  # TODO: needs raw data
     WakingTameDisplayItemName = uebools(False)
 
-    BaseDamageTypeAdjusters: Mapping[int, ArrayProperty] # = []
-    ExtraDamageTypeAdjusters: Mapping[int, ArrayProperty] # = []
-    ExtraFoodEffectivenessMultipliers: Mapping[int, ArrayProperty] # = []
-    FoodEffectivenessMultipliers: Mapping[int, ArrayProperty] # = []
-    DinoFoodTypeImage: Mapping[int, ObjectProperty] # = None
+    BaseDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
+    ExtraDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
+    ExtraFoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
+    FoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
+    DinoFoodTypeImage: Mapping[int, ObjectProperty]  # = None
 
     # DevKit Unverified

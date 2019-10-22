@@ -4,15 +4,16 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-yapf = "*"
+yapf = "~=0.28.0"
+isort = {extras = ["pipfile"],version = "~=4.3.21"}
 rope = "*"
 pytest = "*"
+pytest-mock = "*"
 pylint = "*"
-mypy = "*"
+mypy = "!=0.740"
 jupyter = "*"
 deepdiff = "*"
 pygments = "*"
-pytest-mock = "*"
 
 [packages]
 requests = "~=2.22.0"

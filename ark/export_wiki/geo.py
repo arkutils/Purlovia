@@ -21,19 +21,14 @@ class GeoData:
         (bottom right) corner.
         '''
         self.multiplier = self.scale * 10
-        self.shift = (self.scale*1000 + self.origin) / self.multiplier
+        self.shift = (self.scale * 1000 + self.origin) / self.multiplier
 
     # Calculates geo coords from UE units.
     def from_units(self, units: int):
         return units / self.multiplier + self.shift
 
     def format_for_json(self):
-        return {
-            "Origin": self.origin,
-            "Scale": self.scale,
-            "Multi": self.multiplier,
-            "Shift": self.shift
-        }
+        return {"Origin": self.origin, "Scale": self.scale, "Multi": self.multiplier, "Shift": self.shift}
 
     def __str__(self):
         return f'GeoData (Origin {self.origin}, Scale {self.scale})'

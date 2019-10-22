@@ -53,22 +53,20 @@ class WorldData:
 
         self.latitude, self.longitude = gather_geo_data(self.world_settings)
         if getattr(self.world_settings, 'NPCRandomSpawnClassWeights', None):
-            self.npcRandomSpawnClassWeights = [
-                {
-                    'from': data.get_property('FromClass'),
-                    'to': data.get_property('ToClasses'),
-                    'chances': data.get_property('Weights')
-                } for data in self.world_settings.NPCRandomSpawnClassWeights[0].values
-            ]
+            self.npcRandomSpawnClassWeights = [{
+                'from': data.get_property('FromClass'),
+                'to': data.get_property('ToClasses'),
+                'chances': data.get_property('Weights')
+            } for data in self.world_settings.NPCRandomSpawnClassWeights[0].values]
 
     def format_for_json(self):
-        data = dict(
-            map=self.name,
-            **{f'lat{key}': value for key, value in self.latitude.format_for_json().items()},
-            **{f'long{key}': value for key, value in self.longitude.format_for_json().items()},
-            **proxy_properties_as_dict(self.world_settings, key_list=WORLD_SETTINGS_EXPORTED_PROPERTIES)
-        )
-        for field_name, field_type in self.__annotations__.items(): # pylint:disable=E1101
+        data = dict(map=self.name,
+                    **{f'lat{key}': value
+                       for key, value in self.latitude.format_for_json().items()},
+                    **{f'long{key}': value
+                       for key, value in self.longitude.format_for_json().items()},
+                    **proxy_properties_as_dict(self.world_settings, key_list=WORLD_SETTINGS_EXPORTED_PROPERTIES))
+        for field_name, field_type in self.__annotations__.items():  # pylint:disable=E1101
             if field_type is list and getattr(self, field_name):
                 data[field_name] = getattr(self, field_name)
         return data

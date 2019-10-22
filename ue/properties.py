@@ -429,7 +429,7 @@ class BoolProperty(ValueProperty):
 
 class ByteProperty(ValueProperty):  # With optional enum type
     enum: NameIndex
-    value: Union[NameIndex, int]  # type: ignore  (we *want* to override the base type)
+    value: Union[NameIndex, int]  # type: ignore  # (we *want* to override the base type)
 
     @classmethod
     def create(cls, value: int, size: int = 1, asset: UEBase = None):

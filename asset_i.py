@@ -1,10 +1,8 @@
 # Asset interactive experiments
 
 #%% Setup
-try:
-    from interactive_utils import *
-except ImportError:
-    pass
+
+from interactive_utils import *  # pylint: disable=wrong-import-order
 
 from typing import *
 

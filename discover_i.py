@@ -1,6 +1,9 @@
 # Asset interactive experiments
 
 #%% Setup
+
+from interactive_utils import *  # pylint: disable=wrong-import-order
+
 from logging import INFO, NullHandler, basicConfig, getLogger
 from pathlib import Path
 from typing import *
@@ -12,11 +15,6 @@ from config import ConfigFile, get_global_config
 from ue.hierarchy import Hierarchy
 
 basicConfig(level=INFO)
-
-try:
-    from interactive_utils import *
-except ImportError:
-    pass
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())

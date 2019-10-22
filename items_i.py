@@ -1,8 +1,6 @@
 #%% Init
-try:
-    from interactive_utils import *
-except:  # pylint: disable=bare-except
-    pass
+
+from interactive_utils import *  # pylint: disable=wrong-import-order
 
 from dataclasses import dataclass, field
 from io import StringIO

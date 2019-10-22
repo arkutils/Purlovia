@@ -1,28 +1,29 @@
 # Value generation interactive experiments
 
 #%% Setup
+
 from interactive_utils import *  # pylint: disable=wrong-import-order
 
-import re
 import json
 import os.path
-from pathlib import Path
-from datetime import datetime
+import re
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
 from typing import *
-from deepdiff import DeepDiff
 
-from ue.base import UEBase
-from ue.asset import UAsset
-from ue.loader import AssetLoader
-from ue.stream import MemoryStream
-from ue.utils import *
-from ue.properties import *
+from deepdiff import DeepDiff
 
 import ark.mod
 import ark.properties
 from ark.export_asb_values import values_for_species
 from automate.ark import ArkSteamManager, readModData
+from ue.asset import UAsset
+from ue.base import UEBase
+from ue.loader import AssetLoader
+from ue.properties import *
+from ue.stream import MemoryStream
+from ue.utils import *
 
 arkman = ArkSteamManager()
 loader = arkman.getLoader()

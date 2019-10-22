@@ -1,18 +1,21 @@
+# Experimenting with additional properties from species
+
 #%% Setup
-from interactive_utils import *
+
+from interactive_utils import *  # pylint: disable=wrong-import-order
 
 from typing import *
 
-from ue.base import UEBase
-from ue.asset import UAsset
-from ue.loader import AssetLoader
-from ue.stream import MemoryStream
-from ue.utils import *
-from ue.properties import *
-import ark.mod
 import ark.asset
+import ark.mod
 from ark.properties import stat_value
 from automate.ark import ArkSteamManager
+from ue.asset import UAsset
+from ue.base import UEBase
+from ue.loader import AssetLoader
+from ue.properties import *
+from ue.stream import MemoryStream
+from ue.utils import *
 
 # Equation References: https://ark.gamepedia.com/DevKit
 

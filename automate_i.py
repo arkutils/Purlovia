@@ -1,9 +1,12 @@
 #%% Setup
-from interactive_utils import *
+
+from interactive_utils import *  # pylint: disable=wrong-import-order
+
 import logging
-logging.basicConfig(level=logging.INFO)
 
 from automate.ark import ArkSteamManager
+
+logging.basicConfig(level=logging.INFO)
 
 arkman = ArkSteamManager()
 

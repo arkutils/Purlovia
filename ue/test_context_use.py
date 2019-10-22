@@ -1,6 +1,6 @@
 from typing import Iterable
 
-import pytest
+import pytest  # type: ignore
 
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config

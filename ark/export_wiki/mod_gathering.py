@@ -3,17 +3,17 @@ from typing import List, Optional
 from ue.asset import UAsset
 from ue.loader import AssetLoader, ModNotFound
 
-from .spawncontainers import (SpawnGroupEntry, SpawnGroupLimitEntry,
-                              SpawnGroupObject, get_spawn_entry_container_data)
+from .spawncontainers import SpawnGroupEntry, SpawnGroupLimitEntry, SpawnGroupObject, get_spawn_entry_container_data
 
 
 def gather_spawn_groups_from_pgd(loader: AssetLoader, pgd: UAsset) -> Optional[List[SpawnGroupObject]]:
     groups = []
+    assert pgd.default_export
     pgd_data = pgd.default_export.properties.as_dict()
     additions = pgd_data['TheNPCSpawnEntriesContainerAdditions'][0]
     if not additions:
         return None
-    
+
     for addition in additions.values:
         data = addition.as_dict()
         klass = data['SpawnEntriesContainerClass']
