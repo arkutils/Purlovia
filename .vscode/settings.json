@@ -18,6 +18,8 @@
             "source.organizeImports": true
         }
     },
+    "editor.codeActionsOnSaveTimeout": 10000,
+    "editor.formatOnSaveTimeout": 10000,
 
     "python.jediEnabled": false,
     "python.linting.pylintEnabled": true,
