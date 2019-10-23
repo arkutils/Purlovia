@@ -24,7 +24,7 @@ __all__ = [
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
-ROOT_NAME = '/Script/ShooterGame.Object'
+ROOT_NAME = '/Script/CoreUObject.Object'
 
 
 @lru_cache(maxsize=1024)
