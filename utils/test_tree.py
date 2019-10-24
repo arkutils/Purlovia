@@ -73,12 +73,12 @@ def test_indexed_simple_string_tree():
     assert id(a) == id(t['a'])
     assert id(b) == id(t['b'])
     assert repr(t['root'].nodes) == "[Node('a'), Node('b')]"
-    assert t.nodes[0].parent is t
-    assert t.nodes[1].parent is t
+    assert t['a'].parent is t.root
+    assert t['b'].parent is t.root
 
     t.add('a', 'a1')
     assert repr(t['a'].nodes) == "[Node('a1')]"
-    assert t.nodes[0].nodes[0].parent is t.nodes[0]
+    assert t['a1'].parent is t['a']
 
     found = []
     t.root.walk(lambda n: found.append(n.data))
