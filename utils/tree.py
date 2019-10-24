@@ -3,7 +3,8 @@ Reusable tree structure, including a variant with a fast indexed lookup.
 '''
 from __future__ import annotations
 
-from typing import Callable, Dict, Generic, List, TypeVar, Union
+from collections import deque
+from typing import *
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
@@ -22,8 +23,9 @@ MISSING = object()
 
 
 class Node(Generic[T]):
-    def __init__(self, data: T):
+    def __init__(self, data: T, parent: Optional[Node[T]] = None):
         self._data: T = data
+        self._parent: Optional[Node[T]] = parent
         self._nodes: List[Node[T]] = list()
 
     @property
@@ -31,19 +33,52 @@ class Node(Generic[T]):
         return self._data
 
     @property
+    def parent(self) -> Optional[Node[T]]:
+        return self._parent
+
+    @property
+    def parent_data(self) -> Optional[T]:
+        return self._parent.data if self._parent else None
+
+    @property
     def nodes(self) -> List[Node[T]]:
         return self._nodes
 
-    def walk(self, fn: Callable[[Node], None]):
-        fn(self)
+    def walk_iterator(self, skip_self=True, breadth_first=False) -> Iterable[Node[T]]:
+        q: Deque[Node[T]] = deque()
+        q.append(self)
+        while q:
+            node: Node[T] = q.popleft()
+            if skip_self:
+                skip_self = False
+            else:
+                yield node
+
+            if breadth_first:
+                q.extend(node.nodes)
+            else:
+                q.extendleft(reversed(node.nodes))
+
+    def walk(self, fn: Callable[[Node[T]], Optional[bool]]) -> Optional[bool]:
+        '''
+        Call the given function for every node below this one, depth-first.
+        Return `False` from `fn` to stop.
+        Returns `False` if `fn` ever returned it, else `None`.
+        '''
+        if fn(self) is False:
+            return False
+
         for node in self.nodes:
-            node.walk(fn)
+            if node.walk(fn) is False:
+                return False
+
+        return None
 
     def add(self, data: Union[T, Node[T]]) -> Node[T]:
-        if not isinstance(data, Node):
-            data = Node[T](data)
-        self._nodes.append(data)
-        return data
+        node: Node[T] = data if isinstance(data, Node) else Node[T](data)
+        node._parent = self  # pylint: disable=protected-access  # it's our own class
+        self._nodes.append(node)
+        return node
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
@@ -63,10 +98,18 @@ class Node(Generic[T]):
 
 
 class IndexedTree(Generic[T]):
-    def __init__(self, root: T, key_fn: Callable[[T], str]):
+    _key_fn: Optional[Callable[[T], str]]
+    _lookup: Dict[str, Node[T]]
+    root: Node[T]
+
+    def __init__(self, root: T, key_fn: Optional[Callable[[T], str]] = None):
         self._key_fn = key_fn
-        self._lookup: Dict[str, Node[T]] = dict()
-        self.root: Node[T] = Node[T](root)
+        self._root_data = root
+        self.clear()
+
+    def clear(self):
+        self._lookup = dict()
+        self.root = Node[T](self._root_data)
         self._register(self.root)
 
     def add(self, parent: Union[str, Node[T]], data: Union[T, Node[T]]) -> Node[T]:
@@ -76,14 +119,14 @@ class IndexedTree(Generic[T]):
             data = Node[T](data)
 
         self._register(data)
-        parent_node.nodes.append(data)
+        parent_node.add(data)
 
         return data
 
     def insert_segment(self, parent: Union[str, Node[T]], partial_tree: Node[T]):
         parent_node = self._handle_parent_arg(parent)
         partial_tree.walk(self._register)
-        parent_node.nodes.append(partial_tree)
+        parent_node.add(partial_tree)
 
     def __getitem__(self, key: str) -> Node[T]:
         return self._lookup[key]
@@ -98,7 +141,7 @@ class IndexedTree(Generic[T]):
         return self._lookup.get(key, fallback)
 
     def _register(self, node: Node[T]):
-        key = self._key_fn(node.data)
+        key: str = self._key_fn(node.data) if self._key_fn else node.data  # type: ignore
         if key in self._lookup:
             raise KeyError(f'Key already present: {key}')
         self._lookup[key] = node
