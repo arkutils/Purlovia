@@ -209,6 +209,9 @@
             - '/Script/ShooterGame.HUDElementBarWidget'
             - '/Script/ShooterGame.HUDStatusBarsWidget'
             - '/Script/ShooterGame.ToolTipWidget':
+                - '/Script/ShooterGame.PrimalDinoToolTipWidget'
+                - '/Script/ShooterGame.TooltipSmartLayoutWidget':
+                    - '/Script/ShooterGame.DinoListItemTooltip'
                 - '/Script/ShooterGame.PrimalStructureToolTipWidget'
                 - '/Script/ShooterGame.PrimalItemInventoryToolTipWidget'
                 - '/Script/ShooterGame.PrimalItemToolTipWidget'
@@ -223,10 +226,6 @@
             - '/Script/ShooterGame.CharacterViewPanelWidget'
             - '/Script/ShooterGame.StatWidget'
             - '/Script/ShooterGame.GamepadButtonLegendWidget'
-            - '/Script/ShooterGame.ToolTipWidget':
-                - '/Script/ShooterGame.PrimalDinoToolTipWidget'
-                - '/Script/ShooterGame.TooltipSmartLayoutWidget':
-                    - '/Script/ShooterGame.DinoListItemTooltip'
             - '/Script/ShooterGame.PrimalUI':
                 - '/Script/ShooterGame.PlayerHUDUI'
                 - '/Script/ShooterGame.InventoryPanelWidget'
