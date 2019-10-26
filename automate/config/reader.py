@@ -5,6 +5,7 @@ from .util_types import ModIdAccess
 
 SIMPLE_SECTION_TYPES = {
     'settings': SettingsSection,
+    'dev': DevSection,
     'steamcmd': SteamCmdSection,
     'git': GitSection,
     'errors': ErrorsSection,
