@@ -1015,6 +1015,7 @@ TYPE_MAP = {
     'UInt32Property': UInt32Property,
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
+    'StringAssetReference': StringProperty,
     'StringProperty': StringProperty,
     'ObjectProperty': ObjectProperty,
     'StructProperty': StructProperty,
