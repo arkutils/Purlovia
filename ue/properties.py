@@ -543,6 +543,26 @@ class StringProperty(UEBase):
         return self.value
 
 
+class TextProperty(UEBase):
+    main_field = 'source_string'
+
+    flags: int
+    history_type: int
+    namespace: StringProperty
+    key: StringProperty
+    source_string: StringProperty
+
+    def _deserialise(self, *args):
+        self._newField('flags', self.stream.readUInt32())
+        self._newField('history_type', self.stream.readInt8())
+        self._newField('namespace', StringProperty(self))
+        self._newField('key', StringProperty(self))
+        self._newField('source_string', StringProperty(self))
+
+    def __str__(self):
+        return f'{self.source_string}'
+
+
 class Guid(UEBase):
     main_field = 'value'
 
@@ -1017,6 +1037,7 @@ TYPE_MAP = {
     'StrProperty': StringProperty,
     'StringAssetReference': StringProperty,
     'StringProperty': StringProperty,
+    'TextProperty': TextProperty,
     'ObjectProperty': ObjectProperty,
     'StructProperty': StructProperty,
     'ArrayProperty': ArrayProperty,
