@@ -295,4 +295,7 @@
 # Unknown, need placing
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
 - '/Script/CoreUObject.Interface'
-
+- '/Script/Engine.GroundClutterLayerActor'
+- '/Script/Engine.SkeletalMeshActor'
+- '/Script/Engine.SkeletalMeshComponent'
+- '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
