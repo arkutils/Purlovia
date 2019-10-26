@@ -8,6 +8,7 @@ from typing import *
 
 import yaml
 
+import ark.discovery
 from config import ConfigFile, get_global_config
 
 from .ark import ArkSteamManager
@@ -175,6 +176,9 @@ def run(config: ConfigFile):
         # Ensure Git is setup and ready
         git = GitManager(config=config)
         git.before_exports()
+
+        # Initialise the asset hierarchy, scanning everything
+        ark.discovery.initialise_hierarchy(arkman, config)
 
         # Export species data for ASB, update manifest, commit
         export_values(arkman, set(mods), config)

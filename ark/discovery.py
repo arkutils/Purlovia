@@ -1,8 +1,12 @@
 from logging import NullHandler, getLogger
+from pathlib import Path
 from typing import *
 
-from config import get_global_config
+import ue.hierarchy
+from automate.ark import ArkSteamManager
+from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, AssetLoadException
+from utils.cachefile import cache_data
 
 from .asset import findSubComponentParentPackages
 from .common import CHR_PKG, DCSC_PKG
@@ -140,3 +144,43 @@ class SpeciesDiscoverer:
         for species in self.loader.find_assetnames('.*', f'/Game/Mods/{modid}', exclude=self.global_excludes):
             if self._filter_species(species):
                 yield species
+
+
+def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_global_config()):
+    version_key = _gather_version_data(arkman, config)
+    loader = arkman.getLoader()
+    gen_fn = lambda _: _generate_hierarchy(loader)
+    data = cache_data(version_key, 'purlovia_asset_hierarchy', gen_fn, force_regenerate=config.dev.ClearHierarchyCache)
+    ue.hierarchy.tree = data
+
+
+def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
+    # Gather identities and versions of all involved components
+    key = dict(core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
+               mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))
+    return key
+
+
+def _generate_hierarchy(loader: AssetLoader):
+    config = get_global_config()
+
+    excludes = set(['/Game/Mods/.*', *config.optimisation.SearchIgnore])
+
+    # Always load the internal hierarchy
+    ue.hierarchy.tree.clear()
+    ue.hierarchy.load_internal_hierarchy(Path('config') / 'hierarchy.yaml')
+
+    # Scan /Game, excluding /Game/Mods and any excludes from config
+    ue.hierarchy.explore_path('/Game', loader, excludes)
+
+    # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
+    official_modids = set(config.official_mods.ids())
+    official_modids -= set(config.settings.SeparateOfficialMods)
+    for modid in official_modids:
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, excludes)
+
+    # Scan /Game/Mods/<modid> for each configured mod
+    for modid in config.mods:
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, excludes)
+
+    return ue.hierarchy.tree
