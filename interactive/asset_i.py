@@ -2,10 +2,9 @@
 
 #%% Setup
 
-from interactive_utils import *  # pylint: disable=wrong-import-order
+from interactive.setup import *  # pylint: disable=wrong-import-order
 
 import json
-from typing import *
 
 import ark.asset
 import ark.mod
@@ -13,18 +12,11 @@ import ark.properties
 import ue.gathering
 from ark.common import *
 from ark.types import PrimalItem
-from automate.ark import ArkSteamManager
-from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.base import UEBase
 from ue.coretypes import *
-from ue.gathering import gather_properties
-from ue.loader import AssetLoader, AssetNotFound
 from ue.properties import *
 from ue.stream import MemoryStream
 from ue.utils import get_clean_name
-
-arkman = ArkSteamManager()
-loader = arkman.getLoader()
 
 #%% Select asset
 # AllDinosAchievementNameTags (89 entries), GlobalCuddleFoodList (15 entries), DinoEntries (journal? 147 entries)

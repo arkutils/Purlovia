@@ -2,24 +2,22 @@
 
 #%% Setup
 
-import ue.hierarchy
-from automate.ark import ArkSteamManager
-from ue.asset import UAsset
+from interactive.setup import *  # pylint: disable=wrong-import-order
 
-arkman = ArkSteamManager()
-loader = arkman.getLoader()
+import ue.hierarchy
+
+#%% Discover
+
 ue.hierarchy.tree.clear()
-ue.hierarchy.load_internal_hierarchy('config/hierarchy.yaml')
+ue.hierarchy.load_internal_hierarchy(Path('config/hierarchy.yaml'))
+ue.hierarchy.explore_path('/Game/PrimalEarth/Dinos/Dodo', loader, set())
+
+# ark.discovery.initialise_hierarchy(loader)
 
 #%% Creation
 
 dodo_chr: UAsset = loader['Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP']
-map_asset: UAsset = loader['Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP']
-assert dodo_chr.default_class
-
-#%% Discover
-
-ue.hierarchy.explore_path('/Game/PrimalEarth/Dinos/Dodo', loader, set())
+assert dodo_chr.default_class and dodo_chr.default_export
 
 #%% Go
 
