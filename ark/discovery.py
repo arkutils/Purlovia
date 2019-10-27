@@ -5,11 +5,12 @@ from typing import *
 import ue.hierarchy
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
+from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetLoadException
 from utils.cachefile import cache_data
 
 from .asset import findSubComponentParentPackages
-from .common import CHR_PKG, DCSC_PKG
+from .common import CHR_CLS, CHR_PKG, DCSC_PKG
 from .tree import inherits_from, walk_parents
 
 __all__ = [
@@ -126,24 +127,26 @@ class SpeciesDiscoverer:
         return self.testByRawData.is_species(assetname) and self.testByInheriance.is_species(assetname)
 
     def discover_vanilla_species(self) -> Iterator[str]:
-        # Scan /Game, excluding /Game/Mods and any excludes from config
-        for species in self.loader.find_assetnames('.*', '/Game', exclude=('/Game/Mods/.*', *self.global_excludes)):
-            if self._filter_species(species):
-                yield species
+        config = get_global_config()
+        official_modids = set(config.official_mods.ids())
+        official_modids -= set(config.settings.SeparateOfficialMods)
+        official_mod_prefixes = tuple(f'/Game/Mods/{modid}' for modid in official_modids)
 
-        # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
-        official_modids = set(get_global_config().official_mods.ids())
-        official_modids -= set(get_global_config().settings.SeparateOfficialMods)
-        for modid in official_modids:
-            for species in self.loader.find_assetnames('.*', f'/Game/Mods/{modid}', exclude=self.global_excludes):
-                if self._filter_species(species):
-                    yield species
+        for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
+            assetname = cls_name[:cls_name.rfind('.')]
+
+            # Skip anything in the mods directory that isn't one of the listed official mods
+            if assetname.startswith('/Game/Mods') and not any(assetname.startswith(prefix) for prefix in official_mod_prefixes):
+                continue
+
+            yield assetname
 
     def discover_mod_species(self, modid: str) -> Iterator[str]:
-        # Scan /Game/Mods/<modid>
-        for species in self.loader.find_assetnames('.*', f'/Game/Mods/{modid}', exclude=self.global_excludes):
-            if self._filter_species(species):
-                yield species
+        clean_path = self.loader.clean_asset_name(f'/Game/Mods/{modid}')
+        for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
+            assetname = cls_name[:cls_name.rfind('.')]
+            if assetname.startswith(clean_path):
+                yield assetname
 
 
 def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_global_config()):

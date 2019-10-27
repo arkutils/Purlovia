@@ -81,7 +81,8 @@ def values_for_species(asset: UAsset,
 
     name = stat_value(props, 'DescriptiveName', 0, None) or stat_value(props, 'DinoNameTag', 0, None)
     if not name:
-        logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag")
+        logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
+        return
         name = '<unnamed species>'
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
