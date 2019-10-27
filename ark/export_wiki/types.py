@@ -205,31 +205,34 @@ class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorL
     ActorList: Mapping[int, ArrayProperty]
 
 
-class Actor(UEProxyStructure, uetype=ACTOR_CLS):
+class OilVein(UEProxyStructure, uetype=OIL_VEIN_CLS):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class OilVein(Actor, uetype=OIL_VEIN_CLS):
-    pass
+class WaterVein(UEProxyStructure, uetype=WATER_VEIN_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class WaterVein(Actor, uetype=WATER_VEIN_CLS):
-    pass
+class GasVein(UEProxyStructure, uetype=GAS_VEIN_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class GasVein(Actor, uetype=GAS_VEIN_CLS):
-    pass
+class PrimalStructurePowerNode(UEProxyStructure, uetype=CHARGE_NODE_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class PrimalStructurePowerNode(Actor, uetype=CHARGE_NODE_CLS):
-    pass
+class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class WildPlantSpeciesZ(Actor, uetype=WILD_PLANT_SPECIES_Z_CLS):
-    pass
-
-
-class ExplorerNote(Actor, uetype=EXPLORER_CHEST_BASE_CLS):
+class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
     # DevKit Unverified
     ExplorerNoteIndex = ueints(0)
+
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
