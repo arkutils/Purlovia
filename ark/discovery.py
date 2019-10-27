@@ -156,7 +156,8 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
 
 def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
-    key = dict(core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
+    key = dict(format=1,
+               core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
                mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))
     return key
 
@@ -164,23 +165,24 @@ def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
 def _generate_hierarchy(loader: AssetLoader):
     config = get_global_config()
 
-    excludes = set(['/Game/Mods/.*', *config.optimisation.SearchIgnore])
+    core_excludes = set(['/Game/Mods/.*', *config.optimisation.SearchIgnore])
+    mod_excludes = set(config.optimisation.SearchIgnore)
 
     # Always load the internal hierarchy
     ue.hierarchy.tree.clear()
     ue.hierarchy.load_internal_hierarchy(Path('config') / 'hierarchy.yaml')
 
     # Scan /Game, excluding /Game/Mods and any excludes from config
-    ue.hierarchy.explore_path('/Game', loader, excludes)
+    ue.hierarchy.explore_path('/Game', loader, core_excludes)
 
     # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
     official_modids = set(config.official_mods.ids())
     official_modids -= set(config.settings.SeparateOfficialMods)
     for modid in official_modids:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, core_excludes)
 
     # Scan /Game/Mods/<modid> for each configured mod
     for modid in config.mods:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, mod_excludes)
 
     return ue.hierarchy.tree
