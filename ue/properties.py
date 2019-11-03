@@ -1245,7 +1245,7 @@ class Texture2D(UEBase):
     values: List["TextureData"]
     strip_flags: StripDataFlags
 
-    def _deserialise(self):
+    def _deserialise(self, properties: "PropertyTable"):  # type: ignore
         self._newField('strip_flags', StripDataFlags(self))
         strip_flags2 = StripDataFlags(self).deserialise()
         assert self.strip_flags.global_flags == strip_flags2.global_flags
@@ -1299,8 +1299,6 @@ class StreamedAudioChunk(UEBase):
 
 class SoundWave(UEBase):
     def _deserialise(self, properties: "PropertyTable"):  # type: ignore
-        self.stream.readBytes(4)  # HACK: what is this?
-
         self._newField('is_cooked', self.stream.readBool32())
         self._newField('compression_name', NameIndex(self))
         self.compression_name.link()
@@ -1354,6 +1352,11 @@ TYPE_MAP = {
     'Box': Box,
     'IntPoint': IntPoint,
     # 'Transform': Transform, # no worky
+}
+
+AFTER_PROPERTY_TABLE_TYPES = {
+    'Texture2D': Texture2D,
+    'SoundWave': SoundWave,
 }
 
 
