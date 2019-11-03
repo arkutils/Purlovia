@@ -1212,6 +1212,8 @@ TYPE_MAP = {
     # 'Transform': Transform, # no worky
 }
 
+AFTER_PROPERTY_TABLE_TYPES: Dict[str, Type] = {}
+
 
 def getPropertyType(typeName: str, throw=True):
     result = TYPE_MAP.get(typeName, None)
