@@ -1278,6 +1278,56 @@ class Texture2D(UEBase):
         return platform_data
 
 
+class CompressedAudioChunk(UEBase):
+    display_fields = ()
+
+    def _deserialise(self):
+        self._newField('format_name', NameIndex(self))
+        self._newField('bulk_data', BulkDataHeader(self).deserialise())
+        # Name table should be linked at this point.
+        self.format_name.link()
+
+
+class StreamedAudioChunk(UEBase):
+    display_fields = ()
+
+    def _deserialise(self):
+        self._newField('cooked', self.stream.readBool32())
+        self._newField('bulk_data', BulkDataHeader(self).deserialise())
+        self._newField('data_size', self.stream.readInt32())
+
+
+class SoundWave(UEBase):
+    def _deserialise(self, properties: "PropertyTable"):  # type: ignore
+        self.stream.readBytes(4)  # HACK: what is this?
+
+        self._newField('is_cooked', self.stream.readBool32())
+        self._newField('compression_name', NameIndex(self))
+        self.compression_name.link()
+
+        streaming_enabled = properties.get_property('bReallyUseStreamingReserved', fallback=False)
+        if streaming_enabled:
+            # This is either some early streaming implementation,
+            # or it's been heavily modified in Ark, the GUID location
+            # and second "cooked" bool being most notable.
+            self._newField('guid', Guid(self))
+            self._newField('is_streaming_cooked', self.stream.readBool32())
+            if self.is_streaming_cooked:
+                chunk_count = self.stream.readUInt32()
+                self._newField('streamed_format', NameIndex(self))
+                self.streamed_format.link()
+                assert str(self.streamed_format) == str(self.compression_name)
+                self._newField('streaming_chunks', Table(self).deserialise(StreamedAudioChunk, chunk_count))
+        else:
+            # Asset streaming is disabled.
+            if self.is_cooked:
+                chunk_count = self.stream.readUInt32()
+                self._newField('compressed_chunks', Table(self).deserialise(CompressedAudioChunk, chunk_count))
+            else:
+                self._newField('bulk_data', BulkDataHeader(self).deserialise())
+            self._newField('guid', Guid(self))
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
