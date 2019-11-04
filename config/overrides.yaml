@@ -4,6 +4,9 @@
 # Note: Surround regexes with single quotes to avoid extra backslash quoting
 
 defaults:
+    # True to leave this species out of the exported data files (e.g. for baseclasses)
+    skip_export: false
+
     color_regions:
         # Whether to capitalize the first character of region names
         capitalize: true
@@ -46,7 +49,7 @@ mods:
     1675895024: # No Untameables
         color_regions:
             useless_name_regexes:
-                unkown: 'Unkown'
+                unkown: 'Unkown'  # Misspelt to match mod
 
 
 # Override settings on a per-species basis

@@ -11,6 +11,7 @@ from utils.cachefile import cache_data
 
 from .asset import findSubComponentParentPackages
 from .common import CHR_CLS, CHR_PKG, DCSC_PKG
+from .overrides import get_overrides_for_species
 from .tree import inherits_from, walk_parents
 
 __all__ = [
@@ -21,6 +22,7 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
+# Obsolete
 class ByRawData:
     '''Very fast/cheap method for bulk searching. Over-selects slightly.'''
     def __init__(self, loader: AssetLoader):
@@ -57,6 +59,7 @@ class ByRawData:
         return result
 
 
+# Obsolete
 class ByInheritance:
     '''Totally accurate but expensive method, to be used to verify results from other discovery methods.'''
     def __init__(self, loader: AssetLoader):
@@ -104,27 +107,11 @@ class ByInheritance:
 
         return found_dcsc
 
-    # def is_inventory_item(self, assetname: str):
-    #     '''
-    #     Load the asset fully and check that it inherits from PrimalItem and it or one of
-    #     its parents has a component that inherits from DCSC.
-    #     '''
-    #     if not assetname.startswith('/Game'):
-    #         return False
-
-    #     asset = self.loader[assetname]
-
 
 class SpeciesDiscoverer:
     def __init__(self, loader: AssetLoader):
         self.loader = loader
-        self.testByRawData = ByRawData(loader)
-        self.testByInheriance = ByInheritance(loader)
-
         self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
-
-    def _filter_species(self, assetname: str) -> bool:
-        return self.testByRawData.is_species(assetname) and self.testByInheriance.is_species(assetname)
 
     def discover_vanilla_species(self) -> Iterator[str]:
         config = get_global_config()
@@ -139,6 +126,10 @@ class SpeciesDiscoverer:
             if assetname.startswith('/Game/Mods') and not any(assetname.startswith(prefix) for prefix in official_mod_prefixes):
                 continue
 
+            modid = self.loader.get_mod_id(assetname) or ''
+            if get_overrides_for_species(assetname, modid).skip_export:
+                continue
+
             yield assetname
 
     def discover_mod_species(self, modid: str) -> Iterator[str]:
@@ -146,6 +137,8 @@ class SpeciesDiscoverer:
         for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
             assetname = cls_name[:cls_name.rfind('.')]
             if assetname.startswith(clean_path):
+                if get_overrides_for_species(assetname, modid).skip_export:
+                    continue
                 yield assetname
 
 
@@ -161,7 +154,7 @@ def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
     key = dict(format=1,
                core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
-               mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))
+               mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))  # type: ignore
     return key
 
 

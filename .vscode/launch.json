@@ -11,7 +11,9 @@
             "module": "automate",
             "console": "integratedTerminal",
             "args": [
-                "--skip-install"
+                "--skip-install",
+                "--skip-extract-wiki",
+                // "--remove-cache",
             ]
         },
         {
