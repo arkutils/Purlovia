@@ -152,7 +152,7 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
 
 def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
-    key = dict(format=1,
+    key = dict(format=2,
                core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
                mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))  # type: ignore
     return key
@@ -175,7 +175,7 @@ def _generate_hierarchy(loader: AssetLoader):
     official_modids = set(config.official_mods.ids())
     official_modids -= set(config.settings.SeparateOfficialMods)
     for modid in official_modids:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, core_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, mod_excludes)
 
     # Scan /Game/Mods/<modid> for each configured mod
     for modid in config.mods:
