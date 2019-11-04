@@ -180,26 +180,26 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
 
     n = 0
 
-    asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
-    for (assetname, ext) in asset_iterator:
-        n += 1
-        if verbose and n % 200 == 0: logger.info(assetname)
+    with ue_parsing_context(properties=False):
+        asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
+        for (assetname, ext) in asset_iterator:
+            n += 1
+            if verbose and n % 200 == 0: logger.info(assetname)
 
-        try:
-            with ue_parsing_context(properties=False):
+            try:
                 asset = loader[assetname]
-        except AssetLoadException:
-            logger.warning("Failed to load asset: %s", assetname)
-            continue
+            except AssetLoadException:
+                logger.warning("Failed to load asset: %s", assetname)
+                continue
 
-        try:
-            _ingest_asset(asset, loader)
-        except AssetLoadException:
-            logger.warning("Failed to check parentage of %s", assetname)
+            try:
+                _ingest_asset(asset, loader)
+            except AssetLoadException:
+                logger.warning("Failed to check parentage of %s", assetname)
 
-        # Remove maps from the cache immediately as they are large and cannot be inherited from
-        if ext == '.umap':
-            loader.cache.remove(assetname)
+            # Remove maps from the cache immediately as they are large and cannot be inherited from
+            if ext == '.umap':
+                loader.cache.remove(assetname)
 
 
 def _ingest_asset(asset: UAsset, loader: AssetLoader):
