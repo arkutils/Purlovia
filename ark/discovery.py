@@ -117,7 +117,7 @@ class SpeciesDiscoverer:
         config = get_global_config()
         official_modids = set(config.official_mods.ids())
         official_modids -= set(config.settings.SeparateOfficialMods)
-        official_mod_prefixes = tuple(f'/Game/Mods/{modid}' for modid in official_modids)
+        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
 
         for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
             assetname = cls_name[:cls_name.rfind('.')]
@@ -133,7 +133,7 @@ class SpeciesDiscoverer:
             yield assetname
 
     def discover_mod_species(self, modid: str) -> Iterator[str]:
-        clean_path = self.loader.clean_asset_name(f'/Game/Mods/{modid}')
+        clean_path = self.loader.clean_asset_name(f'/Game/Mods/{modid}') + '/'
         for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
             assetname = cls_name[:cls_name.rfind('.')]
             if assetname.startswith(clean_path):
@@ -175,10 +175,10 @@ def _generate_hierarchy(loader: AssetLoader):
     official_modids = set(config.official_mods.ids())
     official_modids -= set(config.settings.SeparateOfficialMods)
     for modid in official_modids:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
 
     # Scan /Game/Mods/<modid> for each configured mod
     for modid in config.mods:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
 
     return ue.hierarchy.tree
