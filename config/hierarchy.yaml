@@ -159,6 +159,7 @@
         - '/Script/ShooterGame.PrimalInventoryComponent_Static'
     - '/Script/ShooterGame.PrimalCharacterStatusComponent':
         - '/Script/ShooterGame.PrimalDinoStatusComponent'
+        - '/Script/ShooterGame.PrimalPlayerStatusComponent'
     - '/Script/ShooterGame.PrimalHarvestingComponent'
 - '/Script/Engine.AnimInstance':
     - '/Script/Engine.VehicleAnimInstance'
