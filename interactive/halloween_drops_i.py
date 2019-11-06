@@ -87,7 +87,7 @@ for assetname in assetnames:
     assert asset.default_class
 
     item: DinoDrop = gather_properties(asset.default_export)
-    item_sets = item.AdditionalItemSets[0].values
+    item_sets = item.AdditionalItemSets[0].values  # type: ignore
     if not len(item_sets):
         continue
 

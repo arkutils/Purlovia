@@ -41,17 +41,17 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
     existing_hash: str = ''
     if not force_regenerate:
         try:
-            with open(hash_filename, 'rt') as f:
-                existing_hash = f.read().strip()
+            with open(hash_filename, 'rt') as f_hash:
+                existing_hash = f_hash.read().strip()
         except IOError:
             logger.debug(f'Cached hash file {hash_filename} could not be loaded')
 
     # If they match, load and return the cached data
     if key_hash == existing_hash:
         try:
-            with open(data_filename, 'rb') as f:
+            with open(data_filename, 'rb') as f_data:
                 logger.debug(f'Re-using existing cached data')
-                data = pickle.load(f)
+                data = pickle.load(f_data)
                 return data
         except IOError:
             logger.warning(f'Cached data file {data_filename} is missing and must be regenerated')
@@ -65,14 +65,14 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
     data = generator_fn(key)
 
     try:
-        with open(hash_filename, 'wt') as f:
-            f.write(key_hash)
+        with open(hash_filename, 'wt') as f_hash:
+            f_hash.write(key_hash)
     except IOError:
         logger.exception(f'Unable to save cached data hash file {hash_filename}')
 
     try:
-        with open(data_filename, 'wb') as f:
-            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+        with open(data_filename, 'wb') as f_data:
+            pickle.dump(data, f_data, pickle.HIGHEST_PROTOCOL)
     except IOError:
         logger.exception(f'Unable to save cached data in {hash_filename}')
 

@@ -299,6 +299,6 @@ def scan_asset(asset: UAsset, indent=0):
 # dcsc_export = [e for e in asset.exports if 'Status' in str(e.name)][-1]
 # props = ue.gathering.gather_properties(dcsc_export)
 
-props = ue.gathering.gather_properties(asset.default_class)
+props = ue.gathering.gather_properties(asset.default_class)  # type: ignore
 
 #%%

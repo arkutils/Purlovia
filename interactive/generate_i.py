@@ -132,7 +132,7 @@ def save_as_json(data, filename, pretty=False):
 #     species_data.append((asset, props))
 
 #%% CHOOSE ONE: Gather species list from existing ASB values.json
-if 'mod_name' in vars(): del mod_name
+if 'mod_name' in vars(): del mod_name  # type: ignore
 value_json = json.load(open(os.path.join('asb_json', 'values.json')))
 load_species = [species['blueprintPath'].split('.')[0] for species in value_json['species']]
 version_string = f'{arkman.ensureGameUpdated()}.{int(datetime.utcnow().timestamp())}'
@@ -145,7 +145,7 @@ for pkgname in load_species:
 
 #%% Gather expected resutls from original ASB values files
 if 'mod_name' in vars():
-    asb_values_filename = mod_name.lower() + ".json"
+    asb_values_filename = mod_name.lower() + ".json"  # type: ignore
 else:
     asb_values_filename = "values.json"
 print(f"\nReading expected data from: {asb_values_filename}")
