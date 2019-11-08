@@ -66,4 +66,7 @@
         "xlocal"
     ],
     "cSpell.diagnosticLevel": "Hint",
+
+    "coverage-gutters.xmlname": "coverage.xml",
+    "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
 }
