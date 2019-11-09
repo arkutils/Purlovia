@@ -151,7 +151,7 @@ class UsageBasedCacheManager(CacheManager):
 
     We use the guaranteed ordering of Python dicts to track the most recently used entries.
     '''
-    def __init__(self, max_count=5000, max_memory=6 * 1024 * 1024 * 1024, keep_count=1000):
+    def __init__(self, max_count=3000, max_memory=6 * 1024 * 1024 * 1024, keep_count=500):
         self.cache: Dict[str, UAsset] = dict()
         self.max_count = max_count
         self.max_memory = max_memory
@@ -248,7 +248,7 @@ class ContextAwareCacheWrapper(CacheManager):
 
         # Ensure the found asset satisfies the requirements of the current parsing context
         if not asset.is_context_satisfied(current_ctx):
-            logger.warning("Re-parsing asset for more data: %s", name)
+            logger.debug("Re-parsing asset for more data: %s", name)
             return None
 
         return asset
