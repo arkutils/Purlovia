@@ -24,7 +24,7 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
     function, save it to a cache file and return the result.
 
     `key` is a JSON-serialisable object specifying any versions needed to uniquely identify the data.
-    `filename` is a name to use for the temp file.
+    `filename` is a name to use for the temp file. If it includes a '/' it will not be prefixed by tempdir.
     `generator_fn` is a (usually slow) function to generate the data that would otherwise be cached. This function will be passed the `key` object.
     `force_regenerate` to ignore existing cached data and always regerenate it.
 
@@ -32,7 +32,7 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
         key = { 'version': 1, 'lastModified': 34785643526 }
         data = cached_data(key, 'filename', generate_the_data)
     '''
-    basepath: Path = Path(tempfile.gettempdir()) / filename
+    basepath: Path = Path(filename) if '/' in filename else Path(tempfile.gettempdir()) / filename
     data_filename = basepath.with_suffix('.pickle')
     hash_filename = basepath.with_suffix('.hash')
     key_hash = _hash_from_object(key)

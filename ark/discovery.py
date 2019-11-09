@@ -100,7 +100,8 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
     version_key = _gather_version_data(arkman, config)
     loader = arkman.getLoader()
     gen_fn = lambda _: _generate_hierarchy(loader)
-    data = cache_data(version_key, 'purlovia_asset_hierarchy', gen_fn, force_regenerate=config.dev.ClearHierarchyCache)
+    output_path = f'{config.settings.DataDir}/asset_hierarchy'
+    data = cache_data(version_key, output_path, gen_fn, force_regenerate=config.dev.ClearHierarchyCache)
     ue.hierarchy.tree = data
 
 
