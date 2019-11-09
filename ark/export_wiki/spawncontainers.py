@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from ue.asset import ExportTableItem
 from ue.loader import AssetLoader, AssetNotFound
-from ue.properties import (ArrayProperty, FloatProperty, StringProperty, StructProperty)
+from ue.properties import ArrayProperty, FloatProperty, StringProperty, StructProperty
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())

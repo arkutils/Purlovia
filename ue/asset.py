@@ -6,7 +6,7 @@ from typing import *
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
-from .properties import (Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty)
+from .properties import Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty
 from .stream import MemoryStream
 from .utils import get_clean_name, get_clean_namespaced_name
 

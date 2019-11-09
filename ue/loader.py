@@ -48,6 +48,11 @@ class AssetNotFound(AssetLoadException):
         super().__init__(f'Asset {asset_name} not found')
 
 
+class ExportNotFound(AssetLoadException):
+    def __init__(self, asset_name: str, export_name: str):
+        super().__init__(f'Export {export_name} could not be found in asset {asset_name}')
+
+
 class AssetParseError(AssetLoadException):
     def __init__(self, asset_name: str):
         super().__init__(f'Error parsing asset {asset_name}')
@@ -146,7 +151,7 @@ class UsageBasedCacheManager(CacheManager):
 
     We use the guaranteed ordering of Python dicts to track the most recently used entries.
     '''
-    def __init__(self, max_count=5000, max_memory=6 * 1024 * 1024 * 1024, keep_count=1000):
+    def __init__(self, max_count=3000, max_memory=6 * 1024 * 1024 * 1024, keep_count=500):
         self.cache: Dict[str, UAsset] = dict()
         self.max_count = max_count
         self.max_memory = max_memory
@@ -219,7 +224,7 @@ class UsageBasedCacheManager(CacheManager):
         cache_count = len(self.cache)
 
         if cache_count >= self.max_count:
-            logger.info("Asset cache purge due to too many items")
+            logger.debug("Asset cache purge due to too many items")
             self._purge(cache_count - self.keep_count)
         elif mem_used >= self.max_memory and cache_count > self.keep_count:
             logger.info("Asset cache purge due to high memory usage (with %d items)", cache_count)
@@ -243,7 +248,7 @@ class ContextAwareCacheWrapper(CacheManager):
 
         # Ensure the found asset satisfies the requirements of the current parsing context
         if not asset.is_context_satisfied(current_ctx):
-            logger.warning("Re-parsing asset for more data: %s", name)
+            logger.debug("Re-parsing asset for more data: %s", name)
             return None
 
         return asset
@@ -412,7 +417,7 @@ class AssetLoader:
         if fallback is not NO_FALLBACK:
             return fallback
 
-        raise KeyError(f"Export {cls_name} not found")
+        raise ExportNotFound(assetname, cls_name)
 
     def _load_raw_asset_from_file(self, filename: str) -> memoryview:
         '''Load an asset given its filename into memory without parsing it.'''

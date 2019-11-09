@@ -21,7 +21,6 @@ class SteamcmdException(Exception):
     """
     Base exception for the pysteamcmd package
     """
-
     def __init__(self, message, *args, **kwargs):
         self.message = message
         super(SteamcmdException, self).__init__(*args, **kwargs)

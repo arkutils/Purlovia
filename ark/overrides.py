@@ -30,6 +30,7 @@ class ColorRegionSettings(BaseModel):
 
 
 class OverrideSettings(BaseModel):
+    skip_export: Optional[bool] = False
     color_regions: ColorRegionSettings = ColorRegionSettings()
     descriptive_name: Optional[str]
 
@@ -94,7 +95,7 @@ def get_overrides_for_mod(modid: str) -> OverrideSettings:
     return OverrideSettings(**settings)
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=100)
 def get_overrides_for_species_dict(species: str, modid: str) -> Dict:
     modid = modid or ''
     config_file = load_overrides()

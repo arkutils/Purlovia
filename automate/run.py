@@ -8,6 +8,7 @@ from typing import *
 
 import yaml
 
+import ark.discovery
 from config import ConfigFile, get_global_config
 
 from .ark import ArkSteamManager
@@ -63,6 +64,8 @@ def create_parser() -> argparse.ArgumentParser:
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('--live', action='store_true', help='enable live mode [requires git identity]')
 
+    parser.add_argument('--remove-cache', action='store_true', help='remove the (dev only) asset tree cache')
+
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
 
@@ -104,6 +107,8 @@ def handle_args(args: Any) -> ConfigFile:
         config.git.SkipPush = True
         config.errors.SendNotifications = False
 
+    config.dev.DevMode = not args.live
+
     if args.stats:
         if int(args.stats) == 12:
             config.export_asb.Export8Stats = False
@@ -112,6 +117,9 @@ def handle_args(args: Any) -> ConfigFile:
 
     if args.notify:  # to enable notifications in dev mode
         config.errors.SendNotifications = True
+
+    if args.remove_cache:
+        config.dev.ClearHierarchyCache = True
 
     if args.skip_pull:
         config.git.SkipPull = True
@@ -168,6 +176,9 @@ def run(config: ConfigFile):
         # Ensure Git is setup and ready
         git = GitManager(config=config)
         git.before_exports()
+
+        # Initialise the asset hierarchy, scanning everything
+        ark.discovery.initialise_hierarchy(arkman, config)
 
         # Export species data for ASB, update manifest, commit
         export_values(arkman, set(mods), config)

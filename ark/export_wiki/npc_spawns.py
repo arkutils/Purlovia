@@ -2,23 +2,23 @@ from typing import *
 
 from ue.properties import ArrayProperty
 
-from .common import (format_location_for_export, get_actor_worldspace_location,
-                     get_volume_worldspace_bounds, proxy_properties_as_dict)
+from .common import format_location_for_export, get_actor_worldspace_location, \
+    get_volume_worldspace_bounds, proxy_properties_as_dict
 from .map import WorldData
-from .types import (ZONE_MANAGER_EXPORTED_PROPERTIES, NPCZoneManager,
-                    PrimalWorldSettings)
+from .types import ZONE_MANAGER_EXPORTED_PROPERTIES, NPCZoneManager, PrimalWorldSettings
 
 
 def extract_npc_zone_manager(world: WorldData, proxy: NPCZoneManager) -> Optional[dict]:
     if (not getattr(proxy, 'NPCSpawnEntriesContainerObject', None) or not proxy.NPCSpawnEntriesContainerObject[0].value.value
-        or not getattr(proxy, 'LinkedZoneVolumes', None)):
+            or not getattr(proxy, 'LinkedZoneVolumes', None)):
         return None
 
     data = {
         **proxy_properties_as_dict(proxy, key_list=ZONE_MANAGER_EXPORTED_PROPERTIES),
         # Export dino counting volumes
         'locations': [
-            format_location_for_export(bounds, world.latitude, world.longitude) for bounds in gather_counting_volumes(proxy.LinkedZoneVolumes[0])
+            format_location_for_export(bounds, world.latitude, world.longitude)
+            for bounds in gather_counting_volumes(proxy.LinkedZoneVolumes[0])
         ]
     }
     if not data['locations']:
@@ -27,15 +27,14 @@ def extract_npc_zone_manager(world: WorldData, proxy: NPCZoneManager) -> Optiona
     # Export spawn points or locations
     if getattr(proxy, 'SpawnPointOverrides', None):
         data['spawnPoints'] = [
-            format_location_for_export(point, world.latitude, world.longitude) for point in gather_spawn_points(proxy.SpawnPointOverrides[0])
+            format_location_for_export(point, world.latitude, world.longitude)
+            for point in gather_spawn_points(proxy.SpawnPointOverrides[0])
         ]
     elif getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
-        data['spawnLocations'] = [
-            {
-                'weight': weight.format_for_json(),
-                **format_location_for_export(bounds, world.latitude, world.longitude)
-            } for weight, bounds in gather_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0])
-        ]
+        data['spawnLocations'] = [{
+            'weight': weight.format_for_json(),
+            **format_location_for_export(bounds, world.latitude, world.longitude)
+        } for weight, bounds in gather_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0])]
     else:
         return None
 

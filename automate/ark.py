@@ -42,7 +42,15 @@ class ArkSteamManager:
         self.game_version: Optional[str] = None
         self.game_buildid: Optional[str] = None
 
+        self.loader: Optional[AssetLoader] = None
+
         self._sanityCheck()
+
+    def getLoader(self) -> AssetLoader:
+        if not self.loader:
+            self.loader = self.createLoader()
+
+        return self.loader
 
     def createLoader(self) -> AssetLoader:
         '''Create an asset loader pointing at the managed game install.'''

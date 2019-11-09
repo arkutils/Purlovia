@@ -429,7 +429,7 @@ class BoolProperty(ValueProperty):
 
 class ByteProperty(ValueProperty):  # With optional enum type
     enum: NameIndex
-    value: Union[NameIndex, int]  # type: ignore  (we *want* to override the base type)
+    value: Union[NameIndex, int]  # type: ignore  # (we *want* to override the base type)
 
     @classmethod
     def create(cls, value: int, size: int = 1, asset: UEBase = None):
@@ -541,6 +541,26 @@ class StringProperty(UEBase):
 
     def __str__(self):
         return self.value
+
+
+class TextProperty(UEBase):
+    main_field = 'source_string'
+
+    flags: int
+    history_type: int
+    namespace: StringProperty
+    key: StringProperty
+    source_string: StringProperty
+
+    def _deserialise(self, *args):
+        self._newField('flags', self.stream.readUInt32())
+        self._newField('history_type', self.stream.readInt8())
+        self._newField('namespace', StringProperty(self))
+        self._newField('key', StringProperty(self))
+        self._newField('source_string', StringProperty(self))
+
+    def __str__(self):
+        return f'{self.source_string}'
 
 
 class Guid(UEBase):
@@ -1016,7 +1036,10 @@ TYPE_MAP = {
     'NameProperty': NameProperty,
     'StrProperty': StringProperty,
     'StringProperty': StringProperty,
+    'TextProperty': TextProperty,
     'ObjectProperty': ObjectProperty,
+    'StringAssetReference': StringProperty,
+    'AssetObjectProperty': StringProperty,
     'StructProperty': StructProperty,
     'ArrayProperty': ArrayProperty,
     'Guid': Guid,

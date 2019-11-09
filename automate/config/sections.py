@@ -22,6 +22,14 @@ class SettingsSection(BaseModel):
         extra = Extra.forbid
 
 
+class DevSection(BaseModel):
+    DevMode: bool = True
+    ClearHierarchyCache: bool = False
+
+    class Config:
+        extra = Extra.forbid
+
+
 class SteamCmdSection(BaseModel):
     RetryCount: int = 5
     UninstallUnusedMods: bool = True
@@ -92,6 +100,7 @@ class OptimisationSection(BaseModel):
 # ...and one class to rule them all
 class ConfigFile(BaseModel):
     settings: SettingsSection
+    dev: DevSection
     steamcmd: SteamCmdSection
     git: GitSection
     errors: ErrorsSection

@@ -30,7 +30,13 @@ Test files **and** functions must be prefixed `test_`, but `doctest`-style tests
 
 ## Formatting
 
-The project *strictly* uses `yapf` for formatting, and VSCode is set to format on save. Imports are also sorted.
+The project *strictly* uses `yapf` for formatting and `isort` for import ordering, and VSCode is set to do both of these on save.
+
+To run these project-wide:
+```sh
+isort --settings-path=./setup.cfg -rc
+yapf -ir ue ark automate interactive utils *.py
+```
 
 ## Linting
 

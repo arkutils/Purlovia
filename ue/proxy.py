@@ -1,9 +1,7 @@
 from typing import *
 
 from .base import UEBase
-from .properties import (
-    BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty,
-    StringProperty)
+from .properties import BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty, StringProperty
 
 __all__ = [
     'UEProxyStructure',
@@ -119,7 +117,7 @@ def proxy_for_type(uetype: str):
     return proxy
 
 
-class EmptyProxy(UEProxyStructure, uetype=None):
+class EmptyProxy(UEProxyStructure, uetype=''):
     __is_empty_proxy = True
 
 

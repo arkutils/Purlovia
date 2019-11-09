@@ -2,7 +2,7 @@ from typing import Iterable
 
 import pytest  # type: ignore
 
-from .context import (DEFAULT_CONTEXT, ParsingContext, get_ctx, ue_parsing_context)
+from .context import DEFAULT_CONTEXT, ParsingContext, get_ctx, ue_parsing_context
 
 
 @pytest.fixture(name='ctx')

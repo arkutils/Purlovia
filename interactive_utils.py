@@ -1,5 +1,7 @@
-import os, sys
-from IPython.lib.pretty import pretty, pprint  # type: ignore
+import os
+import sys
+
+from IPython.lib.pretty import pprint, pretty  # type: ignore
 
 
 def configure_ipython_width():

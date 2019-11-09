@@ -4,26 +4,35 @@
         "**/.pytest_cache": true,
         "**/.mypy_cache": true,
     },
-    "python.testing.pytestArgs": [],
+
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [],
+
+    "python.sortImports.args": ["--settings-path=${workspaceFolder}/setup.cfg"],
+    "python.formatting.provider": "yapf",
     "[python]": {
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
         }
     },
+    "editor.codeActionsOnSaveTimeout": 10000,
+    "editor.formatOnSaveTimeout": 10000,
+
     "python.jediEnabled": false,
-    "python.formatting.provider": "yapf",
     "python.linting.pylintEnabled": true,
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
+
     "git.ignoreLimitWarning": true,
 
     "cSpell.words": [
         "DCSC",
+        "DCSCs",
+        "Dinos",
         "Mult",
         "Purlovia",
         "Struct",
@@ -51,10 +60,14 @@
         "pylint",
         "pytest",
         "rfind",
+        "serialiser",
         "steamcmd",
         "uasset",
         "umap",
         "xlocal"
     ],
     "cSpell.diagnosticLevel": "Hint",
+
+    "coverage-gutters.xmlname": "coverage.xml",
+    "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
 }

@@ -4,6 +4,9 @@
 # Note: Surround regexes with single quotes to avoid extra backslash quoting
 
 defaults:
+    # True to leave this species out of the exported data files (e.g. for baseclasses)
+    skip_export: false
+
     color_regions:
         # Whether to capitalize the first character of region names
         capitalize: true
@@ -46,11 +49,37 @@ mods:
     1675895024: # No Untameables
         color_regions:
             useless_name_regexes:
-                unkown: 'Unkown'
+                unkown: 'Unkown'  # Misspelt to match mod
 
 
 # Override settings on a per-species basis
 species:
+    # Some classes that look like species but are really only base-classes for other species
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
+        skip_export: true
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
+        skip_export: true
+    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_DivingFlyer:
+        skip_export: true
+    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack:
+        skip_export: true
+    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack_Chupa:
+        skip_export: true
+    /Game/PrimalEarth/Dinos/Ant/Ant_Character_Base:
+        skip_export: true
+    /Game/PrimalEarth/Dinos/Ant/Insect_Character_Base:
+        skip_export: true
+    /Game/PrimalEarth/Dinos/Ant/Insect_Character_Base_Lightbug:
+        skip_export: true
+    /Game/PrimalEarth/Dinos/Bigfoot/DinoCharacter_BP_Zipline:
+        skip_export: true
+    /Game/ScorchedEarth/Dinos/Moth/Moth_Character_BP_Base:
+        skip_export: true
+
+    /Game/Mods/ClassicFlyers/Dinos/Moth/Assets/Moth_Character_BP_Base:
+        skip_export: true
+
+    # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
         color_regions:
             region_names:

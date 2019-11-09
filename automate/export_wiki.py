@@ -2,9 +2,8 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-from ark.export_wiki.common import KNOWN_KLASS_NAMES
 from ark.export_wiki.discovery import CompositionSublevelTester
-from ark.export_wiki.exporters import PROXY_TYPE_MAP
+from ark.export_wiki.exporters import PROXY_TYPE_MAP, is_export_extractable
 from ark.export_wiki.map import WorldData
 from ark.export_wiki.mod_gathering import gather_spawn_groups_from_pgd
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
@@ -15,6 +14,8 @@ from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.asset import UAsset
 from ue.gathering import gather_properties
+from ue.hierarchy import MissingParent, inherits_from
+from ue.loader import AssetNotFound
 from utils.strings import get_valid_filename
 
 logger = getLogger(__name__)
@@ -47,7 +48,7 @@ class Exporter:
         self.config = config
         self.arkman = arkman
         self.modids = modids
-        self.loader = arkman.createLoader()
+        self.loader = arkman.getLoader()
         self.game_version = self.arkman.getGameVersion()
         self.discoverer = Discoverer(self.loader, remove_assets_from_cache=True)
         self.discoverer.register_asset_tester(CompositionSublevelTester())
@@ -125,7 +126,7 @@ class Exporter:
 
     def _gather_data_from_level(self, level: UAsset, world_data: WorldData):
         for export in level.exports:
-            if str(export.klass.value.name) not in KNOWN_KLASS_NAMES:
+            if not is_export_extractable(export):
                 continue
 
             proxy = gather_properties(export)  # type:ignore

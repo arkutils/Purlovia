@@ -1,7 +1,7 @@
 from ue.proxy import UEProxyStructure
 
-from .consts import (CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS,
-                     OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS)
+from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
+    GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .geo import GeoData
 
 KNOWN_KLASS_NAMES = [

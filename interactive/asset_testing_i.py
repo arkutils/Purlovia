@@ -1,13 +1,14 @@
 #%% Run Me
+
 import json
-from time import process_time, perf_counter
+from time import perf_counter, process_time
 from typing import *
 
-from automate.ark import ArkSteamManager, readModData
 import ark.discovery
+from automate.ark import ArkSteamManager, readModData
 
 arkman = ArkSteamManager()
-loader = arkman.createLoader()
+loader = arkman.getLoader()
 names_file = 'names.txt'
 inherit_file = 'inherit.txt'
 

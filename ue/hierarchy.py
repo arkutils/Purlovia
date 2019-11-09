@@ -10,34 +10,30 @@ from config import ConfigFile, get_global_config
 from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
+from ue.tree import get_parent_fullname
 from utils.tree import IndexedTree, Node
 
 __all__ = [
     'ROOT_NAME',
-    'AssetRef',
     'HierarchyError',
     'UnexpectedClass',
     'MissingParent',
-    'Hierarchy',
+    'inherits_from',
+    'find_sub_classes',
+    'find_parent_classes',
+    'load_internal_hierarchy',
+    'explore_path',
 ]
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
-ROOT_NAME = '/Script/ShooterGame.Object'
+ROOT_NAME = '/Script/CoreUObject.Object'
 
 
 @lru_cache(maxsize=1024)
 def _get_parent_cls(export: ExportTableItem) -> Optional[str]:
     return export.super.value.fullname if export.super and export.super.value else None
-
-
-class AssetRef:
-    def __init__(self, name: str):
-        self.name = name
-
-    def __repr__(self):
-        return self.name
 
 
 class HierarchyError(Exception):
@@ -52,108 +48,203 @@ class MissingParent(HierarchyError):
     pass
 
 
-class Hierarchy:
-    def __init__(self, loader: AssetLoader, config: ConfigFile = get_global_config()):
-        self.tree = IndexedTree[AssetRef](AssetRef(ROOT_NAME), attrgetter('name'))
-        self.config = config
-        self.extensions = ('.uasset', '.umap')
-        self.loader = loader
+tree: IndexedTree[str] = IndexedTree[str](ROOT_NAME)
+asset_extensions = ('.uasset', '.umap')
 
-    def load_internal_hierarchy(self, filename: Path):
-        with open(filename, 'rt') as f:
-            hierarchy_config = yaml.safe_load(f)
 
-        def walk_config(name, content):
-            if isinstance(content, str):
-                self.tree.add(name, AssetRef(content))
-                return
+def inherits_from(klass: Union[str, ExportTableItem], target: str) -> bool:
+    '''
+    Check if a class inherits from another.
+    `klass` should be a full classname or an exported class.
+    `target` should be a full classname.
+    '''
+    return target in find_parent_classes(klass)
 
-            for value in content:
-                if isinstance(value, str):
-                    self.tree.add(name, AssetRef(value))
-                elif isinstance(value, dict):
-                    key, subvalue = next(iter(value.items()))
-                    self.tree.add(name, AssetRef(key))
-                    walk_config(key, subvalue)
 
-        walk_config(ROOT_NAME, hierarchy_config[ROOT_NAME])
+def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
+    '''
+    Iterate over all sub-classes of the given class.
+    `klass` should be a full classname or an exported class.
+    '''
+    if isinstance(klass, str):
+        name = klass
+    elif isinstance(klass, ExportTableItem):
+        assert klass.fullname
+        name = klass.fullname
+    else:
+        raise TypeError('Invalid argument')
 
-    def explore_path(self, path: str, exclude: str = None):
-        '''Run hierarchy discovery over every matching asset within the given path.'''
+    node = tree.get(name, None)
+    if not node:
+        raise ValueError(f'Node f{name} not found')
 
-        # Use globally configure ignore paths, plus optionally specified path
-        excludes = set(self.config.optimisation.SearchIgnore)
-        if exclude:
-            excludes.add(exclude)
+    yield from (node.data for node in node.walk_iterator(skip_self=True))
 
-        logger.info('Exploring path: %s', path)
 
-        n = 0
+def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=False) -> Iterator[str]:
+    '''
+    Iterate over an export's parent classes.
+    `klass` should be a full classname or an exported class.
 
-        asset_iterator = self.loader.find_assetnames('.*',
-                                                     path,
-                                                     exclude=excludes,
-                                                     extension=self.extensions,
-                                                     return_extension=True)
+    Note that if the supplied `klass` is not an asset's main class it must be
+    supplied as an ExportTableItem to allow discovery of intermediate hierarchy.
+    '''
+    export: Optional[ExportTableItem] = None
+
+    if isinstance(klass, str):
+        name = klass
+    elif isinstance(klass, ExportTableItem):
+        assert klass.fullname
+        name = klass.fullname
+        export = klass
+    else:
+        raise TypeError('Invalid argument')
+
+    node = tree.get(name, None)
+    if not node and not export:
+        raise ValueError(f'Cannot find {name} in the hierarchy and no export supplied to scan from')
+
+    if include_self:
+        yield name
+
+    # Phase 1: step through non-primary parent classes until we find a matching node in the tree
+    while export and not node:
+        parent_name = get_parent_fullname(export)
+        if not parent_name:
+            raise MissingParent(f'Unable to find useful parent for {export.fullname}')
+
+        yield parent_name
+
+        node = tree.get(parent_name, None)
+        if not node and not parent_name.startswith('/Game'):
+            raise MissingParent(f'Unable to find parent for {parent_name}')
+        if not node:
+            export = export.asset.loader.load_class(parent_name)
+
+    # Phase 2: simply step up through our own hierarchy
+    while node.parent:
+        parent = node.parent
+        yield parent.data
+        node = parent
+
+
+NO_DEFAULT = object()
+
+
+def _node_from_argument(klass: Union[str, ExportTableItem], default=NO_DEFAULT) -> Node[str]:
+    if isinstance(klass, str):
+        name = klass
+    elif isinstance(klass, ExportTableItem):
+        assert klass.fullname
+        name = klass.fullname
+    else:
+        raise TypeError('Invalid argument')
+
+    node = tree.get(name, None)
+    if not node and default is NO_DEFAULT:
+        raise ValueError(f'Node f{name} not found')
+
+    return node
+
+
+def load_internal_hierarchy(filename: Path):
+    '''
+    Pre-load hierarchy with 'internal' type data that cannot otherwise be discovered.
+    `filename` should be a yaml file with a top-level key matching the root name.
+    '''
+    logger.info('Loading internal UE hierarchy from: %s', filename)
+    with open(filename, 'rt') as f:
+        hierarchy_config = yaml.safe_load(f)
+
+    def walk_hierarchy_yaml(name, content):
+        if isinstance(content, str):
+            tree.add(name, content)
+            return
+
+        for value in content:
+            if isinstance(value, str):
+                tree.add(name, value)
+            elif isinstance(value, dict):
+                key, subvalue = next(iter(value.items()))
+                tree.add(name, key)
+                walk_hierarchy_yaml(key, subvalue)
+
+    walk_hierarchy_yaml(ROOT_NAME, hierarchy_config[ROOT_NAME])
+
+
+# export_path('...', loader, config.optimisation.SearchIgnore)
+
+
+def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbose=False):
+    '''Run hierarchy discovery over every matching asset within the given path.'''
+    excludes = set(excludes)
+
+    logger.info('Discovering hierarchy in path: %s', path)
+
+    n = 0
+
+    with ue_parsing_context(properties=False):
+        asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
         for (assetname, ext) in asset_iterator:
             n += 1
-            if n % 200 == 0: logger.info(assetname)
+            if verbose and n % 200 == 0: logger.info(assetname)
+
             try:
-                with ue_parsing_context(properties=False):
-                    asset = self.loader[assetname]
+                asset = loader[assetname]
             except AssetLoadException:
                 logger.warning("Failed to load asset: %s", assetname)
                 continue
 
             try:
-                self._ingest_asset(asset)
+                _ingest_asset(asset, loader)
             except AssetLoadException:
                 logger.warning("Failed to check parentage of %s", assetname)
 
+            # Remove maps from the cache immediately as they are large and cannot be inherited from
             if ext == '.umap':
-                self.loader.cache.remove(assetname)
+                loader.cache.remove(assetname)
 
-    def _ingest_asset(self, asset: UAsset):
-        if not asset.default_class: return
 
-        current_cls = asset.default_class
-        segment: Optional[Node[AssetRef]] = None
-        fullname = current_cls.fullname
-        assert fullname
+def _ingest_asset(asset: UAsset, loader: AssetLoader):
+    current_cls = asset.default_class
+    if not current_cls: return
 
-        # We may have already covered this while traversing parents
-        if fullname in self.tree:
-            # logger.warning(f'Trying to add {fullname}, but already present in the tree!')
+    segment: Optional[Node[str]] = None
+    fullname = current_cls.fullname
+    assert fullname
+
+    # We may have already covered this while traversing parents
+    if fullname in tree:
+        return
+
+    while True:
+        # Extend unsaved segment
+        old_segment = segment
+        segment = Node(fullname)
+        if old_segment:
+            segment.add(old_segment)
+
+        # Get name of parent class
+        parent_name = _get_parent_cls(current_cls)
+        if not parent_name:
+            raise MissingParent(f'Unable to find parent of {fullname}')
+
+        # Is the parent present in the tree?
+        anchor_point = tree.get(parent_name, None)
+
+        # If we've risen outside /Game but didn't find a match, add it to the root and complain
+        if not anchor_point and not parent_name.startswith('/Game'):
+            logger.warning(f'Internal class {parent_name} missing from pre-defined hierarchy')
+            tree.add(ROOT_NAME, parent_name)
+            anchor_point = tree.get(parent_name, None)
+
+        if anchor_point:
+            # Insert segment and finish
+            tree.insert_segment(parent_name, segment)
             return
 
-        while True:
-            # Extend unsaved segment
-            old_segment = segment
-            segment = Node(AssetRef(fullname))
-            if old_segment:
-                segment.add(old_segment)
-
-            # Get name of parent class
-            parent_name = _get_parent_cls(current_cls)
-            if not parent_name:
-                raise MissingParent(f'Unable to find parent of {fullname}')
-
-            # Is the parent present in the tree?
-            anchor_point = self.tree.get(parent_name, None)
-
-            # If we've risen outside /Game but didn't find a match, add it to the root and complain
-            if not anchor_point and not parent_name.startswith('/Game'):
-                logger.warning(f'Internal class {parent_name} missing from pre-defined hierarchy')
-                self.tree.add(ROOT_NAME, AssetRef(parent_name))
-                anchor_point = self.tree.get(parent_name, None)
-
-            if anchor_point:
-                # Insert segment and finish
-                self.tree.insert_segment(parent_name, segment)
-                return
-
-            # Load parent class and replace current
-            parent_cls = self.loader.load_class(parent_name)
-            current_cls = parent_cls
-            fullname = current_cls.fullname
-            assert fullname
+        # Load parent class and replace current
+        parent_cls = loader.load_class(parent_name)
+        current_cls = parent_cls
+        fullname = current_cls.fullname
+        assert fullname

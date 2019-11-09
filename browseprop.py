@@ -128,7 +128,7 @@ def fill_property_grid():
 if __name__ == '__main__':
     global arkman, loader
     arkman = ArkSteamManager()
-    loader = arkman.createLoader()
+    loader = arkman.getLoader()
 
     mainasset = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
