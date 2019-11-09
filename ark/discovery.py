@@ -5,12 +5,13 @@ from typing import *
 import ue.hierarchy
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
-from ue.asset import UAsset
+from ue.asset import ExportTableItem, UAsset
+from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
 from utils.cachefile import cache_data
 
-from .asset import findSubComponentParentPackages
-from .common import CHR_CLS, CHR_PKG, DCSC_PKG
+from .asset import findSubComponentExports, findSubComponentParentPackages
+from .common import CHR_CLS, CHR_PKG, DCSC_CLS, DCSC_PKG
 from .overrides import get_overrides_for_species
 from .tree import inherits_from, walk_parents
 
@@ -22,90 +23,34 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-# Obsolete
-class ByRawData:
-    '''Very fast/cheap method for bulk searching. Over-selects slightly.'''
-    def __init__(self, loader: AssetLoader):
-        self.loader = loader
+def is_species(cls_name: str, loader: AssetLoader, *, skip_character_check=False) -> bool:
+    '''
+    Verify a class is a valid character class, complete with DCSC.
 
-    def is_species(self, assetname: str):
-        '''Use binary string matching to check if an asset is a character.'''
-        # Load asset as raw data
-        mem, _ = self.loader.load_raw_asset(assetname)
+    `cls_name` should be the fullname of the class to test
+    `loader` needs to be an asset loader
+    `skip_character_check` to avoid checking
+    '''
+    if not skip_character_check and not ue.hierarchy.inherits_from(cls_name, CHR_CLS):
+        return False
 
-        # Check for the presence of required string
-        result = b'ShooterCharacterMovement' in mem.obj  # type: ignore # just a bad type definition
-
-        return result
-
-    def is_structure(self, assetname: str):
-        '''Use binary string matching to check if an asset is a placeable structure.'''
-        # Load asset as raw data
-        mem, _ = self.loader.load_raw_asset(assetname)
-
-        # Check for the presence of required string
-        result = b'StructureMesh' in mem.obj  # type: ignore # just a bad type definition
-
-        return result
-
-    def is_inventory_item(self, assetname: str):
-        '''Use binary string matching to check if an asset is an inventory item.'''
-        # Load asset as raw data
-        mem, _ = self.loader.load_raw_asset(assetname)
-
-        # Check for the presence of required string
-        result = b'DescriptiveNameBase' in mem.obj  # type: ignore # just a bad type definition
-
-        return result
-
-
-# Obsolete
-class ByInheritance:
-    '''Totally accurate but expensive method, to be used to verify results from other discovery methods.'''
-    def __init__(self, loader: AssetLoader):
-        self.loader = loader
-
-    def is_species(self, assetname: str):
-        '''
-        Load the asset fully and check that it inherits from Character and it or one of
-        its parents has a component that inherits from DCSC.
-        '''
-        if not assetname.startswith('/Game'):
-            return False
-
-        asset = self.loader[assetname]
-
-        # Must inherit from Character somewhere down the line
-        if not inherits_from(asset, CHR_PKG):
-            return False
-
-        # Check all parents - if any has a sub-component that inherits from DCSC, we're good
-        def check_component(assetname: str):
-            if not assetname.startswith('/Game'):
+    with ue_parsing_context(properties=False):
+        for parent_cls_name in ue.hierarchy.find_parent_classes(cls_name, include_self=True):
+            if not parent_cls_name.startswith('/Game'):
                 return False
 
+            parent_asset_name = parent_cls_name[:parent_cls_name.rfind('.')]
             try:
-                asset = self.loader[assetname]
+                parent_asset = loader[parent_asset_name]
+            except AssetLoadException:
+                logger.exception(f'Unexpected loading error while checking for DCSCs of {cls_name}')
+                return False  # no way to continue - abort
 
-                for cmpassetname in findSubComponentParentPackages(asset):
-                    if not cmpassetname.startswith('/Game'):
-                        continue
-                    cmpasset = self.loader[cmpassetname]
-                    if inherits_from(cmpasset, DCSC_PKG):
-                        return True  # finish walk early
+            for cmp_export in findSubComponentExports(parent_asset):
+                if ue.hierarchy.inherits_from(cmp_export, DCSC_CLS):
+                    return True
 
-            except AssetLoadException as ex:
-                logger.warning("Failed to check inheritance of potential species: %s", str(ex))
-                return False  # abort early
-
-        # Check this asset first
-        if check_component(assetname):
-            return True
-
-        # Then check all parents in the tree
-        found_dcsc = walk_parents(asset, check_component)
-
-        return found_dcsc
+    return False
 
 
 class SpeciesDiscoverer:
@@ -126,6 +71,10 @@ class SpeciesDiscoverer:
             if assetname.startswith('/Game/Mods') and not any(assetname.startswith(prefix) for prefix in official_mod_prefixes):
                 continue
 
+            # Do a full check that this is a species asset
+            if not is_species(cls_name, self.loader, skip_character_check=True):
+                continue
+
             modid = self.loader.get_mod_id(assetname) or ''
             if get_overrides_for_species(assetname, modid).skip_export:
                 continue
@@ -137,8 +86,13 @@ class SpeciesDiscoverer:
         for cls_name in ue.hierarchy.find_sub_classes(CHR_CLS):
             assetname = cls_name[:cls_name.rfind('.')]
             if assetname.startswith(clean_path):
+                # Do a full check that this is a species asset
+                if not is_species(cls_name, self.loader, skip_character_check=True):
+                    continue
+
                 if get_overrides_for_species(assetname, modid).skip_export:
                     continue
+
                 yield assetname
 
 

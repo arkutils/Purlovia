@@ -81,7 +81,7 @@ def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
     yield from (node.data for node in node.walk_iterator(skip_self=True))
 
 
-def find_parent_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
+def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=False) -> Iterator[str]:
     '''
     Iterate over an export's parent classes.
     `klass` should be a full classname or an exported class.
@@ -104,6 +104,9 @@ def find_parent_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
     if not node and not export:
         raise ValueError(f'Cannot find {name} in the hierarchy and no export supplied to scan from')
 
+    if include_self:
+        yield name
+
     # Phase 1: step through non-primary parent classes until we find a matching node in the tree
     while export and not node:
         parent_name = get_parent_fullname(export)
@@ -113,7 +116,7 @@ def find_parent_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
         yield parent_name
 
         node = tree.get(parent_name, None)
-        if not parent_name.startswith('/Game'):
+        if not node and not parent_name.startswith('/Game'):
             raise MissingParent(f'Unable to find parent for {parent_name}')
         if not node:
             export = export.asset.loader.load_class(parent_name)

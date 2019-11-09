@@ -13,6 +13,7 @@
             "args": [
                 "--skip-install",
                 "--skip-extract-wiki",
+                // "--skip-vanilla",
                 // "--remove-cache",
             ]
         },
