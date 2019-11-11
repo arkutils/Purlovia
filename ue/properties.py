@@ -5,7 +5,7 @@ import sys
 import uuid
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from numbers import Real
 from typing import Any, ByteString, Dict, List, Optional, Set, Tuple, Type, Union
 
@@ -1326,6 +1326,35 @@ class SoundWave(UEBase):
             self._newField('guid', Guid(self))
 
 
+class HierarchicalInstancedStaticMesh(UEBase):
+    # Only reads the instance locations so far.
+    display_fields = ('instance_num', )
+    data_offsets = (3, 16, 7, 9)
+
+    instance_num: int
+
+    def _deserialise(self, properties: "PropertyTable"):  # type: ignore
+        hint = self.stream.readUInt8()
+        self.stream.offset += self.data_offsets[hint]
+        assert self.stream.readInt32() == 80
+
+        self._newField('instance_num', self.stream.readInt32())
+        fake_vector = namedtuple('FakeVector', ['x', 'y', 'z'])
+        instance_transforms = []
+        for _matrix_index in range(self.instance_num):
+            self.stream.offset += 4 * 12
+            x = self.stream.readFloat()
+            y = self.stream.readFloat()
+            z = self.stream.readFloat()
+            position = fake_vector(x, y, z)
+            self.stream.offset += 4 * 5
+            instance_transforms.append(position)
+
+        self.stream.readUInt32()  # unknown
+        assert self.instance_num == self.stream.readInt32()
+        self._newField('instances', instance_transforms)
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
@@ -1357,6 +1386,7 @@ TYPE_MAP = {
 AFTER_PROPERTY_TABLE_TYPES = {
     'Texture2D': Texture2D,
     'SoundWave': SoundWave,
+    'HierarchicalInstancedStaticMeshComponent': HierarchicalInstancedStaticMesh
 }
 
 
