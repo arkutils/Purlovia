@@ -9,14 +9,13 @@ from typing import *
 import yaml
 
 import ark.discovery
+from ark.export_example.root import ExampleRoot
+from ark.export_example.stage_spawngroups import SpawnGroupStage
 from config import ConfigFile, get_global_config
 
 from .ark import ArkSteamManager
-from .export import export_values
-from .export_wiki import export_map_data
+from .exporter import ExportManager
 from .git import GitManager
-from .manifest import update_manifest
-from .manifest_wiki import update_manifest_wiki
 from .notification import handle_exception
 
 # pylint: enable=invalid-name
@@ -28,8 +27,8 @@ logger.addHandler(logging.NullHandler())
 def setup_logging(path='config/logging.yaml', level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
-        with open(path, 'rt') as f:
-            config = yaml.safe_load(f)
+        with open(path, 'rt') as log_config_file:
+            config = yaml.safe_load(log_config_file)
         Path('logs').mkdir(parents=True, exist_ok=True)
         logging.config.dictConfig(config)
     else:
@@ -180,15 +179,12 @@ def run(config: ConfigFile):
         # Initialise the asset hierarchy, scanning everything
         ark.discovery.initialise_hierarchy(arkman, config)
 
-        # Export species data for ASB, update manifest, commit
-        export_values(arkman, set(mods), config)
-        update_manifest(config.settings.OutputPath / config.export_asb.PublishSubDir)
-        git.after_exports(config.export_asb.PublishSubDir, config.export_asb.CommitHeader)
-
-        # Export map data for the Ark Wiki, update manifest, commit
-        export_map_data(arkman, set(mods), config)
-        update_manifest_wiki(config.settings.OutputPath / config.export_wiki.PublishSubDir)
-        git.after_exports(config.export_wiki.PublishSubDir, config.export_wiki.CommitHeader)
+        # Handle exporting
+        exporter = ExportManager(arkman, git, config)
+        exporter.add_root(ExampleRoot())
+        # exporter.add_root(ASBRoot())
+        # exporter.add_root(WikiRoot())
+        exporter.perform()
 
         # Push any changes
         git.finish()

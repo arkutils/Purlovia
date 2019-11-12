@@ -1,0 +1,91 @@
+from abc import ABCMeta, abstractmethod
+from pathlib import Path, PurePosixPath
+from typing import *
+
+from automate.jsonutils import save_json_if_changed
+from automate.version import createExportVersion
+from config import ConfigFile
+from ue.proxy import UEProxyStructure
+
+from .exporter import ExportStage
+
+__all__ = [
+    'JsonHierarchyExportStage',
+]
+
+
+class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
+    '''
+    An intermediate helper class that performs hierarchy discovery for core/mods,
+    calls the user's `extract_class` for each of them and handles saving the results.
+    '''
+    @abstractmethod
+    def get_format_version(self) -> str:
+        '''Return the a format version identifier.'''
+        ...
+
+    @abstractmethod
+    def get_field(self) -> str:
+        '''Return the name to be used as the top-level container in the output JSON.'''
+        ...
+
+    @abstractmethod
+    def get_use_pretty(self) -> bool:
+        '''Return True if the file should be prettified, or False if it should be minified.'''
+        ...
+
+    @abstractmethod
+    def get_ue_type(self) -> str:
+        '''Return the fullname of the UE type to gather.'''
+        ...
+
+    @abstractmethod
+    def get_core_file_path(self) -> PurePosixPath:
+        '''Return the relative path of the core output file that should be generated.'''
+        ...
+
+    @abstractmethod
+    def get_mod_file_path(self, modid: str) -> PurePosixPath:
+        '''Return the relative path of the expected mod output file that should be generated.'''
+        ...
+
+    @abstractmethod
+    def extract(self, proxy: UEProxyStructure) -> Any:
+        '''Perform extraction on the given proxy and return any JSON-able object.'''
+        raise NotImplementedError
+
+    def extract_core(self, path: Path):
+        # Core versions are based on the game version and build number
+        version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
+
+        filename = self.get_core_file_path()
+        proxy_iter = self.manager.iterate_core_exports_of_type(self.get_ue_type())
+        self._extract_and_save(version, path, filename, proxy_iter)
+
+    def extract_mod(self, path: Path, modid: str):
+        # Mod versions are based on the game version and mod change date
+        version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.get_mod_version(modid))  # type: ignore
+
+        filename = self.get_mod_file_path(modid)
+        proxy_iter = self.manager.iterate_mod_exports_of_type(self.get_ue_type(), modid)
+        self._extract_and_save(version, path, filename, proxy_iter)
+
+    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath,
+                          proxy_iter: Iterator[UEProxyStructure]):
+        # Work out the output path
+        output_path = Path(base_path / relative_path)
+
+        # Setup the output structure
+        results: List[Any] = []
+        format_version = self.get_format_version()
+        output: Dict[str, Any] = dict(version=version, format=format_version)
+        output[self.get_field()] = results
+
+        # Do the actual export
+        for proxy in proxy_iter:
+            item_output = self.extract(proxy)
+            if item_output:
+                results.append(item_output)
+
+        # Save if the data changed
+        save_json_if_changed(output, output_path, self.get_use_pretty())

@@ -1,43 +1,60 @@
 import json
 import re
-from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, field
 from logging import NullHandler, getLogger
 from operator import itemgetter
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import *
 
-from config import get_global_config
+MANIFEST_FILENAME = '_manifest.json'
+SHRINK_MOD_REGEX = r"{\n\s+(.+: .*),\n\s+(.+: .*),\n\s+(.+: .*)\n\s+}"
 
 __all__ = [
     'update_manifest',
+    'MANIFEST_FILENAME',
 ]
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
-DEFAULT_IGNORES = ('_manifest.json', )
-SHRINK_MOD_REGEX = r"{\n\s+(.+: .*),\n\s+(.+: .*),\n\s+(.+: .*)\n\s+}"
 
-
-def update_manifest(path: Path):
+def update_manifest(path: Path) -> Optional[Dict[str, Any]]:
     '''Update manifest file in the output directory.'''
-    manifest = path / '_manifest.json'
+    manifest_file = Path(path / MANIFEST_FILENAME)
 
     logger.info('Updating manifest file')
-    generate_manifest(path, manifest, ignores=['_manifest.json'])
+    json_data = _generate_manifest(path, ignores=[MANIFEST_FILENAME])
+
+    if json_data:
+        _write_manifest(manifest_file, json_data)
+    else:
+        logger.info(f'No files present - removing existing manifest')
+        if manifest_file.is_file():
+            manifest_file.unlink()  # missing_ok=True is 3.8+
+
+    return json_data
 
 
-def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str] = DEFAULT_IGNORES):
+def _write_manifest(filename: Path, data: Dict[str, Any]):
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    with open(filename, 'w', newline='\n') as f:
+        content = json.dumps(data, indent='\t')
+        content = re.sub(SHRINK_MOD_REGEX, r'{ \1, \2, \3 }', content)
+        f.write(content)
+
+
+def _generate_manifest(directory: Path, ignores: Sequence[str] = ()) -> Optional[Dict[str, Any]]:
+    '''Generate the manifest data that represents the files in a directory. Returns None if there no files.'''
     if not directory.is_dir:
         raise ValueError("Must supply a valid directory")
-    if not output_file.suffix.endswith('.json'):
-        raise ValueError("Output file must be json")
+
+    # Ignored will be case insensitive to support all platforms
+    ignores = [ignore.lower() for ignore in ignores]
 
     files: Dict[str, dict] = dict()
 
     # Collect info from each json file
-    for filename in directory.glob('*.json'):
+    for filename in directory.glob('**/*.json'):
         if not filename.is_file:
             continue
 
@@ -46,16 +63,12 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
 
         info = _collect_info(filename)
         if info:
-            key = str(filename.relative_to(directory))
+            # File paths use Unix style for consistency
+            key = str(PurePosixPath(filename.relative_to(directory)))
             files[key] = info
 
     if not files:
-        logger.info(f'No files present - aborting manifest creation')
-        return
-
-    # Try to make directory the file lives in
-    if not output_file.parent.is_dir:
-        output_file.parent.mkdirs(parents=True, exists_ok=True)
+        return None
 
     # Sort by filename to ensure diff consistency
     sorted_files = dict((k, v) for k, v in sorted(files.items(), key=lambda p: p[0].lower()))
@@ -71,14 +84,11 @@ def generate_manifest(directory: Path, output_file: Path, ignores: Sequence[str]
     output['format'] = most_common_format
     output['files'] = sorted_files
 
-    # Save
-    with open(output_file, 'w', newline='\n') as f:
-        content = json.dumps(output, indent='\t')
-        content = re.sub(SHRINK_MOD_REGEX, r'{ \1, \2, \3 }', content)
-        f.write(content)
+    return output
 
 
 def _collect_info(filename: Path) -> Dict:
+    '''Collect any available manifest data about a file (version, format, metadata).'''
     with open(filename) as f:
         data = json.load(f)
 
@@ -95,5 +105,9 @@ def _collect_info(filename: Path) -> Dict:
     mod = data.get('mod', None)
     if mod:
         info['mod'] = mod
+
+    metadata = data.get('metadata', None)
+    if metadata:
+        info['metadata'] = metadata
 
     return info

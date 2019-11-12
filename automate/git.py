@@ -3,7 +3,7 @@ import os
 import tempfile
 from logging import NullHandler, getLogger
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
@@ -41,7 +41,7 @@ class GitManager:
 
         logger.info('Git repo is setup and ready to go')
 
-    def after_exports(self, relative_path: Path, commit_header: str):
+    def after_exports(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], str]):
         if self.config.settings.SkipGit:
             return
 
@@ -53,8 +53,8 @@ class GitManager:
         # Add changed files
         self._do_add(relative_path)
 
-        # Construct commit message using a simple message plus names and versions of changed files
-        message = self._create_commit_msg(relative_path, commit_header)
+        # Construct commit message using the supplied message function
+        message = self._create_commit_msg(relative_path, commit_header, msg_fn)
 
         # Commit
         self._do_commit(message, relative_path)
@@ -154,7 +154,7 @@ class GitManager:
         if branch != self.config.git.Branch:
             self.git.checkout(self.config.git.Branch)
 
-    def _create_commit_msg(self, relative_path: Path, commit_header: str):
+    def _create_commit_msg(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], str]):
         message = commit_header
 
         lines = []
@@ -163,7 +163,9 @@ class GitManager:
         for filename in filelist:
             if ' -> ' in filename:
                 filename = filename.split(' -> ')[-1].strip()
-            line = self._generate_info_line_from_file(filename)
+            line = msg_fn(filename)
+            if not line:
+                line = self._generate_info_line_from_file(filename)
             if line:
                 lines.append(f'* {line}')
 

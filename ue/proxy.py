@@ -18,6 +18,7 @@ __all__ = [
 _UETYPE = '__uetype'
 _UEFIELDS = '__uefields'
 _UEOVERRIDDEN = '__ueoverridden'
+_UEOBJECT = '__ueobject'
 
 
 class UEProxyStructure:
@@ -80,6 +81,7 @@ class UEProxyStructure:
 
         # Initialise the empty set of overridden fields
         setattr(self, _UEOVERRIDDEN, set())
+        setattr(self, _UEOBJECT, None)
 
     def __getitem__(self, name):
         return getattr(self, name)
@@ -97,6 +99,12 @@ class UEProxyStructure:
             for i, value in field_values.items():
                 target_field[i] = value
                 overrides.add((name, i))
+
+    def set_source(self, source: Any):
+        setattr(self, _UEOBJECT, source)
+
+    def get_source(self) -> Any:
+        return getattr(self, _UEOBJECT, None)
 
     def has_override(self, name: str, index: int = 0):
         '''Returns True if a value has bee set (excluding the defaults).'''

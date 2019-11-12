@@ -9,7 +9,7 @@ from ark.export_wiki.mod_gathering import gather_spawn_groups_from_pgd
 from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
 from automate.ark import ArkSteamManager
 from automate.discovery import Discoverer
-from automate.export import _save_as_json, _should_save_json
+from automate.jsonutils import save_as_json, should_save_json
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.asset import UAsset
@@ -33,7 +33,7 @@ def export_map_data(arkman: ArkSteamManager, modids: Set[str], config: ConfigFil
         return
 
     # Ensure the output directory exists
-    outdir = config.settings.OutputPath
+    outdir = Path(config.settings.OutputPath)
     outdir.mkdir(parents=True, exist_ok=True)
 
     # Export based on current config
@@ -161,7 +161,7 @@ class Exporter:
         values['version'] = version
         values['spawnGroups'] = groups
 
-        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+        fullpath = Path(self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
         fullpath.mkdir(parents=True, exist_ok=True)
         fullpath = (fullpath / 'spawningGroups').with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
@@ -180,17 +180,17 @@ class Exporter:
         values['version'] = version
         values.update(world_data.format_for_json())
 
-        fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+        fullpath = Path(self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
         fullpath.mkdir(parents=True, exist_ok=True)
         fullpath = (fullpath / 'map').with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
-        changed, version = _should_save_json(values, fullpath)
+        changed, version = should_save_json(values, fullpath)
         if changed:
             pretty = self.config.export_wiki.PrettyJson
             logger.info(f'Saving export to {fullpath} with version {version}')
             values['version'] = version
-            _save_as_json(values, fullpath, pretty=pretty)
+            save_as_json(values, fullpath, pretty=pretty)
         else:
             logger.info(f'No changes to {fullpath}')
