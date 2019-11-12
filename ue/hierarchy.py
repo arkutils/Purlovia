@@ -13,6 +13,8 @@ from ue.loader import AssetLoader, AssetLoadException
 from ue.tree import get_parent_fullname
 from utils.tree import IndexedTree, Node
 
+from .consts import BLUEPRINT_GENERATED_CLASS_CLS
+
 __all__ = [
     'ROOT_NAME',
     'HierarchyError',
@@ -34,7 +36,10 @@ ROOT_NAME = '/Script/CoreUObject.Object'
 
 @lru_cache(maxsize=1024)
 def _get_parent_cls(export: ExportTableItem) -> Optional[str]:
-    return export.super.value.fullname if export.super and export.super.value else None
+    src = export.klass.value
+    if src.fullname == BLUEPRINT_GENERATED_CLASS_CLS:
+        src = export.super.value
+    return src.fullname if src else None
 
 
 class HierarchyError(Exception):
@@ -204,6 +209,9 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
                 _ingest_asset(asset, loader)
             except AssetLoadException:
                 logger.warning("Failed to check parentage of %s", assetname)
+            except MissingParent as ex:
+                logger.exception("Missing parent for %s", assetname)
+                raise MissingParent from ex
 
             # Remove maps from the cache immediately as they are large and cannot be inherited from
             if ext == '.umap':
@@ -211,7 +219,7 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
 
 
 def _ingest_asset(asset: UAsset, loader: AssetLoader):
-    current_cls = asset.default_class
+    current_cls = asset.default_class or asset.default_export
     if not current_cls: return
 
     segment: Optional[Node[str]] = None

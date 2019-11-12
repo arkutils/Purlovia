@@ -486,12 +486,23 @@ class AssetLoader:
         except Exception as ex:
             raise AssetParseError(assetname) from ex
 
+        leafname = assetname.split('/')[-1]
+
+        # Look for a BP-style Default__<assetname> export
         exports = [export for export in asset.exports.values if str(export.name).startswith('Default__')]
         if len(exports) > 1:
-            logger.warning(f'Found more than one component in {assetname}!')
+            logger.warning(f'Found more than one Default__ entry in {assetname}!')
         asset.default_export = exports[0] if exports else None
         if asset.default_export:
             asset.default_class = asset.default_export.klass.value
+
+        if not asset.default_export:
+            # Fall back to an export named the same as the asset
+            exports = [export for export in asset.exports.values if str(export.name).lower() == leafname.lower()]
+            if len(exports) > 1:
+                logger.warning(f'Found more than <assetname> export in {assetname}!')
+            else:
+                asset.default_export = exports[0] if exports else None
 
         # TODO: Potentially treat .umap assets different for caching purposes
         self.cache.add(assetname, asset)
