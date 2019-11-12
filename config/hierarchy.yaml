@@ -49,6 +49,8 @@
         - '/Script/Engine.PlayerState':
             - '/Script/ShooterGame.ShooterPlayerState'
         - '/Script/Engine.SkyLight'
+        - '/Script/Engine.WorldSettings':
+            - '/Script/ShooterGame.PrimalWorldSettings'
         - '/Script/ShooterGame.DayCycleManager'
         - '/Script/ShooterGame.MatineeActorManager'
         - '/Script/ShooterGame.NPCZoneManager'
@@ -155,8 +157,11 @@
                 - '/Script/Engine.StaticMeshComponent':
                     - '/Script/Engine.InstancedStaticMeshComponent':
                         - '/Script/Engine.HierarchicalInstancedStaticMeshComponent'
+            - '/Script/Engine.ReflectionCaptureComponent':
+                - '/Script/Engine.BoxReflectionCaptureComponent'
             - '/Script/Engine.ShapeComponent':
                 - '/Script/Engine.CapsuleComponent'
+                - '/Script/Engine.BoxComponent'
     - '/Script/Engine.MovementComponent':
         - '/Script/Engine.NavMovementComponent':
             - '/Script/Engine.PawnMovementComponent':
