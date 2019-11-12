@@ -23,6 +23,7 @@ __all__ = [
     'find_parent_classes',
     'load_internal_hierarchy',
     'explore_path',
+    'iterate_all',
 ]
 
 logger = getLogger(__name__)
@@ -126,6 +127,10 @@ def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=Fals
         parent = node.parent
         yield parent.data
         node = parent
+
+
+def iterate_all() -> Iterator[str]:
+    yield from tree.keys()
 
 
 NO_DEFAULT = object()

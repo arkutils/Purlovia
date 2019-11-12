@@ -18,6 +18,16 @@
             ]
         },
         {
+            "name": "Run uegrep",
+            "type": "python",
+            "request": "launch",
+            "module": "uegrep",
+            "console": "integratedTerminal",
+            "args": [
+                "Dodo_Character",
+            ]
+        },
+        {
             "name": "Launch current file",
             "type": "python",
             "request": "launch",
