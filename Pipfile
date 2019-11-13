@@ -34,3 +34,6 @@ tests-nogame-nocov = "pytest -m 'not uses_copyright_material and not requires_ga
 mypy = "mypy ."
 pylint = "pylint ark automate tests ue utils"
 i = "ipython -i -m interactive interactive/setup.py"
+perf-species = "python -m cProfile -o automate.prof -m automate --skip-install --skip-extract-wiki"
+perf-maps = "python -m cProfile -o automate.prof -m automate --skip-install --skip-extract-asb --skip-spawn-data"
+perf-view = "snakeviz automate.prof"
