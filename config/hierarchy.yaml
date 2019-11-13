@@ -76,6 +76,7 @@
     - '/Script/ShooterGame.SaveGameActor':
         - '/Script/ShooterGame.SaveGameActorTickable'
     - '/Script/Engine.StaticMeshActor'
+    - '/Script/Engine.SkeletalMeshActor'
     - '/Script/Engine.SplineActor'
     - '/Script/Engine.ReflectionCapture':
         - '/Script/Engine.BoxReflectionCapture'
@@ -154,6 +155,8 @@
     - '/Script/Engine.SceneComponent':
         - '/Script/Engine.PrimitiveComponent':
             - '/Script/Engine.MeshComponent':
+                - '/Script/Engine.SkinnedMeshComponent':
+                    - '/Script/Engine.SkeletalMeshComponent'
                 - '/Script/Engine.StaticMeshComponent':
                     - '/Script/Engine.InstancedStaticMeshComponent':
                         - '/Script/Engine.HierarchicalInstancedStaticMeshComponent'
@@ -181,6 +184,14 @@
 - '/Script/Engine.CameraShake'
 - '/Script/Engine.DamageType':
     - '/Script/ShooterGame.ShooterDamageType'
+- '/Script/Engine.Font'
+- '/Script/Engine.SkeletalMesh'
+- '/Script/Engine.Skeleton'
+- '/Script/Engine.SoundBase':
+    - '/Script/Engine.SoundCue'
+    - '/Script/Engine.SoundWave'
+- '/Script/Engine.Texture':
+    - '/Script/Engine.Texture2D'
 - '/Script/Engine.VehicleWheel'
 - '/Script/ShooterGame.FogOfWar'
 - '/Script/ShooterGame.NPCSpawnEntriesContainer'
@@ -311,12 +322,4 @@
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
 - '/Script/CoreUObject.Interface'
 - '/Script/Engine.GroundClutterLayerActor'
-- '/Script/Engine.SkeletalMesh'
-- '/Script/Engine.SkeletalMeshActor'
-- '/Script/Engine.SkeletalMeshComponent'
 - '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
-- '/Script/Engine.Skeleton'
-- '/Script/Engine.Texture2D'
-- '/Script/Engine.SoundCue'
-- '/Script/Engine.SoundWave'
-- '/Script/Engine.Font'
