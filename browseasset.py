@@ -111,7 +111,7 @@ def get_node_iterator(node):
     if isinstance(node, list):
         return ((f'0x{i:X} ({i})', value) for i, value in enumerate(node))
     if isinstance(node, UEBase):
-        return ((name, node.field_values[name]) for name in getattr(node, 'field_order', None) or node.field_values.keys())
+        return ((name, getattr(node, name)) for name in getattr(node, 'field_order', None) or node.field_list)
     raise TypeError("Invalid node type for iterator")
 
 
@@ -142,7 +142,7 @@ def insert_fields_for_node(parentId):
     node = treenodes[parentId]
     skip_level_name = getattr(node, 'skip_level_field', None)
     if skip_level_name:
-        node = node.field_values.get(skip_level_name, node)
+        node = getattr(node, skip_level_name, node)
     fields = get_node_iterator(node)
     for name, value in fields:
         typeName = str(type(value).__name__)
