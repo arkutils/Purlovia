@@ -38,10 +38,11 @@ NO_FALLBACK = object()
 
 
 class PropertyTable(UEBase):
+    __slots__ = ('values', 'count', '_as_dict')
     string_format = '{count} entries'
     display_fields = ['values']
     skip_level_field = 'values'
-    _as_dict: Optional[PropDict] = None
+    _as_dict: Optional[PropDict]
 
     values: List["Property"]
 
@@ -135,6 +136,7 @@ class PropertyTable(UEBase):
 
 
 class PropertyHeader(UEBase):
+    __slots__ = ('name', 'type', 'size', 'index')
     display_fields = ['name', 'index']
 
     name: NameIndex
@@ -150,6 +152,7 @@ class PropertyHeader(UEBase):
 
 
 class Property(UEBase):
+    __slots__ = ('header', 'value')
     string_format = '{header.name}[{header.index}] = {value}'
 
     header: PropertyHeader
@@ -188,6 +191,8 @@ class Property(UEBase):
 
 
 class DummyAsset(UEBase):
+    __slots__ = ('none_index', )
+
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
@@ -207,6 +212,7 @@ class DummyAsset(UEBase):
 
 
 class ValueProperty(UEBase, Real, ABC):
+    __slots__ = ('value', )
     value: Real
 
     @abstractmethod
@@ -267,6 +273,7 @@ class ValueProperty(UEBase, Real, ABC):
 
 
 class FloatProperty(ValueProperty):
+    __slots__ = ('textual', 'raw_data', 'rounded', 'rounded_value')
     main_field = 'textual'
     display_fields = ['textual']
 
@@ -347,6 +354,7 @@ class FloatProperty(ValueProperty):
 
 
 class DoubleProperty(ValueProperty):
+    __slots__ = ('textual', 'bytes', 'rounded', 'rounded_value')
     main_field = 'textual'
     display_fields = ['textual']
 
@@ -378,6 +386,7 @@ class DoubleProperty(ValueProperty):
 
 
 class IntProperty(ValueProperty):
+    __slots__ = ()
     string_format = '(int) {value}'
     main_field = 'value'
 
@@ -400,6 +409,7 @@ class IntProperty(ValueProperty):
 
 
 class UInt32Property(IntProperty):
+    __slots__ = ()
     string_format = '(uint) {value}'
 
     def _deserialise(self, size=None):
@@ -407,6 +417,7 @@ class UInt32Property(IntProperty):
 
 
 class BoolProperty(ValueProperty):
+    __slots__ = ('value', )
     main_field = 'value'
 
     value: bool  # type: ignore
@@ -428,6 +439,7 @@ class BoolProperty(ValueProperty):
 
 
 class ByteProperty(ValueProperty):  # With optional enum type
+    __slots__ = ('enum', 'value')
     enum: NameIndex
     value: Union[NameIndex, int]  # type: ignore  # (we *want* to override the base type)
 
@@ -479,6 +491,7 @@ class ByteProperty(ValueProperty):  # With optional enum type
 
 
 class ObjectProperty(UEBase):
+    __slots__ = ('value', )
     main_field = 'value'
     skip_level_field = 'value'
 
@@ -492,6 +505,7 @@ class ObjectProperty(UEBase):
 
 
 class NameProperty(UEBase):
+    __slots__ = ('value', )
     main_field = 'value'
     display_fields = ['value']
 
@@ -502,6 +516,7 @@ class NameProperty(UEBase):
 
 
 class StringProperty(UEBase):
+    __slots__ = ('size', 'value')
     main_field = 'value'
 
     size: int
@@ -544,6 +559,7 @@ class StringProperty(UEBase):
 
 
 class TextProperty(UEBase):
+    __slots__ = ('flags', 'history_type', 'namespace', 'key', 'source_string')
     main_field = 'source_string'
 
     flags: int
@@ -564,6 +580,7 @@ class TextProperty(UEBase):
 
 
 class Guid(UEBase):
+    __slots__ = ('value', )
     main_field = 'value'
 
     value: uuid.UUID
@@ -578,6 +595,7 @@ class Guid(UEBase):
 
 
 class CustomVersion(UEBase):
+    __slots__ = ('guid', 'version', 'friendly_name')
     guid: Guid
     version: int
     friendly_name: str
@@ -589,6 +607,8 @@ class CustomVersion(UEBase):
 
 
 class StructEntry(UEBase):
+    __slots__ = ('name', 'type', 'length', 'value')
+
     string_format = '{name} = ({type}) {value}'
 
     name: NameIndex
@@ -605,7 +625,7 @@ class StructEntry(UEBase):
         self.name.link()
 
         name, propertyType, skipLength = decode_type_or_name(entryType, skip_deserialise=True)
-        self.field_values['type'] = entryType
+        self.type = entryType
 
         if dbg_structs > 1:
             print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={entryType}, length={self.length}')
@@ -615,16 +635,16 @@ class StructEntry(UEBase):
         if propertyType == ArrayProperty and subTypeName is not None:
             self._newField('value', '<not yet defined>')
             subType = getPropertyType(subTypeName)
-            self.field_values['value'] = ArrayProperty(self)
-            self.field_values['value'].deserialise(self.length, with_type=subType)
-            self.field_values['value'].link()
+            self.value = ArrayProperty(self)
+            self.value.deserialise(self.length, with_type=subType)
+            self.value.link()
             if dbg_structs > 1:
                 print(f'     = ', str(self.value))
         elif propertyType:
             self._newField('value', '<not yet defined>')
-            self.field_values['value'] = propertyType(self)
-            self.field_values['value'].deserialise(self.length)
-            self.field_values['value'].link()
+            self.value = propertyType(self)
+            self.value.deserialise(self.length)
+            self.value.link()
             if dbg_structs > 1:
                 print(f'     = ', str(self.value))
 
@@ -633,7 +653,7 @@ class StructEntry(UEBase):
         if skipLength is not None:
             self.stream.offset += self.length
             if dbg_structs > 1: print(f'  Recognised as skippable: {self.length} bytes')
-            self.field_values['value'] = f'<skipped {name} ({self.length} bytes)>'
+            self.value = f'<skipped {name} ({self.length} bytes)>'
             self.stream.offset += skipLength
             return
 
@@ -710,11 +730,12 @@ def decode_type_or_name(type_or_name: NameIndex, skip_deserialise=False):
 
 
 class StructProperty(UEBase):
+    __slots__ = ('count', 'values', '_as_dict', 'name', 'inArray')
     skip_level_field = 'values'
 
     count: int
     values: List[UEBase]
-    _as_dict: Optional[Dict[str, UEBase]] = None
+    _as_dict: Optional[Dict[str, UEBase]]
 
     def _deserialise(self, size):
         values = []
@@ -779,7 +800,7 @@ class StructProperty(UEBase):
             value = StructEntry(self)
             value.deserialise()
             values.append(value)
-            self.field_values['count'] += 1
+            self.count += 1
 
     def as_dict(self) -> Dict[str, UEBase]:
         return self._as_dict or self._convert_to_dict()
@@ -830,6 +851,7 @@ class StructProperty(UEBase):
 
 
 class ArrayProperty(UEBase):
+    __slots__ = ('field_type', 'count', 'values', 'value')
     field_type: NameIndex
     count: int
     values: List[UEBase]
@@ -901,7 +923,7 @@ class ArrayProperty(UEBase):
 
             with p.group(4, self.__class__.__name__ + '(', ')'):
                 p.text(f'count={self.count}')
-                if 'values' in self.field_values:
+                if 'values' in self.field_list:
                     for idx, value in enumerate(self.values):
                         p.text(',')
                         p.breakable()
@@ -912,6 +934,7 @@ class ArrayProperty(UEBase):
 
 
 class Vector(UEBase):
+    __slots__ = ('x', 'y', 'z')
     x: FloatProperty
     y: FloatProperty
     z: FloatProperty
@@ -923,6 +946,7 @@ class Vector(UEBase):
 
 
 class Box(UEBase):
+    __slots__ = ('min', 'max', 'is_valid')
     min: Vector
     max: Vector
     is_valid: bool
@@ -934,6 +958,7 @@ class Box(UEBase):
 
 
 class Vector2D(UEBase):
+    __slots__ = ('x', 'y')
     x: FloatProperty
     y: FloatProperty
 
@@ -943,6 +968,7 @@ class Vector2D(UEBase):
 
 
 class Rotator(UEBase):
+    __slots__ = ('a', 'b', 'c')
     a: FloatProperty
     b: FloatProperty
     c: FloatProperty
@@ -954,6 +980,7 @@ class Rotator(UEBase):
 
 
 class Quat(UEBase):
+    __slots__ = ('w', 'x', 'y', 'z')
     w: FloatProperty
     x: FloatProperty
     y: FloatProperty
@@ -967,6 +994,7 @@ class Quat(UEBase):
 
 
 class Transform(UEBase):
+    __slots__ = ('rotation', 'translation', 'scale')
     rotation: Quat
     translation: Vector
     scale: Vector
@@ -978,6 +1006,7 @@ class Transform(UEBase):
 
 
 class Color(UEBase):
+    __slots__ = ('rgba', )
     string_format = '#{rgba:08X}'
 
     rgba: int
@@ -987,6 +1016,7 @@ class Color(UEBase):
 
 
 class LinearColor(UEBase):
+    __slots__ = ('r', 'g', 'b', 'a')
     r: FloatProperty
     g: FloatProperty
     b: FloatProperty
@@ -999,10 +1029,11 @@ class LinearColor(UEBase):
         self._newField('a', FloatProperty(self))
 
     def as_tuple(self):
-        return tuple(v.value for v in self.field_values.values())
+        return tuple(v.value for v in [getattr(self, field_name) for field_name in self.field_list])
 
 
 class IntPoint(UEBase):
+    __slots__ = ('x', 'y')
     x: int
     y: int
 
@@ -1012,6 +1043,7 @@ class IntPoint(UEBase):
 
 
 class EngineVersion(UEBase):
+    __slots__ = ('major', 'minor', 'patch', 'changelist', 'branch')
     major: int
     minor: int
     patch: int

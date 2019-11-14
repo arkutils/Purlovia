@@ -20,6 +20,7 @@ __all__ = (
 
 
 class Table(UEBase):
+    __slots__ = ('count', 'values', 'itemType')
     string_format = '{count} x {itemType.__name__}'
     skip_level_field = 'values'
     display_fields = ['itemType', 'count', 'values']
@@ -79,6 +80,7 @@ class Table(UEBase):
 
 
 class ChunkPtr(UEBase):
+    __slots__ = ('count', 'offset')
     count: int
     offset: int
 
@@ -88,6 +90,7 @@ class ChunkPtr(UEBase):
 
 
 class GenerationInfo(UEBase):
+    __slots__ = ('export_count', 'name_count')
     export_count: int
     name_count: int
 
@@ -97,6 +100,7 @@ class GenerationInfo(UEBase):
 
 
 class CompressedChunk(UEBase):
+    __slots__ = ('uncompressed_offset', 'uncompressed_size', 'compressed_offset', 'compressed_offset')
     uncompressed_offset: int
     uncompressed_size: int
     compressed_offset: int
@@ -110,6 +114,7 @@ class CompressedChunk(UEBase):
 
 
 class NameIndex(UEBase):
+    __slots__ = ('index', 'instance', 'value')
     main_field = 'value'
 
     index: int
@@ -126,7 +131,7 @@ class NameIndex(UEBase):
         if INCLUDE_METADATA:
             self.value.register_user(self.parent or self)
         if self.instance:
-            self.field_values['value'] = f'{self.value}_{self.instance}'
+            self.value = f'{self.value}_{self.instance}'
 
     if support_pretty:
 
@@ -136,13 +141,15 @@ class NameIndex(UEBase):
                 p.text(f'{cls}(<cyclic>)')
                 return
 
-            if 'value' in self.field_values:
+            if 'value' in self.field_list:
                 p.pretty(self.value)
             else:
                 p.text(f'{cls}(index={self.index})')
 
 
 class ObjectIndex(UEBase):
+    __slots__ = ('index', 'used_index', 'kind', 'value')
+
     main_field = 'value'
     display_fields = ['index', 'value']
     skip_level_field = 'value'
@@ -155,16 +162,16 @@ class ObjectIndex(UEBase):
         # Calculate the indexes but don't look up the actual import/export until the link phase
         self._newField('index', self.stream.readInt32())  # object indexes are 32-bit and signed
         if self.index < 0:
-            self.used_index = -self.index - 1
+            used_index = -self.index - 1
             self.kind = 'import'
         elif self.index > 0:
-            self.used_index = self.index - 1
+            used_index = self.index - 1
             self.kind = 'export'
         else:
-            self.used_index = 0
+            used_index = 0
             self.kind = 'none'
 
-        self._newField('used_index', self.used_index)
+        self._newField('used_index', used_index)
 
     def _link(self):
         # Look up the import/export in the asset tables now they're completed

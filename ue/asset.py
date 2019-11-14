@@ -32,11 +32,21 @@ logger.addHandler(NullHandler())
 
 
 class UAsset(UEBase):
+    __slots__ = ('loader', 'assetname', 'name', 'file_ext', 'default_export', 'default_class', 'has_properties', 'has_bulk_data',
+                 'tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size', 'package_group',
+                 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset', 'string_assets',
+                 'thumbnail_offset', 'guid', 'generations', 'engine_version_saved', 'compression_flags', 'compressed_chunks',
+                 'package_source', 'unknown_field', 'packages_to_cook', 'texture_allocations', 'asset_registry_data_offset',
+                 'bulk_data_start_offset', 'world_tile_info_data_offset', 'names', 'imports', 'exports', 'none_index',
+                 'tile_info')
+
     display_fields = ('tag', 'legacy_ver', 'ue_ver', 'file_ver', 'licensee_ver', 'custom_versions', 'header_size',
                       'package_group', 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset',
                       'string_assets', 'thumbnail_offset', 'guid')
 
     none_index: int
+    licensee_ver: int
+    legacy_ver: int
 
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
@@ -201,6 +211,8 @@ class UAsset(UEBase):
 
 
 class ImportTableItem(UEBase):
+    __slots__ = ('package', 'klass', 'namespace', 'name')
+
     package: NameIndex
     klass: NameIndex
     namespace: ObjectIndex
@@ -248,9 +260,12 @@ class ImportTableItem(UEBase):
 
 
 class ExportTableItem(UEBase):
+    __slots__ = ('klass', 'super', 'namespace', 'name', 'object_flags', 'serial_size', 'serial_offset', 'force_export',
+                 'not_for_client', 'not_for_server', 'guid', 'package_flags', 'not_for_editor_game', 'fullname', 'properties')
+
     string_format = '{name} ({klass}) [{super}]'
     display_fields = ('name', 'namespace', 'klass', 'super')
-    fullname: Optional[str] = None
+    fullname: Optional[str]
 
     klass: ObjectIndex
     super: ObjectIndex
@@ -288,7 +303,7 @@ class ExportTableItem(UEBase):
             self.users.add(user)
 
     def deserialise_properties(self):
-        if 'properties' in self.field_values:
+        if 'properties' in self.field_list:
             raise RuntimeError('Attempt to deserialise properties more than once')
 
         # We deferred deserialising the properties until all imports/exports were defined
@@ -313,6 +328,9 @@ class ExportTableItem(UEBase):
 
 
 class WorldTileInfo(UEBase):
+    __slots__ = ('unknown_field1', 'bounds', 'layer_name', 'unknown_field2', 'unknown_field3', 'unknown_field4',
+                 'streaming_distance', 'distance_streaming_enabled')
+
     display_fields = ('layer_name', 'bounds')
     fullname: Optional[str] = None
 
