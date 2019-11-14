@@ -15,6 +15,7 @@ mypy = "!=0.740"
 jupyter = "~=1.0"
 deepdiff = "~=4.0.9"
 pygments = "~=2.4"
+guppy3 = "~=3.0.8"
 
 [packages]
 requests = "~=2.22.0"
@@ -37,3 +38,4 @@ i = "ipython -i -m interactive interactive/setup.py"
 perf-species = "python -m cProfile -o automate.prof -m automate --skip-install --skip-extract-wiki"
 perf-maps = "python -m cProfile -o automate.prof -m automate --skip-install --skip-extract-asb --skip-spawn-data"
 perf-view = "snakeviz automate.prof"
+heapsize = "ipython -c 'from interactive.setup import *;from guppy import hpy;hp=hpy();hp.setrelheap();asset=loader[\"/Game/Maps/TheIslandSubmaps/TheIsland\"];h=hp.heap();print(h)'"
