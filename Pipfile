@@ -39,3 +39,4 @@ perf-species = "python -m cProfile -o automate.prof -m automate --skip-install -
 perf-maps = "python -m cProfile -o automate.prof -m automate --skip-install --skip-extract-asb --skip-spawn-data"
 perf-view = "snakeviz automate.prof"
 heapsize = "ipython -c 'from interactive.setup import *;from guppy import hpy;hp=hpy();hp.setrelheap();asset=loader[\"/Game/Maps/TheIslandSubmaps/TheIsland\"];h=hp.heap();print(h)'"
+timeit = "python -m timeit -r 20 -s 'from interactive.setup import loader' 'loader._load_asset(\"/Game/Maps/TheIslandSubmaps/TheIsland\")'"
