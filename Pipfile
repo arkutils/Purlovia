@@ -40,3 +40,6 @@ perf-maps = "python -m cProfile -o automate.prof -m automate --skip-install --sk
 perf-view = "snakeviz automate.prof"
 heapsize = "ipython -c 'from interactive.setup import *;from guppy import hpy;hp=hpy();hp.setrelheap();asset=loader[\"/Game/Maps/TheIslandSubmaps/TheIsland\"];h=hp.heap();print(h)'"
 timeit = "python -m timeit -r 20 -s 'from interactive.setup import loader' 'loader._load_asset(\"/Game/Maps/TheIslandSubmaps/TheIsland\")'"
+fmt-isort = "python -c 'from isort.main import main;main(\"-rc -ac .\".split(\" \"))'"
+fmt-yapf = "python -c 'import yapf;yapf.main(\" -rip ark automate interactive tests ue utils\".split(\" \"))'"
+fmt = "python -c 'from isort.main import main;main(\"-rc -ac .\".split(\" \"));import yapf;yapf.main(\" -rip ark automate interactive tests ue utils\".split(\" \"))'"
