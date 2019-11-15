@@ -44,19 +44,57 @@ class UAsset(UEBase):
                       'package_group', 'package_flags', 'names_chunk', 'exports_chunk', 'imports_chunk', 'depends_offset',
                       'string_assets', 'thumbnail_offset', 'guid')
 
-    none_index: int
-    licensee_ver: int
+    loader: "AssetLoader"
+    assetname: Optional[str]
+    name: Optional[str]
+    file_ext: Optional[str]
+    default_class: Optional[ExportTableItem]
+    default_export: Optional[ExportTableItem]
+    has_properties: bool
+    has_bulk_data: bool
+
+    tag: int
     legacy_ver: int
+    ue_ver: int
+    file_ver: int
+    licensee_ver: int
+    custom_versions: Table
+    header_size: int
+    package_group: StringProperty
+    package_flags: int
+    names_chunk: ChunkPtr
+    exports_chunk: ChunkPtr
+    imports_chunk: ChunkPtr
+    depends_offset: int
+    string_assets: ChunkPtr
+    thumbnail_offset: int
+    guid: Guid
+    generations: Table
+    engine_version_saved: EngineVersion
+    compression_flags: int
+    compressed_chunks: Table
+    package_source: int
+    unknown_field: Optional[int]
+    packages_to_cook: Table
+    texture_allocations: Optional[int]
+    asset_registry_data_offset: int
+    bulk_data_start_offset: int
+    world_tile_info_data_offset: int
+    none_index: int
+
+    names: Table
+    imports: Table
+    exports: Table
 
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
         self.asset = self
-        self.loader: Optional['AssetLoader'] = None
-        self.assetname: Optional[str] = None
-        self.name: Optional[str] = None
-        self.file_ext: Optional[str] = None
-        self.default_export: Optional['ExportTableItem'] = None
-        self.default_class: Optional['ExportTableItem'] = None
+        self.loader = None
+        self.assetname = None
+        self.name = None
+        self.file_ext = None
+        self.default_export = None
+        self.default_class = None
         self.has_properties = False
         self.has_bulk_data = False
         super().__init__(self, stream)
@@ -271,6 +309,15 @@ class ExportTableItem(UEBase):
     super: ObjectIndex
     namespace: ObjectIndex
     name: NameIndex
+    object_flags: int
+    serial_size: int
+    serial_offset: int
+    force_export: bool
+    not_for_client: bool
+    not_for_server: bool
+    guid: Guid
+    package_flags: int
+    not_for_editor_game: bool
     properties: PropertyTable
     users: Set[UEBase]
 

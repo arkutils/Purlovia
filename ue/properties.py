@@ -45,6 +45,7 @@ class PropertyTable(UEBase):
     _as_dict: Optional[PropDict]
 
     values: List["Property"]
+    count: int
 
     def as_dict(self) -> PropDict:
         return self._as_dict or self._convert_to_dict()
@@ -193,6 +194,8 @@ class Property(UEBase):
 class DummyAsset(UEBase):
     __slots__ = ('none_index', )
 
+    none_index: int
+
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
@@ -213,6 +216,7 @@ class DummyAsset(UEBase):
 
 class ValueProperty(UEBase, Real, ABC):
     __slots__ = ('value', )
+
     value: Real
 
     @abstractmethod
@@ -440,6 +444,7 @@ class BoolProperty(ValueProperty):
 
 class ByteProperty(ValueProperty):  # With optional enum type
     __slots__ = ('enum', 'value')
+
     enum: NameIndex
     value: Union[NameIndex, int]  # type: ignore  # (we *want* to override the base type)
 
@@ -596,6 +601,7 @@ class Guid(UEBase):
 
 class CustomVersion(UEBase):
     __slots__ = ('guid', 'version', 'friendly_name')
+
     guid: Guid
     version: int
     friendly_name: str
@@ -608,7 +614,6 @@ class CustomVersion(UEBase):
 
 class StructEntry(UEBase):
     __slots__ = ('name', 'type', 'length', 'value')
-
     string_format = '{name} = ({type}) {value}'
 
     name: NameIndex
@@ -735,6 +740,8 @@ class StructProperty(UEBase):
 
     count: int
     values: List[UEBase]
+    name: Optional[str]
+    inArray: Optional[bool]
     _as_dict: Optional[Dict[str, UEBase]]
 
     def _deserialise(self, size):
@@ -852,9 +859,11 @@ class StructProperty(UEBase):
 
 class ArrayProperty(UEBase):
     __slots__ = ('field_type', 'count', 'values', 'value')
+
     field_type: NameIndex
     count: int
     values: List[UEBase]
+    value: Optional[UEBase]
 
     def _deserialise(self, size, with_type: Type = None):  # type: ignore
         assert size >= 4, "Array size is required"
@@ -935,6 +944,7 @@ class ArrayProperty(UEBase):
 
 class Vector(UEBase):
     __slots__ = ('x', 'y', 'z')
+
     x: FloatProperty
     y: FloatProperty
     z: FloatProperty
@@ -947,6 +957,7 @@ class Vector(UEBase):
 
 class Box(UEBase):
     __slots__ = ('min', 'max', 'is_valid')
+
     min: Vector
     max: Vector
     is_valid: bool
@@ -959,6 +970,7 @@ class Box(UEBase):
 
 class Vector2D(UEBase):
     __slots__ = ('x', 'y')
+
     x: FloatProperty
     y: FloatProperty
 
@@ -969,6 +981,7 @@ class Vector2D(UEBase):
 
 class Rotator(UEBase):
     __slots__ = ('a', 'b', 'c')
+
     a: FloatProperty
     b: FloatProperty
     c: FloatProperty
@@ -981,6 +994,7 @@ class Rotator(UEBase):
 
 class Quat(UEBase):
     __slots__ = ('w', 'x', 'y', 'z')
+
     w: FloatProperty
     x: FloatProperty
     y: FloatProperty
@@ -995,6 +1009,7 @@ class Quat(UEBase):
 
 class Transform(UEBase):
     __slots__ = ('rotation', 'translation', 'scale')
+
     rotation: Quat
     translation: Vector
     scale: Vector
@@ -1034,6 +1049,7 @@ class LinearColor(UEBase):
 
 class IntPoint(UEBase):
     __slots__ = ('x', 'y')
+
     x: int
     y: int
 
@@ -1044,6 +1060,7 @@ class IntPoint(UEBase):
 
 class EngineVersion(UEBase):
     __slots__ = ('major', 'minor', 'patch', 'changelist', 'branch')
+
     major: int
     minor: int
     patch: int

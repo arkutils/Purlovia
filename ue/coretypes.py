@@ -1,4 +1,4 @@
-from typing import List, Type, Union
+from typing import List, Type, Union, Optional
 
 from .base import UEBase
 from .context import INCLUDE_METADATA
@@ -157,6 +157,7 @@ class ObjectIndex(UEBase):
     index: int
     used_index: int
     kind: str
+    value: Optional[UEBase]
 
     def _deserialise(self):
         # Calculate the indexes but don't look up the actual import/export until the link phase

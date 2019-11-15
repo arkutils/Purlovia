@@ -22,21 +22,34 @@ class UEBase(object):
     display_fields: Optional[Sequence[str]] = None
     skip_level_field: Optional[str] = None
 
-    def __init__(self, owner: "UEBase", stream=None):
-        assert owner is not None, "Owner must be specified"
-        self.stream: MemoryStream = stream or owner.stream
+    stream: MemoryStream
+    asset: 'UEBase'
+    parent: Optional['UEBase']
+    start_offset: Optional[int]
+    is_serialising: bool
+    is_serialised: bool
+    is_linking: bool
+    is_linked: bool
+    is_inside_array: bool
+    field_list: List[Any]
+    field_order: List[str]
+    end_offset: Optional[int]
+
+    def __init__(self, owner: 'UEBase', stream=None):
+        assert owner is not None, 'Owner must be specified'
+        self.stream = stream or owner.stream
         self.asset = owner.asset  # type: ignore
-        self.start_offset: Optional[int] = None
+        self.start_offset = None
         self.is_serialising = False
         self.is_serialised = False
         self.is_linking = False
         self.is_linked = False
         self.is_inside_array = False
-        self.field_list: List[Any] = []  # TODO: Eventually make field_list hidden behind the metadata switch
+        self.field_list = []  # TODO: Eventually make field_list hidden behind the metadata switch
         if INCLUDE_METADATA:
-            self.parent: Optional["UEBase"] = owner if owner is not owner.asset else None
-            self.field_order: List[str] = []
-            self.end_offset: Optional[int] = None
+            self.parent = owner if owner is not owner.asset else None
+            self.field_order = []
+            self.end_offset = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
