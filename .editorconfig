@@ -9,3 +9,6 @@ insert_final_newline = true
 
 [*.acf]
 indent_style = tab
+
+[Pipfile*]
+end_of_line = lf

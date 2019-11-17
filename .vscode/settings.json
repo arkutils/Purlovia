@@ -70,4 +70,5 @@
 
     "coverage-gutters.xmlname": "coverage.xml",
     "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
 }
