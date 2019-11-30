@@ -33,14 +33,8 @@ class CompositionSublevelTester(AssetTester):
         if 'tile_info' not in asset.field_values:
             return False
 
-        if asset.default_class:
-            return inherits_from(asset.default_class, LEVEL_SCRIPT_ACTOR_CLS)
-
-        for export in asset.exports:
-            try:
-                if inherits_from(export, WORLD_CLS):
-                    return True
-            except MissingParent:
-                continue
-
-        return False
+        try:
+            return inherits_from(asset.default_export, LEVEL_SCRIPT_ACTOR_CLS) or inherits_from(asset.default_export, WORLD_CLS)
+        except AssetLoadException:
+            # This asset is more broken than it ever should be.
+            return False
