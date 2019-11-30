@@ -1,8 +1,10 @@
 {
     "files.exclude": {
+        ".venv": true,
         "**/__pycache__": true,
         "**/.pytest_cache": true,
         "**/.mypy_cache": true,
+        ".vscode/.ropeproject": true,
     },
 
     "python.testing.unittestEnabled": false,
