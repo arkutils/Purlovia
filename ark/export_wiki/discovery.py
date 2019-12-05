@@ -1,10 +1,9 @@
 from logging import NullHandler, getLogger
-from typing import Iterable
+from typing import Iterable, Iterator
 
-from automate.discovery import AssetTester, Discoverer
+import ue.hierarchy
+from config import ConfigFile, get_global_config
 from ue.asset import UAsset
-from ue.consts import SCRIPT_ENGINE_PKG
-from ue.hierarchy import MissingParent, inherits_from
 from ue.loader import AssetLoader, AssetLoadException
 
 from .consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
@@ -13,31 +12,29 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
-class CompositionSublevelTester(AssetTester):
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'worldcomposition'
+class LevelDiscoverer:
+    def __init__(self, loader: AssetLoader):
+        self.loader = loader
+        self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
 
-    @classmethod
-    def get_file_extensions(cls) -> Iterable[str]:
-        return ('.umap', )
+    def discover_vanilla_levels(self) -> Iterator[str]:
+        config = get_global_config()
+        official_modids = set(config.official_mods.ids())
+        official_modids -= set(config.settings.SeparateOfficialMods)
+        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
 
-    @classmethod
-    def get_requires_properties(cls) -> bool:
-        return False
+        all_cls_names = list(ue.hierarchy.find_sub_classes(WORLD_CLS))
+        all_cls_names += ue.hierarchy.find_sub_classes(LEVEL_SCRIPT_ACTOR_CLS)
 
-    def is_a_fast_match(self, mem: bytes) -> bool:
-        return b'World' in mem
+        for cls_name in all_cls_names:
+            assetname = cls_name[:cls_name.rfind('.')]
 
-    def is_a_full_match(self, asset: UAsset) -> bool:
-        if 'tile_info' not in asset.field_values:
-            return False
+            # Skip anything in the mods directory that isn't one of the listed official mods
+            if assetname.startswith('/Game/Mods') and not any(assetname.startswith(prefix) for prefix in official_mod_prefixes):
+                continue
 
-        if not asset.default_export:
-            return False
+            modid = self.loader.get_mod_id(assetname) or ''
+            #if get_overrides_for_species(assetname, modid).skip_export:
+            #    continue
 
-        try:
-            return inherits_from(asset.default_export, LEVEL_SCRIPT_ACTOR_CLS) or inherits_from(asset.default_export, WORLD_CLS)
-        except AssetLoadException:
-            # This asset is more broken than it ever should be.
-            return False
+            yield assetname

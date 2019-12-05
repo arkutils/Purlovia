@@ -927,6 +927,9 @@ class Vector(UEBase):
         self._newField('y', FloatProperty(self))
         self._newField('z', FloatProperty(self))
 
+    def format_for_json(self):
+        return {'x': self.x.format_for_json(), 'y': self.y.format_for_json(), 'z': self.z.format_for_json()}
+
 
 class Box(UEBase):
     min: Vector

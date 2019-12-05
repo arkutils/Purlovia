@@ -9,6 +9,13 @@ from .types import WORLD_SETTINGS_EXPORTED_PROPERTIES, PrimalWorldSettings
 
 
 @dataclass
+class MapInfo:
+    name: str
+    persistent_level: str = field(init=False)
+    data: dict
+
+
+@dataclass
 class WorldData:
     _level: InitVar[UAsset]
 

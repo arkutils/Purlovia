@@ -106,7 +106,6 @@ class ConfigFile(BaseModel):
     export_asb: ExportASBSection
     export_wiki: ExportWikiSection
 
-    maps: Tuple[str, ...] = tuple()
     official_mods: ModIdAccess = ModIdAccess(dict())
     mods: Tuple[str, ...] = tuple()
 

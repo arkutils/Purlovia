@@ -92,6 +92,18 @@ def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
     }
 
 
+def get_actor_location_vector(actor):
+    '''Retrieves actor's world-space location vector.'''
+
+    if isinstance(actor, UEProxyStructure):
+        scene_component = actor.RootComponent[0].value.value
+    else:
+        scene_component = actor.properties.get_property("RootComponent").value.value
+    actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
+
+    return actor_location
+
+
 def get_actor_worldspace_location(actor):
     '''Retrieves actor's world-space location in a form of (x,y,z) tuple.'''
 
@@ -102,6 +114,33 @@ def get_actor_worldspace_location(actor):
     actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
 
     return (actor_location.x.value, actor_location.y.value, actor_location.z.value)
+
+
+def get_volume_bounds(volume):
+    '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
+
+    if isinstance(volume, UEProxyStructure):
+        brush_component = volume.BrushComponent[0].value.value
+    else:
+        brush_component = volume.properties.get_property("BrushComponent").value.value
+
+    body_setup = brush_component.properties.get_property("BrushBodySetup").value.value
+    agg_geom = body_setup.properties.get_property("AggGeom").values[0].value
+    convex_elems = agg_geom.values[0]
+    volume_location = brush_component.properties.get_property("RelativeLocation").values[0]
+    volume_box = convex_elems.as_dict()["ElemBox"].values[0]
+    return (
+        dict(
+            x=volume_box.min.x + volume_location.x,
+            y=volume_box.min.y + volume_location.y,
+            z=volume_box.min.z + volume_location.z
+        ),
+        dict(
+            x=volume_box.max.x + volume_location.x,
+            y=volume_box.max.y + volume_location.y,
+            z=volume_box.max.z + volume_location.z
+        )
+    )
 
 
 def get_volume_worldspace_bounds(volume, include_altitude=False):

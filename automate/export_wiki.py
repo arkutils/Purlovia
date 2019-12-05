@@ -2,19 +2,18 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-from ark.export_wiki.discovery import CompositionSublevelTester
-from ark.export_wiki.exporters import PROXY_TYPE_MAP, is_export_extractable
-from ark.export_wiki.map import WorldData
-from ark.export_wiki.mod_gathering import gather_spawn_groups_from_pgd
-from ark.export_wiki.spawncontainers import get_spawn_entry_container_data
+from ark.export_wiki.base import MapGathererBase
+from ark.export_wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
+from ark.export_wiki.discovery import LevelDiscoverer
+from ark.export_wiki.gathering import find_gatherer_by_category_name, find_gatherer_for_export
+from ark.export_wiki.map import MapInfo
 from automate.ark import ArkSteamManager
-from automate.discovery import Discoverer
 from automate.jsonutils import save_as_json, should_save_json
 from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.asset import UAsset
 from ue.gathering import gather_properties
-from ue.hierarchy import MissingParent, inherits_from
+from ue.hierarchy import MissingParent, find_sub_classes, inherits_from
 from ue.loader import AssetNotFound
 from utils.strings import get_valid_filename
 
@@ -50,8 +49,7 @@ class Exporter:
         self.modids = modids
         self.loader = arkman.getLoader()
         self.game_version = self.arkman.getGameVersion()
-        self.discoverer = Discoverer(self.loader, remove_assets_from_cache=True)
-        self.discoverer.register_asset_tester(CompositionSublevelTester())
+        self.discoverer = LevelDiscoverer(self.loader)
 
     def perform(self):
         self._prepare_versions()
@@ -62,16 +60,30 @@ class Exporter:
             logger.info('Beginning export of vanilla maps')
             self._export_vanilla()
 
-        for modid in self.modids:
-            logger.info(f'Beginning mod {modid} export')
-            self._export_mod(modid)
+        #for modid in self.modids:
+        #    logger.info(f'Beginning mod {modid} export')
+        #    self._export_mod(modid)
 
-            # Remove assets with this mod's prefix from the cache
-            prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
-            self.loader.wipe_cache_with_prefix(prefix)
+        #    # Remove assets with this mod's prefix from the cache
+        #    prefix = '/Game/Mods/' + self.loader.get_mod_name('/Game/Mods/' + modid)
+        #    self.loader.wipe_cache_with_prefix(prefix)
 
         logger.info('Max memory: %6.2f Mb', self.loader.max_memory / 1024.0 / 1024.0)
         logger.info('Max cache entries: %d', self.loader.max_cache)
+
+    def _group_levels_by_directory(self, assetnames: Iterable) -> Dict[str, List[str]]:
+        '''
+        Takes an unsorted list of levels and groups them by directory.
+        '''
+        levels: Dict[str, List[str]] = dict()
+
+        for assetname in assetnames:
+            path = assetname[:assetname.rfind('/')]
+            if path not in levels:
+                levels[path] = list()
+            levels[path].append(assetname)
+
+        return levels
 
     def _prepare_versions(self):
         if not self.game_version:
@@ -83,10 +95,13 @@ class Exporter:
     def _export_vanilla(self):
         game_buildid = self.arkman.getGameBuildId()
         version = self._create_version(game_buildid)
+        maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
 
-        for asset_name in self.config.maps:
-            self._export_level(asset_name, version)
-            self.loader.wipe_cache_with_prefix(asset_name[:asset_name.rfind('/')])
+        for map_directory in maps:
+            logger.info(f'Exporting data from map: {map_directory}')
+            data = self._gather_data_from_levels(map_directory, maps[map_directory])
+            self._sort_data(data)
+            self._export_values(data, version)
 
     def _export_mod(self, modid: str):
         moddata = self.arkman.getModData(modid)
@@ -94,96 +109,131 @@ class Exporter:
             raise ValueError("Mod not installed or ArkSteamManager not yet initialised")
         version = self._create_version(moddata['version'])
 
-        if int(moddata.get('type', 1)) != 2:
-            return self._export_modded_spawn_groups(modid, version, moddata)
+        #if int(moddata.get('type', 1)) != 2:
+        #    return self._export_modded_spawn_groups(modid, version, moddata)
 
-        map_list = moddata.get('maps', None)
-        if map_list:
-            for map_name in map_list:
-                self._export_level(f'/Game/Mods/{modid}/{map_name}', version, moddata)
-        else:
-            logger.warning(f'Mod {modid} is missing its list of maps.')
+        #map_list = moddata.get('maps', None)
+        #if map_list:
+        #    for map_name in map_list:
+        #        self._export_level(f'/Game/Mods/{modid}/{map_name}', version, moddata)
+        #else:
+        #    logger.warning(f'Mod {modid} is missing its list of maps.')
 
-    def _export_level(self, asset_name: str, version: str, moddata: Optional[Dict] = None):
-        logger.info(f'Collecting data from a map: {asset_name}')
-        # Gather data from the persistent level and create a container
-        asset = self.loader[asset_name]
-        world_data = WorldData(asset)
-        self._gather_data_from_level(asset, world_data)
-        self.loader.cache.remove(asset_name)
+    def _gather_data_from_levels(self, directory: str, levels: List[str]) -> MapInfo:
+        '''
+        Goes through each sublevel, gathering data and looking for the persistent level.
+        '''
+        map_info = MapInfo(name=directory[directory.rfind('/') + 1:], data=dict())
+        for assetname in levels:
+            asset = self.loader[assetname]
 
-        # Load sublevels and gather data from them
-        map_directory = asset_name[:asset_name.rfind('/')]
-        composition_levels = self.discoverer.run(map_directory)['worldcomposition']
-        for sublevel_name in composition_levels:
-            self._gather_data_from_level(self.loader[sublevel_name], world_data)
-            self.loader.cache.remove(sublevel_name)
+            # Check if asset is a persistent level and collect data from it.
+            if not getattr(asset, 'tile_info', None):
+                if getattr(map_info, 'persistent_level', None):
+                    logger.warning(
+                        f'Found another persistent level ({assetname}) but {map_info.persistent_level} was located earlier: skipping.'
+                    )
+                    continue
 
-        # Gather spawn groups and save the data
-        self._gather_spawn_groups(world_data)
-        self._export_world_data(world_data, version, moddata)
-        del world_data
+                map_info.persistent_level = assetname
+                # TODO: Gather data from persistent level
 
-    def _gather_data_from_level(self, level: UAsset, world_data: WorldData):
-        for export in level.exports:
-            if not is_export_extractable(export):
-                continue
+            # Go through each export and, if valuable, gather data from it.
+            for export in asset.exports:
+                helper = find_gatherer_for_export(export)
+                if helper:
+                    # Make sure the data list is initialized.
+                    category_name = helper.get_category_name()  # type:ignore
+                    if category_name not in map_info.data:
+                        map_info.data[category_name] = list()
 
-            proxy = gather_properties(export)  # type:ignore
-            export_function = PROXY_TYPE_MAP.get(proxy.get_ue_type(), None)
-            if export_function:
-                export_function(world_data, proxy)  # type:ignore
-            else:
-                logger.error(f'Unsupported type: no export mapping exists for "{proxy.get_ue_type()}".')
-            del proxy
+                    # Extract data and add it to the list.
+                    try:
+                        export_data = helper.extract(proxy=gather_properties(export))  # type:ignore
+                    except:  # pylint: disable=bare-except
+                        logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
+                        continue
+                    if export_data:
+                        map_info.data[category_name].append(export_data)
 
-    def _gather_spawn_groups(self, world: WorldData):
-        for index in range(len(world.spawnGroups)):
-            group_data = get_spawn_entry_container_data(self.loader, world.spawnGroups[index])
-            if group_data:
-                world.spawnGroups[index] = group_data.as_dict()
+            # Preemptively remove the level from linker cache.
+            self.loader.cache.remove(assetname)
 
-    def _export_modded_spawn_groups(self, modid: str, version: str, moddata: dict):
-        mod_pgd = moddata.get('package', None)
-        if not mod_pgd:
-            logger.warning(f'PrimalGameData information missing for mod {modid}')
-            return
-        pgd = self.loader[mod_pgd]
-        groups = gather_spawn_groups_from_pgd(self.loader, pgd)
-        if not groups:
-            return
+        return map_info
 
+    def _sort_data(self, map_info: MapInfo):
+        '''
+        Sorts data by every category's criteria.
+        '''
+        for key, values in map_info.data.items():
+            helper = find_gatherer_by_category_name(key)
+            values.sort(key=helper.sorting_key)
+
+    def _export_values(self, map_info: MapInfo, version: str, other: Dict = None, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
-        dirname = f"{moddata['id']}-{moddata['name']}"
-        dirname = get_valid_filename(dirname)
-        title = moddata['title'] or moddata['name']
-        values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
-        values['version'] = version
-        values['spawnGroups'] = groups
-
-        fullpath = Path(self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
-        fullpath.mkdir(parents=True, exist_ok=True)
-        fullpath = (fullpath / 'spawningGroups').with_suffix('.json')
-        self._save_json_if_changed(values, fullpath)
-
-    def _export_world_data(self, world_data: WorldData, version: str, moddata: Optional[Dict] = None):
-        values: Dict[str, Any] = dict()
+        values['map'] = map_info.name
+        values['format'] = '1.0'
 
         if moddata:
-            dirname = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
-            dirname = get_valid_filename(dirname)
+            filename = f"{moddata['id']}-{moddata['name']}-{map_info.name}"
+            filename = get_valid_filename(filename)
             title = moddata['title'] or moddata['name']
             values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
         else:
-            dirname = get_valid_filename(world_data.name)
+            filename = map_info.name
 
         values['version'] = version
-        values.update(world_data.format_for_json())
+        values.update(map_info.data)
+
+        if other:
+            values.update(other)
 
         fullpath = Path(self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
         fullpath.mkdir(parents=True, exist_ok=True)
         fullpath = (fullpath / 'map').with_suffix('.json')
         self._save_json_if_changed(values, fullpath)
+
+    #def _export_world_data(self, world_data: WorldData, version: str, moddata: Optional[Dict] = None):
+    #    values: Dict[str, Any] = dict()
+
+    #    if moddata:
+    #        dirname = f"{moddata['id']}-{moddata['name']}-{world_data.name}"
+    #        dirname = get_valid_filename(dirname)
+    #        title = moddata['title'] or moddata['name']
+    #        values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
+    #    else:
+    #        dirname = get_valid_filename(world_data.name)
+
+    #    values['version'] = version
+    #    values.update(world_data.format_for_json())
+
+    #    fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+    #    fullpath.mkdir(parents=True, exist_ok=True)
+    #    fullpath = (fullpath / 'map').with_suffix('.json')
+    #    self._save_json_if_changed(values, fullpath)
+
+    #def _export_modded_spawn_groups(self, modid: str, version: str, moddata: dict):
+    #    mod_pgd = moddata.get('package', None)
+    #    if not mod_pgd:
+    #        logger.warning(f'PrimalGameData information missing for mod {modid}')
+    #        return
+    #    pgd = self.loader[mod_pgd]
+    #    groups = gather_spawn_groups_from_pgd(self.loader, pgd)
+    #    if not groups:
+    #        return
+
+    #    values: Dict[str, Any] = dict()
+    #    dirname = f"{moddata['id']}-{moddata['name']}"
+    #    dirname = get_valid_filename(dirname)
+    #    title = moddata['title'] or moddata['name']
+    #    values['mod'] = dict(id=moddata['id'], tag=moddata['name'], title=title)
+    #    values['version'] = version
+    #    values['spawnGroups'] = groups
+
+    #    fullpath = (self.config.settings.OutputPath / self.config.export_wiki.PublishSubDir / dirname)
+    #    fullpath.mkdir(parents=True, exist_ok=True)
+    #    fullpath = (fullpath / 'spawningGroups').with_suffix('.json')
+    #    self._save_json_if_changed(values, fullpath)
 
     def _save_json_if_changed(self, values: Dict[str, Any], fullpath: Path):
         changed, version = should_save_json(values, fullpath)
