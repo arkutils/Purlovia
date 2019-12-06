@@ -206,7 +206,7 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
                 continue
 
             try:
-                _ingest_asset(asset, loader)
+                _ingest_asset(asset, loader, ext)
             except AssetLoadException:
                 logger.warning("Failed to check parentage of %s", assetname)
             except MissingParent as ex:
@@ -218,9 +218,24 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
                 loader.cache.remove(assetname)
 
 
-def _ingest_asset(asset: UAsset, loader: AssetLoader):
+def _find_exports_to_store(asset: UAsset, ext: str) -> Iterator[ExportTableItem]:
     current_cls = asset.default_class or asset.default_export
-    if not current_cls: return
+    if current_cls:
+        yield current_cls
+
+    if ext == '.umap':
+        for export in asset.exports:
+            if export.klass.value and export.klass.value.fullname in ('/Script/Engine.World', '/Script/Engine.LevelScriptActor'):
+                yield export
+
+
+def _ingest_asset(asset: UAsset, loader: AssetLoader, ext: str):
+    for export in _find_exports_to_store(asset, ext):
+        _ingest_export(export, loader)
+
+
+def _ingest_export(export: ExportTableItem, loader: AssetLoader):
+    current_cls: ExportTableItem = export
 
     segment: Optional[Node[str]] = None
     fullname = current_cls.fullname
