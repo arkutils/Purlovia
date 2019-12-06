@@ -1,3 +1,4 @@
+import os.path
 from pathlib import Path
 
 from pytest import fixture  # type: ignore
@@ -32,22 +33,23 @@ def test_clean_asset_name(loader):
 
 
 def test_convert_asset_name_to_path(loader):
+    s = os.path.sep
     base = loader.asset_path
-    assert loader.convert_asset_name_to_path('One') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('\\One') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('\\One\\') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('One\\') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('One\\Two') == f'{base}\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('\\One\\Two') == f'{base}\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('\\One\\Two\\') == f'{base}\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('Game\\One') == f'{base}\\Content\\One.uasset'
-    assert loader.convert_asset_name_to_path('\\Game\\One') == f'{base}\\Content\\One.uasset'
-    assert loader.convert_asset_name_to_path('\\Game\\One\\') == f'{base}\\Content\\One.uasset'
-    assert loader.convert_asset_name_to_path('Game\\One\\Two') == f'{base}\\Content\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('\\Game\\One\\Two') == f'{base}\\Content\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('\\Game\\One\\Two\\') == f'{base}\\Content\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('/One') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('/One/') == f'{base}\\One.uasset'
-    assert loader.convert_asset_name_to_path('Game/One/Two') == f'{base}\\Content\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('Game/One/Two/') == f'{base}\\Content\\One\\Two.uasset'
-    assert loader.convert_asset_name_to_path('/Game/One/Two/') == f'{base}\\Content\\One\\Two.uasset'
+    assert loader.convert_asset_name_to_path('One') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('\\One') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('\\One\\') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('One\\') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('One\\Two') == f'{base}{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('\\One\\Two') == f'{base}{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('\\One\\Two\\') == f'{base}{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('Game\\One') == f'{base}{s}Content{s}One.uasset'
+    assert loader.convert_asset_name_to_path('\\Game\\One') == f'{base}{s}Content{s}One.uasset'
+    assert loader.convert_asset_name_to_path('\\Game\\One\\') == f'{base}{s}Content{s}One.uasset'
+    assert loader.convert_asset_name_to_path('Game\\One\\Two') == f'{base}{s}Content{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('\\Game\\One\\Two') == f'{base}{s}Content{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('\\Game\\One\\Two\\') == f'{base}{s}Content{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('/One') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('/One/') == f'{base}{s}One.uasset'
+    assert loader.convert_asset_name_to_path('Game/One/Two') == f'{base}{s}Content{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('Game/One/Two/') == f'{base}{s}Content{s}One{s}Two.uasset'
+    assert loader.convert_asset_name_to_path('/Game/One/Two/') == f'{base}{s}Content{s}One{s}Two.uasset'

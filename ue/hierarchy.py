@@ -13,6 +13,8 @@ from ue.loader import AssetLoader, AssetLoadException
 from ue.tree import get_parent_fullname
 from utils.tree import IndexedTree, Node
 
+from .consts import BLUEPRINT_GENERATED_CLASS_CLS
+
 __all__ = [
     'ROOT_NAME',
     'HierarchyError',
@@ -23,6 +25,7 @@ __all__ = [
     'find_parent_classes',
     'load_internal_hierarchy',
     'explore_path',
+    'iterate_all',
 ]
 
 logger = getLogger(__name__)
@@ -33,7 +36,10 @@ ROOT_NAME = '/Script/CoreUObject.Object'
 
 @lru_cache(maxsize=1024)
 def _get_parent_cls(export: ExportTableItem) -> Optional[str]:
-    return export.super.value.fullname if export.super and export.super.value else None
+    src = export.klass.value
+    if src.fullname == BLUEPRINT_GENERATED_CLASS_CLS:
+        src = export.super.value
+    return src.fullname if src else None
 
 
 class HierarchyError(Exception):
@@ -128,6 +134,10 @@ def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=Fals
         node = parent
 
 
+def iterate_all() -> Iterator[str]:
+    yield from tree.keys()
+
+
 NO_DEFAULT = object()
 
 
@@ -196,18 +206,36 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
                 continue
 
             try:
-                _ingest_asset(asset, loader)
+                _ingest_asset(asset, loader, ext)
             except AssetLoadException:
                 logger.warning("Failed to check parentage of %s", assetname)
+            except MissingParent as ex:
+                logger.exception("Missing parent for %s", assetname)
+                raise MissingParent from ex
 
             # Remove maps from the cache immediately as they are large and cannot be inherited from
             if ext == '.umap':
                 loader.cache.remove(assetname)
 
 
-def _ingest_asset(asset: UAsset, loader: AssetLoader):
-    current_cls = asset.default_class
-    if not current_cls: return
+def _find_exports_to_store(asset: UAsset, ext: str) -> Iterator[ExportTableItem]:
+    current_cls = asset.default_class or asset.default_export
+    if current_cls:
+        yield current_cls
+
+    if ext == '.umap':
+        for export in asset.exports:
+            if export.klass.value and export.klass.value.fullname in ('/Script/Engine.World', '/Script/Engine.LevelScriptActor'):
+                yield export
+
+
+def _ingest_asset(asset: UAsset, loader: AssetLoader, ext: str):
+    for export in _find_exports_to_store(asset, ext):
+        _ingest_export(export, loader)
+
+
+def _ingest_export(export: ExportTableItem, loader: AssetLoader):
+    current_cls: ExportTableItem = export
 
     segment: Optional[Node[str]] = None
     fullname = current_cls.fullname

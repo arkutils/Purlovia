@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import deque
 from typing import *
+from typing import Callable
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
@@ -127,6 +128,9 @@ class IndexedTree(Generic[T]):
         parent_node = self._handle_parent_arg(parent)
         partial_tree.walk(self._register)
         parent_node.add(partial_tree)
+
+    def keys(self) -> Iterable[str]:
+        yield from self._lookup.keys()
 
     def __getitem__(self, key: str) -> Node[T]:
         return self._lookup[key]

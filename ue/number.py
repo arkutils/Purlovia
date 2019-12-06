@@ -25,8 +25,8 @@ def make_binary_operators(op):
             return op(a, b.value)
         return NotImplemented
 
-    fwd.__name__ = '__' + op.__name__ + '__'
-    fwd.__doc__ = op.__doc__
+    rev.__name__ = '__r' + op.__name__ + '__'
+    rev.__doc__ = op.__doc__
 
     return fwd, rev
 

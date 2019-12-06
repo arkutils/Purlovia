@@ -4,8 +4,8 @@ from typing import Iterable
 from automate.discovery import AssetTester, Discoverer
 from ue.asset import UAsset
 from ue.consts import SCRIPT_ENGINE_PKG
+from ue.hierarchy import MissingParent, inherits_from
 from ue.loader import AssetLoader, AssetLoadException
-from ue.tree import inherits_from
 
 from .consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 
@@ -33,13 +33,11 @@ class CompositionSublevelTester(AssetTester):
         if 'tile_info' not in asset.field_values:
             return False
 
-        if asset.default_export:
-            return inherits_from(asset.default_export, LEVEL_SCRIPT_ACTOR_CLS)
+        if not asset.default_export:
+            return False
 
-        # HACK: Should we really trust that World and Level exports can't have their type changed?
-        for export in asset.exports:
-            kls = export.klass.value
-            if f'{str(kls.namespace.value.name)}.{kls.name}' == WORLD_CLS:
-                return True
-
-        return False
+        try:
+            return inherits_from(asset.default_export, LEVEL_SCRIPT_ACTOR_CLS) or inherits_from(asset.default_export, WORLD_CLS)
+        except AssetLoadException:
+            # This asset is more broken than it ever should be.
+            return False

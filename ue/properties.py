@@ -542,6 +542,12 @@ class StringProperty(UEBase):
     def __str__(self):
         return self.value
 
+    def __bool__(self):
+        assert self.is_serialised
+        return bool(self.value)
+
+    __nonzero__ = __bool__
+
 
 class TextProperty(UEBase):
     main_field = 'source_string'

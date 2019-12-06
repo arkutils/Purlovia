@@ -107,7 +107,7 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
 
 def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
-    key = dict(format=2,
+    key = dict(format=4,
                core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
                mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))  # type: ignore
     return key

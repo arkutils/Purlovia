@@ -1,0 +1,67 @@
+name: Lint and test
+
+on: [push]
+
+env:
+  PIPENV_NOSPIN: 1
+  PIPENV_CACHE_DIR: /tmp/.pip-cache
+  WORKON_HOME: /tmp/pipenv-venvs
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        python_version: [3.7]
+        os: [ubuntu-latest]
+
+    name: Lint and test using Python ${{ matrix.python_version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python_version }}
+
+    - name: Install pipenv
+      run: python -m pip install pipenv
+
+    - name: Cache pipenv cache
+      uses: actions/cache@v1
+      with:
+        path: $PIPENV_CACHE_DIR
+        key: pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
+        restore-keys: |
+          pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-
+          pipenvcache-${{ runner.OS }}-
+
+    - name: Cache pipenv venv
+      uses: actions/cache@v1
+      with:
+        path: $WORKON_HOME
+        key: pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
+        restore-keys: |
+          pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-
+          pipenvvenv-${{ runner.OS }}-
+
+    - name: Create virtualenv and install deps
+      run: pipenv install --dev --deploy --python ${{ matrix.python_version }}
+
+    - name: Check for vulnerable deps
+      run: pipenv check
+
+#     - name: Run format check
+#       run: pipenv run tests-nogame
+
+    - name: Run tests
+      run: pipenv run tests-nogame
+
+    - name: Run linting
+      run: pipenv run mypy
+
+    # - name: Save test results
+    # - name: Save code coverage

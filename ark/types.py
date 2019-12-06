@@ -109,6 +109,9 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
 
     # DevKit Unverified
 
+    DefaultFolderPaths: Mapping[int, ArrayProperty]
+    ItemIcon: Mapping[int, ObjectProperty]
+
 
 class PrimalItem_Dye(PrimalItem, uetype='/Script/ShooterGame.PrimalItem_Dye'):
     bSupportDragOntoOtherItem = uebools(True)

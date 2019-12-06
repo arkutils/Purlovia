@@ -1,3 +1,4 @@
 * text=auto
 
+Pipfile text=lf
 Pipfile.lock text=lf
