@@ -19,6 +19,7 @@ from .types import BiomeZoneVolume, CustomActorList, ExplorerNote, NPCZoneManage
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
+
 def is_export_extractable(export: ExportTableItem) -> bool:
     for exportable_klass in PROXY_TYPE_MAP.keys():
         try:
@@ -27,6 +28,7 @@ def is_export_extractable(export: ExportTableItem) -> bool:
         except (MissingParent, AssetNotFound):
             continue
     return False
+
 
 def _export_npc_zone_manager(world: WorldData, proxy: NPCZoneManager):
     if not get_global_config().export_wiki.ExportSpawnData or not proxy.bEnabled[0].value:
