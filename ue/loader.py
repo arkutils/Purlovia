@@ -226,9 +226,9 @@ class UsageBasedCacheManager(CacheManager):
         if cache_count >= self.max_count:
             logger.debug("Asset cache purge due to too many items")
             self._purge(cache_count - self.keep_count)
-        elif mem_used >= self.max_memory and cache_count > self.keep_count:
-            logger.info("Asset cache purge due to high memory usage (with %d items)", cache_count)
-            self._purge(cache_count - self.keep_count)
+        # elif mem_used >= self.max_memory and cache_count > self.keep_count:
+        #     logger.info("Asset cache purge due to high memory usage (with %d items)", cache_count)
+        #     self._purge(cache_count - self.keep_count)
 
     def _purge(self, amount: int):
         to_cull = list(islice(self.cache, amount))
