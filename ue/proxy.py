@@ -84,6 +84,9 @@ class UEProxyStructure:
     def __getitem__(self, name):
         return getattr(self, name)
 
+    def __contains__(self, name):
+        return hasattr(self, name)
+
     def update(self, values: Mapping[str, Mapping[int, UEBase]]):
         overrides = getattr(self, _UEOVERRIDDEN)
         target_dict = vars(self)
