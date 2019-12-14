@@ -4,6 +4,8 @@ from typing import Any, Dict, Optional
 from ue.asset import ExportTableItem
 from ue.proxy import UEProxyStructure
 
+from .map import MapInfo
+
 
 class MapGathererBase(ABC):
     @abstractclassmethod
@@ -23,6 +25,10 @@ class MapGathererBase(ABC):
         Collect data from a proxy object and return it as a dict.
         Caution: Data should be formatted for json to avoid leak any references.
         '''
+        pass
+
+    @abstractclassmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         pass
 
     @abstractclassmethod

@@ -6,12 +6,14 @@ from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure
 
 from .base import MapGathererBase
-from .common import get_actor_location_vector, get_volume_bounds, proxy_properties_as_dict
-from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
-    GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, SUPPLY_CRATE_SPAWN_VOLUME_CLS, \
-    TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
+from .common import convert_box_bounds_for_export, get_actor_location_vector, get_volume_bounds, proxy_properties_as_dict
+from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG, \
+    EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, PRIMAL_WORLD_SETTINGS_CLS, \
+    SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
+from .map import MapInfo
 from .types import BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES, BIOME_VOLUME_EXPORTED_PROPERTIES, \
-    SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES, SUPPLY_DROP_EXPORTED_PROPERTIES, ZONE_MANAGER_EXPORTED_PROPERTIES
+    SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES, SUPPLY_DROP_EXPORTED_PROPERTIES, \
+    WORLD_SETTINGS_EXPORTED_PROPERTIES, ZONE_MANAGER_EXPORTED_PROPERTIES
 
 
 class GenericActorExport(MapGathererBase):
@@ -30,12 +32,51 @@ class GenericActorExport(MapGathererBase):
         return get_actor_location_vector(proxy).format_for_json()
 
     @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        data['lat'] = map_info.lat.from_units(data['y'])
+        data['long'] = map_info.lat.from_units(data['x'])
+
+    @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return data['x']
+        return (data['x'], data['y'], data['z'])
 
 
 # TODO: actor lists (nests) are missing
 
+class WorldSettingsExport(MapGathererBase):
+    @classmethod
+    def get_category_name(cls) -> str:
+        return 'worldSettings'
+
+    @classmethod
+    def is_export_eligible(cls, export: ExportTableItem) -> bool:
+        return inherits_from(export, PRIMAL_WORLD_SETTINGS_CLS) and not getattr(export.asset, 'tile_info', None)
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+        return dict(
+            name=proxy.Title[0],
+            # Geo
+            latOrigin=proxy.LatitudeOrigin[0],
+            longOrigin=proxy.LongitudeOrigin[0],
+            latScale=proxy.LatitudeScale[0],
+            longScale=proxy.LongitudeScale[0],
+            # These fields will be filled out during data conversion
+            latMulti=0,
+            longMulti=0,
+            latShift=0,
+            longShift=0,
+            # Extra data
+            **proxy_properties_as_dict(proxy, WORLD_SETTINGS_EXPORTED_PROPERTIES)
+        )
+
+    @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        pass
+
+    @classmethod
+    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+        return 1
 
 class NPCZoneManagerExport(MapGathererBase):
     @classmethod
@@ -64,10 +105,10 @@ class NPCZoneManagerExport(MapGathererBase):
         if getattr(proxy, 'SpawnPointOverrides', None):
             data['spawnPoints'] = list(cls._extract_spawn_points(proxy.SpawnPointOverrides[0]))
         # Export spawn regions if present
-        elif getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
+        if getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
             data['spawnLocations'] = list(cls._extract_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0]))
-        # No spawning data, broken.
-        else:
+        # Check if we extracted any spawn data at all, otherwise we can skip it.
+        if 'spawnPoints' not in data and 'spawnLocations' not in data:
             return None
 
         return data
@@ -102,8 +143,23 @@ class NPCZoneManagerExport(MapGathererBase):
             yield dict(weight=entry_weight, start=bounds[0], end=bounds[1])
 
     @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        # Counting regions
+        for location in data['locations']:
+            convert_box_bounds_for_export(map_info, location)
+        # Spawn regions
+        if 'spawnLocations' in data:
+            for location in data['spawnLocations']:
+                convert_box_bounds_for_export(map_info, location)
+        # Spawn points
+        if 'spawnPoints' in data:
+            for point in data['spawnPoints']:
+                point['lat'] = map_info.lat.from_units(point['y'])
+                point['long'] = map_info.lat.from_units(point['x'])
+
+    @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return data['spawnGroup']
+        return (data['spawnGroup'], len(data['locations']))
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -121,14 +177,18 @@ class BiomeZoneExport(MapGathererBase):
         may_be_present = proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_EXPORTED_PROPERTIES, only_overriden=True)
         volume_bounds = get_volume_bounds(proxy)
 
-        return {
-            **always_present,
-            **may_be_present, 'boxes': dict(min=volume_bounds[0], max=volume_bounds[1])
-        }
+        data = dict(**always_present, **may_be_present)
+        data['start'] = volume_bounds[0]
+        data['end'] = volume_bounds[1]
+        return data
+
+    @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        convert_box_bounds_for_export(map_info, data)
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return (data['BiomeZoneName'], data['boxes']['min']['x'])
+        return (data['BiomeZoneName'], data['start']['x'], data['start']['y'], data['start']['z'])
 
 
 class LootCrateSpawnExport(MapGathererBase):
@@ -159,7 +219,10 @@ class LootCrateSpawnExport(MapGathererBase):
     @classmethod
     def _convert_crate_classes(cls, entries):
         for entry in entries.values:
-            yield entry.as_dict()['CrateTemplate'].format_for_json()
+            klass = entry.as_dict()['CrateTemplate'].format_for_json()
+            if not klass:
+                continue
+            yield klass
     
     @classmethod
     def _extract_spawn_points(cls, entries):
@@ -168,6 +231,12 @@ class LootCrateSpawnExport(MapGathererBase):
             if not marker:
                 continue
             yield get_actor_location_vector(marker).format_for_json()
+
+    @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        for location in data['crateLocations']:
+            location['lat'] = map_info.lat.from_units(location['y'])
+            location['long'] = map_info.long.from_units(location['x'])
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
@@ -184,7 +253,7 @@ class RadiationZoneExport(MapGathererBase):
         if not inherits_from(export, TOGGLE_PAIN_VOLUME_CLS):
             return False
         # Check if this is a radiation volume
-        if export.properties.get_property('DamageType').format_for_json() == DAMAGE_TYPE_RADIATION_PKG:
+        if hasattr(export.properties, 'DamageType') and export.properties.get_property('DamageType').format_for_json() == DAMAGE_TYPE_RADIATION_PKG:
             return True
         return False
 
@@ -192,13 +261,18 @@ class RadiationZoneExport(MapGathererBase):
     def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
         volume_bounds = get_volume_bounds(proxy)
         return dict(
-            bounds=dict(min=volume_bounds[0], max=volume_bounds[1]),
+            start=volume_bounds[0],
+            end=volume_bounds[1],
             immune=[ref.format_for_json() for ref in proxy.ActorClassesToExclude[0].values],
         )
 
     @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        convert_box_bounds_for_export(map_info, data)
+
+    @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return data['bounds']['min']['x']
+        return (data['start']['x'], data['start']['y'], data['start']['z'])
 
 
 class ExplorerNoteExport(MapGathererBase):
@@ -215,8 +289,13 @@ class ExplorerNoteExport(MapGathererBase):
         return dict(noteIndex=proxy.ExplorerNoteIndex[0].format_for_json(), **get_actor_location_vector(proxy).format_for_json())
 
     @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        data['lat'] = map_info.lat.from_units(data['y'])
+        data['long'] = map_info.lat.from_units(data['x'])
+
+    @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return data['noteIndex']
+        return (data['noteIndex'], data['x'], data['y'], data['z'])
 
 
 class OilVeinExport(GenericActorExport):
@@ -261,6 +340,7 @@ class WildPlantSpeciesZExport(GenericActorExport):
 
 EXPORTS = [
     # Core
+    WorldSettingsExport,
     RadiationZoneExport,
     NPCZoneManagerExport,
     BiomeZoneExport,

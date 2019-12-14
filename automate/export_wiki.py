@@ -6,6 +6,7 @@ from ark.export_wiki.base import MapGathererBase
 from ark.export_wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 from ark.export_wiki.discovery import LevelDiscoverer
 from ark.export_wiki.gathering import find_gatherer_by_category_name, find_gatherer_for_export
+from ark.export_wiki.geo import GeoCoordCalculator
 from ark.export_wiki.map import MapInfo
 from automate.ark import ArkSteamManager
 from automate.jsonutils import save_as_json, should_save_json
@@ -100,7 +101,7 @@ class Exporter:
         for map_directory in maps:
             logger.info(f'Exporting data from map: {map_directory}')
             data = self._gather_data_from_levels(map_directory, maps[map_directory])
-            self._sort_data(data)
+            self._convert_data_for_export(data)
             self._export_values(data, version)
 
     def _export_mod(self, modid: str):
@@ -136,7 +137,6 @@ class Exporter:
                     continue
 
                 map_info.persistent_level = assetname
-                # TODO: Gather data from persistent level
 
             # Go through each export and, if valuable, gather data from it.
             for export in asset.exports:
@@ -161,12 +161,28 @@ class Exporter:
 
         return map_info
 
-    def _sort_data(self, map_info: MapInfo):
+    def _convert_data_for_export(self, map_info: MapInfo):
         '''
-        Sorts data by every category's criteria.
+        Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
         '''
+        # Call this a hack:
+        # Move the only entry in world settings category to map info object.
+        map_info.world_settings = map_info.data['worldSettings'][0]
+        del map_info.data['worldSettings']
+
+        # Create longitude and latitude calculators
+        map_info.lat = GeoCoordCalculator(map_info.world_settings['latOrigin'], map_info.world_settings['latScale'])
+        map_info.long = GeoCoordCalculator(map_info.world_settings['longOrigin'], map_info.world_settings['longScale'])
+        map_info.world_settings.update(map_info.lat.format_for_json('lat'))
+        map_info.world_settings.update(map_info.long.format_for_json('long'))
+
+        # Run data-specific conversions
         for key, values in map_info.data.items():
             helper = find_gatherer_by_category_name(key)
+            # Add lat and long keys as world settings have been found.
+            for data in values:
+                helper.before_saving(map_info, data)
+            # Sort the list
             values.sort(key=helper.sorting_key)
 
     def _export_values(self, map_info: MapInfo, version: str, other: Dict = None, moddata: Optional[Dict] = None):
@@ -183,6 +199,8 @@ class Exporter:
             filename = map_info.name
 
         values['version'] = version
+        values['persistent_level'] = map_info.persistent_level
+        values.update(map_info.world_settings)
         values.update(map_info.data)
 
         if other:
