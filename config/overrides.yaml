@@ -306,9 +306,10 @@ species:
     /Game/PrimalEarth/Dinos/Mammoth/Mammoth_Character_BP:
         color_regions:
             region_names:
-                0: "Fur Mane"
+                0: "Fur Main"
                 2: "Tusks and Toes"
                 4: "Fur Accent"
+                5: "Underside"
     /Game/PrimalEarth/Dinos/Manta/Manta_Character_BP:
         color_regions:
             region_names:
