@@ -1184,6 +1184,100 @@ class EngineVersion(UEBase):
         self._newField('branch', StringProperty(self))
 
 
+class TextureMipMap(UEBase):
+    display_fields = ('size_x', 'size_y', 'bulk_info')
+
+    cooked: bool
+    bulk_info: BulkDataHeader
+    size_x: int
+    size_y: int
+
+    def _deserialise(self):
+        self._newField('cooked', self.stream.readBool32())
+        self._newField('bulk_info', BulkDataHeader(self).deserialise())
+
+        if self.bulk_info.is_zlib_compressed:
+            raise RuntimeError('Zlib compressed bulk data is not supported.')
+
+        if self.bulk_info.is_payload_inline:
+            # Bulk data is right after the header, read it although we don't know the dimensions yet.
+            #self.stream.offset += self.bulk_info.size_on_disk
+            self._newField('raw_data', self.stream.readBytes(self.bulk_info.size_on_disk))
+        elif self.bulk_info.is_payload_at_the_end:
+            # HACK: Bulk data is somewhere in the file, read it although we don't know the dimensions yet.
+            saved_offset = self.asset.stream.offset
+            self.asset.stream.offset = self.bulk_info.offset_in_file
+            self._newField('raw_data', self.asset.stream.readBytes(self.bulk_info.size_on_disk))
+            self.asset.stream.offset = saved_offset
+
+        self._newField('size_x', self.stream.readInt32())
+        self._newField('size_y', self.stream.readInt32())
+
+    def __str__(self):
+        return f'TextureMipMap ({self.size_x}x{self.size_y}, {self.bulk_info})'
+
+
+class TextureData(UEBase):
+    display_fields = ('size_x', 'size_y')
+
+    size_x: int
+    size_y: int
+    slice_count: int
+    pixel_format: StringProperty
+    length: int
+    mipmaps: Table
+
+    def _deserialise(self):
+        self._newField('size_x', self.stream.readInt32())
+        self._newField('size_y', self.stream.readInt32())
+        self._newField('slice_count', self.stream.readInt32())
+        self._newField('pixel_format', StringProperty(self).deserialise())
+        self._newField('unknown_field', self.stream.readInt32())
+        self._newField('mipmaps', Table(self).deserialise(TextureMipMap, self.stream.readUInt32()))
+
+    def __str__(self):
+        return f'TextureData ({self.pixel_format}, {len(self.mipmaps)}x {self.size_x}x{self.size_y})'
+
+
+class Texture2D(UEBase):
+    display_fields = ()
+
+    values: List["TextureData"]
+    strip_flags: StripDataFlags
+
+    def _deserialise(self):
+        self._newField('strip_flags', StripDataFlags(self))
+        strip_flags2 = StripDataFlags(self).deserialise()
+        assert self.strip_flags.global_flags == strip_flags2.global_flags
+        assert self.strip_flags.class_flags == strip_flags2.class_flags
+
+        values = []
+        self._newField('is_cooked', self.stream.readBool32())
+        while self.is_cooked and self.stream.offset < (self.stream.end - 8):
+            value = self._parse_platform_data()
+            if value is None:
+                break
+            values.append(value)
+        self._newField('values', values)
+
+    def _parse_platform_data(self) -> Optional[TextureData]:
+        pixel_format = NameIndex(self).deserialise()
+        pixel_format.link()
+        if pixel_format.index is self.asset.none_index:
+            return None
+
+        next_offset = self.stream.readUInt32()
+        platform_data = TextureData(self).deserialise()
+        platform_data.link()
+
+        if self.stream.offset != next_offset:
+            logger.warning(
+                f'Read of texture data could have failed: skipping to {next_offset} (+{next_offset - self.stream.offset})')
+            self.stream.offset = next_offset
+        assert str(platform_data.pixel_format) == str(pixel_format)
+        return platform_data
+
+
 TYPE_MAP = {
     'FloatProperty': FloatProperty,
     'DoubleProperty': DoubleProperty,
