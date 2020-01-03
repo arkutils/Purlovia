@@ -16,6 +16,8 @@ __all__ = (
     'ObjectIndex',
     'GenerationInfo',
     'CompressedChunk',
+    'StripDataFlags',
+    'BulkDataHeader',
 )
 
 
@@ -208,3 +210,43 @@ class ObjectIndex(UEBase):
     #         with p.group(4, self.__class__.__name__ + '(', ')'):
     #             p.text(str(self.index) + ", ")
     #             p.pretty(self.value)
+
+
+class StripDataFlags(UEBase):
+    display_fields = ('global_flags', 'class_flags')
+
+    def _deserialise(self):
+        self._newField('global_flags', self.stream.readInt8())
+        self._newField('class_flags', self.stream.readInt8())
+
+    def __str__(self):
+        return f'StripDataFlags ({self.global_flags}, {self.class_flags})'
+
+
+class BulkDataHeader(UEBase):
+    display_fields = ()
+
+    flags: int
+    is_payload_at_the_end: bool  # 0x0001
+    is_zlib_compressed: bool  # 0x0002
+    is_unused: bool  # 0x0020
+    is_payload_inline: bool  # 0x0040
+    length: int
+    size_on_disk: int
+    offset_in_file: int
+
+    def _deserialise(self):
+        self._newField('flags', self.stream.readInt32())
+        self._newField('is_payload_at_the_end', self.flags & 0x0001 != 0)
+        self._newField('is_zlib_compressed', self.flags & 0x0002 != 0)
+        self._newField('is_unused', self.flags & 0x0020 != 0)
+        self._newField('is_payload_inline', self.flags & 0x0040 != 0)
+        self._newField('length', self.stream.readInt32())
+        self._newField('size_on_disk', self.stream.readInt32())
+        self._newField('offset_in_file', self.stream.readUInt64())
+
+        if self.is_payload_at_the_end:
+            self.offset_in_file += self.asset.bulk_data_start_offset
+
+    def __str__(self):
+        return f'{self.length} bytes @ {self.offset_in_file}'
