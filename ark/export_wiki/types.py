@@ -69,23 +69,7 @@ BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'FinalWindAddition': 'FinalWindAddition'
 }
 
-SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES = {
-    'MaxNumCrates': 'maxNumCrates',
-    'DelayBeforeFirstCrate': 'delayBeforeFirstCrate',
-    'MaxDelayBeforeFirstCrate': 'maxDelayBeforeFirstCrate',
-    'IntervalBetweenCrateSpawns': 'intervalBetweenCrateSpawns',
-    'MaxIntervalBetweenCrateSpawns': 'maxIntervalBetweenCrateSpawns',
-    'IntervalBetweenMaxedCrateSpawns': 'intervalBetweenMaxedCrateSpawns',
-    'MaxIntervalBetweenMaxedCrateSpawns': 'maxIntervalBetweenMaxedCrateSpawns',
-    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
-}
 
-SUPPLY_DROP_EXPORTED_PROPERTIES = {
-    'SP_IntervalBetweenCrateSpawns': 'SP_IntervalBetweenCrateSpawns',
-    'SP_MaxIntervalBetweenCrateSpawns': 'SP_MaxIntervalBetweenCrateSpawns',
-    'SP_IntervalBetweenMaxedCrateSpawns': 'SP_IntervalBetweenMaxedCrateSpawns',
-    'SP_MaxIntervalBetweenMaxedCrateSpawns': 'SP_MaxIntervalBetweenMaxedCrateSpawns',
-}
 
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
@@ -169,6 +153,24 @@ class BiomeZoneVolume(UEProxyStructure, uetype='/Script/ShooterGame.BiomeZoneVol
 
     # DevKit Unverified
 
+    
+SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES = {
+    'MaxNumCrates': 'maxNumCrates',
+    'DelayBeforeFirstCrate': 'delayBeforeFirstCrate',
+    'MaxDelayBeforeFirstCrate': 'maxDelayBeforeFirstCrate',
+    'IntervalBetweenCrateSpawns': 'intervalBetweenCrateSpawns',
+    'MaxIntervalBetweenCrateSpawns': 'maxIntervalBetweenCrateSpawns',
+    'IntervalBetweenMaxedCrateSpawns': 'intervalBetweenMaxedCrateSpawns',
+    'MaxIntervalBetweenMaxedCrateSpawns': 'maxIntervalBetweenMaxedCrateSpawns',
+    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
+}
+
+SUPPLY_DROP_EXPORTED_PROPERTIES = {
+    'SP_IntervalBetweenCrateSpawns': 'SP_IntervalBetweenCrateSpawns',
+    'SP_MaxIntervalBetweenCrateSpawns': 'SP_MaxIntervalBetweenCrateSpawns',
+    'SP_IntervalBetweenMaxedCrateSpawns': 'SP_IntervalBetweenMaxedCrateSpawns',
+    'SP_MaxIntervalBetweenMaxedCrateSpawns': 'SP_MaxIntervalBetweenMaxedCrateSpawns',
+}
 
 class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.SupplyCrateSpawningVolume'):
     # DevKit Verified

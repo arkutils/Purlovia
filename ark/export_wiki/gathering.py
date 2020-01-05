@@ -12,8 +12,7 @@ from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, DAMAGE_TY
     SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .map import MapInfo
 from .types import BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES, BIOME_VOLUME_EXPORTED_PROPERTIES, \
-    SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES, SUPPLY_DROP_EXPORTED_PROPERTIES, \
-    WORLD_SETTINGS_EXPORTED_PROPERTIES, ZONE_MANAGER_EXPORTED_PROPERTIES
+    WORLD_SETTINGS_EXPORTED_PROPERTIES, ZONE_MANAGER_EXPORTED_PROPERTIES, SupplyCrateSpawningVolume
 
 
 class GenericActorExport(MapGathererBase):
@@ -201,19 +200,43 @@ class LootCrateSpawnExport(MapGathererBase):
         return inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Optional[Dict[str, Any]]:
         # Sanity checks
         if not getattr(proxy, 'LinkedSupplyCrateEntries', None):
             return None
         if not getattr(proxy, 'LinkedSpawnPointEntries', None):
             return None
 
-        # Export properties
+        # Make range tuples of numerical properties.
+        ranges = dict(
+            delayBeforeFirst=(
+                proxy.DelayBeforeFirstCrate[0].format_for_json(), proxy.MaxDelayBeforeFirstCrate[0].format_for_json()
+            ),
+            intervalBetweenSpawns=(
+                proxy.IntervalBetweenCrateSpawns[0].format_for_json(), proxy.MaxIntervalBetweenCrateSpawns[0].format_for_json()
+            ),
+            intervalBetweenMaxedSpawns=(
+                proxy.IntervalBetweenMaxedCrateSpawns[0].format_for_json(), proxy.MaxIntervalBetweenMaxedCrateSpawns[0].format_for_json()
+            )
+        )
+
+        # Single-player overrides. Export only if changed.
+        if proxy.has_override('SP_IntervalBetweenCrateSpawns') or proxy.has_override('SP_MaxIntervalBetweenCrateSpawns'):
+            ranges['intervalBetweenSpawnsSP'] = (
+                proxy.SP_IntervalBetweenCrateSpawns[0].format_for_json(), proxy.SP_MaxIntervalBetweenCrateSpawns[0].format_for_json()
+            )
+        if proxy.has_override('SP_IntervalBetweenMaxedCrateSpawns') or proxy.has_override('SP_MaxIntervalBetweenMaxedCrateSpawns'):
+            ranges['intervalBetweenMaxedSpawnsSP'] = (
+                proxy.SP_IntervalBetweenMaxedCrateSpawns[0].format_for_json(), proxy.SP_MaxIntervalBetweenMaxedCrateSpawns[0].format_for_json()
+            )
+
+        # Combine all properties into a single dict
         return dict(
+            maxCrateNumber=proxy.MaxNumCrates[0].format_for_json(),
             crateClasses=sorted(cls._convert_crate_classes(proxy.LinkedSupplyCrateEntries[0])),
             crateLocations=list(cls._extract_spawn_points(proxy.LinkedSpawnPointEntries[0])),
-            **proxy_properties_as_dict(proxy, key_list=SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES),
-            **proxy_properties_as_dict(proxy, key_list=SUPPLY_DROP_EXPORTED_PROPERTIES, only_overriden=True)
+            minTimeBetweenSpawnsAtSamePoint=proxy.MinTimeBetweenCrateSpawnsAtSamePoint[0].format_for_json(),
+            **ranges
         )
     
     @classmethod
@@ -240,7 +263,7 @@ class LootCrateSpawnExport(MapGathererBase):
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return (len(data['crateClasses']), data['crateClasses'])
+        return (data['crateClasses'], data['maxCrateNumber'])
 
 
 class RadiationZoneExport(MapGathererBase):
