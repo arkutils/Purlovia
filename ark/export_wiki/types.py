@@ -83,7 +83,7 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
 
     # DevKit Unverified
 
-    OverrideWeaponMapTextureEmpty: Mapping[int, ArrayProperty]
+    OverrideWeaponMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideWeaponMapTextureFilled: Mapping[int, ObjectProperty]
     OverrideUIMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideUIMapTextureFilled: Mapping[int, ObjectProperty]

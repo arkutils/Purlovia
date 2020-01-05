@@ -54,19 +54,27 @@ class WorldSettingsExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
         return dict(
-            name=proxy.Title[0],
+            name=proxy.Title[0].format_for_json(),
             # Geo
-            latOrigin=proxy.LatitudeOrigin[0],
-            longOrigin=proxy.LongitudeOrigin[0],
-            latScale=proxy.LatitudeScale[0],
-            longScale=proxy.LongitudeScale[0],
+            latOrigin=proxy.LatitudeOrigin[0].format_for_json(),
+            longOrigin=proxy.LongitudeOrigin[0].format_for_json(),
+            latScale=proxy.LatitudeScale[0].format_for_json(),
+            longScale=proxy.LongitudeScale[0].format_for_json(),
             # These fields will be filled out during data conversion
             latMulti=0,
             longMulti=0,
             latShift=0,
             longShift=0,
             # Extra data
-            **proxy_properties_as_dict(proxy, WORLD_SETTINGS_EXPORTED_PROPERTIES)
+            maxDifficulty=proxy.OverrideDifficultyMax[0].format_for_json(),
+            mapTextures=dict(
+                held=proxy.OverrideWeaponMapTextureFilled[0].format_for_json() if 'OverrideWeaponMapTextureFilled' in proxy else None,
+                emptyHeld=proxy.OverrideWeaponMapTextureEmpty[0].format_for_json() if 'OverrideWeaponMapTextureEmpty' in proxy else None,
+                empty=proxy.OverrideUIMapTextureEmpty[0].format_for_json() if 'OverrideUIMapTextureEmpty' in proxy else None,
+                big=proxy.OverrideUIMapTextureFilled[0].format_for_json() if 'OverrideUIMapTextureFilled' in proxy else None,
+                small=proxy.OverrideUIMapTextureSmall[0].format_for_json() if 'OverrideUIMapTextureSmall' in proxy else None,
+            ),
+            allowedDinoDownloads=proxy.AllowDownloadDinoClasses[0].format_for_json() if 'AllowDownloadDinoClasses' in proxy else None
         )
 
     @classmethod
@@ -133,7 +141,7 @@ class NPCZoneManagerExport(MapGathererBase):
     def _extract_spawn_volumes(cls, entries):
         for entry in entries.values:
             entry_data = entry.as_dict()
-            entry_weight = entry_data['EntryWeight']
+            entry_weight = entry_data['EntryWeight'].format_for_json()
             spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
 
             if not spawn_volume:
