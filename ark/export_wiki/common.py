@@ -30,36 +30,6 @@ def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=F
     return data
 
 
-#def format_location_for_export(ue_coords: tuple, lat: GeoData, long: GeoData):
-#    if len(ue_coords) == 2:
-#        # XY pair
-#        return {"lat": lat.from_units(ue_coords[1]), "long": long.from_units(ue_coords[0])}
-#
-#    if len(ue_coords) == 3:
-#        # Resources (XYZ) and veins
-#        return {
-#            "x": ue_coords[0],
-#            "y": ue_coords[1],
-#            "z": ue_coords[2],
-#            "lat": lat.from_units(ue_coords[1]),
-#            "long": long.from_units(ue_coords[0])
-#        }
-#
-#    # 2D bounds (min[XY]max[XY])
-#    long_start = long.from_units(ue_coords[0])
-#    lat_start = lat.from_units(ue_coords[1])
-#    long_end = long.from_units(ue_coords[2])
-#    lat_end = lat.from_units(ue_coords[3])
-#    return {
-#        "latStart": lat_start,
-#        "longStart": long_start,
-#        "latEnd": lat_end,
-#        "longEnd": long_end,
-#        "latCenter": (lat_end+lat_start) / 2,
-#        "longCenter": (long_end+long_start) / 2,
-#    }
-
-
 def get_actor_location_vector(actor):
     '''Retrieves actor's world-space location vector.'''
 
@@ -71,29 +41,44 @@ def get_actor_location_vector(actor):
 
     return actor_location
 
-def get_volume_bounds(volume):
-    '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
+def get_volume_brush_setup(volume):
+    '''Retrieves the BrushComponent and BodySetup exports from a volume.'''
 
     if isinstance(volume, UEProxyStructure):
-        brush_component = volume.BrushComponent[0].value.value
+        brush = volume.BrushComponent[0].value.value
     else:
-        brush_component = volume.properties.get_property("BrushComponent").value.value
+        brush = volume.properties.get_property('BrushComponent').value.value
+    
+    return (brush, brush.properties.get_property('BrushBodySetup').value.value)
 
-    body_setup = brush_component.properties.get_property("BrushBodySetup").value.value
-    agg_geom = body_setup.properties.get_property("AggGeom").values[0].value
-    convex_elems = agg_geom.values[0]
-    volume_location = brush_component.properties.get_property("RelativeLocation").values[0]
-    volume_box = convex_elems.as_dict()["ElemBox"].values[0]
+def get_volume_box_count(volume) -> int:
+    '''Retrieves number of boxes in a single volume.'''
+
+    _, body = get_volume_brush_setup(volume)    
+    geometry = body.properties.get_property('AggGeom')
+    convex_elements = geometry.values[0].value
+    return len(convex_elements.values)
+
+
+def get_volume_bounds(volume, convex_index=0):
+    '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
+
+    brush, body = get_volume_brush_setup(volume)
+    volume_location = brush.properties.get_property('RelativeLocation').values[0]
+    
+    geometry = body.properties.get_property('AggGeom')
+    convex_elements = geometry.values[0].value
+    box = convex_elements.values[convex_index].as_dict()['ElemBox'].values[0]
     return (
         dict(
-            x=volume_box.min.x + volume_location.x,
-            y=volume_box.min.y + volume_location.y,
-            z=volume_box.min.z + volume_location.z
+            x=box.min.x + volume_location.x,
+            y=box.min.y + volume_location.y,
+            z=box.min.z + volume_location.z
         ),
         dict(
-            x=volume_box.max.x + volume_location.x,
-            y=volume_box.max.y + volume_location.y,
-            z=volume_box.max.z + volume_location.z
+            x=box.max.x + volume_location.x,
+            y=box.max.y + volume_location.y,
+            z=box.max.z + volume_location.z
         )
     )
 

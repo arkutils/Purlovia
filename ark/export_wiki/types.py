@@ -6,13 +6,6 @@ from ue.proxy import *
 from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 
-__all__ = [
-    'BIOME_VOLUME_EXPORTED_PROPERTIES',
-    'PrimalWorldSettings', 'NPCZoneManager', 'BiomeZoneVolume', 'SupplyCrateSpawningVolume', 'TogglePainVolume',
-    'CustomActorList', 'Actor', 'OilVein', 'WaterVein', 'GasVein', 'PrimalStructurePowerNode', 'WildPlantSpeciesZ',
-    'ExplorerNote'
-]
-
 BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'FinalTemperatureMultiplier': 'FinalTemperatureMultiplier',
     'FinalTemperatureExponent': 'FinalTemperatureExponent',
@@ -29,19 +22,6 @@ BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'AbsoluteTemperatureOverride': 'AbsoluteTemperatureOverride',
     'AbsoluteMaxTemperature': 'AbsoluteMaxTemperature',
     'AbsoluteMinTemperature': 'AbsoluteMinTemperature',
-    'AbsoluteWindOverride': 'AbsoluteWindOverride',
-    'PreOffsetWindMultiplier': 'PreOffsetWindMultiplier',
-    'PreOffsetWindExponent': 'PreOffsetWindExponent',
-    'PreOffsetWindAddition': 'PreOffsetWindAddition',
-    'AboveWindOffsetThreshold': 'AboveWindOffsetThreshold',
-    'AboveWindOffsetMultiplier': 'AboveWindOffsetMultiplier',
-    'AboveWindOffsetExponent': 'AboveWindOffsetExponent',
-    'BelowWindOffsetThreshold': 'BelowWindOffsetThreshold',
-    'BelowWindOffsetMultiplier': 'BelowWindOffsetMultiplier',
-    'BelowWindOffsetExponent': 'BelowWindOffsetExponent',
-    'FinalWindMultiplier': 'FinalWindMultiplier',
-    'FinalWindExponent': 'FinalWindExponent',
-    'FinalWindAddition': 'FinalWindAddition'
 }
 
 
@@ -63,6 +43,7 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
     OverrideUIMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideUIMapTextureFilled: Mapping[int, ObjectProperty]
     OverrideUIMapTextureSmall: Mapping[int, ObjectProperty]
+    AllowDownloadDinoClasses: Mapping[int, ArrayProperty]
 
 
 class NPCZoneManager(UEProxyStructure, uetype='/Script/ShooterGame.NPCZoneManager'):

@@ -6,13 +6,14 @@ from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure
 
 from .base import MapGathererBase
-from .common import convert_box_bounds_for_export, get_actor_location_vector, get_volume_bounds, proxy_properties_as_dict
+from .common import convert_box_bounds_for_export, get_actor_location_vector, \
+    get_volume_bounds, get_volume_box_count, proxy_properties_as_dict
 from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG, \
     EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, PRIMAL_WORLD_SETTINGS_CLS, \
     SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .map import MapInfo
-from .types import BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES, BIOME_VOLUME_EXPORTED_PROPERTIES, \
-    WORLD_SETTINGS_EXPORTED_PROPERTIES, ZONE_MANAGER_EXPORTED_PROPERTIES, SupplyCrateSpawningVolume
+from .types import BIOME_VOLUME_EXPORTED_PROPERTIES, BiomeZoneVolume, ExplorerNote, \
+    NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 
 
 class GenericActorExport(MapGathererBase):
@@ -52,7 +53,7 @@ class WorldSettingsExport(MapGathererBase):
         return inherits_from(export, PRIMAL_WORLD_SETTINGS_CLS) and not getattr(export.asset, 'tile_info', None)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: PrimalWorldSettings) -> Optional[Dict[str, Any]]: # type:ignore
         return dict(
             name=proxy.Title[0].format_for_json(),
             # Geo
@@ -95,7 +96,7 @@ class NPCZoneManagerExport(MapGathererBase):
         return inherits_from(export, NPC_ZONE_MANAGER_CLS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: NPCZoneManager) -> Optional[Dict[str, Any]]: # type:ignore
         # Sanity checks
         if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
             return None
@@ -184,23 +185,82 @@ class BiomeZoneExport(MapGathererBase):
         return inherits_from(export, BIOME_ZONE_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
-        always_present = proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES, only_overriden=False)
+    def extract(cls, proxy: BiomeZoneVolume) -> Optional[Dict[str, Any]]: # type:ignore
         may_be_present = proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_EXPORTED_PROPERTIES, only_overriden=True)
         volume_bounds = get_volume_bounds(proxy)
 
-        data = dict(**always_present, **may_be_present)
-        data['start'] = volume_bounds[0]
-        data['end'] = volume_bounds[1]
+        data = dict(
+            name=proxy.BiomeZoneName[0].format_for_json(),
+            priority=proxy.BiomeZonePriority[0].format_for_json(),
+            isOutside=proxy.bIsOutside[0].format_for_json(),
+            preventCrops=proxy.bPreventCrops[0].format_for_json(),
+            temperature=dict(),
+            wind=dict(),
+            **may_be_present
+        )
+
+        # Add overriden wind data
+        ## Absolute
+        if proxy.has_override('AbsoluteWindOverride'):
+            data['wind']['override'] = proxy.AbsoluteWindOverride[0].format_for_json()
+        ## Pre-offset
+        if proxy.has_override('PreOffsetWindMultiplier') or proxy.has_override('PreOffsetWindExponent') or proxy.has_override('PreOffsetWindAddition'):
+            data['wind']['preOffset'] = (
+                None,
+                proxy.PreOffsetWindMultiplier[0].format_for_json(),
+                proxy.PreOffsetWindExponent[0].format_for_json(),
+                proxy.PreOffsetWindAddition[0].format_for_json()
+            )
+        ## Above offset
+        if proxy.has_override('AboveWindOffsetThreshold') or proxy.has_override('AboveWindOffsetMultiplier') or proxy.has_override('AboveWindOffsetExponent'):
+            data['wind']['aboveOffset'] = (
+                proxy.AboveWindOffsetThreshold[0].format_for_json(),
+                proxy.AboveWindOffsetMultiplier[0].format_for_json(),
+                proxy.AboveWindOffsetExponent[0].format_for_json(),
+                None
+            )
+        ## Below offset
+        if proxy.has_override('BelowWindOffsetThreshold') or proxy.has_override('BelowWindOffsetMultiplier') or proxy.has_override('BelowWindOffsetExponent'):
+            data['wind']['belowOffset'] = (
+                proxy.BelowWindOffsetThreshold[0].format_for_json(),
+                proxy.BelowWindOffsetMultiplier[0].format_for_json(),
+                proxy.BelowWindOffsetExponent[0].format_for_json(),
+                None
+            )
+        ## Final
+        if proxy.has_override('FinalWindMultiplier') or proxy.has_override('FinalWindExponent') or proxy.has_override('FinalWindAddition'):
+            data['wind']['final'] = (
+                None,
+                proxy.FinalWindMultiplier[0].format_for_json(),
+                proxy.FinalWindExponent[0].format_for_json(),
+                proxy.FinalWindAddition[0].format_for_json()
+            )
+
+        # Remove extra dicts in case they haven't been filled
+        if not data['temperature']:
+            del data['temperature']
+        if not data['wind']:
+            del data['wind']
+        
+        # Extract bounds
+        box_count = get_volume_box_count(proxy)
+        data['boxes'] = list()
+        for box_index in range(box_count):
+            volume_bounds = get_volume_bounds(proxy, box_index)
+            data['boxes'].append(dict(
+                start=volume_bounds[0],
+                end=volume_bounds[1]
+            ))
         return data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_box_bounds_for_export(map_info, data)
+        for box in data['boxes']:
+            convert_box_bounds_for_export(map_info, box)
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return (data['BiomeZoneName'], data['start']['x'], data['start']['y'], data['start']['z'])
+        return (data['name'], len(data['boxes']))
 
 
 class LootCrateSpawnExport(MapGathererBase):
@@ -213,7 +273,7 @@ class LootCrateSpawnExport(MapGathererBase):
         return inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Optional[Dict[str, Any]]: # type:ignore
         # Sanity checks
         if not getattr(proxy, 'LinkedSupplyCrateEntries', None):
             return None
@@ -294,7 +354,7 @@ class RadiationZoneExport(MapGathererBase):
         return False
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: TogglePainVolume) -> Optional[Dict[str, Any]]: # type:ignore
         volume_bounds = get_volume_bounds(proxy)
         return dict(
             start=volume_bounds[0],
@@ -321,7 +381,7 @@ class ExplorerNoteExport(MapGathererBase):
         return inherits_from(export, EXPLORER_CHEST_BASE_CLS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: ExplorerNote) -> Optional[Dict[str, Any]]: # type:ignore
         return dict(noteIndex=proxy.ExplorerNoteIndex[0].format_for_json(), **get_actor_location_vector(proxy).format_for_json())
 
     @classmethod
