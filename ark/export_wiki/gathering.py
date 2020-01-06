@@ -29,7 +29,7 @@ class GenericActorExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
-        return get_actor_location_vector(proxy).format_for_json()
+        return get_actor_location_vector(proxy)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -55,27 +55,27 @@ class WorldSettingsExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: PrimalWorldSettings) -> Optional[Dict[str, Any]]: # type:ignore
         return dict(
-            name=proxy.Title[0].format_for_json(),
+            name=proxy.Title[0],
             # Geo
-            latOrigin=proxy.LatitudeOrigin[0].format_for_json(),
-            longOrigin=proxy.LongitudeOrigin[0].format_for_json(),
-            latScale=proxy.LatitudeScale[0].format_for_json(),
-            longScale=proxy.LongitudeScale[0].format_for_json(),
+            latOrigin=proxy.LatitudeOrigin[0],
+            longOrigin=proxy.LongitudeOrigin[0],
+            latScale=proxy.LatitudeScale[0],
+            longScale=proxy.LongitudeScale[0],
             # These fields will be filled out during data conversion
             latMulti=0,
             longMulti=0,
             latShift=0,
             longShift=0,
             # Extra data
-            maxDifficulty=proxy.OverrideDifficultyMax[0].format_for_json(),
+            maxDifficulty=proxy.OverrideDifficultyMax[0],
             mapTextures=dict(
-                held=proxy.OverrideWeaponMapTextureFilled[0].format_for_json() if 'OverrideWeaponMapTextureFilled' in proxy else None,
-                emptyHeld=proxy.OverrideWeaponMapTextureEmpty[0].format_for_json() if 'OverrideWeaponMapTextureEmpty' in proxy else None,
-                empty=proxy.OverrideUIMapTextureEmpty[0].format_for_json() if 'OverrideUIMapTextureEmpty' in proxy else None,
-                big=proxy.OverrideUIMapTextureFilled[0].format_for_json() if 'OverrideUIMapTextureFilled' in proxy else None,
-                small=proxy.OverrideUIMapTextureSmall[0].format_for_json() if 'OverrideUIMapTextureSmall' in proxy else None,
+                held=proxy.OverrideWeaponMapTextureFilled[0] if 'OverrideWeaponMapTextureFilled' in proxy else None,
+                emptyHeld=proxy.OverrideWeaponMapTextureEmpty[0] if 'OverrideWeaponMapTextureEmpty' in proxy else None,
+                empty=proxy.OverrideUIMapTextureEmpty[0] if 'OverrideUIMapTextureEmpty' in proxy else None,
+                big=proxy.OverrideUIMapTextureFilled[0] if 'OverrideUIMapTextureFilled' in proxy else None,
+                small=proxy.OverrideUIMapTextureSmall[0] if 'OverrideUIMapTextureSmall' in proxy else None,
             ),
-            allowedDinoDownloads=proxy.AllowDownloadDinoClasses[0].format_for_json() if 'AllowDownloadDinoClasses' in proxy else None
+            allowedDinoDownloads=proxy.AllowDownloadDinoClasses[0] if 'AllowDownloadDinoClasses' in proxy else None
         )
 
     @classmethod
@@ -107,10 +107,10 @@ class NPCZoneManagerExport(MapGathererBase):
 
         # Export properties
         data = dict(
-            spawnGroup=proxy.NPCSpawnEntriesContainerObject[0].format_for_json(),
-            minDesiredNumberOfNPC=proxy.MinDesiredNumberOfNPC[0].format_for_json(),
-            neverSpawnInWater=proxy.bNeverSpawnInWater[0].format_for_json(),
-            forceUntameable=proxy.bForceUntameable[0].format_for_json()
+            spawnGroup=proxy.NPCSpawnEntriesContainerObject[0],
+            minDesiredNumberOfNPC=proxy.MinDesiredNumberOfNPC[0],
+            neverSpawnInWater=proxy.bNeverSpawnInWater[0],
+            forceUntameable=proxy.bForceUntameable[0]
         )
         # Export dino counting regions
         data['locations'] = list(cls._extract_counting_volumes(proxy.LinkedZoneVolumes[0]))
@@ -141,13 +141,13 @@ class NPCZoneManagerExport(MapGathererBase):
             marker = marker.value.value
             if not marker:
                 continue
-            yield get_actor_location_vector(marker).format_for_json()
+            yield get_actor_location_vector(marker)
     
     @classmethod
     def _extract_spawn_volumes(cls, entries):
         for entry in entries.values:
             entry_data = entry.as_dict()
-            entry_weight = entry_data['EntryWeight'].format_for_json()
+            entry_weight = entry_data['EntryWeight']
             spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
 
             if not spawn_volume:
@@ -190,10 +190,10 @@ class BiomeZoneExport(MapGathererBase):
         volume_bounds = get_volume_bounds(proxy)
 
         data = dict(
-            name=proxy.BiomeZoneName[0].format_for_json(),
-            priority=proxy.BiomeZonePriority[0].format_for_json(),
-            isOutside=proxy.bIsOutside[0].format_for_json(),
-            preventCrops=proxy.bPreventCrops[0].format_for_json(),
+            name=proxy.BiomeZoneName[0],
+            priority=proxy.BiomeZonePriority[0],
+            isOutside=proxy.bIsOutside[0],
+            preventCrops=proxy.bPreventCrops[0],
             temperature=dict(),
             wind=dict(),
             **may_be_present
@@ -202,38 +202,38 @@ class BiomeZoneExport(MapGathererBase):
         # Add overriden wind data
         ## Absolute
         if proxy.has_override('AbsoluteWindOverride'):
-            data['wind']['override'] = proxy.AbsoluteWindOverride[0].format_for_json()
+            data['wind']['override'] = proxy.AbsoluteWindOverride[0]
         ## Pre-offset
         if proxy.has_override('PreOffsetWindMultiplier') or proxy.has_override('PreOffsetWindExponent') or proxy.has_override('PreOffsetWindAddition'):
             data['wind']['preOffset'] = (
                 None,
-                proxy.PreOffsetWindMultiplier[0].format_for_json(),
-                proxy.PreOffsetWindExponent[0].format_for_json(),
-                proxy.PreOffsetWindAddition[0].format_for_json()
+                proxy.PreOffsetWindMultiplier[0],
+                proxy.PreOffsetWindExponent[0],
+                proxy.PreOffsetWindAddition[0]
             )
         ## Above offset
         if proxy.has_override('AboveWindOffsetThreshold') or proxy.has_override('AboveWindOffsetMultiplier') or proxy.has_override('AboveWindOffsetExponent'):
             data['wind']['aboveOffset'] = (
-                proxy.AboveWindOffsetThreshold[0].format_for_json(),
-                proxy.AboveWindOffsetMultiplier[0].format_for_json(),
-                proxy.AboveWindOffsetExponent[0].format_for_json(),
+                proxy.AboveWindOffsetThreshold[0],
+                proxy.AboveWindOffsetMultiplier[0],
+                proxy.AboveWindOffsetExponent[0],
                 None
             )
         ## Below offset
         if proxy.has_override('BelowWindOffsetThreshold') or proxy.has_override('BelowWindOffsetMultiplier') or proxy.has_override('BelowWindOffsetExponent'):
             data['wind']['belowOffset'] = (
-                proxy.BelowWindOffsetThreshold[0].format_for_json(),
-                proxy.BelowWindOffsetMultiplier[0].format_for_json(),
-                proxy.BelowWindOffsetExponent[0].format_for_json(),
+                proxy.BelowWindOffsetThreshold[0],
+                proxy.BelowWindOffsetMultiplier[0],
+                proxy.BelowWindOffsetExponent[0],
                 None
             )
         ## Final
         if proxy.has_override('FinalWindMultiplier') or proxy.has_override('FinalWindExponent') or proxy.has_override('FinalWindAddition'):
             data['wind']['final'] = (
                 None,
-                proxy.FinalWindMultiplier[0].format_for_json(),
-                proxy.FinalWindExponent[0].format_for_json(),
-                proxy.FinalWindAddition[0].format_for_json()
+                proxy.FinalWindMultiplier[0],
+                proxy.FinalWindExponent[0],
+                proxy.FinalWindAddition[0]
             )
 
         # Remove extra dicts in case they haven't been filled
@@ -283,39 +283,39 @@ class LootCrateSpawnExport(MapGathererBase):
         # Make range tuples of numerical properties.
         ranges = dict(
             delayBeforeFirst=(
-                proxy.DelayBeforeFirstCrate[0].format_for_json(), proxy.MaxDelayBeforeFirstCrate[0].format_for_json()
+                proxy.DelayBeforeFirstCrate[0], proxy.MaxDelayBeforeFirstCrate[0]
             ),
             intervalBetweenSpawns=(
-                proxy.IntervalBetweenCrateSpawns[0].format_for_json(), proxy.MaxIntervalBetweenCrateSpawns[0].format_for_json()
+                proxy.IntervalBetweenCrateSpawns[0], proxy.MaxIntervalBetweenCrateSpawns[0]
             ),
             intervalBetweenMaxedSpawns=(
-                proxy.IntervalBetweenMaxedCrateSpawns[0].format_for_json(), proxy.MaxIntervalBetweenMaxedCrateSpawns[0].format_for_json()
+                proxy.IntervalBetweenMaxedCrateSpawns[0], proxy.MaxIntervalBetweenMaxedCrateSpawns[0]
             )
         )
 
         # Single-player overrides. Export only if changed.
         if proxy.has_override('SP_IntervalBetweenCrateSpawns') or proxy.has_override('SP_MaxIntervalBetweenCrateSpawns'):
             ranges['intervalBetweenSpawnsSP'] = (
-                proxy.SP_IntervalBetweenCrateSpawns[0].format_for_json(), proxy.SP_MaxIntervalBetweenCrateSpawns[0].format_for_json()
+                proxy.SP_IntervalBetweenCrateSpawns[0], proxy.SP_MaxIntervalBetweenCrateSpawns[0]
             )
         if proxy.has_override('SP_IntervalBetweenMaxedCrateSpawns') or proxy.has_override('SP_MaxIntervalBetweenMaxedCrateSpawns'):
             ranges['intervalBetweenMaxedSpawnsSP'] = (
-                proxy.SP_IntervalBetweenMaxedCrateSpawns[0].format_for_json(), proxy.SP_MaxIntervalBetweenMaxedCrateSpawns[0].format_for_json()
+                proxy.SP_IntervalBetweenMaxedCrateSpawns[0], proxy.SP_MaxIntervalBetweenMaxedCrateSpawns[0]
             )
 
         # Combine all properties into a single dict
         return dict(
-            maxCrateNumber=proxy.MaxNumCrates[0].format_for_json(),
+            maxCrateNumber=proxy.MaxNumCrates[0],
             crateClasses=sorted(cls._convert_crate_classes(proxy.LinkedSupplyCrateEntries[0])),
             crateLocations=list(cls._extract_spawn_points(proxy.LinkedSpawnPointEntries[0])),
-            minTimeBetweenSpawnsAtSamePoint=proxy.MinTimeBetweenCrateSpawnsAtSamePoint[0].format_for_json(),
+            minTimeBetweenSpawnsAtSamePoint=proxy.MinTimeBetweenCrateSpawnsAtSamePoint[0],
             **ranges
         )
     
     @classmethod
     def _convert_crate_classes(cls, entries):
         for entry in entries.values:
-            klass = entry.as_dict()['CrateTemplate'].format_for_json()
+            klass = entry.as_dict()['CrateTemplate']
             if not klass:
                 continue
             yield klass
@@ -326,7 +326,7 @@ class LootCrateSpawnExport(MapGathererBase):
             marker = entry.as_dict()['LinkedSpawnPoint'].value.value
             if not marker:
                 continue
-            yield get_actor_location_vector(marker).format_for_json()
+            yield get_actor_location_vector(marker)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -359,7 +359,7 @@ class RadiationZoneExport(MapGathererBase):
         return dict(
             start=volume_bounds[0],
             end=volume_bounds[1],
-            immune=[ref.format_for_json() for ref in proxy.ActorClassesToExclude[0].values],
+            immune=[ref for ref in proxy.ActorClassesToExclude[0].values],
         )
 
     @classmethod
@@ -382,7 +382,7 @@ class ExplorerNoteExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: ExplorerNote) -> Optional[Dict[str, Any]]: # type:ignore
-        return dict(noteIndex=proxy.ExplorerNoteIndex[0].format_for_json(), **get_actor_location_vector(proxy).format_for_json())
+        return dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy))
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):

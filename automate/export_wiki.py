@@ -4,6 +4,7 @@ from typing import *
 
 from ark.export_wiki.base import MapGathererBase
 from ark.export_wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
+from ark.export_wiki.convert import format_data_fragment_for_export
 from ark.export_wiki.discovery import LevelDiscoverer
 from ark.export_wiki.gathering import find_gatherer_by_category_name, find_gatherer_for_export
 from ark.export_wiki.geo import GeoCoordCalculator
@@ -143,17 +144,24 @@ class Exporter:
                 helper = find_gatherer_for_export(export)
                 if helper:
                     # Make sure the data list is initialized.
-                    category_name = helper.get_category_name()  # type:ignore
+                    category_name = helper.get_category_name()
                     if category_name not in map_info.data:
                         map_info.data[category_name] = list()
 
-                    # Extract data and add it to the list.
+                    # Extract data using helper class.
                     try:
-                        export_data = helper.extract(proxy=gather_properties(export))  # type:ignore
+                        export_data = helper.extract(proxy=gather_properties(export))
                     except:  # pylint: disable=bare-except
                         logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
                         continue
+
                     if export_data:
+                        # Pre-maturely format the data with format_for_json.
+                        # Doing this automatically is safer than manually.
+                        # We can't afford to leak any reference as maps are big.
+                        export_data = format_data_fragment_for_export(export_data)
+
+                        # Add to the list.
                         map_info.data[category_name].append(export_data)
 
             # Preemptively remove the level from linker cache.
@@ -178,12 +186,13 @@ class Exporter:
 
         # Run data-specific conversions
         for key, values in map_info.data.items():
+            # Helper class exists if data has been exported from it.
             helper = find_gatherer_by_category_name(key)
             # Add lat and long keys as world settings have been found.
             for data in values:
-                helper.before_saving(map_info, data)
+                helper.before_saving(map_info, data)  # type:ignore
             # Sort the list
-            values.sort(key=helper.sorting_key)
+            values.sort(key=helper.sorting_key)  # type:ignore
 
     def _export_values(self, map_info: MapInfo, version: str, other: Dict = None, moddata: Optional[Dict] = None):
         values: Dict[str, Any] = dict()
