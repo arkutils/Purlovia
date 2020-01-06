@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Iterable, Optional, Tuple, Type
 
 from ue.asset import ExportTableItem
 from ue.hierarchy import MissingParent, inherits_from
@@ -8,40 +8,73 @@ from ue.proxy import UEProxyStructure
 from .base import MapGathererBase
 from .common import convert_box_bounds_for_export, get_actor_location_vector, \
     get_volume_bounds, get_volume_box_count, proxy_properties_as_dict
-from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, DAMAGE_TYPE_RADIATION_PKG, \
+from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, CUSTOM_ACTOR_LIST_CLS, DAMAGE_TYPE_RADIATION_PKG, \
     EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, PRIMAL_WORLD_SETTINGS_CLS, \
     SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .map import MapInfo
-from .types import BIOME_VOLUME_EXPORTED_PROPERTIES, BiomeZoneVolume, ExplorerNote, \
-    NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+from .types import BIOME_VOLUME_EXPORTED_PROPERTIES, BiomeZoneVolume, CustomActorList, \
+    ExplorerNote, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 
 
 class GenericActorExport(MapGathererBase):
     KLASS = ACTOR_CLS
+    CATEGORY = 'otherPoints'
 
     @classmethod
     def get_category_name(cls) -> str:
-        return 'otherLocations'
+        return cls.CATEGORY
 
     @classmethod
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
         return inherits_from(export, cls.KLASS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
-        return get_actor_location_vector(proxy)
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        yield get_actor_location_vector(proxy)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.lat.from_units(data['x'])
+        data['long'] = map_info.long.from_units(data['x'])
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
         return (data['x'], data['y'], data['z'])
 
 
-# TODO: actor lists (nests) are missing
+class GenericActorListExport(MapGathererBase):
+    TAGS: Tuple[str] = ()
+    CATEGORY = 'otherNodes'
+
+    @classmethod
+    def get_category_name(cls) -> str:
+        return cls.CATEGORY
+
+    @classmethod
+    def is_export_eligible(cls, export: ExportTableItem) -> bool:
+        if inherits_from(export, CUSTOM_ACTOR_LIST_CLS):
+            # Check the tag
+            if hasattr(export.properties, 'CustomTag') and str(export.properties.get_property('CustomTag')) in cls.TAGS:
+                return True
+        return False
+
+    @classmethod
+    def extract(cls, proxy: CustomActorList) -> Iterable[Dict[str, Any]]: # type:ignore
+        for actor in proxy.ActorList[0].values:
+            if not actor.value.value:
+                continue
+            
+            yield get_actor_location_vector(actor.value.value)
+
+
+    @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        data['lat'] = map_info.lat.from_units(data['y'])
+        data['long'] = map_info.long.from_units(data['x'])
+
+    @classmethod
+    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+        return (data['x'], data['y'], data['z'])
 
 class WorldSettingsExport(MapGathererBase):
     @classmethod
@@ -53,8 +86,8 @@ class WorldSettingsExport(MapGathererBase):
         return inherits_from(export, PRIMAL_WORLD_SETTINGS_CLS) and not getattr(export.asset, 'tile_info', None)
 
     @classmethod
-    def extract(cls, proxy: PrimalWorldSettings) -> Optional[Dict[str, Any]]: # type:ignore
-        return dict(
+    def extract(cls, proxy: PrimalWorldSettings) -> Iterable[Dict[str, Any]]: # type:ignore
+        yield dict(
             name=proxy.Title[0],
             # Geo
             latOrigin=proxy.LatitudeOrigin[0],
@@ -96,14 +129,14 @@ class NPCZoneManagerExport(MapGathererBase):
         return inherits_from(export, NPC_ZONE_MANAGER_CLS)
 
     @classmethod
-    def extract(cls, proxy: NPCZoneManager) -> Optional[Dict[str, Any]]: # type:ignore
+    def extract(cls, proxy: NPCZoneManager) -> Iterable[Dict[str, Any]]: # type:ignore
         # Sanity checks
         if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
-            return None
+            return ()
         if not getattr(proxy, 'LinkedZoneVolumes', None):
-            return None
+            return ()
         if not proxy.NPCSpawnEntriesContainerObject[0].value.value:
-            return None
+            return ()
 
         # Export properties
         data = dict(
@@ -122,9 +155,9 @@ class NPCZoneManagerExport(MapGathererBase):
             data['spawnLocations'] = list(cls._extract_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0]))
         # Check if we extracted any spawn data at all, otherwise we can skip it.
         if 'spawnPoints' not in data and 'spawnLocations' not in data:
-            return None
+            return ()
 
-        return data
+        yield data
     
     @classmethod
     def _extract_counting_volumes(cls, volumes):
@@ -168,7 +201,7 @@ class NPCZoneManagerExport(MapGathererBase):
         if 'spawnPoints' in data:
             for point in data['spawnPoints']:
                 point['lat'] = map_info.lat.from_units(point['y'])
-                point['long'] = map_info.lat.from_units(point['x'])
+                point['long'] = map_info.long.from_units(point['x'])
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
@@ -185,7 +218,7 @@ class BiomeZoneExport(MapGathererBase):
         return inherits_from(export, BIOME_ZONE_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: BiomeZoneVolume) -> Optional[Dict[str, Any]]: # type:ignore
+    def extract(cls, proxy: BiomeZoneVolume) -> Iterable[Dict[str, Any]]: # type:ignore
         may_be_present = proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_EXPORTED_PROPERTIES, only_overriden=True)
         volume_bounds = get_volume_bounds(proxy)
 
@@ -251,7 +284,7 @@ class BiomeZoneExport(MapGathererBase):
                 start=volume_bounds[0],
                 end=volume_bounds[1]
             ))
-        return data
+        yield data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -273,12 +306,12 @@ class LootCrateSpawnExport(MapGathererBase):
         return inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Optional[Dict[str, Any]]: # type:ignore
+    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Iterable[Dict[str, Any]]: # type:ignore
         # Sanity checks
         if not getattr(proxy, 'LinkedSupplyCrateEntries', None):
-            return None
+            return ()
         if not getattr(proxy, 'LinkedSpawnPointEntries', None):
-            return None
+            return ()
 
         # Make range tuples of numerical properties.
         ranges = dict(
@@ -304,7 +337,7 @@ class LootCrateSpawnExport(MapGathererBase):
             )
 
         # Combine all properties into a single dict
-        return dict(
+        yield dict(
             maxCrateNumber=proxy.MaxNumCrates[0],
             crateClasses=sorted(cls._convert_crate_classes(proxy.LinkedSupplyCrateEntries[0])),
             crateLocations=list(cls._extract_spawn_points(proxy.LinkedSpawnPointEntries[0])),
@@ -354,9 +387,9 @@ class RadiationZoneExport(MapGathererBase):
         return False
 
     @classmethod
-    def extract(cls, proxy: TogglePainVolume) -> Optional[Dict[str, Any]]: # type:ignore
+    def extract(cls, proxy: TogglePainVolume) -> Iterable[Dict[str, Any]]: # type:ignore
         volume_bounds = get_volume_bounds(proxy)
-        return dict(
+        yield dict(
             start=volume_bounds[0],
             end=volume_bounds[1],
             immune=[ref for ref in proxy.ActorClassesToExclude[0].values],
@@ -381,13 +414,13 @@ class ExplorerNoteExport(MapGathererBase):
         return inherits_from(export, EXPLORER_CHEST_BASE_CLS)
 
     @classmethod
-    def extract(cls, proxy: ExplorerNote) -> Optional[Dict[str, Any]]: # type:ignore
-        return dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy))
+    def extract(cls, proxy: ExplorerNote) -> Iterable[Dict[str, Any]]: # type:ignore
+        yield dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy))
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.lat.from_units(data['x'])
+        data['long'] = map_info.long.from_units(data['x'])
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Any:
@@ -396,42 +429,45 @@ class ExplorerNoteExport(MapGathererBase):
 
 class OilVeinExport(GenericActorExport):
     KLASS = OIL_VEIN_CLS
-
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'oilVeins'
+    CATEGORY = 'oilVeins'
 
 
 class WaterVeinExport(GenericActorExport):
     KLASS = WATER_VEIN_CLS
-
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'waterVeins'
+    CATEGORY = 'waterVeins'
 
 
 class GasVeinExport(GenericActorExport):
     KLASS = GAS_VEIN_CLS
-
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'gasVeins'
+    CATEGORY = 'gasVeins'
 
 
 class ChargeNodeExport(GenericActorExport):
     KLASS = CHARGE_NODE_CLS
-
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'chargeNodes'
+    CATEGORY = 'chargeNodes'
 
 
 class WildPlantSpeciesZExport(GenericActorExport):
     KLASS = WILD_PLANT_SPECIES_Z_CLS
+    CATEGORY = 'plantZNodes'
 
-    @classmethod
-    def get_category_name(cls) -> str:
-        return 'plantZNodes'
+
+class WyvernNests(GenericActorListExport):
+    TAGS = ('DragonNestSpawns', )
+    CATEGORY = 'wyvernNests'
+
+class IceWyvernNests(GenericActorListExport):
+    TAGS = ('IceNestSpawns', )
+    CATEGORY = 'iceWyvernNests'
+
+class RockDrakeNests(GenericActorListExport):
+    TAGS = ('DrakeNestSpawns', )
+    CATEGORY = 'drakeNests'
+
+class DeinonychusNests(GenericActorListExport):
+    TAGS = ('DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns')
+    CATEGORY = 'deinonychusNests'
+
 
 
 EXPORTS = [
@@ -445,10 +481,16 @@ EXPORTS = [
     # Scorched Earth
     OilVeinExport,
     WaterVeinExport,
+    WyvernNests,
+    # Ragnarok
+    IceWyvernNests,
     # Aberration
     GasVeinExport,
     ChargeNodeExport,
     WildPlantSpeciesZExport,
+    RockDrakeNests,
+    # Valguero
+    DeinonychusNests,
 ]
 
 

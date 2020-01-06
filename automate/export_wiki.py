@@ -150,19 +150,20 @@ class Exporter:
 
                     # Extract data using helper class.
                     try:
-                        export_data = helper.extract(proxy=gather_properties(export))
+                        for data_fragment in helper.extract(proxy=gather_properties(export)):
+                            if not data_fragment:
+                                continue
+
+                            # Pre-maturely format this fragment with format_for_json.
+                            # Doing this automatically is safer than manually.
+                            # We can't afford to leak any reference as maps are big.
+                            data_fragment = format_data_fragment_for_export(data_fragment)
+
+                            # Add to the list.
+                            map_info.data[category_name].append(data_fragment)
                     except:  # pylint: disable=bare-except
                         logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
                         continue
-
-                    if export_data:
-                        # Pre-maturely format the data with format_for_json.
-                        # Doing this automatically is safer than manually.
-                        # We can't afford to leak any reference as maps are big.
-                        export_data = format_data_fragment_for_export(export_data)
-
-                        # Add to the list.
-                        map_info.data[category_name].append(export_data)
 
             # Preemptively remove the level from linker cache.
             self.loader.cache.remove(assetname)

@@ -14,6 +14,7 @@ NPC_ZONE_MANAGER_CLS = SCRIPT_ARK_PKG + '.NPCZoneManager'
 BIOME_ZONE_VOLUME_CLS = SCRIPT_ARK_PKG + '.BiomeZoneVolume'
 SUPPLY_CRATE_SPAWN_VOLUME_CLS = SCRIPT_ARK_PKG + '.SupplyCrateSpawningVolume'
 TOGGLE_PAIN_VOLUME_CLS = SCRIPT_ARK_PKG + '.TogglePainVolume'
+CUSTOM_ACTOR_LIST_CLS = SCRIPT_ARK_PKG + '.CustomActorList'
 EXPLORER_CHEST_BASE_CLS = '/Game/PrimalEarth/CoreBlueprints/ExplorerChest/ExplorerChest_Base.ExplorerChest_Base_C'
 # Scorched Earth
 OIL_VEIN_CLS = SCORCHED_EARTH_PKG + 'Structures/OilPump/OilVein_Base_BP.OilVein_Base_BP_C'

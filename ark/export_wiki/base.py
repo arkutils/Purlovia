@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable
 
 from ue.asset import ExportTableItem
 from ue.proxy import UEProxyStructure
@@ -22,7 +22,7 @@ class MapGathererBase(ABC):
 
     @classmethod
     @abstractmethod
-    def extract(cls, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
         '''
         Collect data from a proxy object and return it as a dict.
         Caution: Data should be formatted for json to avoid leak any references.

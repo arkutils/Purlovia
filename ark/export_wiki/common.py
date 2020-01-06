@@ -4,14 +4,6 @@ from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .map import MapInfo
 
-ACTOR_LIST_TAG_FIELD_MAP = {
-    'DragonNestSpawns': 'wyvernNests',
-    'IceNestSpawns': 'iceWyvernNests',
-    'DrakeNestSpawns': 'drakeNests',
-    'DeinonychusNestSpawns': 'deinonychusNests',
-    'AB_DeinonychusNestSpawns': 'deinonychusNests'
-}
-
 
 def unpack_defaultdict_value(obj):
     return obj[0] if obj else None
