@@ -7,7 +7,7 @@ from ue.base import UEBase
 def _get_formatted_value(data: Any) -> Any:
     if hasattr(data, 'format_for_json'):
         return data.format_for_json()
-    elif isinstance(data, UEBase):
+    if isinstance(data, UEBase):
         return str(data)
     
     return data
@@ -18,7 +18,7 @@ def format_data_fragment_for_export(data: Any) -> Any:
             data[key] = format_data_fragment_for_export(data[key])
 
         return data
-    elif isinstance(data, list) or isinstance(data, tuple):
+    if isinstance(data, (list, tuple)):
         return [format_data_fragment_for_export(value) for value in data]
-    else:
-        return _get_formatted_value(data)
+    
+    return _get_formatted_value(data)

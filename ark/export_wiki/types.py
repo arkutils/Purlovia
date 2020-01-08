@@ -1,30 +1,10 @@
 from typing import Mapping
 
-from ue.properties import ArrayProperty, NameProperty, ObjectProperty
+from ue.properties import ArrayProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
 from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
-
-BIOME_VOLUME_EXPORTED_PROPERTIES = {
-    'FinalTemperatureMultiplier': 'FinalTemperatureMultiplier',
-    'FinalTemperatureExponent': 'FinalTemperatureExponent',
-    'FinalTemperatureAddition': 'FinalTemperatureAddition',
-    'PreOffsetTemperatureMultiplier': 'PreOffsetTemperatureMultiplier',
-    'PreOffsetTemperatureExponent': 'PreOffsetTemperatureExponent',
-    'PreOffsetTemperatureAddition': 'PreOffsetTemperatureAddition',
-    'AboveTemperatureOffsetThreshold': 'AboveTemperatureOffsetThreshold',
-    'AboveTemperatureOffsetMultiplier': 'AboveTemperatureOffsetMultiplier',
-    'AboveTemperatureOffsetExponent': 'AboveTemperatureOffsetExponent',
-    'BelowTemperatureOffsetThreshold': 'BelowTemperatureOffsetThreshold',
-    'BelowTemperatureOffsetMultiplier': 'BelowTemperatureOffsetMultiplier',
-    'BelowTemperatureOffsetExponent': 'BelowTemperatureOffsetExponent',
-    'AbsoluteTemperatureOverride': 'AbsoluteTemperatureOverride',
-    'AbsoluteMaxTemperature': 'AbsoluteMaxTemperature',
-    'AbsoluteMinTemperature': 'AbsoluteMinTemperature',
-}
-
-
 
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
@@ -44,6 +24,7 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
     OverrideUIMapTextureFilled: Mapping[int, ObjectProperty]
     OverrideUIMapTextureSmall: Mapping[int, ObjectProperty]
     AllowDownloadDinoClasses: Mapping[int, ArrayProperty]
+    NPCRandomSpawnClassWeights: Mapping[int, StructProperty]
 
 
 class NPCZoneManager(UEProxyStructure, uetype='/Script/ShooterGame.NPCZoneManager'):

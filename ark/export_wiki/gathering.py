@@ -1,24 +1,25 @@
-from typing import Any, Dict, Iterable, Optional, Tuple, Type
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 from ue.asset import ExportTableItem
+from ue.base import UEBase
 from ue.hierarchy import MissingParent, inherits_from
 from ue.loader import AssetLoadException
+from ue.properties import ArrayProperty, Vector
 from ue.proxy import UEProxyStructure
 
 from .base import MapGathererBase
-from .common import convert_box_bounds_for_export, get_actor_location_vector, \
-    get_volume_bounds, get_volume_box_count, proxy_properties_as_dict
+from .common import convert_box_bounds_for_export, get_actor_location_vector, get_volume_bounds, get_volume_box_count
 from .consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, CUSTOM_ACTOR_LIST_CLS, DAMAGE_TYPE_RADIATION_PKG, \
     EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, PRIMAL_WORLD_SETTINGS_CLS, \
     SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from .map import MapInfo
-from .types import BIOME_VOLUME_EXPORTED_PROPERTIES, BiomeZoneVolume, CustomActorList, \
-    ExplorerNote, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+from .types import BiomeZoneVolume, CustomActorList, ExplorerNote, NPCZoneManager, \
+    PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 
 
 class GenericActorExport(MapGathererBase):
-    KLASS = ACTOR_CLS
-    CATEGORY = 'otherPoints'
+    KLASS: str
+    CATEGORY: str
 
     @classmethod
     def get_category_name(cls) -> str:
@@ -29,7 +30,7 @@ class GenericActorExport(MapGathererBase):
         return inherits_from(export, cls.KLASS)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
         yield get_actor_location_vector(proxy)
 
     @classmethod
@@ -38,13 +39,13 @@ class GenericActorExport(MapGathererBase):
         data['long'] = map_info.long.from_units(data['x'])
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['x'], data['y'], data['z'])
 
 
 class GenericActorListExport(MapGathererBase):
-    TAGS: Tuple[str] = ()
-    CATEGORY = 'otherNodes'
+    TAGS: Tuple[str, ...]
+    CATEGORY: str
 
     @classmethod
     def get_category_name(cls) -> str:
@@ -54,12 +55,13 @@ class GenericActorListExport(MapGathererBase):
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
         if inherits_from(export, CUSTOM_ACTOR_LIST_CLS):
             # Check the tag
-            if hasattr(export.properties, 'CustomTag') and str(export.properties.get_property('CustomTag')) in cls.TAGS:
+            tag = export.properties.get_property('CustomTag', fallback='')
+            if str(tag) in cls.TAGS:
                 return True
         return False
 
     @classmethod
-    def extract(cls, proxy: CustomActorList) -> Iterable[Dict[str, Any]]: # type:ignore
+    def extract(cls, proxy: CustomActorList) -> Iterable[Union[UEBase, Dict[str, Any]]]: # type:ignore
         for actor in proxy.ActorList[0].values:
             if not actor.value.value:
                 continue
@@ -73,7 +75,7 @@ class GenericActorListExport(MapGathererBase):
         data['long'] = map_info.long.from_units(data['x'])
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['x'], data['y'], data['z'])
 
 class WorldSettingsExport(MapGathererBase):
@@ -116,8 +118,8 @@ class WorldSettingsExport(MapGathererBase):
         pass
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
-        return 1
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
+        return (1, )
 
 class NPCZoneManagerExport(MapGathererBase):
     @classmethod
@@ -131,15 +133,12 @@ class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: NPCZoneManager) -> Iterable[Dict[str, Any]]: # type:ignore
         # Sanity checks
-        if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None):
-            return ()
-        if not getattr(proxy, 'LinkedZoneVolumes', None):
-            return ()
-        if not proxy.NPCSpawnEntriesContainerObject[0].value.value:
-            return ()
+        if not getattr(proxy, 'NPCSpawnEntriesContainerObject', None) or not proxy.NPCSpawnEntriesContainerObject[0].value.value or not getattr(proxy, 'LinkedZoneVolumes', None):
+            yield from ()
+            return
 
         # Export properties
-        data = dict(
+        data: Dict[str, Union[UEBase, List]] = dict(
             spawnGroup=proxy.NPCSpawnEntriesContainerObject[0],
             minDesiredNumberOfNPC=proxy.MinDesiredNumberOfNPC[0],
             neverSpawnInWater=proxy.bNeverSpawnInWater[0],
@@ -155,12 +154,13 @@ class NPCZoneManagerExport(MapGathererBase):
             data['spawnLocations'] = list(cls._extract_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0]))
         # Check if we extracted any spawn data at all, otherwise we can skip it.
         if 'spawnPoints' not in data and 'spawnLocations' not in data:
-            return ()
+            yield from ()
+            return
 
         yield data
     
     @classmethod
-    def _extract_counting_volumes(cls, volumes):
+    def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[Dict[str, Dict[str, float]]]:
         for zone_volume in volumes.values:
             zone_volume = zone_volume.value.value
             if not zone_volume:
@@ -169,7 +169,7 @@ class NPCZoneManagerExport(MapGathererBase):
             yield dict(start=bounds[0], end=bounds[1])
     
     @classmethod
-    def _extract_spawn_points(cls, markers):
+    def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Vector]:
         for marker in markers.values:
             marker = marker.value.value
             if not marker:
@@ -177,7 +177,7 @@ class NPCZoneManagerExport(MapGathererBase):
             yield get_actor_location_vector(marker)
     
     @classmethod
-    def _extract_spawn_volumes(cls, entries):
+    def _extract_spawn_volumes(cls, entries: ArrayProperty) -> Iterable[Dict[str, Any]]:
         for entry in entries.values:
             entry_data = entry.as_dict()
             entry_weight = entry_data['EntryWeight']
@@ -204,7 +204,7 @@ class NPCZoneManagerExport(MapGathererBase):
                 point['long'] = map_info.long.from_units(point['x'])
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['spawnGroup'], len(data['locations']))
 
 
@@ -219,20 +219,81 @@ class BiomeZoneExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: BiomeZoneVolume) -> Iterable[Dict[str, Any]]: # type:ignore
-        may_be_present = proxy_properties_as_dict(proxy, key_list=BIOME_VOLUME_EXPORTED_PROPERTIES, only_overriden=True)
         volume_bounds = get_volume_bounds(proxy)
 
-        data = dict(
+        data: Dict[str, Union[UEBase, List, Dict]] = dict(
             name=proxy.BiomeZoneName[0],
             priority=proxy.BiomeZonePriority[0],
             isOutside=proxy.bIsOutside[0],
             preventCrops=proxy.bPreventCrops[0],
             temperature=dict(),
-            wind=dict(),
-            **may_be_present
+            wind=dict()
         )
 
-        # Add overriden wind data
+        # Add overriden temperature and wind data
+        cls._extract_temperature_data(proxy, data)
+        cls._extract_wind_data(proxy, data)
+
+        # Remove extra dicts in case they haven't been filled
+        if not data['temperature']:
+            del data['temperature']
+        if not data['wind']:
+            del data['wind']
+        
+        # Extract bounds
+        box_count = get_volume_box_count(proxy)
+        boxes = list()
+        for box_index in range(box_count):
+            volume_bounds = get_volume_bounds(proxy, box_index)
+            boxes.append(dict(
+                start=volume_bounds[0],
+                end=volume_bounds[1]
+            ))
+        data['boxes'] = boxes
+        yield data
+
+    @classmethod
+    def _extract_temperature_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
+        ## Absolute
+        if proxy.has_override('AbsoluteTemperatureOverride'):
+            data['temperature']['override'] = proxy.AbsoluteTemperatureOverride[0]
+        if proxy.has_override('AbsoluteMaxTemperature') or proxy.has_override('AbsoluteMinTemperature'):
+            data['temperature']['range'] = (proxy.AbsoluteMinTemperature[0], proxy.AbsoluteMaxTemperature[0])
+        ## Pre-offset
+        if proxy.has_override('PreOffsetTemperatureMultiplier') or proxy.has_override('PreOffsetTemperatureExponent') or proxy.has_override('PreOffsetTemperatureAddition'):
+            data['temperature']['preOffset'] = (
+                None,
+                proxy.PreOffsetTemperatureMultiplier[0],
+                proxy.PreOffsetTemperatureExponent[0],
+                proxy.PreOffsetTemperatureAddition[0]
+            )
+        ## Above offset
+        if proxy.has_override('AboveTemperatureOffsetThreshold') or proxy.has_override('AboveTemperatureOffsetMultiplier') or proxy.has_override('AboveTemperatureOffsetExponent'):
+            data['temperature']['aboveOffset'] = (
+                proxy.AboveTemperatureOffsetThreshold[0],
+                proxy.AboveTemperatureOffsetMultiplier[0],
+                proxy.AboveTemperatureOffsetExponent[0],
+                None
+            )
+        ## Below offset
+        if proxy.has_override('BelowTemperatureOffsetThreshold') or proxy.has_override('BelowTemperatureOffsetMultiplier') or proxy.has_override('BelowTemperatureOffsetExponent'):
+            data['temperature']['belowOffset'] = (
+                proxy.BelowTemperatureOffsetThreshold[0],
+                proxy.BelowTemperatureOffsetMultiplier[0],
+                proxy.BelowTemperatureOffsetExponent[0],
+                None
+            )
+        ## Final
+        if proxy.has_override('FinalTemperatureMultiplier') or proxy.has_override('FinalTemperatureExponent') or proxy.has_override('FinalTemperatureAddition'):
+            data['temperature']['final'] = (
+                None,
+                proxy.FinalTemperatureMultiplier[0],
+                proxy.FinalTemperatureExponent[0],
+                proxy.FinalTemperatureAddition[0]
+            )
+    
+    @classmethod
+    def _extract_wind_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
         ## Absolute
         if proxy.has_override('AbsoluteWindOverride'):
             data['wind']['override'] = proxy.AbsoluteWindOverride[0]
@@ -269,30 +330,13 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.FinalWindAddition[0]
             )
 
-        # Remove extra dicts in case they haven't been filled
-        if not data['temperature']:
-            del data['temperature']
-        if not data['wind']:
-            del data['wind']
-        
-        # Extract bounds
-        box_count = get_volume_box_count(proxy)
-        data['boxes'] = list()
-        for box_index in range(box_count):
-            volume_bounds = get_volume_bounds(proxy, box_index)
-            data['boxes'].append(dict(
-                start=volume_bounds[0],
-                end=volume_bounds[1]
-            ))
-        yield data
-
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         for box in data['boxes']:
             convert_box_bounds_for_export(map_info, box)
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['name'], len(data['boxes']))
 
 
@@ -308,10 +352,9 @@ class LootCrateSpawnExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: SupplyCrateSpawningVolume) -> Iterable[Dict[str, Any]]: # type:ignore
         # Sanity checks
-        if not getattr(proxy, 'LinkedSupplyCrateEntries', None):
-            return ()
-        if not getattr(proxy, 'LinkedSpawnPointEntries', None):
-            return ()
+        if not getattr(proxy, 'LinkedSupplyCrateEntries', None) or not getattr(proxy, 'LinkedSpawnPointEntries', None):
+            yield from ()
+            return
 
         # Make range tuples of numerical properties.
         ranges = dict(
@@ -349,9 +392,9 @@ class LootCrateSpawnExport(MapGathererBase):
     def _convert_crate_classes(cls, entries):
         for entry in entries.values:
             klass = entry.as_dict()['CrateTemplate']
-            if not klass:
+            if not klass or not klass.value.value:
                 continue
-            yield klass
+            yield klass.format_for_json()
     
     @classmethod
     def _extract_spawn_points(cls, entries):
@@ -368,7 +411,7 @@ class LootCrateSpawnExport(MapGathererBase):
             location['long'] = map_info.long.from_units(location['x'])
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['crateClasses'], data['maxCrateNumber'])
 
 
@@ -382,7 +425,8 @@ class RadiationZoneExport(MapGathererBase):
         if not inherits_from(export, TOGGLE_PAIN_VOLUME_CLS):
             return False
         # Check if this is a radiation volume
-        if hasattr(export.properties, 'DamageType') and export.properties.get_property('DamageType').format_for_json() == DAMAGE_TYPE_RADIATION_PKG:
+        damage_type = export.properties.get_property('DamageType', fallback=None)
+        if damage_type and damage_type.value.value.fullname == DAMAGE_TYPE_RADIATION_PKG:
             return True
         return False
 
@@ -392,7 +436,7 @@ class RadiationZoneExport(MapGathererBase):
         yield dict(
             start=volume_bounds[0],
             end=volume_bounds[1],
-            immune=[ref for ref in proxy.ActorClassesToExclude[0].values],
+            immune=proxy.ActorClassesToExclude[0],
         )
 
     @classmethod
@@ -400,7 +444,7 @@ class RadiationZoneExport(MapGathererBase):
         convert_box_bounds_for_export(map_info, data)
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['start']['x'], data['start']['y'], data['start']['z'])
 
 
@@ -415,7 +459,7 @@ class ExplorerNoteExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: ExplorerNote) -> Iterable[Dict[str, Any]]: # type:ignore
-        yield dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy))
+        yield dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy).format_for_json())
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -423,7 +467,7 @@ class ExplorerNoteExport(MapGathererBase):
         data['long'] = map_info.long.from_units(data['x'])
 
     @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Any:
+    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
         return (data['noteIndex'], data['x'], data['y'], data['z'])
 
 

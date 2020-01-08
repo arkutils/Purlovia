@@ -1,3 +1,7 @@
+from typing import Dict, Tuple
+
+from ue.asset import ExportTableItem
+from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 
 from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
@@ -5,24 +9,7 @@ from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
 from .map import MapInfo
 
 
-def unpack_defaultdict_value(obj):
-    return obj[0] if obj else None
-
-
-def proxy_properties_as_dict(proxy: UEProxyStructure, key_list, only_overriden=False):
-    data = {}
-    for key in key_list:
-        if only_overriden and not proxy.has_override(key):
-            continue
-
-        value = unpack_defaultdict_value(getattr(proxy, key, None))
-        if hasattr(value, 'format_for_json'):
-            value = value.format_for_json()
-        data[key_list[key]] = value
-    return data
-
-
-def get_actor_location_vector(actor):
+def get_actor_location_vector(actor) -> Vector:
     '''Retrieves actor's world-space location vector.'''
 
     if isinstance(actor, UEProxyStructure):
@@ -33,7 +20,7 @@ def get_actor_location_vector(actor):
 
     return actor_location
 
-def get_volume_brush_setup(volume):
+def get_volume_brush_setup(volume) -> Tuple[ExportTableItem, ExportTableItem]:
     '''Retrieves the BrushComponent and BodySetup exports from a volume.'''
 
     if isinstance(volume, UEProxyStructure):
@@ -52,7 +39,7 @@ def get_volume_box_count(volume) -> int:
     return len(convex_elements.values)
 
 
-def get_volume_bounds(volume, convex_index=0):
+def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[str, float]]:
     '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
 
     brush, body = get_volume_brush_setup(volume)
