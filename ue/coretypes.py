@@ -126,7 +126,7 @@ class NameIndex(UEBase):
         if INCLUDE_METADATA:
             self.value.register_user(self.parent or self)
         if self.instance:
-            self.field_values['value'] = f'{self.value}_{self.instance}'
+            self.field_values['value'] = f'{self.value}_{self.instance - 1}'
 
     if support_pretty:
 
