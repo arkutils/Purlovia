@@ -15,6 +15,7 @@ from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.gathering import gather_properties
 from ue.hierarchy import find_sub_classes
+from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure, proxy_for_type
 
 from .git import GitManager
@@ -71,12 +72,12 @@ class ExportStage(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def extract_core(self, root: Path):
+    def extract_core(self, path: Path):
         '''Perform extraction for core (non-mod) data.'''
         ...
 
     @abstractmethod
-    def extract_mod(self, root: Path, modid: str):
+    def extract_mod(self, path: Path, modid: str):
         '''Perform extraction for the specified mod.'''
         ...
 
@@ -287,8 +288,18 @@ class ExportManager:
 
         # Load and output each one
         for cls_name in output_order:
-            export = self.loader.load_class(cls_name)
-            proxy: UEProxyStructure = gather_properties(export)
+            try:
+                export = self.loader.load_class(cls_name)
+            except AssetLoadException:
+                logger.warning('Failed to load asset during export: %s', cls_name)
+                continue
+
+            try:
+                proxy: UEProxyStructure = gather_properties(export)
+            except Exception:  # pylint: disable=broad-except
+                logger.warning('Failed to gather properties from asset: %s', cls_name)
+                continue
+
             proxy.set_source(export)
             yield proxy
 

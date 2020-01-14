@@ -71,9 +71,6 @@ class ExportSection(ExportDefaultsSection):
 
 
 class ExportASBSection(ExportSection):
-    Export8Stats: bool = False
-    ExportVanillaSpecies: bool = False
-
     class Config:
         extra = Extra.forbid
 

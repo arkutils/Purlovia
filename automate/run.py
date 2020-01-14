@@ -9,9 +9,9 @@ from typing import *
 import yaml
 
 import ark.discovery
-from ark.export_example.root import ExampleRoot
-from ark.export_example.stage_spawngroups import SpawnGroupStage
 from config import ConfigFile, get_global_config
+from export.asb.root import ASBRoot
+from export.example.root import ExampleRoot
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
@@ -69,7 +69,6 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
 
     parser.add_argument('--skip-extract-asb', action='store_true', help='skip extracting all ASB data completely')
-    parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting ASB vanilla species')
     parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format for species')
 
     parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
@@ -144,9 +143,6 @@ def handle_args(args: Any) -> ConfigFile:
     if args.skip_supply_drop_data:
         config.export_wiki.ExportSupplyCrateData = False
 
-    if args.skip_vanilla:
-        config.export_asb.ExportVanillaSpecies = False
-
     if args.skip_commit:
         config.git.SkipCommit = True
 
@@ -182,7 +178,7 @@ def run(config: ConfigFile):
         # Handle exporting
         exporter = ExportManager(arkman, git, config)
         exporter.add_root(ExampleRoot())
-        # exporter.add_root(ASBRoot())
+        exporter.add_root(ASBRoot())
         # exporter.add_root(WikiRoot())
         exporter.perform()
 

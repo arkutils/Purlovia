@@ -6,6 +6,7 @@ from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from config import ConfigFile
 from ue.proxy import UEProxyStructure
+from utils.strings import get_valid_filename
 
 from .exporter import ExportStage
 
@@ -54,13 +55,21 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         '''Perform extraction on the given proxy and return any JSON-able object.'''
         raise NotImplementedError
 
+    def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
+        '''Return any extra dict entries that should be put *before* the main entries.'''
+        ...
+
+    def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
+        '''Return any extra dict entries that should be put *after* the main entries.'''
+        ...
+
     def extract_core(self, path: Path):
         # Core versions are based on the game version and build number
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
         filename = self.get_core_file_path()
         proxy_iter = self.manager.iterate_core_exports_of_type(self.get_ue_type())
-        self._extract_and_save(version, path, filename, proxy_iter)
+        self._extract_and_save(version, None, path, filename, proxy_iter)
 
     def extract_mod(self, path: Path, modid: str):
         # Mod versions are based on the game version and mod change date
@@ -68,20 +77,31 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
 
         filename = self.get_mod_file_path(modid)
         proxy_iter = self.manager.iterate_mod_exports_of_type(self.get_ue_type(), modid)
-        self._extract_and_save(version, path, filename, proxy_iter)
+        self._extract_and_save(version, modid, path, filename, proxy_iter)
 
-    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath,
+    def _extract_and_save(self, version: str, modid: Optional[str], base_path: Path, relative_path: PurePosixPath,
                           proxy_iter: Iterator[UEProxyStructure]):
-        # Work out the output path
-        output_path = Path(base_path / relative_path)
+        # Work out the output path (cleaned)
+        clean_relative_path = PurePosixPath('/'.join(get_valid_filename(p) for p in relative_path.parts))
+        output_path = Path(base_path / clean_relative_path)
 
         # Setup the output structure
         results: List[Any] = []
         format_version = self.get_format_version()
         output: Dict[str, Any] = dict(version=version, format=format_version)
+
+        # Pre-data comes before the main items
+        pre_data = self.get_pre_data(modid) or dict()
+        output.update(pre_data)
+
+        # Main items array
         output[self.get_field()] = results
 
-        # Do the actual export
+        # Post-data comes after the main items
+        post_data = self.get_post_data(modid) or {}
+        output.update(post_data)
+
+        # Do the actual export into the existing `results` list
         for proxy in proxy_iter:
             item_output = self.extract(proxy)
             if item_output:

@@ -2,17 +2,16 @@ from logging import NullHandler, getLogger
 from typing import *
 
 from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
-from ark.export_asb.bones import gather_damage_mults
-from ark.export_asb.breeding import gather_breeding_data
-from ark.export_asb.colors import gather_color_data, gather_pgd_colors
-from ark.export_asb.immobilize import gather_immobilization_data
-from ark.export_asb.stats import gather_stat_data
-from ark.export_asb.taming import gather_taming_data
+from ark.overrides import get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
+from export.asb.bones import gather_damage_mults
+from export.asb.breeding import gather_breeding_data
+from export.asb.colors import gather_color_data, gather_pgd_colors
+from export.asb.immobilize import gather_immobilization_data
+from export.asb.stats import gather_stat_data
+from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound, ModNotFound
-
-from .overrides import get_overrides_for_species
 
 __all__ = [
     'values_from_pgd',
@@ -71,7 +70,7 @@ def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, 
 def values_for_species(asset: UAsset,
                        props: PriorityPropDict,
                        allFields=False,
-                       fullStats=False,
+                       fullStats=True,
                        includeColor=True,
                        includeBreeding=True,
                        includeImmobilize=True,
