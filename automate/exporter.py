@@ -245,6 +245,9 @@ class ExportManager:
         # (core path prefixes were pre-calculated earlier)
         classes: Set[str] = set()
         for cls_name in find_sub_classes(type_name):
+            if not cls_name.startswith('/Game'):
+                continue
+
             if cls_name.startswith('/Game/Mods'):
                 if not any(cls_name.startswith(prefix) for prefix in self.official_mod_prefixes):
                     continue
