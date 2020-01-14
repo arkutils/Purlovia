@@ -3,10 +3,9 @@ from typing import Iterable, Iterator
 
 import ue.hierarchy
 from config import ConfigFile, get_global_config
+from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetLoadException
-
-from .consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())

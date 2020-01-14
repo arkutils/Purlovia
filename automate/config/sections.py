@@ -77,11 +77,7 @@ class ExportASBSection(ExportSection):
 
 class ExportWikiSection(ExportSection):
     ExportVanillaMaps: bool = True
-    ExportSpawnData: bool = True
-    ExportBiomeData: bool = True
-    ExportSupplyCrateData: bool = True
-    ExportVeinLocations: bool = True
-    ExportNestLocations: bool = True
+    ExportSpawningGroups: bool = True
 
     class Config:
         extra = Extra.forbid

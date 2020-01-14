@@ -12,6 +12,7 @@ import ark.discovery
 from config import ConfigFile, get_global_config
 from export.asb.root import ASBRoot
 from export.example.root import ExampleRoot
+from export.wiki.root import WikiRoot
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
@@ -179,7 +180,7 @@ def run(config: ConfigFile):
         exporter = ExportManager(arkman, git, config)
         # exporter.add_root(ExampleRoot())
         exporter.add_root(ASBRoot())
-        # exporter.add_root(WikiRoot())
+        exporter.add_root(WikiRoot())
         exporter.perform()
 
         # Push any changes

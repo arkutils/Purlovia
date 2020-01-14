@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Union
 
+from export.wiki.types import PrimalWorldSettings
 from ue.loader import AssetLoader
 from ue.properties import FloatProperty
-
-from .types import PrimalWorldSettings
 
 
 class GeoCoordCalculator:
