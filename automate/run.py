@@ -73,9 +73,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format for species')
 
     parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
-    parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawn data from maps')
-    parser.add_argument('--skip-biome-data', action='store_true', help='skip extracting biome data from maps')
-    parser.add_argument('--skip-supply-drop-data', action='store_true', help='skip extracting supply drops from maps')
+    parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawning group containers')
 
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
@@ -136,13 +134,7 @@ def handle_args(args: Any) -> ConfigFile:
         config.export_wiki.Skip = True
 
     if args.skip_spawn_data:
-        config.export_wiki.ExportSpawnData = False
-
-    if args.skip_biome_data:
-        config.export_wiki.ExportBiomeData = False
-
-    if args.skip_supply_drop_data:
-        config.export_wiki.ExportSupplyCrateData = False
+        config.export_wiki.ExportSpawningGroups = False
 
     if args.skip_commit:
         config.git.SkipCommit = True
