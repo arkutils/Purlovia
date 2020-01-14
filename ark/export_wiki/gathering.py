@@ -105,7 +105,12 @@ class NPCZoneManagerExport(MapGathererBase):
             return None
 
         # Export properties
-        data = proxy_properties_as_dict(proxy, key_list=ZONE_MANAGER_EXPORTED_PROPERTIES)
+        data = dict(
+            spawnGroup=proxy.NPCSpawnEntriesContainerObject[0].format_for_json(),
+            minDesiredNumberOfNPC=proxy.MinDesiredNumberOfNPC[0].format_for_json(),
+            neverSpawnInWater=proxy.bNeverSpawnInWater[0].format_for_json(),
+            forceUntameable=proxy.bForceUntameable[0].format_for_json()
+        )
         # Export dino counting regions
         data['locations'] = list(cls._extract_counting_volumes(proxy.LinkedZoneVolumes[0]))
         # Export spawn points if present

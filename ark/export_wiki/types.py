@@ -7,36 +7,11 @@ from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 
 __all__ = [
-    'WORLD_SETTINGS_EXPORTED_PROPERTIES', 'ZONE_MANAGER_EXPORTED_PROPERTIES', 'BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES',
-    'BIOME_VOLUME_EXPORTED_PROPERTIES', 'SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES', 'SUPPLY_DROP_EXPORTED_PROPERTIES',
+    'BIOME_VOLUME_EXPORTED_PROPERTIES',
     'PrimalWorldSettings', 'NPCZoneManager', 'BiomeZoneVolume', 'SupplyCrateSpawningVolume', 'TogglePainVolume',
     'CustomActorList', 'Actor', 'OilVein', 'WaterVein', 'GasVein', 'PrimalStructurePowerNode', 'WildPlantSpeciesZ',
     'ExplorerNote'
 ]
-
-WORLD_SETTINGS_EXPORTED_PROPERTIES = {
-    'OverrideDifficultyMax': 'difficultyMax',
-    'OverrideWeaponMapTextureEmpty': 'heldMapEmpty',
-    'OverrideWeaponMapTextureFilled': 'heldMap',
-    'OverrideUIMapTextureEmpty': 'mapEmpty',
-    'OverrideUIMapTextureFilled': 'bigMap',
-    'OverrideUIMapTextureSmall': 'smallMap',
-    'AllowDownloadDinoClasses': 'allowDownloadDinoClasses'
-}
-
-ZONE_MANAGER_EXPORTED_PROPERTIES = {
-    'NPCSpawnEntriesContainerObject': 'spawnGroup',
-    'MinDesiredNumberOfNPC': 'MinDesiredNumberOfNPC',
-    'bNeverSpawnInWater': 'bNeverSpawnInWater',
-    'bForceUntameable': 'bForceUntameable',
-}
-
-BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES = {
-    'BiomeZoneName': 'BiomeZoneName',
-    'BiomeZonePriority': 'BiomeZonePriority',
-    'bIsOutside': 'bIsOutside',
-    'bPreventCrops': 'bPreventCrops',
-}
 
 BIOME_VOLUME_EXPORTED_PROPERTIES = {
     'FinalTemperatureMultiplier': 'FinalTemperatureMultiplier',
@@ -153,24 +128,6 @@ class BiomeZoneVolume(UEProxyStructure, uetype='/Script/ShooterGame.BiomeZoneVol
 
     # DevKit Unverified
 
-    
-SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES = {
-    'MaxNumCrates': 'maxNumCrates',
-    'DelayBeforeFirstCrate': 'delayBeforeFirstCrate',
-    'MaxDelayBeforeFirstCrate': 'maxDelayBeforeFirstCrate',
-    'IntervalBetweenCrateSpawns': 'intervalBetweenCrateSpawns',
-    'MaxIntervalBetweenCrateSpawns': 'maxIntervalBetweenCrateSpawns',
-    'IntervalBetweenMaxedCrateSpawns': 'intervalBetweenMaxedCrateSpawns',
-    'MaxIntervalBetweenMaxedCrateSpawns': 'maxIntervalBetweenMaxedCrateSpawns',
-    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
-}
-
-SUPPLY_DROP_EXPORTED_PROPERTIES = {
-    'SP_IntervalBetweenCrateSpawns': 'SP_IntervalBetweenCrateSpawns',
-    'SP_MaxIntervalBetweenCrateSpawns': 'SP_MaxIntervalBetweenCrateSpawns',
-    'SP_IntervalBetweenMaxedCrateSpawns': 'SP_IntervalBetweenMaxedCrateSpawns',
-    'SP_MaxIntervalBetweenMaxedCrateSpawns': 'SP_MaxIntervalBetweenMaxedCrateSpawns',
-}
 
 class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.SupplyCrateSpawningVolume'):
     # DevKit Verified
