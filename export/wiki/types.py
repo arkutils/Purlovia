@@ -157,3 +157,11 @@ class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
 
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
+    # DevKit Unverified
+    MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
+
+    NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
+    NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []

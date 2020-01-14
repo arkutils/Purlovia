@@ -33,6 +33,9 @@ class MapStage(ExportStage):
 
     def extract_core(self, root: Path):
         '''Perform extraction for core (non-mod) data.'''
+        if not self.manager.config.export_wiki.ExportVanillaMaps:
+            return
+
         # Core versions are based on the game version and build number
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
