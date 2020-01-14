@@ -165,40 +165,40 @@ class ExportManager:
             root.manifest = update_manifest(root.path)
 
             # git after - commit, etc
-            self.git.after_exports(root.path, root.get_commit_header(), self._commit_line_for_file)
+            self.git.after_exports(root.path.relative_to(outdir), root.get_commit_header(), self._commit_line_for_file)
 
     def _commit_line_for_file(self, filename: str) -> Optional[str]:
         '''Works out a reasonable single-line commit comment for the given file path.'''
-        path: Path = self.config.settings.OutputPath / filename
+        path = PurePosixPath(self.config.settings.OutputPath / filename)
 
         # Generic line for removals
-        if not path.is_file:
-            return f'{PurePosixPath(path)} removed'
+        if not Path(path).is_file:
+            return f'{path} removed'
 
         # Don't report manifest file updates
         if path.name.lower() == MANIFEST_FILENAME.lower():
             return None
 
         # Look up the relevant root
-        root = self._find_matching_root(filename)
+        root = self._find_matching_root(str(path))
         if not root:
             # We don't know this file
             return None
 
-        relative_path = PurePosixPath(filename).relative_to(root.path)
+        relative_path = path.relative_to(root.path)
 
         # See if there's a relevant manifest entry with a version number
-        entry = self._find_matching_manifest_entry(root, filename)
+        entry = self._find_matching_manifest_entry(root, str(path))
         version: Optional[str] = entry.get('version', None) if entry else None
 
         # Get the of the path from the root
         name = root.get_name_for_path(relative_path)
 
         if name and version:
-            return f'{name} {relative_path} updated to version {version}'
+            return f'{name} updated to version {version}'
 
         if name:
-            return f'{name} {relative_path} updated'
+            return f'{name} updated'
 
         if version:
             return f'{relative_path} updated to version {version}'
@@ -222,7 +222,10 @@ class ExportManager:
         '''Look for a manifest entry matching the given file path within the root.'''
         filepath = PurePosixPath(filename).relative_to(root.path)  # throws if filename is not in the root
         assert root.manifest
-        return root.manifest.get(str(PurePosixPath(filepath)), None)
+        files = root.manifest.get('files', None)
+        if not files:
+            return None
+        return files.get(str(PurePosixPath(filepath)), None)
 
     def _clear_mod_from_cache(self, modid: str):
         # Remove assets with this mod's prefix from the cache

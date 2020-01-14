@@ -177,13 +177,13 @@ def run(config: ConfigFile):
 
         # Handle exporting
         exporter = ExportManager(arkman, git, config)
-        exporter.add_root(ExampleRoot())
+        # exporter.add_root(ExampleRoot())
         exporter.add_root(ASBRoot())
         # exporter.add_root(WikiRoot())
         exporter.perform()
 
         # Push any changes
-        git.finish()
+        # git.finish()
 
         logger.info('Automation completed')
 

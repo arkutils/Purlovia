@@ -29,7 +29,7 @@ class ExampleRoot(ExportRoot):
         folder = path.parts[0]
 
         if folder == 'spawngroups':
-            return f"Spawn groups for {path.stem}"
+            return f"Spawn groups in {path}"
 
         return None  # will use a generic phrase
 
