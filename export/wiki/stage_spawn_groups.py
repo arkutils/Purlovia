@@ -19,13 +19,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return 'spawngroups'
 
     def get_use_pretty(self) -> bool:
-        return self.manager.config.export_wiki.PrettyJson
-
-    def get_core_file_path(self):
-        return PurePosixPath('spawngroups/core.json')
-
-    def get_mod_file_path(self, modid: str):
-        return PurePosixPath(f'spawngroups/{modid}.json')
+        return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
         return "1.0"

@@ -25,18 +25,10 @@ class ItemsStage(JsonHierarchyExportStage):
         return "items"
 
     def get_use_pretty(self) -> bool:
-        return self.manager.config.export_wiki.PrettyJson
+        return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_ue_type(self) -> str:
         return PrimalItem.get_ue_type()
-
-    def get_core_file_path(self) -> PurePosixPath:
-        return PurePosixPath('items.json')
-
-    def get_mod_file_path(self, modid) -> PurePosixPath:
-        mod_data = self.manager.arkman.getModData(modid)
-        assert mod_data
-        return PurePosixPath(f'{modid}-{mod_data["name"]}/items.json')
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         item: PrimalItem = cast(PrimalItem, proxy)

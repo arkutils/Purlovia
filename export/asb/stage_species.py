@@ -33,12 +33,14 @@ class SpeciesStage(JsonHierarchyExportStage):
         return 'species'
 
     def get_use_pretty(self) -> bool:
-        return self.manager.config.export_asb.PrettyJson
+        return bool(self.manager.config.export_asb.PrettyJson)
 
     def get_core_file_path(self):
+        # Override the default naming to match what ASB expects
         return PurePosixPath('values.json')
 
     def get_mod_file_path(self, modid: str):
+        # Override the default naming to match what ASB expects
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         return PurePosixPath(f'{modid}-{mod_data["name"]}.json')
