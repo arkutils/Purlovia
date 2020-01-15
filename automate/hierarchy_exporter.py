@@ -50,7 +50,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         field = self.get_field()
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        return PurePosixPath(f'{field}/{modid}-{mod_data["name"]}.json')
+        return PurePosixPath(f'{modid}-{mod_data["name"]}/{field}.json')
 
     @abstractmethod
     def extract(self, proxy: UEProxyStructure) -> Any:
