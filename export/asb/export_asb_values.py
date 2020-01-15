@@ -78,9 +78,15 @@ def values_for_species(asset: UAsset,
                        includeTaming=True):
     assert asset.loader
 
+    # Having no name or tag is an indication that this is an intermediate class, not a spawnable species
     name = stat_value(props, 'DescriptiveName', 0, None) or stat_value(props, 'DinoNameTag', 0, None)
     if not name:
         logger.debug(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
+        return
+
+    # Also consider anything that doesn't override any base status value as non-spawnable
+    if not any(stat_value(props, 'MaxStatusValues', n, None) is not None for n in ARK_STAT_INDEXES):
+        logger.debug(f"Species {asset.assetname} has no overridden stats - skipping")
         return
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
