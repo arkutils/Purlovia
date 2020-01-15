@@ -1,62 +1,76 @@
-from abc import ABC, abstractmethod
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import *
 
-# import ark.properties
-# from ark.common import PGD_PKG
-# from ark.discovery import SpeciesDiscoverer
-# from ark.export_asb_values import values_for_species, values_from_pgd
-# from automate.exporter import ExportedFile, ExportManager, ExportRoot, ExportStage
-# from automate.manifest import MANIFEST_FILENAME
-# from automate.version import createExportVersion
-# from config import ConfigFile
-# from ue.loader import AssetLoadException
-# from utils.strings import get_valid_filename
-# from
+from ark.types import PrimalItem
+from automate.hierarchy_exporter import JsonHierarchyExportStage
+from ue.proxy import UEProxyStructure
 
-# __all__ = [
-#     'SpeciesStage',
-# ]
+__all__ = [
+    'ItemsStage',
+]
 
-# logger = getLogger(__name__)
-# logger.addHandler(NullHandler())
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
-# class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
-#     # DevKit Unverified
-#     MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
 
-#     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
-#     NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
+class ItemsStage(JsonHierarchyExportStage):
+    def get_skip(self):
+        return not self.manager.config.export_wiki.ExportItems
 
-# class WikiRoot(ExportRoot):
-#     @staticmethod
-#     def get_name():
-#         return "Wiki"
+    def get_format_version(self) -> str:
+        return "1"
 
-#     @staticmethod
-#     def get_skip(config: ConfigFile) -> bool:
-#         return config.export_wiki.Skip
+    def get_field(self) -> str:
+        return "items"
 
-#     def get_name_for_path(self, path: PurePosixPath) -> Optional[str]:
-#         '''Return a nice name for a file to appear in the commit message.'''
-#         folder = path.parts[0]
-#         if folder == 'maps':
-#             return f"Map for {path.stem}"
-#         if folder == 'items':
-#             return f"Items for {path.stem}"
+    def get_use_pretty(self) -> bool:
+        return self.manager.config.export_wiki.PrettyJson
 
-#         return None  # will use a generic phrase
+    def get_ue_type(self) -> str:
+        return PrimalItem.get_ue_type()
 
-# class SpawnGroupStage(ExportStage):
-#     # @staticmethod
-#     # def get_title() -> str:
-#     #     return "Spawn Groups"
+    def get_core_file_path(self) -> PurePosixPath:
+        return PurePosixPath('items.json')
 
-#     @staticmethod
-#     def get_skip(config: ConfigFile) -> bool:
-#         # ...no specific config entry for this stage yet
-#         return False
+    def get_mod_file_path(self, modid) -> PurePosixPath:
+        mod_data = self.manager.arkman.getModData(modid)
+        assert mod_data
+        return PurePosixPath(f'{modid}-{mod_data["name"]}/items.json')
 
-#     def extract_core(self, root: Path) -> Iterator[ExportedFile]:
-#         ...
+    def extract(self, proxy: UEProxyStructure) -> Any:
+        item: PrimalItem = cast(PrimalItem, proxy)
+
+        v: Dict[str, Any] = dict()
+        if not item.has_override('DescriptiveNameBase'):
+            return None
+        v['name'] = str(item.DescriptiveNameBase[0])
+        v['description'] = str(item.ItemDescription[0])
+        v['blueprintPath'] = item.get_source().fullname
+
+        if getattr(item, 'ItemIcon', None):
+            icon_obj = item.ItemIcon[0].value
+            v['icon'] = icon_obj and icon_obj.value and icon_obj.value.fullname
+            if not v['icon']:
+                return None  # this is used as an indicator that this is a non-spawnable base item
+
+        if item.has_override('DefaultFolderPaths'):
+            v['folders'] = [str(folder) for folder in item.DefaultFolderPaths[0].values]
+        else:
+            v['folders'] = []
+
+        if item.has_override('BaseCraftingResourceRequirements'):
+            recipe = item.BaseCraftingResourceRequirements[0]
+            if recipe.values:
+                v['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+
+        return v
+
+
+def convert_recipe_entry(entry):
+    result = dict(
+        exact=bool(entry['bCraftingRequireExactResourceType']),
+        qty=int(entry['BaseResourceRequirement']),
+        type=str(entry['ResourceItemType'].value.value.name),
+    )
+    return result

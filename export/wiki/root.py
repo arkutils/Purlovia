@@ -3,12 +3,14 @@ from typing import Optional
 
 from automate.exporter import ExportRoot
 
+from .stage_items import ItemsStage
 from .stage_maps import MapStage
 from .stage_spawn_groups import SpawnGroupStage
 
 __all__ = [
     'WikiRoot',
 ]
+
 
 class WikiRoot(ExportRoot):
     def get_relative_path(self) -> PurePosixPath:
@@ -21,7 +23,7 @@ class WikiRoot(ExportRoot):
         return self.manager.config.export_wiki.CommitHeader
 
     def get_name_for_path(self, path: PurePosixPath) -> Optional[str]:
-        return 'Wiki'
+        return None
 
     def __init__(self):
         super().__init__()
@@ -29,4 +31,5 @@ class WikiRoot(ExportRoot):
         self.stages = [
             MapStage(),
             SpawnGroupStage(),
+            ItemsStage(),
         ]
