@@ -210,7 +210,8 @@ class NPCZoneManagerExport(MapGathererBase):
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['spawnGroup'], len(data['locations']))
+        return (data['spawnGroup'], data['minDesiredNumberOfNPC'], len(data['locations']), len(data.get('spawnLocations', ())),
+                -len(data.get('spawnPoints', ())))
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -314,7 +315,7 @@ class BiomeZoneExport(MapGathererBase):
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['name'], len(data['boxes']))
+        return (data['name'], data['priority'], len(data['boxes']))
 
 
 class LootCrateSpawnExport(MapGathererBase):
@@ -379,7 +380,7 @@ class LootCrateSpawnExport(MapGathererBase):
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['crateClasses'], data['maxCrateNumber'])
+        return (data['crateClasses'], data['maxCrateNumber'], len(data['crateLocations']))
 
 
 class RadiationZoneExport(MapGathererBase):

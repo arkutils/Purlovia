@@ -41,7 +41,7 @@ class MapStage(ExportStage):
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
         # Extract every core map
-        maps = self._group_levels_by_directory(sorted(self.discoverer.discover_vanilla_levels()))
+        maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
             logger.info(f'Performing extraction from map: {directory}')
             directory_name = PurePosixPath(directory.split('/')[-1])
@@ -89,7 +89,7 @@ class MapStage(ExportStage):
             pretty_json = True
         save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
 
-    def _group_levels_by_directory(self, assetnames: Iterable[str]) -> Dict[str, Set[str]]:
+    def _group_levels_by_directory(self, assetnames: Iterable[str]) -> Dict[str, List[str]]:
         '''
         Takes an unsorted list of levels and groups them by directory.
         '''
@@ -103,12 +103,12 @@ class MapStage(ExportStage):
 
         return levels
 
-    def _gather_data_from_levels(self, levels: Set[str]) -> MapInfo:
+    def _gather_data_from_levels(self, levels: List[str]) -> MapInfo:
         '''
         Goes through each sublevel, gathering data and looking for the persistent level.
         '''
         map_info = MapInfo(data=dict())
-        for assetname in levels:
+        for assetname in sorted(levels):
             asset = self.manager.loader[assetname]
 
             # Check if asset is a persistent level and collect data from it.
@@ -171,7 +171,7 @@ class MapStage(ExportStage):
             for data in values:
                 helper.before_saving(map_info, data)  # type:ignore
             # Sort the list
-            values.sort(key=helper.sorting_key)  # type:ignore
+            #values.sort(key=helper.sorting_key)  # type:ignore
 
         # Move the world settings out of the single element list
         map_info.data['worldSettings'] = map_info.data['worldSettings'][0]
