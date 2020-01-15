@@ -71,13 +71,17 @@ class ExportSection(ExportDefaultsSection):
 
 
 class ExportASBSection(ExportSection):
+    ExportSpecies: bool = True
+
     class Config:
         extra = Extra.forbid
 
 
 class ExportWikiSection(ExportSection):
+    ExportMaps: bool = True
     ExportVanillaMaps: bool = True
     ExportSpawningGroups: bool = True
+    ExportItems: bool = True
 
     class Config:
         extra = Extra.forbid

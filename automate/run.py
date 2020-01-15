@@ -70,10 +70,13 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
 
     parser.add_argument('--skip-extract-asb', action='store_true', help='skip extracting all ASB data completely')
-    parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format for species')
+    parser.add_argument('--skip-asb-species', action='store_true', help='skip extracting species for ASB')
 
     parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
-    parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawning group containers')
+    parser.add_argument('--skip-wiki-maps', action='store_true', help='skip extracting map data for the wiki')
+    parser.add_argument('--skip-wiki-vanilla-maps', action='store_true', help='skip extracting vanilla map data for the wiki')
+    parser.add_argument('--skip-wiki-spawn-groups', action='store_true', help='skip extracting spawning groups for the wiki')
+    parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
 
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
@@ -106,39 +109,40 @@ def handle_args(args: Any) -> ConfigFile:
 
     config.dev.DevMode = not args.live
 
-    if args.stats:
-        if int(args.stats) == 12:
-            config.export_asb.Export8Stats = False
-        else:
-            config.export_asb.Export8Stats = True
-
     if args.notify:  # to enable notifications in dev mode
         config.errors.SendNotifications = True
 
     if args.remove_cache:
         config.dev.ClearHierarchyCache = True
 
-    if args.skip_pull:
-        config.git.SkipPull = True
-
     if args.skip_install:
         config.settings.SkipInstall = True
-
     if args.skip_extract:
         config.settings.SkipExtract = True
 
+    # ASB extract stages
     if args.skip_extract_asb:
         config.export_asb.Skip = True
+    if args.skip_asb_species:
+        config.export_asb.ExportSpecies = False
 
+    # Wiki extract stages
     if args.skip_extract_wiki:
         config.export_wiki.Skip = True
-
-    if args.skip_spawn_data:
+    if args.skip_wiki_maps:
+        config.export_wiki.ExportMaps = False
+    if args.skip_wiki_vanilla_maps:
+        config.export_wiki.ExportVanillaMaps = False
+    if args.skip_wiki_spawn_groups:
         config.export_wiki.ExportSpawningGroups = False
+    if args.skip_wiki_items:
+        config.export_wiki.ExportItems = False
 
+    # Git actions
+    if args.skip_pull:
+        config.git.SkipPull = True
     if args.skip_commit:
         config.git.SkipCommit = True
-
     if args.skip_push:
         config.git.SkipPush = True
 

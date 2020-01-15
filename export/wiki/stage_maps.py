@@ -17,8 +17,9 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 __all__ = [
-    'MapStage'
+    'MapStage',
 ]
+
 
 class MapStage(ExportStage):
     def initialise(self, manager: ExportManager, root: ExportRoot):
@@ -29,7 +30,7 @@ class MapStage(ExportStage):
         return '1'
 
     def get_skip(self) -> bool:
-        return self.manager.config.export_wiki.Skip
+        return not self.manager.config.export_wiki.ExportMaps
 
     def extract_core(self, root: Path):
         '''Perform extraction for core (non-mod) data.'''
@@ -46,12 +47,10 @@ class MapStage(ExportStage):
             directory_name = PurePosixPath(directory.split('/')[-1])
             self._extract_and_save(version, root, directory_name, levels)
 
-
     def extract_mod(self, root: Path, modid: str):
         ...
 
-    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath,
-                          levels: Set[str]):
+    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath, levels: Set[str]):
         # Work out the output path
         output_path = Path(base_path / relative_path)
 
@@ -78,7 +77,7 @@ class MapStage(ExportStage):
             output_key = helper.get_category_name()
             if output_key in intermediate.data:
                 results[output_key] = intermediate.data[output_key]
-        
+
         # Stop if no data has been extracted from this section
         if not results:
             return
@@ -86,6 +85,8 @@ class MapStage(ExportStage):
 
         # Save if the data changed
         pretty_json = self.manager.config.export_wiki.PrettyJson
+        if pretty_json is None:
+            pretty_json = True
         save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
 
     def _group_levels_by_directory(self, assetnames: Iterable[str]) -> Dict[str, Set[str]]:

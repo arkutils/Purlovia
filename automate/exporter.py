@@ -15,7 +15,7 @@ from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.gathering import gather_properties
 from ue.hierarchy import find_sub_classes
-from ue.loader import AssetLoadException
+from ue.loader import AssetLoader, AssetLoadException
 from ue.proxy import UEProxyStructure, proxy_for_type
 
 from .git import GitManager
@@ -86,9 +86,9 @@ class ExportManager:
     official_mod_prefixes: Tuple[str, ...]
 
     def __init__(self, arkman: ArkSteamManager, git: GitManager, config=get_global_config()):
-        self.config = config
-        self.arkman = arkman
-        self.loader = arkman.getLoader()
+        self.config: ConfigFile = config
+        self.arkman: ArkSteamManager = arkman
+        self.loader: AssetLoader = arkman.getLoader()
         self.git = git
 
         self.roots: List[ExportRoot] = []
@@ -141,8 +141,12 @@ class ExportManager:
         official_modids -= set(self.config.settings.SeparateOfficialMods)
         self.official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
         for root in self.roots:
+            if root.get_skip():
+                continue
             root_path = Path(base_path / root.get_relative_path())
             for stage in root.stages:
+                if stage.get_skip():
+                    continue
                 logger.info('Performing core extraction for %s', self._get_name_for_stage(root, stage))
                 stage.extract_core(root_path)
                 self._log_stats()
@@ -150,8 +154,12 @@ class ExportManager:
         # Extract : Mods : Run each stage of each root
         for modid in self.config.mods:
             for root in self.roots:
+                if root.get_skip():
+                    continue
                 root_path = Path(base_path / root.get_relative_path())
                 for stage in root.stages:
+                    if stage.get_skip():
+                        continue
                     logger.info('Performing mod %s extraction for %s', modid, self._get_name_for_stage(root, stage))
                     stage.extract_mod(root_path, modid)
                     self._clear_mod_from_cache(modid)
