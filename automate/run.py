@@ -76,6 +76,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-wiki-maps', action='store_true', help='skip extracting map data for the wiki')
     parser.add_argument('--skip-wiki-vanilla-maps', action='store_true', help='skip extracting vanilla map data for the wiki')
     parser.add_argument('--skip-wiki-spawn-groups', action='store_true', help='skip extracting spawning groups for the wiki')
+    parser.add_argument('--skip-wiki-engrams', action='store_true', help='skip extracting engrams for the wiki')
     parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
     parser.add_argument('--skip-wiki-drops', action='store_true', help='skip extracting drops for the wiki')
 
@@ -136,6 +137,8 @@ def handle_args(args: Any) -> ConfigFile:
         config.export_wiki.ExportVanillaMaps = False
     if args.skip_wiki_spawn_groups:
         config.export_wiki.ExportSpawningGroups = False
+    if args.skip_wiki_engrams:
+        config.export_wiki.ExportEngrams = False
     if args.skip_wiki_items:
         config.export_wiki.ExportItems = False
     if args.skip_wiki_drops:

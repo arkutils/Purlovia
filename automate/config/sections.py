@@ -81,6 +81,7 @@ class ExportWikiSection(ExportSection):
     ExportMaps: bool = True
     ExportVanillaMaps: bool = True
     ExportSpawningGroups: bool = True
+    ExportEngrams: bool = True
     ExportItems: bool = True
     ExportDrops: bool = True
 

@@ -165,3 +165,17 @@ class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPC
 
     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
     NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
+
+class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngramEntry'):
+    # DevKit Verified
+    RequiredCharacterLevel = ueints(0)
+    RequiredEngramPoints = ueints(1)
+    bGiveBlueprintToPlayerInventory = uebools(True)
+    bCanBeManuallyUnlocked = uebools(True)
+    ExtraEngramDescription = uestrings('')
+
+    # DevKit Unverified
+
+    BluePrintEntry: Mapping[int, ObjectProperty] # PrimalItem ref
+    EngramRequirementSets: Mapping[int, ArrayProperty]
+    EngramGroup: Mapping[int, ByteProperty]
