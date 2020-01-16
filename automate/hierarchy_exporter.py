@@ -110,4 +110,9 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
                 results.append(item_output)
 
         # Save if the data changed
-        save_json_if_changed(output, output_path, self.get_use_pretty())
+        if results:
+            save_json_if_changed(output, output_path, self.get_use_pretty())
+        else:
+            # ...but remove an existing one if the output was empty
+            if output_path.is_file():
+                output_path.unlink()
