@@ -178,10 +178,13 @@ class GitManager:
         return message
 
     def _generate_info_line_from_file(self, filename: str):
+        if not filename:
+            return None
+
         path: Path = self.config.settings.OutputPath / filename
 
-        if not path.is_file:
-            return f'{path.name} removed'
+        if not path.is_file():
+            return f'{filename} removed'
 
         if path.suffix.lower() == '.json':
             if path.name.lower() == '_manifest.json':
