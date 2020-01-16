@@ -82,6 +82,7 @@ class ExportWikiSection(ExportSection):
     ExportVanillaMaps: bool = True
     ExportSpawningGroups: bool = True
     ExportItems: bool = True
+    ExportDrops: bool = True
 
     class Config:
         extra = Extra.forbid

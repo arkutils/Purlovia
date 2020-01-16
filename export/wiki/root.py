@@ -3,6 +3,7 @@ from typing import Optional
 
 from automate.exporter import ExportRoot
 
+from .stage_drops import DropsStage
 from .stage_items import ItemsStage
 from .stage_maps import MapStage
 from .stage_spawn_groups import SpawnGroupStage
@@ -32,4 +33,5 @@ class WikiRoot(ExportRoot):
             MapStage(),
             SpawnGroupStage(),
             ItemsStage(),
+            DropsStage(),
         ]

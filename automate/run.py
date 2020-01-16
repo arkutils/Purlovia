@@ -77,6 +77,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-wiki-vanilla-maps', action='store_true', help='skip extracting vanilla map data for the wiki')
     parser.add_argument('--skip-wiki-spawn-groups', action='store_true', help='skip extracting spawning groups for the wiki')
     parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
+    parser.add_argument('--skip-wiki-drops', action='store_true', help='skip extracting drops for the wiki')
 
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
@@ -137,6 +138,8 @@ def handle_args(args: Any) -> ConfigFile:
         config.export_wiki.ExportSpawningGroups = False
     if args.skip_wiki_items:
         config.export_wiki.ExportItems = False
+    if args.skip_wiki_drops:
+        config.export_wiki.ExportDrops = False
 
     # Git actions
     if args.skip_pull:
