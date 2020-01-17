@@ -63,14 +63,14 @@ def decode_item_entry(entry):
     d = entry.as_dict()
     return dict(
         name=str(d['ItemEntryName']) or None,
-        weight=float(d['EntryWeight']),
-        minQuantity=int(d['MinQuantity']),
-        maxQuantity=int(d['MaxQuantity']),
-        quantityPower=int(d['QuantityPower']),
-        minQuality=int(d['MinQuality']),
-        maxQuality=int(d['MaxQuality']),
-        qualityPower=int(d['QualityPower']),
-        forceBP=bool(d['bForceBlueprint']),
+        weight=d['EntryWeight'],
+        minQuantity=d['MinQuantity'],
+        maxQuantity=d['MaxQuantity'],
+        quantityPower=d['QuantityPower'],
+        minQuality=d['MinQuality'],
+        maxQuality=d['MaxQuality'],
+        qualityPower=d['QualityPower'],
+        forceBP=d['bForceBlueprint'],
         items=[str(item.value.value.name) for item in d['Items'].values],
     )
 
@@ -78,10 +78,10 @@ def decode_item_entry(entry):
 def decode_item_set(item_set):
     d = item_set.as_dict()
     return dict(
-        name=str(d['SetName']) or None,
-        min=int(d['MinNumItems']),
-        max=int(d['MaxNumItems']),
-        numItemsPower=int(d['NumItemsPower']),
-        setWeight=int(d['SetWeight']),
+        name=d['SetName'] or None,
+        min=d['MinNumItems'],
+        max=d['MaxNumItems'],
+        numItemsPower=d['NumItemsPower'],
+        setWeight=d['SetWeight'],
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )

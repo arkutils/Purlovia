@@ -36,15 +36,14 @@ class ItemsStage(JsonHierarchyExportStage):
         v: Dict[str, Any] = dict()
         if not item.has_override('DescriptiveNameBase'):
             return None
-        v['name'] = str(item.DescriptiveNameBase[0])
-        v['description'] = str(item.ItemDescription[0])
+        v['name'] = item.get('DescriptiveNameBase', 0, None)
+        v['description'] = item.get('ItemDescription', 0, None)
         v['blueprintPath'] = item.get_source().fullname
 
-        if getattr(item, 'ItemIcon', None):
-            icon_obj = item.ItemIcon[0].value
-            v['icon'] = icon_obj and icon_obj.value and icon_obj.value.fullname
-            if not v['icon']:
-                return None  # this is used as an indicator that this is a non-spawnable base item
+        icon = item.get('ItemIcon', 0, None)
+        if not icon:
+            v['icon'] = None
+            return  # this is used as an indicator that this is a non-spawnable base item
 
         if item.has_override('DefaultFolderPaths'):
             v['folders'] = [str(folder) for folder in item.DefaultFolderPaths[0].values]
@@ -61,8 +60,8 @@ class ItemsStage(JsonHierarchyExportStage):
 
 def convert_recipe_entry(entry):
     result = dict(
-        exact=bool(entry['bCraftingRequireExactResourceType']),
-        qty=int(entry['BaseResourceRequirement']),
-        type=str(entry['ResourceItemType'].value.value.name),
+        exact=entry['bCraftingRequireExactResourceType'],
+        qty=entry['BaseResourceRequirement'],
+        type=entry['ResourceItemType'].value.value.name,
     )
     return result

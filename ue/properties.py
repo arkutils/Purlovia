@@ -345,6 +345,10 @@ class FloatProperty(ValueProperty):
         assert self.is_serialised
         return self.raw_data
 
+    def format_for_json(self):
+        '''Restrict single-precision float output to 7 significant figures.'''
+        return float(format(self.value, '.7g'))
+
 
 class DoubleProperty(ValueProperty):
     main_field = 'textual'
@@ -1008,7 +1012,7 @@ class LinearColor(UEBase):
         self._newField('a', FloatProperty(self))
 
     def as_tuple(self):
-        return tuple(v.value for v in self.field_values.values())
+        return tuple(v for v in self.field_values.values())
 
 
 class IntPoint(UEBase):
