@@ -102,7 +102,7 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
 JOIN_LINES_REGEX = re.compile(r"(?:\n\t+)?(?<=\t)([\d.-]+,?)(?:\n\t+)?")
 JOIN_COLORS_REGEX = re.compile(r"\[\n\s+([\w\" ]+),\n\s+(.{,90})\n\s+\]")
 SHRINK_EMPTY_COLOR_REGEX = re.compile(r"\{\n\s+(\"\w+\": \w+)\n\s+\}")
-JOIN_XYZ_REGEX = re.compile(r"(\"x\": [-.0-9]+,)\s+(\"y\": [-.0-9]+,)\s+(\"z\": [-.0-9]+)")
+JOIN_XYZ_REGEX = re.compile(r"\s+(\"x\": [-.0-9]+,)\s+(\"y\": [-.0-9]+,)\s+(\"z\": [-.0-9]+)\s+")
 JOIN_LON_LAT_REGEX = re.compile(r"(\"lon\": [-.0-9]+,)\s+(\"lat\": [-.0-9]+)")
 
 
@@ -110,7 +110,7 @@ def _format_json(data, pretty=False):
     if pretty:
         json_string = json.dumps(data, default=property_serialiser, indent='\t')
         json_string = re.sub(JOIN_LINES_REGEX, r" \1", json_string)
-        json_string = re.sub(JOIN_XYZ_REGEX, r"\1 \2 \3", json_string)
+        json_string = re.sub(JOIN_XYZ_REGEX, r" \1 \2 \3 ", json_string)
         json_string = re.sub(JOIN_LON_LAT_REGEX, r"\1 \2", json_string)
         json_string = re.sub(JOIN_COLORS_REGEX, r"[ \1, \2 ]", json_string)
         json_string = re.sub(SHRINK_EMPTY_COLOR_REGEX, r"{ \1 }", json_string)
