@@ -43,3 +43,26 @@ def property_serialiser(obj):
         return str(obj)
 
     return json._default_encoder.default(obj)  # pylint: disable=protected-access
+
+
+def sanitise_output(data):
+    '''
+    Prepare data for output as JSON, removing references to the UE tree so they can be freed.
+    '''
+    # Convert anything with a format_for_json method
+    fmt = getattr(data, 'format_for_json', None)
+    if fmt:
+        data = fmt()
+
+    if isinstance(data, UEBase):
+        raise TypeError("Found UEBase item in output data without conversion method")
+
+    # Recurse into dicts
+    if isinstance(data, dict):
+        return {k: sanitise_output(v) for k, v in data.items()}
+
+    # Recurse into list-likes
+    if isinstance(data, (list, tuple)):
+        return [sanitise_output(v) for v in data]
+
+    return data

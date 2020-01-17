@@ -5,7 +5,9 @@ from typing import *
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from config import ConfigFile
+from ue.base import UEBase
 from ue.proxy import UEProxyStructure
+from ue.utils import sanitise_output
 from utils.strings import get_valid_filename
 
 from .exporter import ExportStage
@@ -94,6 +96,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
 
         # Pre-data comes before the main items
         pre_data = self.get_pre_data(modid) or dict()
+        pre_data = sanitise_output(pre_data)
         output.update(pre_data)
 
         # Main items array
@@ -101,16 +104,18 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
 
         # Post-data comes after the main items
         post_data = self.get_post_data(modid) or {}
+        post_data = sanitise_output(post_data)
         output.update(post_data)
 
         # Do the actual export into the existing `results` list
         for proxy in proxy_iter:
             item_output = self.extract(proxy)
             if item_output:
+                item_output = sanitise_output(item_output)
                 results.append(item_output)
 
         # Save if the data changed
-        if results:
+        if results or pre_data or post_data:
             save_json_if_changed(output, output_path, self.get_use_pretty())
         else:
             # ...but remove an existing one if the output was empty
