@@ -6,6 +6,7 @@ from automate.exporter import ExportRoot
 from .stage_drops import DropsStage
 from .stage_engrams import EngramsStage
 from .stage_items import ItemsStage
+from .stage_loot_crates import LootCratesStage
 from .stage_maps import MapStage
 from .stage_spawn_groups import SpawnGroupStage
 
@@ -36,4 +37,5 @@ class WikiRoot(ExportRoot):
             EngramsStage(),
             ItemsStage(),
             DropsStage(),
+            LootCratesStage(),
         ]

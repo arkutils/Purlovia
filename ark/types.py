@@ -97,12 +97,23 @@ class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameDat
 class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     # DevKit Verified
     bSupportDragOntoOtherItem = uebools(False)
+    bUseItemDurability = uebools(True)
+    bDurabilityRequirementIgnoredInWater = uebools(False)
+    BaseCraftingXP = uefloats(2.0)
+    BaseRepairingXP = uefloats(2.0)
+    BaseItemWeight = uefloats(0.5)
+    BlueprintTimeToCraft = uefloats(5.0)
+    MaxItemQuantity = ueints(1)
+    MinBlueprintTimeToCraft = uefloats(0.1)
+    MinItemDurability = uefloats(0.0)
     DescriptiveNameBase = uestrings('')
     EggLoseDurabilityPerSecond = uefloats(1.0)
     EggMaxTemperature = uefloats(30.0)
     EggMinTemperature = uefloats(15.0)
     ExtraEggLoseDurabilityPerSecondMultiplier = uefloats(1.0)
     ItemDescription = uestrings('')
+    SpoilingTime = uefloats(0.0)
+    TimeForFullRepair = uefloats(5.0)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
@@ -111,6 +122,8 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
 
     DefaultFolderPaths: Mapping[int, ArrayProperty]
     ItemIcon: Mapping[int, ObjectProperty]
+    StructureToBuild: Mapping[int, ObjectProperty]
+    WeaponToBuild: Mapping[int, ObjectProperty]
 
 
 class PrimalItem_Dye(PrimalItem, uetype='/Script/ShooterGame.PrimalItem_Dye'):

@@ -68,10 +68,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
                 entry_values = dict()
                 entry_values['class'] = struct_data['NPCClass']
-                if struct_data['MaxDesiredNumEnemiesMultiplier']:
-                    entry_values['desiredNumberMultiplier'] = struct_data['MaxDesiredNumEnemiesMultiplier']
-                else:
-                    entry_values['desiredNumberMultiplier'] = 1.0  # FIXME: Verify this value
+                entry_values['desiredNumberMult'] = struct_data['MaxPercentageOfDesiredNumToAllow']
 
                 values['limits'].append(entry_values)
 

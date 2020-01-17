@@ -50,6 +50,32 @@ class ItemsStage(JsonHierarchyExportStage):
         else:
             v['folders'] = []
 
+        v['weight'] = item.BaseItemWeight[0]
+        v['maxQuantity'] = item.MaxItemQuantity[0]
+        v['spoiling'] = dict(
+            time = item.SpoilingTime[0],
+        )
+        v['crafting'] = dict(
+            xp = item.BaseCraftingXP[0],
+            timeToCraftBP = (item.MinBlueprintTimeToCraft[0], item.BlueprintTimeToCraft[0]),
+            repair = dict(
+                xp = item.BaseRepairingXP[0],
+                time = item.TimeForFullRepair[0]
+            )
+        )
+
+        if item.bUseItemDurability[0].value:
+            v['durability'] = dict(
+                min=item.MinItemDurability[0],
+                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0]
+            )
+
+        if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
+            v['structureTemplate'] = item.StructureToBuild[0]
+
+        if 'WeaponToBuild' in item and item.WeaponToBuild[0].value.value:
+            v['weaponTemplate'] = item.WeaponToBuild[0]
+
         if item.has_override('BaseCraftingResourceRequirements'):
             recipe = item.BaseCraftingResourceRequirements[0]
             if recipe.values:
