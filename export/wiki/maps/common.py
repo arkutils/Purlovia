@@ -13,7 +13,7 @@ def get_actor_location_vector(actor) -> Vector:
     '''Retrieves actor's world-space location vector.'''
 
     if isinstance(actor, UEProxyStructure):
-        scene_component = actor.RootComponent[0].value.value
+        scene_component = actor['RootComponent'][0].value.value
     else:
         scene_component = actor.properties.get_property("RootComponent").value.value
     actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
@@ -25,7 +25,7 @@ def get_volume_brush_setup(volume) -> Tuple[ExportTableItem, ExportTableItem]:
     '''Retrieves the BrushComponent and BodySetup exports from a volume.'''
 
     if isinstance(volume, UEProxyStructure):
-        brush = volume.BrushComponent[0].value.value
+        brush = volume['BrushComponent'][0].value.value
     else:
         brush = volume.properties.get_property('BrushComponent').value.value
 

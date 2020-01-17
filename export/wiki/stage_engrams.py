@@ -37,11 +37,11 @@ class EngramsStage(JsonHierarchyExportStage):
         if engram.has_override('ExtraEngramDescription'):
             v['description'] = engram.ExtraEngramDescription[0]
         v['blueprintPath'] = engram.get_source().fullname
-        v['itemBlueprintPath'] = engram.BluePrintEntry[0]
+        v['itemBlueprintPath'] = engram.get('BluePrintEntry', 0, None)
         v['group'] = convert_engram_group(engram)
         v['requirements'] = dict(
-            characterLevel = engram.RequiredCharacterLevel[0],
-            engramPoints = engram.RequiredEngramPoints[0]
+            characterLevel=engram.RequiredCharacterLevel[0],
+            engramPoints=engram.RequiredEngramPoints[0],
         )
         v['manualUnlock'] = engram.bCanBeManuallyUnlocked[0]
         v['givesBP'] = engram.bGiveBlueprintToPlayerInventory[0]
@@ -50,6 +50,7 @@ class EngramsStage(JsonHierarchyExportStage):
             v['requirements']['otherEngrams'] = list(convert_requirement_sets(engram))
 
         return v
+
 
 _ENGRAM_GROUP_MAP = {
     'ARK_PRIME': 'Base Game',
@@ -61,13 +62,15 @@ _ENGRAM_GROUP_MAP = {
     'ARK_GENESIS': 'Genesis'
 }
 
+
 def convert_engram_group(engram: PrimalEngramEntry) -> str:
     if 'EngramGroup' not in engram:
         return 'BaseGame'
 
     group = engram.EngramGroup[0].value
-    enum = str(group).lstrip('EEngramGroup::')
+    enum = str(group).split('::')[-1]
     return _ENGRAM_GROUP_MAP.get(enum, enum)
+
 
 def convert_requirement_sets(engram: PrimalEngramEntry) -> Iterable:
     for struct in engram.EngramRequirementSets[0].values:

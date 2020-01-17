@@ -1,6 +1,6 @@
 from typing import Mapping
 
-from ue.properties import ArrayProperty, NameProperty, ObjectProperty, StructProperty
+from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
 from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
@@ -166,6 +166,7 @@ class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPC
     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
     NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
 
+
 class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngramEntry'):
     # DevKit Verified
     RequiredCharacterLevel = ueints(0)
@@ -176,6 +177,6 @@ class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngr
 
     # DevKit Unverified
 
-    BluePrintEntry: Mapping[int, ObjectProperty] # PrimalItem ref
+    BluePrintEntry: Mapping[int, ObjectProperty]  # PrimalItem ref
     EngramRequirementSets: Mapping[int, ArrayProperty]
     EngramGroup: Mapping[int, ByteProperty]
