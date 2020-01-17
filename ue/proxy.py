@@ -20,6 +20,8 @@ _UEFIELDS = '__uefields'
 _UEOVERRIDDEN = '__ueoverridden'
 _UEOBJECT = '__ueobject'
 
+NO_FALLBACK = object()
+
 
 class UEProxyStructure:
     '''Baseclass for UE proxy structures.
@@ -88,6 +90,21 @@ class UEProxyStructure:
 
     def __contains__(self, name):
         return hasattr(self, name)
+
+    def get(self, field_name: str, field_index: int = 0, fallback=NO_FALLBACK) -> Any:
+        field_value = getattr(self, field_name, None)
+        result = field_value
+        if field_value is not None:
+            indexed_value = field_value.get(field_index, None)
+            result = indexed_value
+
+        if result is None:
+            if fallback is NO_FALLBACK:
+                raise IndexError(f"{field_name}[{field_index}] not found on {self.__class__.__name__} proxy")
+            else:
+                return fallback
+
+        return result
 
     def update(self, values: Mapping[str, Mapping[int, UEBase]]):
         overrides = getattr(self, _UEOVERRIDDEN)
