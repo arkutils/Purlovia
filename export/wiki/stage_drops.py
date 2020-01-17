@@ -56,6 +56,9 @@ class DropsStage(JsonHierarchyExportStage):
         v['blueprintPath'] = str(proxy.get_source().fullname)
         v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
 
+        if not v['sets']:
+            return None
+
         return v
 
 
