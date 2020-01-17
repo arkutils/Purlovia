@@ -22,6 +22,8 @@ __all__ = [
 
 
 class MapStage(ExportStage):
+    discoverer: LevelDiscoverer
+
     def initialise(self, manager: ExportManager, root: ExportRoot):
         super().initialise(manager, root)
         self.discoverer = LevelDiscoverer(self.manager.loader)
@@ -32,7 +34,7 @@ class MapStage(ExportStage):
     def get_skip(self) -> bool:
         return not self.manager.config.export_wiki.ExportMaps
 
-    def extract_core(self, root: Path):
+    def extract_core(self, path: Path):
         '''Perform extraction for core (non-mod) data.'''
         if not self.manager.config.export_wiki.ExportVanillaMaps:
             return
@@ -45,12 +47,12 @@ class MapStage(ExportStage):
         for directory, levels in maps.items():
             logger.info(f'Performing extraction from map: {directory}')
             directory_name = PurePosixPath(directory.split('/')[-1])
-            self._extract_and_save(version, root, directory_name, levels)
+            self._extract_and_save(version, path, directory_name, levels)
 
-    def extract_mod(self, root: Path, modid: str):
+    def extract_mod(self, path: Path, modid: str):
         ...
 
-    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath, levels: Set[str]):
+    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath, levels: List[str]):
         # Work out the output path
         output_path = Path(base_path / relative_path)
 
@@ -101,14 +103,14 @@ class MapStage(ExportStage):
                 levels[path] = set()
             levels[path].add(assetname)
 
-        return levels
+        return {path: list(sorted(names)) for path, names in levels.items()}
 
     def _gather_data_from_levels(self, levels: List[str]) -> MapInfo:
         '''
         Goes through each sublevel, gathering data and looking for the persistent level.
         '''
         map_info = MapInfo(data=dict())
-        for assetname in sorted(levels):
+        for assetname in levels:
             asset = self.manager.loader[assetname]
 
             # Check if asset is a persistent level and collect data from it.
