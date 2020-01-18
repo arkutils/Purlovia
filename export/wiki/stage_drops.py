@@ -62,6 +62,14 @@ class DropsStage(JsonHierarchyExportStage):
         return v
 
 
+def decode_item_name(item):
+    item = item.value
+    if not item: return None
+    item = item.value
+    if not item: return None
+    return str(item.name)
+
+
 def decode_item_entry(entry):
     d = entry.as_dict()
     return dict(
@@ -70,7 +78,7 @@ def decode_item_entry(entry):
         quantity=(d['MinQuantity'], d['MaxQuantity'], d['QuantityPower']),
         quality=(d['MinQuality'], d['MaxQuality'], d['QualityPower']),
         forceBP=d['bForceBlueprint'],
-        items=[str(item.value.value.name) for item in d['Items'].values],
+        items=[decode_item_name(item) for item in d['Items'].values],
     )
 
 
