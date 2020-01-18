@@ -98,11 +98,15 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     # DevKit Verified
     bSupportDragOntoOtherItem = uebools(False)
     bUseItemDurability = uebools(True)
+    bPreventCheatGive = uebools(False)
+    bAllowRepair = uebools(True)
     bDurabilityRequirementIgnoredInWater = uebools(False)
     BaseCraftingXP = uefloats(2.0)
     BaseRepairingXP = uefloats(2.0)
     BaseItemWeight = uefloats(0.5)
+    CraftingMinLevelRequirement = ueints(0)
     BlueprintTimeToCraft = uefloats(5.0)
+    DroppedItemLifeSpanOverride = uefloats(0.0)
     MaxItemQuantity = ueints(1)
     MinBlueprintTimeToCraft = uefloats(0.1)
     MinItemDurability = uefloats(0.0)
@@ -114,9 +118,13 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     ItemDescription = uestrings('')
     SpoilingTime = uefloats(0.0)
     TimeForFullRepair = uefloats(5.0)
+    CraftingGiveItemCount = ueints(1)
+    RepairResourceRequirementMultiplier = uefloats(0.5)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
+    OverrideRepairingRequirements: Mapping[int, ArrayProperty] # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
+    SpoilingItem: Mapping[int, ObjectProperty]
 
     # DevKit Unverified
 

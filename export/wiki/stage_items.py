@@ -45,6 +45,9 @@ class ItemsStage(JsonHierarchyExportStage):
             v['icon'] = None
             return  # this is used as an indicator that this is a non-spawnable base item
 
+        if item.has_override('bPreventCheatGive'):
+            v['preventCheatGive'] = item.bPreventCheatGive[0]
+
         if item.has_override('DefaultFolderPaths'):
             v['folders'] = [str(folder) for folder in item.DefaultFolderPaths[0].values]
         else:
@@ -52,22 +55,31 @@ class ItemsStage(JsonHierarchyExportStage):
 
         v['weight'] = item.BaseItemWeight[0]
         v['maxQuantity'] = item.MaxItemQuantity[0]
-        v['spoiling'] = dict(
-            time = item.SpoilingTime[0],
-        )
-        v['crafting'] = dict(
-            xp = item.BaseCraftingXP[0],
-            timeToCraftBP = (item.MinBlueprintTimeToCraft[0], item.BlueprintTimeToCraft[0]),
-            repair = dict(
-                xp = item.BaseRepairingXP[0],
-                time = item.TimeForFullRepair[0]
+
+        if item.has_override('SpoilingTime'):
+            v['spoilage'] = dict(
+                time=item.SpoilingTime[0]
             )
-        )
+            if item.has_override('SpoilingItem'):
+                v['spoilage']['productBP'] = item.SpoilingItem[0]
 
         if item.bUseItemDurability[0].value:
             v['durability'] = dict(
                 min=item.MinItemDurability[0],
                 ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0]
+            )
+
+        v['crafting'] = dict(
+            xp = item.BaseCraftingXP[0],
+            bpCraftTime=(item.MinBlueprintTimeToCraft[0], item.BlueprintTimeToCraft[0]),
+            minLevelReq=item.CraftingMinLevelRequirement[0],
+            productCount=item.CraftingGiveItemCount[0]
+        )
+        if item.bAllowRepair[0]:
+            v['repair'] = dict(
+                xp=item.BaseRepairingXP[0],
+                time=item.TimeForFullRepair[0],
+                resourceMult=item.RepairResourceRequirementMultiplier[0]
             )
 
         if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
@@ -79,7 +91,12 @@ class ItemsStage(JsonHierarchyExportStage):
         if item.has_override('BaseCraftingResourceRequirements'):
             recipe = item.BaseCraftingResourceRequirements[0]
             if recipe.values:
-                v['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+                v['crafting']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+
+        if item.has_override('OverrideRepairingRequirements'):
+            recipe = item.OverrideRepairingRequirements[0]
+            if recipe.values:
+                v['repair']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
 
         return v
 
