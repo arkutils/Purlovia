@@ -52,6 +52,12 @@ mods:
                 unkown: 'Unkown'  # Misspelt to match mod
 
 
+# Override settings on a per-map bases
+maps:
+    /Game/Maps/Extinction/Ext_Landscape:
+        skip_export: true
+
+
 # Override settings on a per-species basis
 species:
     # Some classes that base-classes non-spawnable detector doesn't catch

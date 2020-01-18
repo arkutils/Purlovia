@@ -2,6 +2,7 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Set
 
+from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager, ExportRoot, ExportStage
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
@@ -111,6 +112,11 @@ class MapStage(ExportStage):
         '''
         map_info = MapInfo(data=dict())
         for assetname in levels:
+            modid = self.manager.loader.get_mod_id(assetname) or ''
+            overrides = get_overrides_for_map(assetname, modid)
+            if overrides.skip_export:
+                continue
+
             asset = self.manager.loader[assetname]
 
             # Check if asset is a persistent level and collect data from it.
