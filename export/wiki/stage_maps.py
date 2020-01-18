@@ -6,8 +6,8 @@ from automate.exporter import ExportManager, ExportRoot, ExportStage
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from ue.gathering import gather_properties
+from ue.utils import sanitise_output
 
-from .convert import format_data_fragment_for_export
 from .maps.data_container import MapInfo
 from .maps.discovery import LevelDiscoverer
 from .maps.gathering import EXPORTS, find_gatherer_by_category_name, find_gatherer_for_export
@@ -138,10 +138,8 @@ class MapStage(ExportStage):
                             if not data_fragment:
                                 continue
 
-                            # Pre-maturely format this fragment with format_for_json.
-                            # Doing this automatically is safer than manually.
-                            # We can't afford to leak any reference as maps are big.
-                            data_fragment = format_data_fragment_for_export(data_fragment)
+                            # Sanitise the data fragment to remove references to the UE tree.
+                            data_fragment = sanitise_output(data_fragment)
 
                             # Add to the list.
                             map_info.data[category_name].append(data_fragment)
