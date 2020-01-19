@@ -62,19 +62,23 @@ class DropsStage(JsonHierarchyExportStage):
         return v
 
 
+def decode_item_name(item):
+    item = item.value
+    if not item: return None
+    item = item.value
+    if not item: return None
+    return str(item.name)
+
+
 def decode_item_entry(entry):
     d = entry.as_dict()
     return dict(
         name=str(d['ItemEntryName']) or None,
         weight=d['EntryWeight'],
-        minQuantity=d['MinQuantity'],
-        maxQuantity=d['MaxQuantity'],
-        quantityPower=d['QuantityPower'],
-        minQuality=d['MinQuality'],
-        maxQuality=d['MaxQuality'],
-        qualityPower=d['QualityPower'],
+        quantity=(d['MinQuantity'], d['MaxQuantity'], d['QuantityPower']),
+        quality=(d['MinQuality'], d['MaxQuality'], d['QualityPower']),
         forceBP=d['bForceBlueprint'],
-        items=[str(item.value.value.name) for item in d['Items'].values],
+        items=[decode_item_name(item) for item in d['Items'].values],
     )
 
 
@@ -82,9 +86,7 @@ def decode_item_set(item_set):
     d = item_set.as_dict()
     return dict(
         name=d['SetName'] or None,
-        min=d['MinNumItems'],
-        max=d['MaxNumItems'],
-        numItemsPower=d['NumItemsPower'],
+        itemsQuantity=(d['MinNumItems'], d['MaxNumItems'], d['NumItemsPower']),
         setWeight=d['SetWeight'],
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )

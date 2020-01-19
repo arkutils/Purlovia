@@ -1,7 +1,7 @@
 from itertools import repeat
 from typing import Mapping
 
-from ue.properties import ArrayProperty, LinearColor, ObjectProperty
+from ue.properties import ArrayProperty, ByteProperty, LinearColor, ObjectProperty
 from ue.proxy import *
 
 STAT_COUNT = 12
@@ -96,16 +96,48 @@ class PrimalGameData(UEProxyStructure, uetype='/Script/ShooterGame.PrimalGameDat
 
 class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     # DevKit Verified
+    bIsEgg = uebools(False)
     bSupportDragOntoOtherItem = uebools(False)
+    bUseItemDurability = uebools(True)
+    bOverrideRepairingRequirements = uebools(False)
+    bIsCookingIngredient = uebools(False)
+    bPreventCheatGive = uebools(False)
+    bAllowRepair = uebools(True)
+    bDurabilityRequirementIgnoredInWater = uebools(False)
+    BaseCraftingXP = uefloats(2.0)
+    BaseRepairingXP = uefloats(2.0)
+    BaseItemWeight = uefloats(0.5)
+    CraftingMinLevelRequirement = ueints(0)
+    BlueprintTimeToCraft = uefloats(5.0)
+    DroppedItemLifeSpanOverride = uefloats(0.0)
+    MaxItemQuantity = ueints(1)
+    MinBlueprintTimeToCraft = uefloats(0.1)
+    MinItemDurability = uefloats(0.0)
+    MaxDurabilitiyOverride = uefloats(0.0)
     DescriptiveNameBase = uestrings('')
     EggLoseDurabilityPerSecond = uefloats(1.0)
     EggMaxTemperature = uefloats(30.0)
     EggMinTemperature = uefloats(15.0)
     ExtraEggLoseDurabilityPerSecondMultiplier = uefloats(1.0)
     ItemDescription = uestrings('')
+    SpoilingTime = uefloats(0.0)
+    TimeForFullRepair = uefloats(5.0)
+    CraftingGiveItemCount = ueints(1)
+    RepairResourceRequirementMultiplier = uefloats(0.5)
+    CraftingSkillQualityMultiplierMin = uefloats(0.0)
+    CraftingSkillQualityMultiplierMax = uefloats(0.05)
+    NewItemDurabilityOverride = uefloats(-1.0)
+    MyItemType = uebytes(('EPrimalItemType', 'MiscConsumable'))
+    MyConsumableType = uebytes(('EPrimalConsumableType', 'Food'))
+    MyEquipmentType = uebytes(('EPrimalEquipmentType', 'Hat'))
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
+    OverrideRepairingRequirements: Mapping[int, ArrayProperty] # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
+    SpoilingItem: Mapping[int, ObjectProperty] # = 'None'
+    StructureToBuild: Mapping[int, ObjectProperty] # = 'None'
+    WeaponToBuild: Mapping[int, ObjectProperty] # = 'None'
+    EggDinoClassToSpawn: Mapping[int, ObjectProperty] # = 'None'
 
     # DevKit Unverified
 

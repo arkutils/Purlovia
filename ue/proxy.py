@@ -165,13 +165,12 @@ def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]], **kwargs) -> Ma
         if isinstance(v, UEBase):
             output[i] = v  # type: ignore
         else:
-            ele = uetype.create(v, **kwargs)  # type: ignore
-            ele.asset = asset
+            ele = uetype.create(v, **kwargs, asset=asset)  # type: ignore
             output[i] = ele
 
-            if not asset:
-                asset = ele.asset
-                kwargs['asset'] = asset
+            # if not asset:
+            #     asset = ele.asset
+            #     kwargs['asset'] = asset
 
     return output
 
@@ -180,8 +179,8 @@ def uefloats(*args: Union[float, str, Tuple[float, str]]) -> Mapping[int, FloatP
     return uemap(FloatProperty, args)
 
 
-def uebytes(*args: int) -> Mapping[int, ByteProperty]:
-    return uemap(ByteProperty, args, size=1)
+def uebytes(*args: Union[int, Tuple[str, str]]) -> Mapping[int, ByteProperty]:
+    return uemap(ByteProperty, args)
 
 
 def uebools(*args: bool) -> Mapping[int, BoolProperty]:

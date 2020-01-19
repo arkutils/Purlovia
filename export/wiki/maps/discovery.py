@@ -32,8 +32,4 @@ class LevelDiscoverer:
             if assetname.startswith('/Game/Mods') and not any(assetname.startswith(prefix) for prefix in official_mod_prefixes):
                 continue
 
-            modid = self.loader.get_mod_id(assetname) or ''
-            #if get_overrides_for_species(assetname, modid).skip_export:
-            #    continue
-
             yield assetname

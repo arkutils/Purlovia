@@ -191,6 +191,8 @@ class DummyAsset(UEBase):
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
+        self.fake_names = dict()
+        self.index = 0
         self.none_index = 9999
         self.asset = self
 
@@ -200,7 +202,15 @@ class DummyAsset(UEBase):
     def _link(self):
         return super()._link()
 
+    def addFakeName(self, name: str) -> int:
+        index = self.index = self.index + 1
+        self.fake_names[index] = name
+        return index
+
     def getName(self, index):
+        fake_name = self.fake_names.get(index, None)
+        if fake_name is not None:
+            return StringProperty.create(fake_name)
         if index == self.none_index:
             return StringProperty.create('None')
         raise ValueError("Attempt to lookup a name in a dummy asset")
@@ -436,18 +446,30 @@ class ByteProperty(ValueProperty):  # With optional enum type
     value: Union[NameIndex, int]  # type: ignore  # (we *want* to override the base type)
 
     @classmethod
-    def create(cls, value: int, size: int = 1, asset: UEBase = None):
+    def create(cls, value: Union[int, Tuple[str, str]], asset: UEBase = None):
         '''Create a new ByteProperty directly.'''
-        if not isinstance(value, int):
-            raise ValueError("ByteProperty requires an int value")
-        if size != 1:
-            raise ValueError("ByteProperty can only be created directly with size 1")
+        if isinstance(value, int):
+            asset = asset or DummyAsset()
+            data = struct.pack('iib', asset.none_index, 0, value)
+            size = 1
+        elif isinstance(value, tuple):  # (str, str)
+            enum, name = value
+            asset = asset or DummyAsset()
+            enum_index = asset.addFakeName(enum)
+            name_index = asset.addFakeName(f"{enum}::{name}")
+            data = struct.pack('iiii', enum_index, 0, name_index, 0)
+            size = 8
+        else:
+            raise ValueError("ByteProperty requires an int value or a tuple of (enum, value) strings")
 
-        asset = asset or DummyAsset(asset=None)
-        data = struct.pack('iib', asset.none_index, 0, value)
         obj = cls(asset, MemoryStream(data))
         obj.deserialise(size=size)
+        obj.link()
         return obj
+
+    def get_enum_value_name(self):
+        assert isinstance(self.value, NameIndex)
+        return str(self.value).split('::')[-1]
 
     def _deserialise(self, size=None):
         assert size is not None
