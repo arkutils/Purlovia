@@ -42,8 +42,18 @@ class ItemsStage(JsonHierarchyExportStage):
 
         icon = item.get('ItemIcon', 0, None)
         if not icon:
-            v['icon'] = None
-            return  # this is used as an indicator that this is a non-spawnable base item
+            return None # this is used as an indicator that this is a non-spawnable base item
+        v['icon'] = icon
+
+        itemType = item.get('MyItemType', 0, None)
+        v['type'] = itemType.get_enum_value_name()
+        
+        if v['type'] == 'MiscConsumable':
+            consumableType = item.get('MyConsumableType', 0, None)
+            v['type'] += '/' + consumableType.get_enum_value_name()
+        elif v['type'] == 'Equipment':
+            equipmentType = item.get('MyEquipmentType', 0, None)
+            v['type'] += '/' + equipmentType.get_enum_value_name()
 
         if item.has_override('bPreventCheatGive'):
             v['preventCheatGive'] = item.bPreventCheatGive[0]
@@ -62,13 +72,17 @@ class ItemsStage(JsonHierarchyExportStage):
                 v['spoilage']['productBP'] = item.SpoilingItem[0]
 
         if item.bUseItemDurability[0].value:
-            v['durability'] = dict(min=item.MinItemDurability[0], ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0])
+            v['durability'] = dict(
+                min=item.MinItemDurability[0],
+                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0]
+            )
 
         v['crafting'] = dict(
             xp=item.BaseCraftingXP[0],
             bpCraftTime=(item.MinBlueprintTimeToCraft[0], item.BlueprintTimeToCraft[0]),
             minLevelReq=item.CraftingMinLevelRequirement[0],
             productCount=item.CraftingGiveItemCount[0],
+            skillQualityMult = (item.CraftingSkillQualityMultiplierMin[0], item.CraftingSkillQualityMultiplierMax[0])
         )
 
         if item.bAllowRepair[0]:
@@ -77,6 +91,11 @@ class ItemsStage(JsonHierarchyExportStage):
                 time=item.TimeForFullRepair[0],
                 resourceMult=item.RepairResourceRequirementMultiplier[0],
             )
+
+            repairRecipe = item.get('OverrideRepairingRequirements', 0, None)
+            if item.bOverrideRepairingRequirements[0] and repairRecipe and repairRecipe.values:
+                v['repair']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in repairRecipe.values]
+
 
         if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
             v['structureTemplate'] = item.StructureToBuild[0]
@@ -89,15 +108,16 @@ class ItemsStage(JsonHierarchyExportStage):
             if recipe.values:
                 v['crafting']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
 
-        if 'OverrideRepairingRequirements' in item:
-            recipe = item.OverrideRepairingRequirements[0]
-            if recipe.values:
-                v['repair'] = dict()
-                v['repair']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
-
         if item.has_override('UseItemAddCharacterStatusValues'):
             status_effects = item.UseItemAddCharacterStatusValues[0]
             v['statEffects'] = dict(convert_status_effect(entry) for entry in status_effects.values)
+
+        eggDinoClass = item.get('EggDinoClassToSpawn', 0, None)
+        if item.bIsEgg[0] and eggDinoClass:
+            v['egg'] = dict(
+                dinoClass=eggDinoClass,
+                temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0])
+            )
 
         return v
 

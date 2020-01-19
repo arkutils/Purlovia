@@ -67,8 +67,7 @@ def convert_engram_group(engram: PrimalEngramEntry) -> str:
     if 'EngramGroup' not in engram:
         return 'BaseGame'
 
-    group = engram.EngramGroup[0].value
-    enum = str(group).split('::')[-1]
+    group = engram.EngramGroup[0].get_enum_value_name()
     return _ENGRAM_GROUP_MAP.get(enum, enum)
 
 
