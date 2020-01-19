@@ -449,6 +449,10 @@ class ByteProperty(ValueProperty):  # With optional enum type
         obj.deserialise(size=size)
         return obj
 
+    def get_enum_value_name(self):
+        assert isinstance(self.value, NameIndex)
+        return str(self.value).split('::')[-1]
+
     def _deserialise(self, size=None):
         assert size is not None
 
