@@ -185,10 +185,19 @@ def find_asset(assetname, loader):
         mingw_base = Path(os.environ['MINGW_PREFIX']).parent
         try:
             path = Path(assetname).relative_to(mingw_base)
-            assetname = PurePosixPath(path)
+            assetname = str(PurePosixPath(path))
         except ValueError:
             pass
 
+    # Try it as-is first
+    try:
+        clean_path = loader.clean_asset_name(assetname)
+        asset = loader[clean_path]
+        return asset.assetname
+    except Exception as ex:
+        pass
+
+    # Try a combination of possible roots
     asset_path_options = (
         Path(assetname),
         Path(assetname).absolute(),
@@ -197,6 +206,7 @@ def find_asset(assetname, loader):
 
     search_paths = (
         '.',
+        Path(get_global_config().settings.DataDir / 'game/ShooterGame'),
         loader.asset_path,
         loader.absolute_asset_path,
     )
@@ -216,7 +226,7 @@ def find_asset(assetname, loader):
             except AssetLoadException:
                 continue
 
-    print('Not found: ' + assetname, file=sys.stderr)
+    print(f'Not found: {assetname}', file=sys.stderr)
     sys.exit(404)
 
 
