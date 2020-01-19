@@ -71,20 +71,20 @@ class ExportSection(ExportDefaultsSection):
 
 
 class ExportASBSection(ExportSection):
-    Export8Stats: bool = False
-    ExportVanillaSpecies: bool = False
+    ExportSpecies: bool = True
 
     class Config:
         extra = Extra.forbid
 
 
 class ExportWikiSection(ExportSection):
+    ExportMaps: bool = True
     ExportVanillaMaps: bool = True
-    ExportSpawnData: bool = True
-    ExportBiomeData: bool = True
-    ExportSupplyCrateData: bool = True
-    ExportVeinLocations: bool = True
-    ExportNestLocations: bool = True
+    ExportSpawningGroups: bool = True
+    ExportEngrams: bool = True
+    ExportItems: bool = True
+    ExportDrops: bool = True
+    ExportLootCrates: bool = True
 
     class Config:
         extra = Extra.forbid
@@ -109,7 +109,6 @@ class ConfigFile(BaseModel):
     export_asb: ExportASBSection
     export_wiki: ExportWikiSection
 
-    maps: Tuple[str, ...] = tuple()
     official_mods: ModIdAccess = ModIdAccess(dict())
     mods: Tuple[str, ...] = tuple()
 

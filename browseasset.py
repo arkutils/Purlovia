@@ -1,12 +1,14 @@
 import os
 import sys
 from collections.abc import Iterable
+from pathlib import Path, PurePosixPath
 from tkinter import EventType, Tk, ttk  # type: ignore
 from typing import *
 
 from automate.ark import ArkSteamManager
+from config import get_global_config
 from ue.base import UEBase
-from ue.loader import AssetLoader
+from ue.loader import AssetLoader, AssetLoadException
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None
@@ -27,7 +29,7 @@ def create_ui():
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.minsize(width=600, height=400)
-    root.geometry('800x900')
+    root.geometry('1100x900')
 
     # Grid-based layout frame
     frame = ttk.Frame(root, padding="6 6 6 6")
@@ -40,7 +42,7 @@ def create_ui():
     tree.grid(column=0, row=0, sticky='nsew')
     tree.columnconfigure(0, weight=1)
     tree.rowconfigure(0, weight=1)
-    tree.column('#0', stretch=0)
+    tree.column('#0', width=260, stretch=0)
     tree.heading('type', text='Type')
     tree.heading('value', text='Value')
     tree.column('type', width=110, stretch=False, anchor='e')
@@ -129,7 +131,8 @@ def add_placeholder_node(itemId):
 def add_asset_to_root(asset):
     itemId = tree.insert('', 'end', node_id(asset), text=asset.name, values=(type_name(asset), ))
     treenodes[itemId] = asset
-    add_placeholder_node(itemId)
+    insert_fields_for_node(itemId)
+    tree.item(itemId, open=True)
 
 
 def get_value_as_string(value):
@@ -161,24 +164,82 @@ def load_asset(assetname):
     add_asset_to_root(asset)
 
 
+def relative_path(path, root):
+    try:
+        return Path(path).relative_to(root)
+    except ValueError:
+        return None
+
+
+def find_asset(assetname, loader):
+    if not assetname:
+        from tkinter import filedialog
+        assetname = filedialog.askopenfilename(title='Select asset file...',
+                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
+                                               initialdir=loader.asset_path)
+        assert assetname
+
+    # Attempt to work around MingW hijacking /Game as a root path
+    if assetname.startswith('//'): assetname = assetname[1:]
+    if 'MINGW_PREFIX' in os.environ:
+        mingw_base = Path(os.environ['MINGW_PREFIX']).parent
+        try:
+            path = Path(assetname).relative_to(mingw_base)
+            assetname = str(PurePosixPath(path))
+        except ValueError:
+            pass
+
+    # Try it as-is first
+    try:
+        clean_path = loader.clean_asset_name(assetname)
+        asset = loader[clean_path]
+        return asset.assetname
+    except Exception as ex:
+        pass
+
+    # Try a combination of possible roots
+    asset_path_options = (
+        Path(assetname),
+        Path(assetname).absolute(),
+        Path(assetname).resolve(),
+    )
+
+    search_paths = (
+        '.',
+        Path(get_global_config().settings.DataDir / 'game/ShooterGame'),
+        loader.asset_path,
+        loader.absolute_asset_path,
+    )
+
+    for asset_path in asset_path_options:
+        for search_path in search_paths:
+            clean_path = relative_path(asset_path, search_path)
+            if not clean_path:
+                continue
+
+            clean_path = clean_path.with_suffix('')
+            assetname = str(PurePosixPath(clean_path))
+
+            try:
+                asset = loader[assetname]
+                return asset.assetname
+            except AssetLoadException:
+                continue
+
+    print(f'Not found: {assetname}', file=sys.stderr)
+    sys.exit(404)
+
+
 if __name__ == '__main__':
-    global arkman, loader
     arkman = ArkSteamManager()
     loader = arkman.getLoader()
+    config = get_global_config()
 
     assetname = sys.argv[1] if len(sys.argv) > 1 else None
     create_ui()
     assert root
 
-    if not assetname:
-        from tkinter import filedialog
-        from pathlib import Path
-        assetname = filedialog.askopenfilename(title='Select asset file...',
-                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
-                                               initialdir=loader.asset_path)
-        assert assetname
-        path = Path(assetname).relative_to(loader.asset_path).with_suffix('')
-        assetname = str(path)
-
+    assetname = find_asset(assetname, loader)
     load_asset(assetname)
+
     root.mainloop()

@@ -189,7 +189,7 @@ class ObjectIndex(UEBase):
         if not self.value:
             return None
 
-        return f'{self.value.namespace.value.name}.{str(self.value.name).rstrip("_C")}'
+        return self.value.fullname
 
     # if support_pretty:
 

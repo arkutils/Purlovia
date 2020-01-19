@@ -18,6 +18,9 @@ __all__ = [
 _UETYPE = '__uetype'
 _UEFIELDS = '__uefields'
 _UEOVERRIDDEN = '__ueoverridden'
+_UEOBJECT = '__ueobject'
+
+NO_FALLBACK = object()
 
 
 class UEProxyStructure:
@@ -80,12 +83,28 @@ class UEProxyStructure:
 
         # Initialise the empty set of overridden fields
         setattr(self, _UEOVERRIDDEN, set())
+        setattr(self, _UEOBJECT, None)
 
     def __getitem__(self, name):
         return getattr(self, name)
 
     def __contains__(self, name):
         return hasattr(self, name)
+
+    def get(self, field_name: str, field_index: int = 0, fallback=NO_FALLBACK) -> Any:
+        field_value = getattr(self, field_name, None)
+        result = field_value
+        if field_value is not None:
+            indexed_value = field_value.get(field_index, None)
+            result = indexed_value
+
+        if result is None:
+            if fallback is NO_FALLBACK:
+                raise IndexError(f"{field_name}[{field_index}] not found on {self.__class__.__name__} proxy")
+            else:
+                return fallback
+
+        return result
 
     def update(self, values: Mapping[str, Mapping[int, UEBase]]):
         overrides = getattr(self, _UEOVERRIDDEN)
@@ -97,6 +116,12 @@ class UEProxyStructure:
             for i, value in field_values.items():
                 target_field[i] = value
                 overrides.add((name, i))
+
+    def set_source(self, source: Any):
+        setattr(self, _UEOBJECT, source)
+
+    def get_source(self) -> Any:
+        return getattr(self, _UEOBJECT, None)
 
     def has_override(self, name: str, index: int = 0):
         '''Returns True if a value has bee set (excluding the defaults).'''
@@ -140,13 +165,12 @@ def uemap(uetype: Type[Tele], args: Iterable[Union[Tval, Tele]], **kwargs) -> Ma
         if isinstance(v, UEBase):
             output[i] = v  # type: ignore
         else:
-            ele = uetype.create(v, **kwargs)  # type: ignore
-            ele.asset = asset
+            ele = uetype.create(v, **kwargs, asset=asset)  # type: ignore
             output[i] = ele
 
-            if not asset:
-                asset = ele.asset
-                kwargs['asset'] = asset
+            # if not asset:
+            #     asset = ele.asset
+            #     kwargs['asset'] = asset
 
     return output
 
@@ -155,8 +179,8 @@ def uefloats(*args: Union[float, str, Tuple[float, str]]) -> Mapping[int, FloatP
     return uemap(FloatProperty, args)
 
 
-def uebytes(*args: int) -> Mapping[int, ByteProperty]:
-    return uemap(ByteProperty, args, size=1)
+def uebytes(*args: Union[int, Tuple[str, str]]) -> Mapping[int, ByteProperty]:
+    return uemap(ByteProperty, args)
 
 
 def uebools(*args: bool) -> Mapping[int, BoolProperty]:

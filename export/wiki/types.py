@@ -1,91 +1,10 @@
 from typing import Mapping
 
-from ue.properties import ArrayProperty, NameProperty, ObjectProperty
+from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
 from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
-
-__all__ = [
-    'WORLD_SETTINGS_EXPORTED_PROPERTIES', 'ZONE_MANAGER_EXPORTED_PROPERTIES', 'BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES',
-    'BIOME_VOLUME_EXPORTED_PROPERTIES', 'SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES', 'SUPPLY_DROP_EXPORTED_PROPERTIES',
-    'PrimalWorldSettings', 'NPCZoneManager', 'BiomeZoneVolume', 'SupplyCrateSpawningVolume', 'TogglePainVolume',
-    'CustomActorList', 'Actor', 'OilVein', 'WaterVein', 'GasVein', 'PrimalStructurePowerNode', 'WildPlantSpeciesZ',
-    'ExplorerNote'
-]
-
-WORLD_SETTINGS_EXPORTED_PROPERTIES = {
-    'OverrideDifficultyMax': 'difficultyMax',
-    'OverrideWeaponMapTextureEmpty': 'heldMapEmpty',
-    'OverrideWeaponMapTextureFilled': 'heldMap',
-    'OverrideUIMapTextureEmpty': 'mapEmpty',
-    'OverrideUIMapTextureFilled': 'bigMap',
-    'OverrideUIMapTextureSmall': 'smallMap',
-    'AllowDownloadDinoClasses': 'allowDownloadDinoClasses'
-}
-
-ZONE_MANAGER_EXPORTED_PROPERTIES = {
-    'NPCSpawnEntriesContainerObject': 'spawnGroup',
-    'MinDesiredNumberOfNPC': 'MinDesiredNumberOfNPC',
-    'bNeverSpawnInWater': 'bNeverSpawnInWater',
-    'bForceUntameable': 'bForceUntameable',
-}
-
-BIOME_VOLUME_ALWAYS_EXPORTED_PROPERTIES = {
-    'BiomeZoneName': 'BiomeZoneName',
-    'BiomeZonePriority': 'BiomeZonePriority',
-    'bIsOutside': 'bIsOutside',
-    'bPreventCrops': 'bPreventCrops',
-}
-
-BIOME_VOLUME_EXPORTED_PROPERTIES = {
-    'FinalTemperatureMultiplier': 'FinalTemperatureMultiplier',
-    'FinalTemperatureExponent': 'FinalTemperatureExponent',
-    'FinalTemperatureAddition': 'FinalTemperatureAddition',
-    'PreOffsetTemperatureMultiplier': 'PreOffsetTemperatureMultiplier',
-    'PreOffsetTemperatureExponent': 'PreOffsetTemperatureExponent',
-    'PreOffsetTemperatureAddition': 'PreOffsetTemperatureAddition',
-    'AboveTemperatureOffsetThreshold': 'AboveTemperatureOffsetThreshold',
-    'AboveTemperatureOffsetMultiplier': 'AboveTemperatureOffsetMultiplier',
-    'AboveTemperatureOffsetExponent': 'AboveTemperatureOffsetExponent',
-    'BelowTemperatureOffsetThreshold': 'BelowTemperatureOffsetThreshold',
-    'BelowTemperatureOffsetMultiplier': 'BelowTemperatureOffsetMultiplier',
-    'BelowTemperatureOffsetExponent': 'BelowTemperatureOffsetExponent',
-    'AbsoluteTemperatureOverride': 'AbsoluteTemperatureOverride',
-    'AbsoluteMaxTemperature': 'AbsoluteMaxTemperature',
-    'AbsoluteMinTemperature': 'AbsoluteMinTemperature',
-    'AbsoluteWindOverride': 'AbsoluteWindOverride',
-    'PreOffsetWindMultiplier': 'PreOffsetWindMultiplier',
-    'PreOffsetWindExponent': 'PreOffsetWindExponent',
-    'PreOffsetWindAddition': 'PreOffsetWindAddition',
-    'AboveWindOffsetThreshold': 'AboveWindOffsetThreshold',
-    'AboveWindOffsetMultiplier': 'AboveWindOffsetMultiplier',
-    'AboveWindOffsetExponent': 'AboveWindOffsetExponent',
-    'BelowWindOffsetThreshold': 'BelowWindOffsetThreshold',
-    'BelowWindOffsetMultiplier': 'BelowWindOffsetMultiplier',
-    'BelowWindOffsetExponent': 'BelowWindOffsetExponent',
-    'FinalWindMultiplier': 'FinalWindMultiplier',
-    'FinalWindExponent': 'FinalWindExponent',
-    'FinalWindAddition': 'FinalWindAddition'
-}
-
-SUPPLY_DROP_ALWAYS_EXPORTED_PROPERTIES = {
-    'MaxNumCrates': 'maxNumCrates',
-    'DelayBeforeFirstCrate': 'delayBeforeFirstCrate',
-    'MaxDelayBeforeFirstCrate': 'maxDelayBeforeFirstCrate',
-    'IntervalBetweenCrateSpawns': 'intervalBetweenCrateSpawns',
-    'MaxIntervalBetweenCrateSpawns': 'maxIntervalBetweenCrateSpawns',
-    'IntervalBetweenMaxedCrateSpawns': 'intervalBetweenMaxedCrateSpawns',
-    'MaxIntervalBetweenMaxedCrateSpawns': 'maxIntervalBetweenMaxedCrateSpawns',
-    'MinTimeBetweenCrateSpawnsAtSamePoint': 'minTimeBetweenCrateSpawnsAtSamePoint',
-}
-
-SUPPLY_DROP_EXPORTED_PROPERTIES = {
-    'SP_IntervalBetweenCrateSpawns': 'SP_IntervalBetweenCrateSpawns',
-    'SP_MaxIntervalBetweenCrateSpawns': 'SP_MaxIntervalBetweenCrateSpawns',
-    'SP_IntervalBetweenMaxedCrateSpawns': 'SP_IntervalBetweenMaxedCrateSpawns',
-    'SP_MaxIntervalBetweenMaxedCrateSpawns': 'SP_MaxIntervalBetweenMaxedCrateSpawns',
-}
 
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
@@ -99,11 +18,13 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
 
     # DevKit Unverified
 
-    OverrideWeaponMapTextureEmpty: Mapping[int, ArrayProperty]
+    OverrideWeaponMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideWeaponMapTextureFilled: Mapping[int, ObjectProperty]
     OverrideUIMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideUIMapTextureFilled: Mapping[int, ObjectProperty]
     OverrideUIMapTextureSmall: Mapping[int, ObjectProperty]
+    AllowDownloadDinoClasses: Mapping[int, ArrayProperty]
+    NPCRandomSpawnClassWeights: Mapping[int, StructProperty]
 
 
 class NPCZoneManager(UEProxyStructure, uetype='/Script/ShooterGame.NPCZoneManager'):
@@ -236,3 +157,45 @@ class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
 
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
+    # DevKit Unverified
+    MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
+
+    NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
+    NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
+
+
+class PrimalStructureItemContainer_SupplyCrate(UEProxyStructure, uetype='/Script/ShooterGame.PrimalStructureItemContainer_SupplyCrate'):
+    # DevKit Verified
+    bSetsRandomWithoutReplacement = uebools(False)
+    InitialTimeToLoseHealth = uefloats(20.0)
+    IntervalTimeToLoseHealth = uefloats(120.0)
+    MaxLevelToAccess = ueints(0)
+    MinItemSets = uefloats(1.0)
+    MaxItemSets = uefloats(1.0)
+    MinQualityMultiplier = uefloats(1.0)
+    MaxQualityMultiplier = uefloats(1.0)
+    NumItemSetsPower = uefloats(1.0)
+    RequiredLevelToAccess = ueints(0)
+
+    # DevKit Unverified
+
+    ItemSets: Mapping[int, ArrayProperty]
+    AdditionalItemSets: Mapping[int, ArrayProperty]
+
+
+class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngramEntry'):
+    # DevKit Verified
+    RequiredCharacterLevel = ueints(0)
+    RequiredEngramPoints = ueints(1)
+    bGiveBlueprintToPlayerInventory = uebools(True)
+    bCanBeManuallyUnlocked = uebools(True)
+    ExtraEngramDescription = uestrings('')
+
+    # DevKit Unverified
+
+    BluePrintEntry: Mapping[int, ObjectProperty]  # PrimalItem ref
+    EngramRequirementSets: Mapping[int, ArrayProperty]
+    EngramGroup: Mapping[int, ByteProperty]

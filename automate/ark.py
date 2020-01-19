@@ -28,7 +28,7 @@ logger.addHandler(NullHandler())
 class ArkSteamManager:
     def __init__(self, config: ConfigFile = get_global_config()):
         self.config = config
-        self.basepath: Path = config.settings.DataDir.absolute()
+        self.basepath: Path = Path(config.settings.DataDir).absolute()
 
         self.steamcmd_path: Path = self.basepath / 'Steam'
         self.gamedata_path: Path = self.basepath / 'game'

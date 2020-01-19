@@ -10,13 +10,13 @@ import yaml
 
 import ark.discovery
 from config import ConfigFile, get_global_config
+from export.asb.root import ASBRoot
+from export.example.root import ExampleRoot
+from export.wiki.root import WikiRoot
 
 from .ark import ArkSteamManager
-from .export import export_values
-from .export_wiki import export_map_data
+from .exporter import ExportManager
 from .git import GitManager
-from .manifest import update_manifest
-from .manifest_wiki import update_manifest_wiki
 from .notification import handle_exception
 
 # pylint: enable=invalid-name
@@ -28,8 +28,8 @@ logger.addHandler(logging.NullHandler())
 def setup_logging(path='config/logging.yaml', level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
-        with open(path, 'rt') as f:
-            config = yaml.safe_load(f)
+        with open(path, 'rt') as log_config_file:
+            config = yaml.safe_load(log_config_file)
         Path('logs').mkdir(parents=True, exist_ok=True)
         logging.config.dictConfig(config)
     else:
@@ -70,13 +70,15 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
 
     parser.add_argument('--skip-extract-asb', action='store_true', help='skip extracting all ASB data completely')
-    parser.add_argument('--skip-vanilla', action='store_true', help='skip extracting ASB vanilla species')
-    parser.add_argument('--stats', action='store', choices=('8', '12'), help='specify the stat format for species')
+    parser.add_argument('--skip-asb-species', action='store_true', help='skip extracting species for ASB')
 
     parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
-    parser.add_argument('--skip-spawn-data', action='store_true', help='skip extracting spawn data from maps')
-    parser.add_argument('--skip-biome-data', action='store_true', help='skip extracting biome data from maps')
-    parser.add_argument('--skip-supply-drop-data', action='store_true', help='skip extracting supply drops from maps')
+    parser.add_argument('--skip-wiki-maps', action='store_true', help='skip extracting map data for the wiki')
+    parser.add_argument('--skip-wiki-vanilla-maps', action='store_true', help='skip extracting vanilla map data for the wiki')
+    parser.add_argument('--skip-wiki-spawn-groups', action='store_true', help='skip extracting spawning groups for the wiki')
+    parser.add_argument('--skip-wiki-engrams', action='store_true', help='skip extracting engrams for the wiki')
+    parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
+    parser.add_argument('--skip-wiki-drops', action='store_true', help='skip extracting drops for the wiki')
 
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
@@ -109,48 +111,44 @@ def handle_args(args: Any) -> ConfigFile:
 
     config.dev.DevMode = not args.live
 
-    if args.stats:
-        if int(args.stats) == 12:
-            config.export_asb.Export8Stats = False
-        else:
-            config.export_asb.Export8Stats = True
-
     if args.notify:  # to enable notifications in dev mode
         config.errors.SendNotifications = True
 
     if args.remove_cache:
         config.dev.ClearHierarchyCache = True
 
-    if args.skip_pull:
-        config.git.SkipPull = True
-
     if args.skip_install:
         config.settings.SkipInstall = True
-
     if args.skip_extract:
         config.settings.SkipExtract = True
 
+    # ASB extract stages
     if args.skip_extract_asb:
         config.export_asb.Skip = True
+    if args.skip_asb_species:
+        config.export_asb.ExportSpecies = False
 
+    # Wiki extract stages
     if args.skip_extract_wiki:
         config.export_wiki.Skip = True
+    if args.skip_wiki_maps:
+        config.export_wiki.ExportMaps = False
+    if args.skip_wiki_vanilla_maps:
+        config.export_wiki.ExportVanillaMaps = False
+    if args.skip_wiki_spawn_groups:
+        config.export_wiki.ExportSpawningGroups = False
+    if args.skip_wiki_engrams:
+        config.export_wiki.ExportEngrams = False
+    if args.skip_wiki_items:
+        config.export_wiki.ExportItems = False
+    if args.skip_wiki_drops:
+        config.export_wiki.ExportDrops = False
 
-    if args.skip_spawn_data:
-        config.export_wiki.ExportSpawnData = False
-
-    if args.skip_biome_data:
-        config.export_wiki.ExportBiomeData = False
-
-    if args.skip_supply_drop_data:
-        config.export_wiki.ExportSupplyCrateData = False
-
-    if args.skip_vanilla:
-        config.export_asb.ExportVanillaSpecies = False
-
+    # Git actions
+    if args.skip_pull:
+        config.git.SkipPull = True
     if args.skip_commit:
         config.git.SkipCommit = True
-
     if args.skip_push:
         config.git.SkipPush = True
 
@@ -180,18 +178,15 @@ def run(config: ConfigFile):
         # Initialise the asset hierarchy, scanning everything
         ark.discovery.initialise_hierarchy(arkman, config)
 
-        # Export species data for ASB, update manifest, commit
-        export_values(arkman, set(mods), config)
-        update_manifest(config.settings.OutputPath / config.export_asb.PublishSubDir)
-        git.after_exports(config.export_asb.PublishSubDir, config.export_asb.CommitHeader)
-
-        # Export map data for the Ark Wiki, update manifest, commit
-        export_map_data(arkman, set(mods), config)
-        update_manifest_wiki(config.settings.OutputPath / config.export_wiki.PublishSubDir)
-        git.after_exports(config.export_wiki.PublishSubDir, config.export_wiki.CommitHeader)
+        # Handle exporting
+        exporter = ExportManager(arkman, git, config)
+        # exporter.add_root(ExampleRoot())
+        exporter.add_root(ASBRoot())
+        exporter.add_root(WikiRoot())
+        exporter.perform()
 
         # Push any changes
-        git.finish()
+        # git.finish()
 
         logger.info('Automation completed')
 

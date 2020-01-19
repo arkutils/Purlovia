@@ -26,7 +26,6 @@ def read_config(filename: str):
     parser.read(filename)
 
     # Sections that require special handling
-    maps = list(parser['maps'].values())
     mods = list(parser['mods'].keys())
     official_mods = ModIdAccess(parser['official-mods'], keyed_by_id=False)  # type: ignore  # ConfigParser is terribly typed
 
@@ -39,7 +38,6 @@ def read_config(filename: str):
 
     # Combine all sections
     combined_sections = {
-        'maps': maps,
         'mods': mods,
         'official-mods': official_mods,
         **simple_sections,

@@ -2,17 +2,16 @@ from logging import NullHandler, getLogger
 from typing import *
 
 from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
-from ark.export_asb.bones import gather_damage_mults
-from ark.export_asb.breeding import gather_breeding_data
-from ark.export_asb.colors import gather_color_data, gather_pgd_colors
-from ark.export_asb.immobilize import gather_immobilization_data
-from ark.export_asb.stats import gather_stat_data
-from ark.export_asb.taming import gather_taming_data
+from ark.overrides import get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
+from export.asb.bones import gather_damage_mults
+from export.asb.breeding import gather_breeding_data
+from export.asb.colors import gather_color_data, gather_pgd_colors
+from export.asb.immobilize import gather_immobilization_data
+from export.asb.stats import gather_stat_data
+from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound, ModNotFound
-
-from .overrides import get_overrides_for_species
 
 __all__ = [
     'values_from_pgd',
@@ -71,7 +70,7 @@ def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, 
 def values_for_species(asset: UAsset,
                        props: PriorityPropDict,
                        allFields=False,
-                       fullStats=False,
+                       fullStats=True,
                        includeColor=True,
                        includeBreeding=True,
                        includeImmobilize=True,
@@ -79,16 +78,24 @@ def values_for_species(asset: UAsset,
                        includeTaming=True):
     assert asset.loader
 
+    # Having no name or tag is an indication that this is an intermediate class, not a spawnable species
     name = stat_value(props, 'DescriptiveName', 0, None) or stat_value(props, 'DinoNameTag', 0, None)
     if not name:
-        logger.warning(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
+        logger.debug(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
         return
-        name = '<unnamed species>'
+
+    # Also consider anything that doesn't override any base status value as non-spawnable
+    if not any(stat_value(props, 'MaxStatusValues', n, None) is not None for n in ARK_STAT_INDEXES):
+        logger.debug(f"Species {asset.assetname} has no overridden stats - skipping")
+        return
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
 
     modid: str = asset.loader.get_mod_id(asset.assetname)
     overrides = get_overrides_for_species(asset.assetname, modid)
+
+    if get_overrides_for_species(asset.assetname, modid).skip_export:
+        return
 
     # TODO: Discuss having ASB append the class and remove the C and only provide the asset path
     bp: str = asset.default_class.fullname

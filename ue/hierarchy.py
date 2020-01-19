@@ -262,7 +262,7 @@ def _ingest_export(export: ExportTableItem, loader: AssetLoader):
 
         # If we've risen outside /Game but didn't find a match, add it to the root and complain
         if not anchor_point and not parent_name.startswith('/Game'):
-            logger.warning(f'Internal class {parent_name} missing from pre-defined hierarchy')
+            logger.debug(f'Internal class {parent_name} missing from pre-defined hierarchy')
             tree.add(ROOT_NAME, parent_name)
             anchor_point = tree.get(parent_name, None)
 

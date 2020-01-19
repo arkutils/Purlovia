@@ -12,9 +12,14 @@
             "console": "integratedTerminal",
             "args": [
                 "--skip-install",
-                "--skip-extract-wiki",
-                // "--skip-vanilla",
+                "--skip-push",
                 // "--remove-cache",
+                // "--skip-extract-wiki",
+                "--skip-extract-asb",
+                "--skip-wiki-spawn-groups",
+                "--skip-wiki-maps",
+                "--skip-wiki-items",
+                // "--skip-wiki-drops",
             ]
         },
         {

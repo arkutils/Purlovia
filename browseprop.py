@@ -5,6 +5,7 @@ from typing import *
 
 import ark.asset
 from automate.ark import ArkSteamManager
+from browseasset import find_asset
 from ue.base import UEBase
 from ue.loader import AssetLoader
 from ue.properties import FloatProperty, Property, StructProperty
@@ -126,7 +127,6 @@ def fill_property_grid():
 
 
 if __name__ == '__main__':
-    global arkman, loader
     arkman = ArkSteamManager()
     loader = arkman.getLoader()
 
@@ -134,20 +134,9 @@ if __name__ == '__main__':
     create_ui()
     assert root
 
-    if not mainasset:
-        from tkinter import filedialog
-        from pathlib import Path
-        assetname = filedialog.askopenfilename(title='Select asset file...',
-                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
-                                               initialdir=loader.asset_path)
-        assert assetname
-        path = Path(assetname).relative_to(loader.asset_path).with_suffix('')
-        mainasset = str(path)
+    mainasset = find_asset(mainasset, loader)
+    print(f"Asset: {mainasset}")
 
-    assert mainasset
-    print(mainasset)
-
-    mainasset = loader.clean_asset_name(mainasset)
     root.title(f"Property Browser : {mainasset}")
     load_asset(mainasset)
     fill_property_grid()

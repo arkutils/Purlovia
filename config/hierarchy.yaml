@@ -1,4 +1,15 @@
 '/Script/CoreUObject.Object':
+- '/Script/CoreUObject.Field':
+    - '/Script/CoreUObject.Enum':
+        - '/Script/Engine.UserDefinedEnum'
+    - '/Script/CoreUObject.Struct':
+        - '/Script/CoreUObject.Class':
+            - '/Script/Engine.BlueprintGeneratedClass':
+                - '/Script/Engine.AnimBlueprintGeneratedClass'
+                - '/Script/UMG.WidgetBlueprintGeneratedClass'
+        - '/Script/CoreUObject.ScriptStruct':
+            - '/Script/Engine.UserDefinedStruct'
+- '/Script/AIModule.BehaviorTree'
 - '/Script/AIModule.BTNode':
     - '/Script/AIModule.BTAuxiliaryNode':
         - '/Script/AIModule.BTDecorator':
@@ -36,6 +47,7 @@
     - '/Script/Engine.HierarchicalInstancedStaticMeshActor'
     - '/Script/Engine.HUD':
         - '/Script/ShooterGame.ShooterHUD'
+    - '/Script/Engine.GroundClutterLayerActor'
     - '/Script/Engine.Info': # Done
         - '/Script/Engine.GameMode':
             - '/Script/ShooterGame.LocalSpawnGameMode'
@@ -160,6 +172,7 @@
                 - '/Script/Engine.StaticMeshComponent':
                     - '/Script/Engine.InstancedStaticMeshComponent':
                         - '/Script/Engine.HierarchicalInstancedStaticMeshComponent'
+            - '/Script/Engine.ParticleSystemComponent'
             - '/Script/Engine.ReflectionCaptureComponent':
                 - '/Script/Engine.BoxReflectionCaptureComponent'
             - '/Script/Engine.ShapeComponent':
@@ -180,19 +193,61 @@
     - '/Script/Engine.VehicleAnimInstance'
 - '/Script/Engine.AnimNotify'
 - '/Script/Engine.AnimNotifyState'
+- '/Script/Engine.AnimationAsset':
+    - '/Script/Engine.BlendSpaceBase':
+        - '/Script/Engine.BlendSpace':
+            - '/Script/Engine.AimOffsetBlendSpace'
+        - '/Script/Engine.BlendSpace1D':
+            - '/Script/Engine.AimOffsetBlendSpace1D'
+    - '/Script/Engine.AnimSequenceBase':
+        - '/Script/Engine.AnimCompositeBase':
+            - '/Script/Engine.AnimMontage'
+        - '/Script/Engine.AnimSequence'
 - '/Script/Engine.BlueprintFunctionLibrary'
 - '/Script/Engine.CameraShake'
+- '/Script/Engine.CurveBase':
+    - '/Script/Engine.CurveFloat'
 - '/Script/Engine.DamageType':
     - '/Script/ShooterGame.ShooterDamageType'
+- '/Script/Engine.DataAsset':
+    - '/Script/AIModule.BlackboardData'
+    - '/Script/Engine.TireType'
+- '/Script/Engine.FoliageType':
+    - '/Script/Engine.FoliageType_InstancedStaticMesh'
 - '/Script/Engine.Font'
-- '/Script/Engine.SkeletalMesh'
+- '/Script/Engine.InterpData'
+- '/Script/Engine.LandscapeLayerInfoObject'
+- '/Script/Engine.MaterialFunction'
+- '/Script/Engine.MaterialInterface':
+    - '/Script/Engine.Material'
+    - '/Script/Engine.MaterialInstance':
+        - '/Script/Engine.MaterialInstanceConstant'
+- '/Script/Engine.MaterialParameterCollection'
+- '/Script/Engine.ParticleSystem'
+- '/Script/Engine.PhysicalMaterial'
+- '/Script/Engine.PhysicsAsset'
+- '/Script/Engine.ReverbEffect'
+- '/Script/Engine.Rig'
+- '/Script/Engine.SkeletalMesh':
+    - '/Script/Engine.DestructibleMesh'
 - '/Script/Engine.Skeleton'
+- '/Script/Engine.SoundAttenuation'
 - '/Script/Engine.SoundBase':
     - '/Script/Engine.SoundCue'
     - '/Script/Engine.SoundWave'
+- '/Script/Engine.SubsurfaceProfile'
 - '/Script/Engine.Texture':
-    - '/Script/Engine.Texture2D'
+    - '/Script/Engine.Texture2D':
+        - '/Script/Engine.TextureLightProfile'
+    - '/Script/Engine.TextureCube'
+    - '/Script/Engine.TextureRenderTarget':
+        - '/Script/Engine.TextureRenderTarget2D'
+        - '/Script/Engine.TextureRenderTargetCube'
+    - '/Script/MediaAssets.MediaTexture'
+- '/Script/Engine.VectorField':
+    - '/Script/Engine.VectorFieldStatic'
 - '/Script/Engine.VehicleWheel'
+- '/Script/MediaAssets.MediaPlayer'
 - '/Script/ShooterGame.FogOfWar'
 - '/Script/ShooterGame.NPCSpawnEntriesContainer'
 - '/Script/ShooterGame.ShooterImpactEffect'
@@ -321,5 +376,4 @@
 # Unknown, need placing
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
 - '/Script/CoreUObject.Interface'
-- '/Script/Engine.GroundClutterLayerActor'
 - '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'

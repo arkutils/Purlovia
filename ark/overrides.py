@@ -13,6 +13,7 @@ __all__ = [
     'OverrideSettings',
     'OverridesFile',
     'get_overrides_for_species',
+    'get_overrides_for_map',
     'get_overrides_for_mod',
     'get_overrides_global',
     'any_regexes_match',
@@ -39,6 +40,7 @@ class OverridesFile(BaseModel):
     defaults: OverrideSettings = OverrideSettings()
     mods: Dict[str, OverrideSettings] = dict()
     species: Dict[str, OverrideSettings] = dict()
+    maps: Dict[str, OverrideSettings] = dict()
 
 
 DEFAULT_COLORREGIONSETTINGS = ColorRegionSettings(
@@ -50,11 +52,12 @@ DEFAULT_OVERRIDES = OverridesFile(
     defaults=OverrideSettings(**DEFAULT_COLORREGIONSETTINGS),
     mods=dict(),
     species=dict(),
+    maps=dict(),
 ).dict(skip_defaults=True)
 
 
 @lru_cache()
-def load_overrides() -> OverridesFile:
+def _load_overrides() -> OverridesFile:
     with open(OVERRIDE_FILENAME) as f:
         raw_data = yaml.safe_load(f)
 
@@ -63,8 +66,8 @@ def load_overrides() -> OverridesFile:
 
 
 @lru_cache(maxsize=1)
-def get_overrides_global_dict() -> Dict:
-    config_file = load_overrides()
+def _get_overrides_global_dict() -> Dict:
+    config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
     nested_update(settings, DEFAULT_OVERRIDES)
     nested_update(settings, config_file.defaults.dict(skip_defaults=True))
@@ -73,16 +76,16 @@ def get_overrides_global_dict() -> Dict:
 
 @lru_cache(maxsize=1)
 def get_overrides_global() -> OverrideSettings:
-    settings = get_overrides_global_dict()
+    settings = _get_overrides_global_dict()
     return OverrideSettings(**settings)
 
 
 @lru_cache(maxsize=10)
-def get_overrides_for_mod_dict(modid: str) -> Dict:
+def _get_overrides_for_mod_dict(modid: str) -> Dict:
     modid = modid or ''
-    config_file = load_overrides()
+    config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
-    nested_update(settings, get_overrides_global_dict())
+    nested_update(settings, _get_overrides_global_dict())
     nested_update(settings, config_file.mods.get(modid, OverrideSettings()).dict(skip_defaults=True))
     return settings
 
@@ -91,23 +94,39 @@ def get_overrides_for_mod_dict(modid: str) -> Dict:
 def get_overrides_for_mod(modid: str) -> OverrideSettings:
     modid = modid or ''
     settings: Dict[str, Any] = dict()
-    nested_update(settings, get_overrides_for_mod_dict(modid))
+    nested_update(settings, _get_overrides_for_mod_dict(modid))
     return OverrideSettings(**settings)
 
 
 @lru_cache(maxsize=100)
-def get_overrides_for_species_dict(species: str, modid: str) -> Dict:
+def _get_overrides_for_species_dict(species: str, modid: str) -> Dict:
     modid = modid or ''
-    config_file = load_overrides()
+    config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
-    nested_update(settings, get_overrides_for_mod_dict(modid))
+    nested_update(settings, _get_overrides_for_mod_dict(modid))
     nested_update(settings, config_file.species.get(species, OverrideSettings()).dict(skip_defaults=True))
     return settings
 
 
 @lru_cache(maxsize=1024)
 def get_overrides_for_species(species: str, modid: str) -> OverrideSettings:
-    settings = get_overrides_for_species_dict(species, modid)
+    settings = _get_overrides_for_species_dict(species, modid)
+    return OverrideSettings(**settings)
+
+
+@lru_cache(maxsize=16)
+def _get_overrides_for_map_dict(map_asset: str, modid: str) -> Dict:
+    modid = modid or ''
+    config_file = _load_overrides()
+    settings: Dict[str, Any] = dict()
+    nested_update(settings, _get_overrides_for_mod_dict(modid))
+    nested_update(settings, config_file.maps.get(map_asset, OverrideSettings()).dict(skip_defaults=True))
+    return settings
+
+
+@lru_cache(maxsize=128)
+def get_overrides_for_map(map: str, modid: str) -> OverrideSettings:
+    settings = _get_overrides_for_map_dict(map, modid)
     return OverrideSettings(**settings)
 
 

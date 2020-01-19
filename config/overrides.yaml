@@ -52,31 +52,28 @@ mods:
                 unkown: 'Unkown'  # Misspelt to match mod
 
 
-# Override settings on a per-species basis
-species:
-    # Some classes that look like species but are really only base-classes for other species
-    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
-        skip_export: true
-    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
-        skip_export: true
-    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_DivingFlyer:
-        skip_export: true
-    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack:
-        skip_export: true
-    /Game/PrimalEarth/CoreBlueprints/Dino_Character_BP_Pack_Chupa:
-        skip_export: true
-    /Game/PrimalEarth/Dinos/Ant/Ant_Character_Base:
-        skip_export: true
-    /Game/PrimalEarth/Dinos/Ant/Insect_Character_Base:
-        skip_export: true
-    /Game/PrimalEarth/Dinos/Ant/Insect_Character_Base_Lightbug:
-        skip_export: true
-    /Game/PrimalEarth/Dinos/Bigfoot/DinoCharacter_BP_Zipline:
-        skip_export: true
-    /Game/ScorchedEarth/Dinos/Moth/Moth_Character_BP_Base:
+# Override settings on a per-map bases
+maps:
+    /Game/Maps/Extinction/Ext_Landscape:
         skip_export: true
 
-    /Game/Mods/ClassicFlyers/Dinos/Moth/Assets/Moth_Character_BP_Base:
+
+# Override settings on a per-species basis
+species:
+    # Some classes that base-classes non-spawnable detector doesn't catch
+    /Game/PrimalEarth/Items/Raft/MotorRaft_BP:
+        skip_export: true
+    /Game/PrimalEarth/Items/Raft/Raft_BP:
+        skip_export: true
+    /Game/PrimalEarth/Vehicles/VH_Buggy/Blueprint/VH_Buggy:
+        skip_export: true
+
+    # Primitive Plus
+    /Game/Mods/PrimitivePlus/ShooterGame/Content/Mods/PrimitivePlusMod/Blueprints/VehicleBP_RowBoat_BP:
+        skip_export: true
+
+    # Gaia
+    /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
         skip_export: true
 
     # Human-readable region names

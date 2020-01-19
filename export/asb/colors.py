@@ -3,12 +3,11 @@ from logging import NullHandler, getLogger
 from typing import *
 
 import ark.mod
+from ark.overrides import OverrideSettings, any_regexes_match, get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound
 from ue.properties import LinearColor, UEBase
-
-from ..overrides import OverrideSettings, any_regexes_match, get_overrides_for_species
 
 __all__ = [
     'gather_pgd_colors',

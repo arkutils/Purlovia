@@ -6,10 +6,11 @@ from ark.defaults import *
 from .asset import ExportTableItem
 from .base import UEBase
 from .consts import BLUEPRINT_GENERATED_CLASS_CLS
+from .hierarchy import find_parent_classes
 from .loader import AssetLoader
 from .properties import ObjectProperty
 from .proxy import UEProxyStructure, proxy_for_type
-from .tree import discover_inheritance_chain, is_fullname_an_asset
+from .tree import is_fullname_an_asset
 
 __all__ = [
     'gather_properties',
@@ -27,16 +28,16 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
 
-    chain = discover_inheritance_chain(export)
+    chain = list(find_parent_classes(export, include_self=True))
     proxy = None
     while not proxy and chain:
-        baseclass_fullname = chain.pop(0)
+        baseclass_fullname = chain.pop()
         proxy = proxy_for_type(baseclass_fullname)
 
     if not proxy:
         raise TypeError(f"No proxy type available for {baseclass_fullname}")
 
-    for fullname in chain:
+    for fullname in reversed(chain):
         if not is_fullname_an_asset(fullname):
             continue  # Defaults are already in proxy - skip
 
