@@ -68,7 +68,7 @@ def convert_engram_group(engram: PrimalEngramEntry) -> str:
         return 'BaseGame'
 
     group = engram.EngramGroup[0].get_enum_value_name()
-    return _ENGRAM_GROUP_MAP.get(enum, enum)
+    return _ENGRAM_GROUP_MAP.get(group, group)
 
 
 def convert_requirement_sets(engram: PrimalEngramEntry) -> Iterable:
