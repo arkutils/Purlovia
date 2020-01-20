@@ -6,6 +6,7 @@ from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.proxy import UEProxyStructure
 
+from .items.cooking import convert_cooking_values
 from .items.crafting import convert_crafting_values, convert_repair_values
 from .items.status import convert_status_effect
 
@@ -100,5 +101,8 @@ class ItemsStage(JsonHierarchyExportStage):
                 dinoClass=eggDinoClass,
                 temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0])
             )
+
+        if item.bIsCookingIngredient[0]:
+            v['cookingStats'] = convert_cooking_values(item)
 
         return v

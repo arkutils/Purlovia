@@ -15,7 +15,7 @@ def convert_recipe_entry(entry):
 def convert_crafting_values(item: PrimalItem) -> Dict[str, Any]:
     v: Dict[str, Any] = dict(
         xp=item.BaseCraftingXP[0],
-        bpCraftTime=(item.MinBlueprintTimeToCraft[0], item.BlueprintTimeToCraft[0]),
+        bpCraftTime=item.BlueprintTimeToCraft[0],
         minLevelReq=item.CraftingMinLevelRequirement[0],
         productCount=item.CraftingGiveItemCount[0],
         skillQualityMult=(item.CraftingSkillQualityMultiplierMin[0], item.CraftingSkillQualityMultiplierMax[0]),
