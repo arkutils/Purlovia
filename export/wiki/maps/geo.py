@@ -29,13 +29,5 @@ class GeoCoordCalculator:
         '''
         return units / self.multiplier + self.shift
 
-    def format_for_json(self, prefix):
-        return {
-            f'{prefix}Origin': self.origin,
-            f'{prefix}Scale': self.scale,
-            f'{prefix}Multi': self.multiplier,
-            f'{prefix}Shift': self.shift
-        }
-
     def __str__(self):
         return f'GeoCoordCalculator (origin={self.origin}, scale={self.scale})'
