@@ -180,7 +180,7 @@ class NPCZoneManagerExport(MapGathererBase):
             if not zone_volume:
                 continue
             bounds = get_volume_bounds(zone_volume)
-            yield dict(start=bounds[0], end=bounds[1])
+            yield dict(start=bounds[0], center=bounds[1], end=bounds[2])
 
     @classmethod
     def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Vector]:
@@ -200,7 +200,7 @@ class NPCZoneManagerExport(MapGathererBase):
             if not spawn_volume:
                 continue
             bounds = get_volume_bounds(spawn_volume)
-            yield dict(weight=entry_weight, start=bounds[0], end=bounds[1])
+            yield dict(weight=entry_weight, start=bounds[0], center=bounds[1], end=bounds[2])
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -259,7 +259,7 @@ class BiomeZoneExport(MapGathererBase):
         boxes = list()
         for box_index in range(box_count):
             volume_bounds = get_volume_bounds(biome, box_index)
-            boxes.append(dict(start=volume_bounds[0], end=volume_bounds[1]))
+            boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
         data['boxes'] = boxes
         yield data
 
@@ -418,7 +418,8 @@ class RadiationZoneExport(MapGathererBase):
         volume_bounds = get_volume_bounds(volume)
         yield dict(
             start=volume_bounds[0],
-            end=volume_bounds[1],
+            center=volume_bounds[1],
+            end=volume_bounds[2],
             immune=volume.ActorClassesToExclude[0],
         )
 
