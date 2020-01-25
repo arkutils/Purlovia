@@ -124,7 +124,7 @@ class WorldSettingsExport(MapGathererBase):
         data['latMulti'] = map_info.lat.multiplier
         data['longMulti'] = map_info.long.multiplier
         data['latShift'] = map_info.lat.shift
-        data['longShift'] = map_info.lat.shift
+        data['longShift'] = map_info.long.shift
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
