@@ -53,6 +53,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
                 entry_values = dict()
                 entry_values['name'] = struct_data['AnEntryName']
+                entry_values['chance'] = 0 # Add field so the order is right later
                 entry_values['weight'] = struct_data['EntryWeight']
                 entry_values['classes'] = struct_data['NPCsToSpawn']
                 entry_values['spawnOffsets'] = struct_data['NPCsSpawnOffsets']
@@ -67,7 +68,6 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 entry['chance'] = entry['weight'] / weight_sum  # type: ignore
             else:
                 entry['chance'] = entry['weight']  # type: ignore
-            del entry['weight']
         values['entries'].sort(key=lambda e: e['chance'], reverse=True)
 
         # Export class spawn limits
