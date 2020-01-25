@@ -2,6 +2,7 @@ from pathlib import Path, PurePosixPath
 from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
+from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 from .types import NPCSpawnEntriesContainer
@@ -35,7 +36,22 @@ class SpawnGroupStage(JsonHierarchyExportStage):
             return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
 
         return None
-        
+
+
+    def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            package = mod_data.get('package', None)
+            if package:
+                pgd_asset = self.manager.loader[package]
+                return dict(
+                    classSwaps=convert_class_swaps(pgd_asset),
+                    externalGroupChanges=segregate_container_changes(pgd_asset),
+                )
+
+        return None
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         container: NPCSpawnEntriesContainer = cast(NPCSpawnEntriesContainer, proxy)
 
@@ -82,3 +98,25 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 values['limits'].append(entry_values)
 
         return values
+
+def convert_single_class_swap(d):
+    return {
+        'from': d['FromClass'],
+        'to': d['ToClasses'],
+        'chances': d['Weights'],
+    }
+
+def convert_class_swaps(pgd: UAsset):
+    all_values = []
+    export_data = pgd.default_export.properties
+    d = export_data.get_property('GlobalNPCRandomSpawnClassWeights', fallback=None)
+    if not d:
+        return None
+    
+    for entry in d.values:
+        all_values.append(convert_single_class_swap(entry.as_dict()))
+
+    return all_values
+
+def segregate_container_changes(pgd: UAsset):
+    return None
