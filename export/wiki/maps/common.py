@@ -41,7 +41,7 @@ def get_volume_box_count(volume) -> int:
     return len(convex_elements.values)
 
 
-def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[str, float]]:
+def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
     '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
 
     brush, body = get_volume_brush_setup(volume)
@@ -50,8 +50,23 @@ def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[st
     geometry = body.properties.get_property('AggGeom')
     convex_elements = geometry.values[0].value
     box = convex_elements.values[convex_index].as_dict()['ElemBox'].values[0]
-    return (dict(x=box.min.x + volume_location.x, y=box.min.y + volume_location.y, z=box.min.z + volume_location.z),
-            dict(x=box.max.x + volume_location.x, y=box.max.y + volume_location.y, z=box.max.z + volume_location.z))
+
+    v_start = dict(
+        x=box.min.x + volume_location.x,
+        y=box.min.y + volume_location.y,
+        z=box.min.z + volume_location.z,
+    )
+    v_end = dict(
+        x=box.max.x + volume_location.x,
+        y=box.max.y + volume_location.y,
+        z=box.max.z + volume_location.z,
+    )
+    v_center = dict(
+        x=(v_start['x'] + v_end['x']) / 2,
+        y=(v_start['y'] + v_end['y']) / 2,
+        z=(v_start['z'] + v_end['z']) / 2,
+    )
+    return (v_start, v_center, v_end)
 
 
 def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
@@ -59,9 +74,6 @@ def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
     box_data['start']['lat'] = map_info.lat.from_units(box_data['start']['y'])
     box_data['start']['long'] = map_info.long.from_units(box_data['start']['x'])
     # Center
-    box_data['center'] = dict(x=(box_data['start']['x'] + box_data['end']['x']) / 2,
-                              y=(box_data['start']['y'] + box_data['end']['y']) / 2,
-                              z=(box_data['start']['z'] + box_data['end']['z']) / 2)
     box_data['center']['lat'] = map_info.lat.from_units(box_data['center']['y'])
     box_data['center']['long'] = map_info.lat.from_units(box_data['center']['x'])
     # End

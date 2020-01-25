@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, cast
 
 from export.wiki.consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, CUSTOM_ACTOR_LIST_CLS, \
     DAMAGE_TYPE_RADIATION_PKG, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, \
@@ -61,12 +61,13 @@ class GenericActorListExport(MapGathererBase):
         return False
 
     @classmethod
-    def extract(cls, proxy: CustomActorList) -> Iterable[Union[UEBase, Dict[str, Any]]]:  # type:ignore
-        for actor in proxy.ActorList[0].values:
-            if not actor.value.value:
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
+        actors: CustomActorList = cast(CustomActorList, proxy)
+        for entry in actors.ActorList[0].values:
+            if not entry.value.value:
                 continue
 
-            yield get_actor_location_vector(actor.value.value)
+            yield get_actor_location_vector(entry.value.value)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -88,38 +89,42 @@ class WorldSettingsExport(MapGathererBase):
         return inherits_from(export, PRIMAL_WORLD_SETTINGS_CLS) and not getattr(export.asset, 'tile_info', None)
 
     @classmethod
-    def extract(cls, proxy: PrimalWorldSettings) -> Iterable[Dict[str, Any]]:  # type:ignore
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        settings: PrimalWorldSettings = cast(PrimalWorldSettings, proxy)
         yield dict(
-            name=proxy.Title[0],
+            name=settings.Title[0],
             # Geo
-            latOrigin=proxy.LatitudeOrigin[0],
-            longOrigin=proxy.LongitudeOrigin[0],
-            latScale=proxy.LatitudeScale[0],
-            longScale=proxy.LongitudeScale[0],
+            latOrigin=settings.LatitudeOrigin[0],
+            longOrigin=settings.LongitudeOrigin[0],
+            latScale=settings.LatitudeScale[0],
+            longScale=settings.LongitudeScale[0],
             # These fields will be filled out during data conversion
             latMulti=0,
             longMulti=0,
             latShift=0,
             longShift=0,
             # Extra data
-            maxDifficulty=proxy.OverrideDifficultyMax[0],
+            maxDifficulty=settings.OverrideDifficultyMax[0],
             mapTextures=dict(
-                held=proxy.OverrideWeaponMapTextureFilled[0] if 'OverrideWeaponMapTextureFilled' in proxy else None,
-                emptyHeld=proxy.OverrideWeaponMapTextureEmpty[0] if 'OverrideWeaponMapTextureEmpty' in proxy else None,
-                empty=proxy.OverrideUIMapTextureEmpty[0] if 'OverrideUIMapTextureEmpty' in proxy else None,
-                big=proxy.OverrideUIMapTextureFilled[0] if 'OverrideUIMapTextureFilled' in proxy else None,
-                small=proxy.OverrideUIMapTextureSmall[0] if 'OverrideUIMapTextureSmall' in proxy else None,
+                held=settings.get('OverrideWeaponMapTextureFilled', 0, None),
+                emptyHeld=settings.get('OverrideWeaponMapTextureEmpty', 0, None),
+                empty=settings.get('OverrideUIMapTextureEmpty', 0, None),
+                big=settings.get('OverrideUIMapTextureFilled', 0, None),
+                small=settings.get('OverrideUIMapTextureSmall', 0, None),
             ),
             randomNPCClassWeights=[{
                 'from': struct.get_property('FromClass'),
                 'to': struct.get_property('ToClasses'),
                 'chances': struct.get_property('Weights'),
-            } for struct in proxy.NPCRandomSpawnClassWeights[0].values] if 'NPCRandomSpawnClassWeights' in proxy else [],
-            allowedDinoDownloads=proxy.AllowDownloadDinoClasses[0] if 'AllowDownloadDinoClasses' in proxy else [])
+            } for struct in settings.NPCRandomSpawnClassWeights[0].values] if 'NPCRandomSpawnClassWeights' in proxy else [],
+            allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()))
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        pass
+        data['latMulti'] = map_info.lat.multiplier
+        data['longMulti'] = map_info.long.multiplier
+        data['latShift'] = map_info.lat.shift
+        data['longShift'] = map_info.long.shift
 
     @classmethod
     def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
@@ -136,27 +141,31 @@ class NPCZoneManagerExport(MapGathererBase):
         return inherits_from(export, NPC_ZONE_MANAGER_CLS)
 
     @classmethod
-    def extract(cls, proxy: NPCZoneManager) -> Iterable[Dict[str, Any]]:  # type:ignore
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        manager: NPCZoneManager = cast(NPCZoneManager, proxy)
+
         # Sanity checks
-        if not getattr(proxy, 'NPCSpawnEntriesContainerObject',
-                       None) or not proxy.NPCSpawnEntriesContainerObject[0].value.value or not getattr(
-                           proxy, 'LinkedZoneVolumes', None):
+        spawn_group = manager.get('NPCSpawnEntriesContainerObject', 0, None)
+        count_volumes = manager.get('LinkedZoneVolumes', 0, None)
+        if not spawn_group or not spawn_group.value.value or not count_volumes:
             yield from ()
             return
 
         # Export properties
-        data: Dict[str, Union[UEBase, List]] = dict(spawnGroup=proxy.NPCSpawnEntriesContainerObject[0],
-                                                    minDesiredNumberOfNPC=proxy.MinDesiredNumberOfNPC[0],
-                                                    neverSpawnInWater=proxy.bNeverSpawnInWater[0],
-                                                    forceUntameable=proxy.bForceUntameable[0])
+        data: Dict[str, Union[UEBase, List]] = dict(spawnGroup=spawn_group,
+                                                    minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
+                                                    neverSpawnInWater=manager.bNeverSpawnInWater[0],
+                                                    forceUntameable=manager.bForceUntameable[0])
         # Export dino counting regions
-        data['locations'] = list(cls._extract_counting_volumes(proxy.LinkedZoneVolumes[0]))
+        data['locations'] = list(cls._extract_counting_volumes(count_volumes))
         # Export spawn points if present
-        if getattr(proxy, 'SpawnPointOverrides', None):
-            data['spawnPoints'] = list(cls._extract_spawn_points(proxy.SpawnPointOverrides[0]))
+        spawn_points = manager.get('SpawnPointOverrides', 0, None)
+        if spawn_points:
+            data['spawnPoints'] = list(cls._extract_spawn_points(spawn_points))
         # Export spawn regions if present
-        if getattr(proxy, 'LinkedZoneSpawnVolumeEntries', None):
-            data['spawnLocations'] = list(cls._extract_spawn_volumes(proxy.LinkedZoneSpawnVolumeEntries[0]))
+        spawn_volumes = manager.get('LinkedZoneSpawnVolumeEntries', 0, None)
+        if spawn_volumes:
+            data['spawnLocations'] = list(cls._extract_spawn_volumes(spawn_volumes))
         # Check if we extracted any spawn data at all, otherwise we can skip it.
         if 'spawnPoints' not in data and 'spawnLocations' not in data:
             yield from ()
@@ -171,7 +180,7 @@ class NPCZoneManagerExport(MapGathererBase):
             if not zone_volume:
                 continue
             bounds = get_volume_bounds(zone_volume)
-            yield dict(start=bounds[0], end=bounds[1])
+            yield dict(start=bounds[0], center=bounds[1], end=bounds[2])
 
     @classmethod
     def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Vector]:
@@ -191,7 +200,7 @@ class NPCZoneManagerExport(MapGathererBase):
             if not spawn_volume:
                 continue
             bounds = get_volume_bounds(spawn_volume)
-            yield dict(weight=entry_weight, start=bounds[0], end=bounds[1])
+            yield dict(weight=entry_weight, start=bounds[0], center=bounds[1], end=bounds[2])
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -224,19 +233,20 @@ class BiomeZoneExport(MapGathererBase):
         return inherits_from(export, BIOME_ZONE_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: BiomeZoneVolume) -> Iterable[Dict[str, Any]]:  # type:ignore
-        volume_bounds = get_volume_bounds(proxy)
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        biome: BiomeZoneVolume = cast(BiomeZoneVolume, proxy)
+        volume_bounds = get_volume_bounds(biome)
 
-        data: Dict[str, Union[UEBase, List, Dict]] = dict(name=proxy.BiomeZoneName[0],
-                                                          priority=proxy.BiomeZonePriority[0],
-                                                          isOutside=proxy.bIsOutside[0],
-                                                          preventCrops=proxy.bPreventCrops[0],
+        data: Dict[str, Union[UEBase, List, Dict]] = dict(name=biome.BiomeZoneName[0],
+                                                          priority=biome.BiomeZonePriority[0],
+                                                          isOutside=biome.bIsOutside[0],
+                                                          preventCrops=biome.bPreventCrops[0],
                                                           temperature=dict(),
                                                           wind=dict())
 
         # Add overriden temperature and wind data
-        cls._extract_temperature_data(proxy, data)
-        cls._extract_wind_data(proxy, data)
+        cls._extract_temperature_data(biome, data)
+        cls._extract_wind_data(biome, data)
 
         # Remove extra dicts in case they haven't been filled
         if not data['temperature']:
@@ -245,11 +255,11 @@ class BiomeZoneExport(MapGathererBase):
             del data['wind']
 
         # Extract bounds
-        box_count = get_volume_box_count(proxy)
+        box_count = get_volume_box_count(biome)
         boxes = list()
         for box_index in range(box_count):
-            volume_bounds = get_volume_bounds(proxy, box_index)
-            boxes.append(dict(start=volume_bounds[0], end=volume_bounds[1]))
+            volume_bounds = get_volume_bounds(biome, box_index)
+            boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
         data['boxes'] = boxes
         yield data
 
@@ -328,32 +338,36 @@ class LootCrateSpawnExport(MapGathererBase):
         return inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS)
 
     @classmethod
-    def extract(cls, proxy: SupplyCrateSpawningVolume) -> Iterable[Dict[str, Any]]:  # type:ignore
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        spawner: SupplyCrateSpawningVolume = cast(SupplyCrateSpawningVolume, proxy)
+
         # Sanity checks
-        if not getattr(proxy, 'LinkedSupplyCrateEntries', None) or not getattr(proxy, 'LinkedSpawnPointEntries', None):
+        class_entries = spawner.get('LinkedSupplyCrateEntries', 0, None)
+        spawn_points = spawner.get('LinkedSpawnPointEntries', 0, None)
+        if not class_entries or not spawn_points:
             yield from ()
             return
 
         # Make range tuples of numerical properties.
-        ranges = dict(delayBeforeFirst=(proxy.DelayBeforeFirstCrate[0], proxy.MaxDelayBeforeFirstCrate[0]),
-                      intervalBetweenSpawns=(proxy.IntervalBetweenCrateSpawns[0], proxy.MaxIntervalBetweenCrateSpawns[0]),
-                      intervalBetweenMaxedSpawns=(proxy.IntervalBetweenMaxedCrateSpawns[0],
-                                                  proxy.MaxIntervalBetweenMaxedCrateSpawns[0]))
+        ranges = dict(delayBeforeFirst=(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
+                      intervalBetweenSpawns=(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
+                      intervalBetweenMaxedSpawns=(spawner.IntervalBetweenMaxedCrateSpawns[0],
+                                                  spawner.MaxIntervalBetweenMaxedCrateSpawns[0]))
 
         # Single-player overrides. Export only if changed.
-        if proxy.has_override('SP_IntervalBetweenCrateSpawns') or proxy.has_override('SP_MaxIntervalBetweenCrateSpawns'):
-            ranges['intervalBetweenSpawnsSP'] = (proxy.SP_IntervalBetweenCrateSpawns[0],
-                                                 proxy.SP_MaxIntervalBetweenCrateSpawns[0])
-        if proxy.has_override('SP_IntervalBetweenMaxedCrateSpawns') or proxy.has_override(
+        if spawner.has_override('SP_IntervalBetweenCrateSpawns') or spawner.has_override('SP_MaxIntervalBetweenCrateSpawns'):
+            ranges['intervalBetweenSpawnsSP'] = (spawner.SP_IntervalBetweenCrateSpawns[0],
+                                                 spawner.SP_MaxIntervalBetweenCrateSpawns[0])
+        if spawner.has_override('SP_IntervalBetweenMaxedCrateSpawns') or spawner.has_override(
                 'SP_MaxIntervalBetweenMaxedCrateSpawns'):
-            ranges['intervalBetweenMaxedSpawnsSP'] = (proxy.SP_IntervalBetweenMaxedCrateSpawns[0],
-                                                      proxy.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
+            ranges['intervalBetweenMaxedSpawnsSP'] = (spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
+                                                      spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
 
         # Combine all properties into a single dict
-        yield dict(maxCrateNumber=proxy.MaxNumCrates[0],
-                   crateClasses=sorted(cls._convert_crate_classes(proxy.LinkedSupplyCrateEntries[0])),
-                   crateLocations=list(cls._extract_spawn_points(proxy.LinkedSpawnPointEntries[0])),
-                   minTimeBetweenSpawnsAtSamePoint=proxy.MinTimeBetweenCrateSpawnsAtSamePoint[0],
+        yield dict(maxCrateNumber=spawner.MaxNumCrates[0],
+                   crateClasses=sorted(cls._convert_crate_classes(class_entries)),
+                   crateLocations=list(cls._extract_spawn_points(spawn_points)),
+                   minTimeBetweenSpawnsAtSamePoint=spawner.MinTimeBetweenCrateSpawnsAtSamePoint[0],
                    **ranges)
 
     @classmethod
@@ -399,12 +413,14 @@ class RadiationZoneExport(MapGathererBase):
         return False
 
     @classmethod
-    def extract(cls, proxy: TogglePainVolume) -> Iterable[Dict[str, Any]]:  # type:ignore
-        volume_bounds = get_volume_bounds(proxy)
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        volume: TogglePainVolume = cast(TogglePainVolume, proxy)
+        volume_bounds = get_volume_bounds(volume)
         yield dict(
             start=volume_bounds[0],
-            end=volume_bounds[1],
-            immune=proxy.ActorClassesToExclude[0],
+            center=volume_bounds[1],
+            end=volume_bounds[2],
+            immune=volume.ActorClassesToExclude[0],
         )
 
     @classmethod
@@ -426,8 +442,9 @@ class ExplorerNoteExport(MapGathererBase):
         return inherits_from(export, EXPLORER_CHEST_BASE_CLS)
 
     @classmethod
-    def extract(cls, proxy: ExplorerNote) -> Iterable[Dict[str, Any]]:  # type:ignore
-        yield dict(noteIndex=proxy.ExplorerNoteIndex[0], **get_actor_location_vector(proxy).format_for_json())
+    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+        note: ExplorerNote = cast(ExplorerNote, proxy)
+        yield dict(noteIndex=note.ExplorerNoteIndex[0], **get_actor_location_vector(note).format_for_json())
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
