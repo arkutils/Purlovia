@@ -1,5 +1,7 @@
 from ark.defaults import *
 from ark.properties import stat_value
+from ue.utils import clean_double as cd
+from ue.utils import clean_float as cf
 
 __all__ = [
     'gather_stat_data',
@@ -20,15 +22,12 @@ def gather_stat_data(props, statIndexes):
         ETHM = stat_value(props, 'ExtraTamedHealthMultiplier', ark_index, EXTRA_MULTS_VALUES)
 
         stat_data = [
-            stat_value(props, 'MaxStatusValues', ark_index, BASE_VALUES) + add_one,
-            stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, iw_values) * zero_mult,
-            stat_value(props, 'AmountMaxGainedPerLevelUpValueTamed', ark_index, 0.0) * ETHM * zero_mult,
-            stat_value(props, 'TamingMaxStatAdditions', ark_index, 0.0),
-            stat_value(props, 'TamingMaxStatMultipliers', ark_index, 0.0),
+            cd(stat_value(props, 'MaxStatusValues', ark_index, BASE_VALUES) + add_one),
+            cd(stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, iw_values) * zero_mult),
+            cd(stat_value(props, 'AmountMaxGainedPerLevelUpValueTamed', ark_index, 0.0) * ETHM * zero_mult),
+            cf(stat_value(props, 'TamingMaxStatAdditions', ark_index, 0.0)),
+            cf(stat_value(props, 'TamingMaxStatMultipliers', ark_index, 0.0)),
         ]
-
-        # Round to 6dp like existing values creator
-        stat_data = [round(value, 6) for value in stat_data]
 
         # Creates a null value in the JSON for stats that are unused
         dont_use = stat_value(props, 'DontUseValue', ark_index, DONTUSESTAT_VALUES)
