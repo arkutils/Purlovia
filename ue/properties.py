@@ -15,6 +15,7 @@ from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
 from .number import *
 from .stream import MemoryStream
+from .utils import clean_float
 
 if INCLUDE_METADATA:
     try:
@@ -357,7 +358,7 @@ class FloatProperty(ValueProperty):
 
     def format_for_json(self):
         '''Restrict single-precision float output to 7 significant figures.'''
-        return float(format(self.value, '.7g'))
+        return clean_float(self.value)
 
 
 class DoubleProperty(ValueProperty):

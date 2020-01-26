@@ -1,6 +1,8 @@
 from typing import *
 
 from ark.properties import stat_value
+from ue.utils import clean_double as cd
+from ue.utils import clean_float as cf
 
 __all__ = [
     'gather_taming_data',
@@ -21,21 +23,21 @@ def gather_taming_data(props) -> Dict[str, Any]:
     data['violent'] = not stat_value(props, 'bPreventSleepingTame', 0, False) and can_tame and can_knockout
 
     if can_tame or True:
-        data['tamingIneffectiveness'] = stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0)
-        data['affinityNeeded0'] = stat_value(props, 'RequiredTameAffinity', 0, 100)
-        data['affinityIncreasePL'] = stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0)
+        data['tamingIneffectiveness'] = cf(stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0))
+        data['affinityNeeded0'] = cf(stat_value(props, 'RequiredTameAffinity', 0, 100))
+        data['affinityIncreasePL'] = cf(stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0))
 
-        torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) * stat_value(
-            props, 'RecoveryRateStatusValue', 2, 0.00)
+        torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) \
+            * stat_value(props, 'RecoveryRateStatusValue', 2, 0.00)
 
         if data['violent']:
-            data['torporDepletionPS0'] = -torpor_depletion
+            data['torporDepletionPS0'] = cd(-torpor_depletion)
         if data['nonViolent']:
-            data['wakeAffinityMult'] = stat_value(props, 'WakingTameFoodAffinityMultiplier', 0, 1.6)
-            data['wakeFoodDeplMult'] = stat_value(props, 'WakingTameFoodConsumptionRateMultiplier', 0, 2.0)
+            data['wakeAffinityMult'] = cf(stat_value(props, 'WakingTameFoodAffinityMultiplier', 0, 1.6))
+            data['wakeFoodDeplMult'] = cf(stat_value(props, 'WakingTameFoodConsumptionRateMultiplier', 0, 2.0))
 
-        data['foodConsumptionBase'] = -stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000)  # pylint: disable=invalid-unary-operand-type
-        data['foodConsumptionMult'] = stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00)
+        data['foodConsumptionBase'] = cf(-stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000))  # pylint: disable=invalid-unary-operand-type
+        data['foodConsumptionMult'] = cf(stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00))
 
         if eats is not None:
             data['eats'] = eats

@@ -3,6 +3,16 @@ from typing import Optional
 
 from ue.base import UEBase
 
+__all__ = [
+    'get_clean_namespaced_name',
+    'get_clean_name',
+    'get_property',
+    'property_serialiser',
+    'sanitise_output',
+    'clean_float',
+    'clean_double',
+]
+
 
 def get_clean_namespaced_name(ns: UEBase, name: UEBase) -> str:
     ns_str = get_clean_name(ns, None)
@@ -66,3 +76,27 @@ def sanitise_output(data):
         return [sanitise_output(v) for v in data]
 
     return data
+
+
+def clean_float(value):
+    '''Round to 7 significant figures. Should be used for outputting all single-precision float data.'''
+    if value is None:
+        return None
+    value = float(format(value, '.7g'))
+    int_value = int(value)
+    if value == int_value:
+        return int_value
+    else:
+        return value
+
+
+def clean_double(value):
+    '''Round to 9 significant figures. Should be used for outputting all double-precision float data.'''
+    if value is None:
+        return None
+    value = float(format(value, '.9g'))
+    int_value = int(value)
+    if value == int_value:
+        return int_value
+    else:
+        return value
