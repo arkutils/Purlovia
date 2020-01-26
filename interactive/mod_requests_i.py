@@ -6,6 +6,7 @@ from interactive_utils import *  # pylint: disable=wrong-import-order
 
 import csv
 from datetime import datetime, timedelta
+from math import ceil
 from operator import itemgetter
 from typing import *
 
@@ -25,18 +26,15 @@ loader = arkman.getLoader()
 #%% Mod list
 
 modids = set([
-    '804312798',
-    '1270132511',
-    '1821112850',
-    '538986229',
-    '1523045986',
-    '1768499278',
-    '1662691167',
-    '1206835819',
-    '1587391872',
-    '972887420',
-    '1681125667',
-    '916417001',
+    # Delayed decisions
+    '538986229',  # Annunaki Genesis - old but still loved and kind of working
+    '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
+    '833379388',  # Pugnacia Dinos
+    '916417001',  # MAP: Ebenus Astrum -                                        CHECK for dinos
+    '972887420',  # Jurassic Park Expansion - massive, but updated
+
+    # Candidates
+    '1984936918',  # Marnii's Mods: Wildlife
 ])
 
 #%% Conversion function
@@ -74,9 +72,11 @@ with open('livedata/mod_requests.csv', 'wt', newline='') as f:
 
 age_cutoff = datetime.utcnow() - timedelta(days=365)
 for mod in sorted(output_data, key=lambda v: int(v['id'])):
-    size = f"{mod['file_size']/1024.0/1024.0:>6.4g}" if mod['file_size'] > 1024 * 1024 else "   < 1"
+    size = f"{ceil(mod['file_size']/1024.0/1024.0):>4.0f}"
     comment = f"{size} Mb, {mod['sub_count_current']:>7} subs, {mod['fave_count_current']:>6} faves"
     updated = mod['time_updated']
     if updated < age_cutoff:
-        comment += f" (outdated? updated {updated.date()})"
-    print(f"{mod['id']:<10} = {mod['title']:40} # {comment}")
+        comment += f" (old? {updated.date()})"
+    title = mod['title'][:40].replace('"', '\\"').replace('\n', ' ')
+    title = f'"{title}"'
+    print(f"{mod['id']:<10} = {title:42} # {comment}")
