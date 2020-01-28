@@ -189,7 +189,7 @@ def run(config: ConfigFile):
         exporter.perform()
 
         # Push any changes
-        # git.finish()
+        git.finish()
 
         logger.info('Automation completed')
 
