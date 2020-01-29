@@ -44,10 +44,13 @@ class SpawnGroupStage(JsonHierarchyExportStage):
             package = mod_data.get('package', None)
             if package:
                 pgd_asset = self.manager.loader[package]
-                return dict(
-                    classSwaps=convert_class_swaps(pgd_asset),
-                    externalGroupChanges=segregate_container_changes(pgd_asset),
-                )
+                class_swaps = convert_class_swaps(pgd_asset)
+                external_group_changes = segregate_container_changes(pgd_asset)
+                if class_swaps or external_group_changes:
+                    return dict(
+                        classSwaps=convert_class_swaps(pgd_asset),
+                        externalGroupChanges=segregate_container_changes(pgd_asset),
+                    )
 
         return None
 
@@ -121,5 +124,5 @@ def convert_class_swaps(pgd: UAsset):
     return all_values
 
 
-def segregate_container_changes(pgd: UAsset):
+def segregate_container_changes(pgd: UAsset) -> Optional[Dict]:
     return None
