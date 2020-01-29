@@ -60,11 +60,18 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         raise NotImplementedError
 
     def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
-        '''Return any extra dict entries that should be put *before* the main entries.'''
+        '''
+        Return any extra dict entries that should be put *before* the main entries.
+        The precense or absence of pre-data *is not* considered when deciding if a file "has content" and should be saved,
+        thus pre-data should be used for metadata and not content.
+        '''
         ...
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
-        '''Return any extra dict entries that should be put *after* the main entries.'''
+        '''
+        Return any extra dict entries that should be put *after* the main entries.
+        If any post-data is present it will stop the file being considered empty and avoid it being removed.
+        '''
         ...
 
     def extract_core(self, path: Path):
@@ -115,7 +122,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
                 results.append(item_output)
 
         # Save if the data changed
-        if results or pre_data or post_data:
+        if results or post_data:
             save_json_if_changed(output, output_path, self.get_use_pretty())
         else:
             # ...but remove an existing one if the output was empty
