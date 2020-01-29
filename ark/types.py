@@ -136,12 +136,12 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     Ingredient_StaminaIncreasePerQuantity = uefloats(0.1)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
-    OverrideRepairingRequirements: Mapping[int, ArrayProperty] # = []
+    OverrideRepairingRequirements: Mapping[int, ArrayProperty]  # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
-    SpoilingItem: Mapping[int, ObjectProperty] # = 'None'
-    StructureToBuild: Mapping[int, ObjectProperty] # = 'None'
-    WeaponToBuild: Mapping[int, ObjectProperty] # = 'None'
-    EggDinoClassToSpawn: Mapping[int, ObjectProperty] # = 'None'
+    SpoilingItem: Mapping[int, ObjectProperty]  # = 'None'
+    StructureToBuild: Mapping[int, ObjectProperty]  # = 'None'
+    WeaponToBuild: Mapping[int, ObjectProperty]  # = 'None'
+    EggDinoClassToSpawn: Mapping[int, ObjectProperty]  # = 'None'
 
     # DevKit Unverified
 

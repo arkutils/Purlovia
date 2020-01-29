@@ -55,12 +55,12 @@ class ItemsStage(JsonHierarchyExportStage):
 
         icon = item.get('ItemIcon', 0, None)
         if not icon:
-            return None # this is used as an indicator that this is a non-spawnable base item
+            return None  # this is used as an indicator that this is a non-spawnable base item
         v['icon'] = icon
 
         itemType = item.get('MyItemType', 0, None)
         v['type'] = itemType.get_enum_value_name()
-        
+
         if v['type'] == 'MiscConsumable':
             consumableType = item.get('MyConsumableType', 0, None)
             v['type'] += '/' + consumableType.get_enum_value_name()
@@ -87,7 +87,7 @@ class ItemsStage(JsonHierarchyExportStage):
         if item.bUseItemDurability[0].value:
             v['durability'] = dict(
                 min=item.MinItemDurability[0],
-                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0]
+                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0],
             )
 
         v['crafting'] = convert_crafting_values(item)
@@ -108,7 +108,7 @@ class ItemsStage(JsonHierarchyExportStage):
         if item.bIsEgg[0] and eggDinoClass:
             v['egg'] = dict(
                 dinoClass=eggDinoClass,
-                temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0])
+                temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0]),
             )
 
         if item.bIsCookingIngredient[0]:

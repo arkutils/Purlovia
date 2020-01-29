@@ -37,7 +37,6 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
         return None
 
-
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
@@ -69,7 +68,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
                 entry_values = dict()
                 entry_values['name'] = struct_data['AnEntryName']
-                entry_values['chance'] = 0 # Add field so the order is right later
+                entry_values['chance'] = 0  # Add field so the order is right later
                 entry_values['weight'] = struct_data['EntryWeight']
                 entry_values['classes'] = struct_data['NPCsToSpawn']
                 entry_values['spawnOffsets'] = struct_data['NPCsSpawnOffsets']
@@ -99,6 +98,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
         return values
 
+
 def convert_single_class_swap(d):
     return {
         'from': d['FromClass'],
@@ -106,17 +106,20 @@ def convert_single_class_swap(d):
         'chances': d['Weights'],
     }
 
+
 def convert_class_swaps(pgd: UAsset):
+    assert pgd.default_export
     all_values = []
     export_data = pgd.default_export.properties
     d = export_data.get_property('GlobalNPCRandomSpawnClassWeights', fallback=None)
     if not d:
         return None
-    
+
     for entry in d.values:
         all_values.append(convert_single_class_swap(entry.as_dict()))
 
     return all_values
+
 
 def segregate_container_changes(pgd: UAsset):
     return None

@@ -38,7 +38,7 @@ class EngramsStage(JsonHierarchyExportStage):
             return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
 
         return None
-        
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
