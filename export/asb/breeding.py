@@ -4,6 +4,8 @@ import ark.mod
 from ark.defaults import *
 from ark.properties import stat_value
 from ue.loader import AssetLoader
+from ue.utils import clean_double as cd
+from ue.utils import clean_float as cf
 
 __all__ = [
     'gather_breeding_data',
@@ -29,8 +31,8 @@ def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
         gestation_speed = gestation_speed or 1
         extra_gestation_speed_m = extra_gestation_speed_m or 1
         # 'gestationTime' = 1 / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplier)
-        data['gestationTime'] = (1 / gestation_speed /
-                                 extra_gestation_speed_m) if gestation_speed and extra_gestation_speed_m else None
+        data['gestationTime'] = cd((1 / gestation_speed /
+                                    extra_gestation_speed_m) if gestation_speed and extra_gestation_speed_m else None)
 
     elif has_eggs:
         fert_egg_asset = loader.load_related(eggs[0])
@@ -39,16 +41,17 @@ def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
         extra_egg_decay_m = stat_value(fert_egg_props, 'ExtraEggLoseDurabilityPerSecondMultiplier', 0, 1)
 
         # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
-        data['incubationTime'] = (100 / egg_decay / extra_egg_decay_m) if egg_decay and extra_egg_decay_m else None
-        data['eggTempMin'] = stat_value(fert_egg_props, 'EggMinTemperature', 0)
-        data['eggTempMax'] = stat_value(fert_egg_props, 'EggMaxTemperature', 0)
+        data['incubationTime'] = cd((100 / egg_decay / extra_egg_decay_m) if egg_decay and extra_egg_decay_m else None)
+        data['eggTempMin'] = cf(stat_value(fert_egg_props, 'EggMinTemperature', 0))
+        data['eggTempMax'] = cf(stat_value(fert_egg_props, 'EggMaxTemperature', 0))
 
     # 'maturationTime' = 1 / (Baby Age Speed × Extra Baby Age Speed Multiplier)
     baby_age_speed = stat_value(props, 'BabyAgeSpeed', 0, 1)
     extra_baby_age_speed_m = stat_value(props, 'ExtraBabyAgeSpeedMultiplier', 0, 1)
 
-    data['maturationTime'] = (1 / baby_age_speed / extra_baby_age_speed_m) if baby_age_speed and extra_baby_age_speed_m else None
-    data['matingCooldownMin'] = stat_value(props, 'NewFemaleMinTimeBetweenMating', 0, FEMALE_MINTIMEBETWEENMATING_DEFAULT)
-    data['matingCooldownMax'] = stat_value(props, 'NewFemaleMaxTimeBetweenMating', 0, FEMALE_MAXTIMEBETWEENMATING_DEFAULT)
+    data['maturationTime'] = cd((1 / baby_age_speed /
+                                 extra_baby_age_speed_m) if baby_age_speed and extra_baby_age_speed_m else None)
+    data['matingCooldownMin'] = cf(stat_value(props, 'NewFemaleMinTimeBetweenMating', 0, FEMALE_MINTIMEBETWEENMATING_DEFAULT))
+    data['matingCooldownMax'] = cf(stat_value(props, 'NewFemaleMaxTimeBetweenMating', 0, FEMALE_MAXTIMEBETWEENMATING_DEFAULT))
 
     return data

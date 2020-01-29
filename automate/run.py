@@ -79,6 +79,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-wiki-engrams', action='store_true', help='skip extracting engrams for the wiki')
     parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
     parser.add_argument('--skip-wiki-drops', action='store_true', help='skip extracting drops for the wiki')
+    parser.add_argument('--skip-wiki-loot-crates', action='store_true', help='skip extracting loot crates for the wiki')
 
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
@@ -143,6 +144,8 @@ def handle_args(args: Any) -> ConfigFile:
         config.export_wiki.ExportItems = False
     if args.skip_wiki_drops:
         config.export_wiki.ExportDrops = False
+    if args.skip_wiki_loot_crates:
+        config.export_wiki.ExportLootCrates = False
 
     # Git actions
     if args.skip_pull:
@@ -186,7 +189,7 @@ def run(config: ConfigFile):
         exporter.perform()
 
         # Push any changes
-        # git.finish()
+        git.finish()
 
         logger.info('Automation completed')
 

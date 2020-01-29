@@ -16,7 +16,7 @@ def gather_damage_mults(props: PriorityPropDict) -> Optional[Dict[str, float]]:
     result = dict()
     for bone_info in adjusters:
         name = str(bone_info.get_property('BoneName'))
-        mult = bone_info.get_property('DamageMultiplier').value
+        mult = bone_info.get_property('DamageMultiplier')
         result[name] = mult
 
     return result

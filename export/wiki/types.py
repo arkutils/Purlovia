@@ -167,7 +167,8 @@ class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPC
     NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
 
 
-class PrimalStructureItemContainer_SupplyCrate(UEProxyStructure, uetype='/Script/ShooterGame.PrimalStructureItemContainer_SupplyCrate'):
+class PrimalStructureItemContainer_SupplyCrate(UEProxyStructure,
+                                               uetype='/Script/ShooterGame.PrimalStructureItemContainer_SupplyCrate'):
     # DevKit Verified
     bSetsRandomWithoutReplacement = uebools(False)
     InitialTimeToLoseHealth = uefloats(20.0)

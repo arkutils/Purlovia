@@ -166,8 +166,6 @@ class MapStage(ExportStage):
         world_settings = map_info.data['worldSettings'][0]
         map_info.lat = GeoCoordCalculator(world_settings['latOrigin'], world_settings['latScale'])
         map_info.long = GeoCoordCalculator(world_settings['longOrigin'], world_settings['longScale'])
-        world_settings.update(map_info.lat.format_for_json('lat'))
-        world_settings.update(map_info.long.format_for_json('long'))
 
         # Run data-specific conversions
         for key, values in map_info.data.items():

@@ -87,12 +87,15 @@ class SpeciesStage(JsonHierarchyExportStage):
             props = gather_properties(asset)
         except AssetLoadException as ex:
             logger.warning(f'Gathering properties failed for {asset_name}: %s', str(ex))
+            return None
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Gathering properties failed for {asset_name}', exc_info=True)
+            return None
 
         try:
             species_data = values_for_species(asset, props, allFields=True, includeBreeding=True, includeColor=True)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
+            return None
 
         return species_data

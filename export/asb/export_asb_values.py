@@ -12,6 +12,8 @@ from export.asb.stats import gather_stat_data
 from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound, ModNotFound
+from ue.utils import clean_double as cd
+from ue.utils import clean_float as cf
 
 __all__ = [
     'values_from_pgd',
@@ -188,7 +190,7 @@ def values_for_species(asset: UAsset,
         if use_stat and not (i == 3 and doesntUseOxygen):
             displayed_stats |= (1 << i)
 
-    if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = TBHM
+    if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = cd(TBHM)
     if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
     if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
     if allFields or displayed_stats: species['displayedStats'] = displayed_stats
