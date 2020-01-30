@@ -32,15 +32,6 @@ class LootCratesStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalStructureItemContainer_SupplyCrate.get_ue_type()
 
-    def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
-        if modid:
-            mod_data = self.manager.arkman.getModData(modid)
-            assert mod_data
-            title = mod_data['title'] or mod_data['name']
-            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
-
-        return None
-
     def extract(self, proxy: UEProxyStructure) -> Any:
         crate: PrimalStructureItemContainer_SupplyCrate = cast(PrimalStructureItemContainer_SupplyCrate, proxy)
 

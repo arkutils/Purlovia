@@ -65,8 +65,15 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         Return any extra dict entries that should be put *before* the main entries.
         The precense or absence of pre-data *is not* considered when deciding if a file should be saved,
         thus pre-data should be used for metadata only.
+        Default behaviour is to include the mod's metadata if extracting for a mod.
         '''
-        ...
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            title = mod_data['title'] or mod_data['name']
+            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+
+        return dict()
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
         '''
