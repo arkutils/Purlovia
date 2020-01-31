@@ -119,6 +119,7 @@ COLLAPSE_SINGLE_LINE_ARRAY_REGEX = re.compile(r'\[\s+(.+)\s+\]')
 JOIN_LINE_FIELDS = (
     'x|y|z',
     'lat|long?',
+    'name|interval|dmg|radius|stamina',
 )
 
 

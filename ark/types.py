@@ -74,6 +74,23 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     BoneDamageAdjusters: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
+    MeleeDamageAmount = ueints(0)
+    MeleeSwingRadius = uefloats(0.0)
+    AttackInfos: Mapping[int, ArrayProperty]
+
+    FallDamageMultiplier = uefloats(165.0)
+    MaxFallSpeed = uefloats(1200.0)
+
+    Mass = uefloats(100.0)
+    DragWeight = uefloats(35.0)
+
+    TargetingTeamNameOverride = uestrings('')
+
+    MaxWalkSpeed = uefloats(600.0)
+    MaxWalkSpeedCrouched = uefloats(300.0)
+    MaxWalkSpeedProne = uefloats(100.0)
+    RunningSpeedModifier = uefloats(1.5)
+    bCanRun = uebools(False)
 
 
 class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.ShooterCharacterMovement'):
