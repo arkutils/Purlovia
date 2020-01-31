@@ -17,9 +17,12 @@
                 // "--skip-extract-wiki",
                 "--skip-extract-asb",
                 "--skip-wiki-spawn-groups",
+                "--skip-wiki-loot-crates",
                 "--skip-wiki-maps",
                 "--skip-wiki-items",
-                // "--skip-wiki-drops",
+                "--skip-wiki-drops",
+                "--skip-wiki-engrams",
+                "--skip-wiki-species",
             ]
         },
         {
