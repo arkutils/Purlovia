@@ -1,6 +1,31 @@
 from typing import *
 
+from ark.common import DCSC_CLS
 from ue.asset import ExportTableItem, UAsset
+from ue.hierarchy import inherits_from
+
+# These functions are the beginning of replacements for the old ones below,
+# utilising ue.hierarchy and standardised naming conventions
+
+
+def find_components(asset: UAsset, expect_klassname='BlueprintGeneratedClass') -> Iterator[ExportTableItem]:
+    for export in asset.exports.values:
+        kls = export.klass and export.klass.value
+        kls_kls = kls and kls.klass.value
+        if export.namespace.value == asset.default_export:
+            yield export
+        elif kls_kls and str(kls_kls) == expect_klassname:
+            yield export
+
+
+def find_dcsc(asset: UAsset) -> Optional[ExportTableItem]:
+    for export in find_components(asset):
+        if inherits_from(export, DCSC_CLS):
+            return export
+    return None
+
+
+# ...the older functions
 
 
 def findComponentExports(asset: UAsset) -> Iterator[ExportTableItem]:
@@ -53,14 +78,3 @@ def findExportSourcePackage(export: ExportTableItem) -> Optional[str]:
         return findExportSourcePackage(klass_export)
 
     return None
-
-
-def findAllDependencies(asset) -> Iterator[str]:
-    '''Find which packages this asset components and sub-components depend on.'''
-    # Packages of classes of main components
-    for parent in findParentPackages(asset):
-        yield parent
-
-    # Packages of classes of sub-components
-    for subcmpparent in findSubComponentParentPackages(asset):
-        yield subcmpparent
