@@ -4,6 +4,7 @@ from typing import *
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
+from ue.utils import clean_double as cd
 
 from .types import NPCSpawnEntriesContainer
 
@@ -23,7 +24,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "1.0"
+        return "1"
 
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
@@ -67,11 +68,11 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 entry_values['weight'] = struct_data['EntryWeight']
                 entry_values['classes'] = struct_data['NPCsToSpawn']
                 entry_values['spawnOffsets'] = struct_data['NPCsSpawnOffsets']
-                
+
                 class_weights = struct_data['NPCsToSpawnPercentageChance'].values
                 entry_values['classWeights'] = class_weights
-                class_weight_sum = sum(class_weights.values)
-                entry_values['classChances'] = [weight / class_weight_sum for weight in class_weights.values]
+                class_weight_sum = sum(class_weights) or 1
+                entry_values['classChances'] = [cd(weight / class_weight_sum) for weight in class_weights]
 
                 values['entries'].append(entry_values)
 
