@@ -69,10 +69,11 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 entry_values['classes'] = struct_data['NPCsToSpawn']
                 entry_values['spawnOffsets'] = struct_data['NPCsSpawnOffsets']
 
-                class_weights = struct_data['NPCsToSpawnPercentageChance'].values
-                entry_values['classWeights'] = class_weights
-                class_weight_sum = sum(class_weights) or 1
-                entry_values['classChances'] = [cd(weight / class_weight_sum) for weight in class_weights]
+                # class_weights = struct_data['NPCsToSpawnPercentageChance'].values
+                # entry_values['classWeights'] = class_weights
+                # class_weight_sum = sum(class_weights) or 1
+                # entry_values['classChances'] = [cd(weight / class_weight_sum) for weight in class_weights]
+                entry_values['classWeights'] = struct_data['NPCsToSpawnPercentageChance'].values
 
                 values['entries'].append(entry_values)
 
