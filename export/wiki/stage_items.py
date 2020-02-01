@@ -8,6 +8,7 @@ from ue.proxy import UEProxyStructure
 
 from .items.cooking import convert_cooking_values
 from .items.crafting import convert_crafting_values, convert_repair_values
+from .items.egg import convert_egg_values
 from .items.status import convert_status_effect
 
 __all__ = [
@@ -95,12 +96,10 @@ class ItemsStage(JsonHierarchyExportStage):
             status_effects = item.UseItemAddCharacterStatusValues[0]
             v['statEffects'] = dict(convert_status_effect(entry) for entry in status_effects.values)
 
-        eggDinoClass = item.get('EggDinoClassToSpawn', 0, None)
-        if item.bIsEgg[0] and eggDinoClass:
-            v['egg'] = dict(
-                dinoClass=eggDinoClass,
-                temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0]),
-            )
+        if item.bIsEgg[0]:
+            egg_data = convert_egg_values(item)
+            if egg_data:
+                v['egg'] = egg_data
 
         if item.bIsCookingIngredient[0]:
             v['cookingStats'] = convert_cooking_values(item)

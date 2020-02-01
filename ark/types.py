@@ -181,6 +181,7 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     Ingredient_StaminaIncreasePerQuantity = uefloats(0.1)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
+    ItemIconMaterialParent: Mapping[int, ObjectProperty] # = 'None'
     OverrideRepairingRequirements: Mapping[int, ArrayProperty]  # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
     SpoilingItem: Mapping[int, ObjectProperty]  # = 'None'

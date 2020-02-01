@@ -1040,6 +1040,9 @@ class LinearColor(UEBase):
     def as_tuple(self):
         return tuple(v for v in self.field_values.values())
 
+    def format_for_json(self):
+        return self.as_tuple()
+
 
 class IntPoint(UEBase):
     x: int
