@@ -38,59 +38,87 @@ DCSC = PrimalDinoStatusComponent
 
 class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoCharacter'):
     # DevKit Verified
-    BabyAgeSpeed = uefloats(0.033)  # TODO: needs raw data
-    BabyGestationSpeed = uefloats(0.000035)  # TODO: needs raw data
+
+    # Flags
+    bAllowCarryFlyerDinos = uebools(False)
+    bAllowFlyerLandedRider = uebools(False)
+    bAllowRunningWhileSwimming = uebools(False)
     bCanBeTamed = uebools(True)
     bCanBeTorpid = uebools(True)
+    bCanCrouch = uebools(False)
+    bCanFly = uebools(False)
     bCanHaveBaby = uebools(False)
+    bCanJump = uebools(True)
+    bCanRun = uebools(False)
+    bCanSwim = uebools(True)
+    bCanWalk = uebools(True)
+    bFlyerAllowRidingInCaves = uebools(False)
     bIgnoreAllImmobilizationTraps = uebools(False)
     bIsBossDino = uebools(False)
     bIsCorrupted = uebools(False)
+    bIsFlyerDino = uebools(False)
     bIsWaterDino = uebools(False)
+    bPreventEnteringWater = uebools(False)
     bPreventImmobilization = uebools(False)
     bPreventSleepingTame = uebools(False)
     bSupportWakingTame = uebools(False)
     bUseBabyGestation = uebools(False)
     bUseColorization = uebools(False)
+
+    # General
     CustomTag = uestrings('')  # NameProperty (Default: None)
     DescriptiveName = uestrings('')  # StringProperty (Default: 'PrimalCharacter')
     DinoNameTag = uestrings('')  # NameProperty (Default: None)
     DragWeight = uefloats(35.0)
+    Mass = uefloats(100.0)
+    PreventColorizationRegions = uebytes(*repeat(0, COLOR_REGION_COUNT))
+
+    # Breeding/reproduction
+    BabyAgeSpeed = uefloats(0.033)  # TODO: needs raw data
+    BabyGestationSpeed = uefloats(0.000035)  # TODO: needs raw data
     ExtraBabyAgeSpeedMultiplier = uefloats(1.0)
     ExtraBabyGestationSpeedMultiplier = uefloats(1.0)
     ExtraTamedBaseHealthMultiplier = uefloats(1.0)
+    FertilizedEggItemsToSpawn: Mapping[int, ArrayProperty]  # = []
     NewFemaleMaxTimeBetweenMating = uefloats(172800.0)
     NewFemaleMinTimeBetweenMating = uefloats(64800.0)
-    PreventColorizationRegions = uebytes(*repeat(0, COLOR_REGION_COUNT))
     RequiredTameAffinity = uefloats(100)
     RequiredTameAffinityPerBaseLevel = uefloats(5.0)
     TameIneffectivenessByAffinity = uefloats(20)
+    TargetingTeamNameOverride = uestrings('')
     WakingTameFoodAffinityMultiplier = uefloats(1.6)  # TODO: needs raw data
     WakingTameFoodIncreaseMultiplier = uefloats(1.0)
 
-    RandomColorSetsMale: Mapping[int, ObjectProperty]  # = 'None'
-    RandomColorSetsFemale: Mapping[int, ObjectProperty]  # = 'None'
-    FertilizedEggItemsToSpawn: Mapping[int, ArrayProperty]  # = []
+    # Coloring
     BoneDamageAdjusters: Mapping[int, ArrayProperty]  # = []
+    RandomColorSetsFemale: Mapping[int, ObjectProperty]  # = 'None'
+    RandomColorSetsMale: Mapping[int, ObjectProperty]  # = 'None'
 
-    # DevKit Unverified
+    # Attacking
+    AttackInfos: Mapping[int, ArrayProperty]
     MeleeDamageAmount = ueints(0)
     MeleeSwingRadius = uefloats(0.0)
-    AttackInfos: Mapping[int, ArrayProperty]
 
+    # Movement
     FallDamageMultiplier = uefloats(165.0)
+    FlyingRunSpeedModifier = uefloats(1.0)
+    MaxCustomMovementSpeed = uefloats(600.0)
     MaxFallSpeed = uefloats(1200.0)
-
-    Mass = uefloats(100.0)
-    DragWeight = uefloats(35.0)
-
-    TargetingTeamNameOverride = uestrings('')
-
+    MaxFlySpeed = uefloats(600.0)
+    MaxSwimSpeed = uefloats(300.0)
     MaxWalkSpeed = uefloats(600.0)
     MaxWalkSpeedCrouched = uefloats(300.0)
     MaxWalkSpeedProne = uefloats(100.0)
+    RidingSwimmingRunSpeedModifier = uefloats(1.0)
     RunningSpeedModifier = uefloats(1.5)
-    bCanRun = uebools(False)
+    ScaleExtraRunningMultiplierMax = uefloats(0.0)
+    ScaleExtraRunningMultiplierMin = uefloats(0.0)
+    ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
+    ScaleExtraRunningSpeedModifier = uebools(False)
+    TamedRunningSpeedModifier = uefloats(1.0)
+    UntamedRunningSpeedModifier = uefloats(1.0)
+
+    # DevKit Unverified
 
 
 class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.ShooterCharacterMovement'):

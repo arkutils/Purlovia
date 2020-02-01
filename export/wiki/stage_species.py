@@ -13,6 +13,7 @@ from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
 
 from .species.attacks import gather_attack_data
+from .species.movement import gather_movement_data
 
 __all__ = [
     'SpeciesStage',
@@ -20,6 +21,30 @@ __all__ = [
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
+
+OUTPUT_FLAGS = (
+    'bAllowCarryFlyerDinos',
+    'bAllowFlyerLandedRider',
+    'bAllowMountedWeaponry',
+    'bAllowRiding',
+    'bCanBeDragged',
+    'bCanBeTorpid',
+    'bCanDrag',
+    'bDoStepDamage',
+    'bFlyerAllowRidingInCaves',
+    'bIsBossDino',
+    'bIsCorrupted',
+    'bIsFlyerDino',
+    'bIsWaterDino',
+    'bPreventCharacterBasing',
+    'bPreventEnteringWater',
+    'bPreventNeuter',
+
+    # Other related stuff not included:
+    # bCanRun - covered with the walk/running speed fields
+    # bUseColorization - in future color data will cover this
+    # bCanHaveBaby/bUseBabyGestation - add breeding section
+)
 
 
 class SpeciesStage(JsonHierarchyExportStage):
@@ -59,20 +84,34 @@ class SpeciesStage(JsonHierarchyExportStage):
             dragWeight=species.DragWeight[0],
         )
 
+        results['flags'] = _gather_flags(species)
+
         results['falling'] = dict(
             dmgMult=species.FallDamageMultiplier[0],
             maxSpeed=species.MaxFallSpeed[0],
         )
 
-        results['speed'] = species.MaxWalkSpeed[0]
-        if species.bCanRun[0]:
-            results['speedSprint'] = cd(species.MaxWalkSpeed[0] * species.RunningSpeedModifier[0])
-        else:
-            results['speedSprint'] = None
+        results['movementW'] = gather_movement_data(species, float(species.UntamedRunningSpeedModifier[0]))
+        results['movementD'] = gather_movement_data(species, float(species.TamedRunningSpeedModifier[0]))
 
         results.update(gather_attack_data(species))
 
         return results
+
+
+def _gather_flags(species: PrimalDinoCharacter) -> List[str]:
+    result = [_clean_flag_name(field) for field in OUTPUT_FLAGS if species.get(field, fallback=False)]
+    return result
+
+
+def _clean_flag_name(name: str):
+    if len(name) >= 2 and name[0] == 'b' and name[1] == name[1].upper():
+        return name[1].lower() + name[2:]
+
+    if len(name) >= 1:
+        return name[0].lower() + name[1:]
+
+    raise ValueError("Invalid flag name found")
 
 
 def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettings):
@@ -80,16 +119,6 @@ def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettin
         return True
 
     if not species.has_override('DescriptiveName'):
-        return True
-
-    # Check the local DCSC
-    dcsc_export = find_dcsc(species.get_source().asset)
-    if not dcsc_export:
-        return None
-
-    # Check if there no overrides of MaxStatusValues
-    dcsc: DCSC = gather_properties(dcsc_export)  # does not respect prioritising DCSCs, but that's okay here
-    if not any((not dcsc.has_override('MaxStatusValues', i)) for i in range(12)):
         return True
 
     return False
