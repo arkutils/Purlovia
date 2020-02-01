@@ -128,6 +128,9 @@ class NameIndex(UEBase):
         if self.instance:
             self.field_values['value'] = f'{self.value}_{self.instance - 1}'
 
+    def format_for_json(self):
+        return str(self)
+
     if support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
