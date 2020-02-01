@@ -4,6 +4,7 @@ from typing import *
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
+from ue.utils import clean_double as cd
 
 from .types import NPCSpawnEntriesContainer
 
@@ -23,19 +24,10 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "1.0"
+        return "1"
 
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
-
-    def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
-        if modid:
-            mod_data = self.manager.arkman.getModData(modid)
-            assert mod_data
-            title = mod_data['title'] or mod_data['name']
-            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
-
-        return None
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if modid:
@@ -45,12 +37,13 @@ class SpawnGroupStage(JsonHierarchyExportStage):
             if package:
                 pgd_asset = self.manager.loader[package]
                 class_swaps = convert_class_swaps(pgd_asset)
-                external_group_changes = segregate_container_changes(pgd_asset)
-                if class_swaps or external_group_changes:
-                    return dict(
-                        classSwaps=convert_class_swaps(pgd_asset),
-                        externalGroupChanges=segregate_container_changes(pgd_asset),
-                    )
+                ext_group_changes = segregate_container_changes(pgd_asset)
+                result = dict()
+                if class_swaps:
+                    result['classSwaps'] = class_swaps
+                if ext_group_changes:
+                    result['externalGroupChanges'] = ext_group_changes
+                return result
 
         return None
 
@@ -75,7 +68,12 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 entry_values['weight'] = struct_data['EntryWeight']
                 entry_values['classes'] = struct_data['NPCsToSpawn']
                 entry_values['spawnOffsets'] = struct_data['NPCsSpawnOffsets']
-                entry_values['classWeights'] = struct_data['NPCsToSpawnPercentageChance']
+
+                # class_weights = struct_data['NPCsToSpawnPercentageChance'].values
+                # entry_values['classWeights'] = class_weights
+                # class_weight_sum = sum(class_weights) or 1
+                # entry_values['classChances'] = [cd(weight / class_weight_sum) for weight in class_weights]
+                entry_values['classWeights'] = struct_data['NPCsToSpawnPercentageChance'].values
 
                 values['entries'].append(entry_values)
 
@@ -124,5 +122,5 @@ def convert_class_swaps(pgd: UAsset):
     return all_values
 
 
-def segregate_container_changes(pgd: UAsset) -> Optional[Dict]:
-    return None
+def segregate_container_changes(pgd: UAsset):
+    return None if pgd else None

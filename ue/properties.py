@@ -517,6 +517,9 @@ class ObjectProperty(UEBase):
     def format_for_json(self):
         return self.value.format_for_json()
 
+    def __bool__(self):
+        return bool(self.value)
+
 
 class NameProperty(UEBase):
     main_field = 'value'

@@ -191,6 +191,9 @@ class ObjectIndex(UEBase):
 
         return self.value.fullname
 
+    def __bool__(self):
+        return self.index != 0
+
     # if support_pretty:
 
     #     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):

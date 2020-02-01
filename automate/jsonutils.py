@@ -109,7 +109,7 @@ JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)[-+.\de]+,(?:\n\s+[-+.\de"]+,?
 JOIN_MULTIPLE_STRINGS_REGEX = re.compile(r'\[((?:\n\s+".{1,30}",?\s*$){1,4})\n\s+\]', re.MULTILINE)
 
 # Reduces dict fields with only a single line of content (including previously joined multiple fields) to a single line
-COLLAPSE_SINGLE_LINE_DICT_REGEX = re.compile(r"\{\n\s+(\"\w+\": [^}\n\]]{1,80})\n\s+\}")
+COLLAPSE_SINGLE_LINE_DICT_REGEX = re.compile(r"\{\n\s+(\"\w+\": [^}\n\]]{1,120})\n\s+\}")
 
 # Reduce arrays with only a single line of content (including previously joined multiple fields) to a single line
 COLLAPSE_SINGLE_LINE_ARRAY_REGEX = re.compile(r'\[\s+(.+)\s+\]')
@@ -119,6 +119,9 @@ COLLAPSE_SINGLE_LINE_ARRAY_REGEX = re.compile(r'\[\s+(.+)\s+\]')
 JOIN_LINE_FIELDS = (
     'x|y|z',
     'lat|long?',
+    'name|interval|dmg|radius|stamina',
+    'base|sprint',
+    'base|crouch|sprint',
 )
 
 
