@@ -7,7 +7,8 @@ from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.proxy import UEProxyStructure
 
 from .items.cooking import convert_cooking_values
-from .items.crafting import convert_crafting_values, convert_repair_values
+from .items.crafting import convert_crafting_values
+from .items.durability import convert_durability_values
 from .items.egg import convert_egg_values
 from .items.status import convert_status_effect
 
@@ -77,20 +78,15 @@ class ItemsStage(JsonHierarchyExportStage):
                 v['spoilage']['productBP'] = item.SpoilingItem[0]
 
         if item.bUseItemDurability[0].value:
-            v['durability'] = dict(
-                min=item.MinItemDurability[0],
-                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0],
-            )
+            v.update(convert_durability_values(item))
 
-        v['crafting'] = convert_crafting_values(item)
-        if item.bAllowRepair[0]:
-            v['repair'] = convert_repair_values(item)
+        v.update(convert_crafting_values(item))
 
         if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
             v['structureTemplate'] = item.StructureToBuild[0]
 
-        if 'WeaponToBuild' in item and item.WeaponToBuild[0].value.value:
-            v['weaponTemplate'] = item.WeaponToBuild[0]
+        if 'WeaponTemplate' in item and item.WeaponTemplate[0].value.value:
+            v['weaponTemplate'] = item.WeaponTemplate[0]
 
         if item.has_override('UseItemAddCharacterStatusValues'):
             status_effects = item.UseItemAddCharacterStatusValues[0]
@@ -102,6 +98,6 @@ class ItemsStage(JsonHierarchyExportStage):
                 v['egg'] = egg_data
 
         if item.bIsCookingIngredient[0]:
-            v['cookingStats'] = convert_cooking_values(item)
+            v.update(convert_cooking_values(item))
 
         return v
