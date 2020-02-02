@@ -4,6 +4,7 @@ from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalEngramEntry
+from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 __all__ = [
@@ -30,10 +31,20 @@ class EngramsStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalEngramEntry.get_ue_type()
 
+    def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            title = mod_data['title'] or mod_data['name']
+            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+
+        return None
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
         v: Dict[str, Any] = dict()
+        v['index'] = -1
         if engram.has_override('ExtraEngramDescription'):
             v['description'] = engram.ExtraEngramDescription[0]
         v['blueprintPath'] = engram.get_source().fullname
@@ -50,6 +61,38 @@ class EngramsStage(JsonHierarchyExportStage):
             v['requirements']['otherEngrams'] = list(convert_requirement_sets(engram))
 
         return v
+
+    def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        # Mod indexes are dependent on load order, and thus
+        # they are unstable. Export only the core.
+        if not modid:
+            # Add indexes from the base PGD
+            pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
+            self._add_pgd_indexes(pgd_asset)
+        else:
+            if not self.gathered_results:
+                return None
+        
+            for v in self.gathered_results:
+                del v['index']
+
+        return None
+    
+    def _add_pgd_indexes(self, pgd_asset: UAsset):
+        properties = pgd_asset.default_export.properties
+        d = properties.get_property('EngramBlueprintClasses')
+        engrams = [ref.value.value.fullname for ref in d.values]
+
+        if not self.gathered_results:
+            return
+        
+        for v in self.gathered_results:
+            try:
+                index = engrams.index(v['blueprintPath'])
+                v['index'] = index
+            except ValueError:
+                del v['index']
+
 
 
 _ENGRAM_GROUP_MAP = {
