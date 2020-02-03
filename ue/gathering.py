@@ -28,6 +28,8 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
 
+    loader = export.asset.loader
+
     chain = list(find_parent_classes(export, include_self=True))
     proxy = None
     while not proxy and chain:
@@ -39,34 +41,42 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
 
     proxy.set_source(export)
 
+    done: Set[ExportTableItem] = set()
     for fullname in reversed(chain):
         if not is_fullname_an_asset(fullname):
             continue  # Defaults are already in proxy - skip
 
-        props = get_default_props_for_class(fullname, export.asset.loader)
+        export_to_read = find_default_for_class(fullname, loader)
+        if export_to_read in done:
+            continue
+
+        done.add(export_to_read)
+
+        props = export_to_read.properties.as_dict()
         proxy.update(props)
 
     return proxy
 
 
-def get_default_props_for_class(fullname: str, loader: AssetLoader) -> Mapping[str, Mapping[int, UEBase]]:
-    '''Fetch properties for an export.
-
-    This reads the properties directly for bare classes, or finds the appropriate
-    Default__ prefixed export for BlueprintGeneratedClasses.'''
+def find_default_for_class(fullname: str, loader: AssetLoader) -> ExportTableItem:
+    '''
+    Work out which export to read properties from.
+    In normal cases this will be the export itself, but for BlueprintGeneratedClass exports
+    we need to look for a Default__ export that inherits from it.
+    '''
     cls = loader.load_class(fullname)
 
     # Special-case all BP-generated classes - redirect to the Default__ export's properties
     if cls.klass and cls.klass.value.fullname == BLUEPRINT_GENERATED_CLASS_CLS:
         # Check the asset's default_export as this is usually the correct export
         if cls.asset.default_export and cls.asset.default_export.klass and cls.asset.default_export.klass.value is cls:
-            return cls.asset.default_export.properties.as_dict()
+            return cls.asset.default_export
 
         # Find the Default__ export for this class and return its properties
         for export in cls.asset.exports:
             if str(export.name).startswith('Default__') and export.klass and export.klass.value is cls:
-                return export.properties.as_dict()
+                return export
 
         raise RuntimeError("Unable to find Default__ property export for: " + str(cls))
 
-    return cls.properties.as_dict()
+    return cls
