@@ -37,6 +37,8 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
     if not proxy:
         raise TypeError(f"No proxy type available for {baseclass_fullname}")
 
+    proxy.set_source(export)
+
     for fullname in reversed(chain):
         if not is_fullname_an_asset(fullname):
             continue  # Defaults are already in proxy - skip
