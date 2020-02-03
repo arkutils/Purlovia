@@ -144,6 +144,41 @@ class IndexedTree(Generic[T]):
 
         return self._lookup.get(key, fallback)
 
+    def ingest_list(self, src: List[T], parent_fn: Callable[[T], Optional[T]]):
+        '''
+        Add multiple items from a list.
+        Each list item must have a parent that is discoverable using the supplied function.
+        '''
+        for item in src:
+            self._ingest(item, parent_fn)
+
+    def _ingest(self, item: T, parent_fn: Callable[[T], Optional[T]]):
+        current: T = item
+        assert current
+        segment: Optional[Node[T]] = None
+        key: str = self._key_fn(current) if self._key_fn else current  # type: ignore
+        if key in self:
+            return
+
+        while True:
+            old_segment = segment
+            segment = Node(current)
+            if old_segment:
+                segment.add(old_segment)
+
+            parent = parent_fn(current)
+            if parent is None:
+                anchor_point = self.root
+            else:
+                parent_key: str = self._key_fn(parent) if self._key_fn else parent  # type: ignore
+                anchor_point = self.get(parent_key, None)
+
+            if anchor_point:
+                self.insert_segment(anchor_point, segment)
+                return
+
+            current = parent_fn(current) or self.root.data
+
     def _register(self, node: Node[T]):
         key: str = self._key_fn(node.data) if self._key_fn else node.data  # type: ignore
         if key in self._lookup:
