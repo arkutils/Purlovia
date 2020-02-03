@@ -58,13 +58,21 @@ tree: IndexedTree[str] = IndexedTree[str](ROOT_NAME)
 asset_extensions = ('.uasset', '.umap')
 
 
-def inherits_from(klass: Union[str, ExportTableItem], target: str) -> bool:
+def inherits_from(klass: Union[str, ExportTableItem], target: str, safe=False, include_self=False) -> bool:
     '''
     Check if a class inherits from another.
     `klass` should be a full classname or an exported class.
     `target` should be a full classname.
+    `safe` as True will return False when encountering a HierarchyError.
+    `include_self` to allow the case where the two inputs are equivalent.
     '''
-    return target in find_parent_classes(klass)
+    if safe:
+        try:
+            return target in find_parent_classes(klass, include_self=include_self)
+        except HierarchyError:
+            return False
+    else:
+        return target in find_parent_classes(klass, include_self=include_self)
 
 
 def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
