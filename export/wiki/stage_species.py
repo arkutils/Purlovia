@@ -27,6 +27,7 @@ OUTPUT_FLAGS = (
     'bAllowFlyerLandedRider',
     'bAllowMountedWeaponry',
     'bAllowRiding',
+    'bAllowRidingInWater',
     'bCanBeDragged',
     'bCanBeTorpid',
     'bCanDrag',
@@ -80,7 +81,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             dinoNameTag=species.DinoNameTag[0],
             customTag=species.CustomTag[0],
             targetingTeamName=species.TargetingTeamNameOverride[0],
-            mass=species.Mass[0],
+            mass=species.CharacterMovement[0].Mass[0],
             dragWeight=species.DragWeight[0],
         )
 
@@ -91,9 +92,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             maxSpeed=species.MaxFallSpeed[0],
         )
 
-        results['movementW'] = gather_movement_data(species, float(species.UntamedRunningSpeedModifier[0]))
-        results['movementD'] = gather_movement_data(species, float(species.TamedRunningSpeedModifier[0]))
-
+        results.update(gather_movement_data(species))
         results.update(gather_attack_data(species))
 
         return results

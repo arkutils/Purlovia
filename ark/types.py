@@ -30,19 +30,6 @@ class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.Sho
     MaxWalkSpeedCrouched = uefloats(300.0)
     MaxWalkSpeedProne = uefloats(100.0)
 
-    # Actually in PawnMovementComponent
-    FlyingRunSpeedModifier = uefloats(1.0)
-    RidingSwimmingRunSpeedModifier = uefloats(1.0)
-    RunningSpeedModifier = uefloats(1.5)
-    TamedRunningSpeedModifier = uefloats(1.0)
-    UntamedRunningSpeedModifier = uefloats(1.0)
-
-    # Actually in CharacterMovementComponent
-    ScaleExtraRunningMultiplierMax = uefloats(0.0)
-    ScaleExtraRunningMultiplierMin = uefloats(0.0)
-    ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
-    ScaleExtraRunningSpeedModifier = uebools(False)
-
     # DevKit Unverified
 
     # MaxStepHeight = [0] = '75.0',
@@ -101,12 +88,8 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     bCanBeTamed = uebools(True)
     bCanBeTorpid = uebools(True)
     bCanCrouch = uebools(False)
-    bCanFly = uebools(False)
     bCanHaveBaby = uebools(False)
-    bCanJump = uebools(True)
     bCanRun = uebools(False)
-    bCanSwim = uebools(True)
-    bCanWalk = uebools(True)
     bFlyerAllowRidingInCaves = uebools(False)
     bIgnoreAllImmobilizationTraps = uebools(False)
     bIsBossDino = uebools(False)
@@ -156,6 +139,19 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     # Movement
     MaxFallSpeed = uefloats(1200.0)
     FallDamageMultiplier = uefloats(165.0)
+
+    FlyingRunSpeedModifier = uefloats(1.0)
+    RidingSwimmingRunSpeedModifier = uefloats(1.0)
+    RunningSpeedModifier = uefloats(1.5)
+    TamedRunningSpeedModifier = uefloats(1.0)
+    UntamedRunningSpeedModifier = uefloats(1.0)
+    ExtraUnTamedSpeedMultiplier = uefloats(1.0)
+    ExtraTamedSpeedMultiplier = uefloats(1.0)
+
+    ScaleExtraRunningMultiplierMax = uefloats(0.0)
+    ScaleExtraRunningMultiplierMin = uefloats(0.0)
+    ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
+    ScaleExtraRunningSpeedModifier = uebools(False)
 
     # DevKit Unverified
 
