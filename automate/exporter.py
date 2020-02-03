@@ -314,7 +314,6 @@ class ExportManager:
                 logger.warning('Failed to gather properties from asset: %s', cls_name)
                 continue
 
-            proxy.set_source(export)
             yield proxy
 
     def get_mod_version(self, modid: str) -> str:
