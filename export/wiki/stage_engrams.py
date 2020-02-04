@@ -83,7 +83,7 @@ class EngramsStage(JsonHierarchyExportStage):
         return None
     
     def _add_pgd_indexes(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
-        if not pgd_asset.default_export:
+        if not self.gathered_results or not pgd_asset.default_export:
             return
 
         properties = pgd_asset.default_export.properties
@@ -94,10 +94,10 @@ class EngramsStage(JsonHierarchyExportStage):
         if not d:
             return
         
-        engrams = [ref.value.value.fullname for ref in d.values]
-
-        if not self.gathered_results:
-            return
+        engrams = []
+        for ref in d.values:
+            if ref.value.value:
+                engrams.append(ref.value.value.fullname)
         
         for v in self.gathered_results:
             try:
@@ -105,7 +105,6 @@ class EngramsStage(JsonHierarchyExportStage):
                 v['index'] = index
             except ValueError:
                 del v['index']
-
 
 
 _ENGRAM_GROUP_MAP = {
