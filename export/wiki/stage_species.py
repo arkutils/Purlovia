@@ -33,16 +33,22 @@ OUTPUT_FLAGS = (
     'bCanDrag',
     'bDoStepDamage',
     'bFlyerAllowRidingInCaves',
+    'bIsAmphibious',
+    'bIsBigDino',
     'bIsBossDino',
+    'bIsCarnivore',
     'bIsCorrupted',
     'bIsFlyerDino',
+    'bIsNPC',
+    'bIsRaidDino',
+    'bIsRobot',
     'bIsWaterDino',
     'bPreventCharacterBasing',
     'bPreventEnteringWater',
     'bPreventNeuter',
 
     # Other related stuff not included:
-    # bCanRun - covered with the walk/running speed fields
+    # bCanRun/Jump/Walk/Crouch/etc - covered with the movement speed section
     # bUseColorization - in future color data will cover this
     # bCanHaveBaby/bUseBabyGestation - add breeding section
 )
