@@ -112,6 +112,7 @@ class ConfigFile(BaseModel):
 
     official_mods: ModIdAccess = ModIdAccess(dict())
     mods: Tuple[str, ...] = tuple()
+    extract_mods: Optional[Tuple[str, ...]] = None
 
     class Config:
         alias_generator = snake_to_kebab
