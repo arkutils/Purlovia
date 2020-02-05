@@ -63,28 +63,41 @@ class EngramsStage(JsonHierarchyExportStage):
         return v
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
-        # Mod indexes are dependent on load order, and thus
-        # they are unstable. Export only the core.
+        if not self.gathered_results:
+            return None
+
         if not modid:
             # Add indexes from the base PGD
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
-            self._add_pgd_indexes(pgd_asset)
+            self._add_pgd_indexes(pgd_asset, None)
         else:
-            if not self.gathered_results:
-                return None
-        
-            for v in self.gathered_results:
-                del v['index']
+            # Mod indexes are dependent on load order, and thus
+            # unstable. It's up to the user to concat indexes in mods.
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            package = mod_data.get('package', None)
+            if package:
+                pgd_asset = self.manager.loader[package]
+                self._add_pgd_indexes(pgd_asset, mod_data)
 
         return None
     
-    def _add_pgd_indexes(self, pgd_asset: UAsset):
-        properties = pgd_asset.default_export.properties
-        d = properties.get_property('EngramBlueprintClasses')
-        engrams = [ref.value.value.fullname for ref in d.values]
-
-        if not self.gathered_results:
+    def _add_pgd_indexes(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+        if not self.gathered_results or not pgd_asset.default_export:
             return
+
+        properties = pgd_asset.default_export.properties
+        if not mod_data:
+            d = properties.get_property('EngramBlueprintClasses', fallback=None)
+        else:
+            d = properties.get_property('AdditionalEngramBlueprintClasses', fallback=None)
+        if not d:
+            return
+        
+        engrams = []
+        for ref in d.values:
+            if ref.value.value:
+                engrams.append(ref.value.value.fullname)
         
         for v in self.gathered_results:
             try:
@@ -92,7 +105,6 @@ class EngramsStage(JsonHierarchyExportStage):
                 v['index'] = index
             except ValueError:
                 del v['index']
-
 
 
 _ENGRAM_GROUP_MAP = {
