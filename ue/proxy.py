@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from typing import *
 
+from utils.generics import get_generic_args
+
 from .asset import ExportTableItem
 from .base import UEBase
+from .loader import AssetLoader
 from .properties import BoolProperty, ByteProperty, DummyAsset, FloatProperty, IntProperty, ObjectProperty, StringProperty
 
 __all__ = [
@@ -17,6 +20,7 @@ __all__ = [
     'uestrings',
     'proxy_for_type',
     'ProxyComponent',
+    'LazyReference',
 ]
 
 _UETYPE = '__uetype'
@@ -203,11 +207,8 @@ class ProxyComponent(Mapping[int, Tproxy]):
             return
 
         # Sadly this can't be done in __init__ as the typing variables are not yet set
-        orig_class = getattr(self, '__orig_class__', None)
-        args: Optional[Tuple[Type]] = None
-        if orig_class:
-            args = getattr(orig_class, '__args__', None)
-        if not orig_class or not args or len(args) != 1 or not issubclass(args[0], UEProxyStructure):
+        args = get_generic_args(self)
+        if not args or len(args) != 1 or not issubclass(args[0], UEProxyStructure):
             raise TypeError("This class must be used generically with a single UEProxyStructure type argument")
 
         self._cmp_type = args[0]
@@ -217,6 +218,85 @@ class ProxyComponent(Mapping[int, Tproxy]):
         assert self._cmp_type
         proxy = self._cmp_type()
         copy = ProxyComponentWrapper[Tproxy](proxy)
+        return copy
+
+    def __getitem__(self, index):
+        raise RuntimeError("?")
+
+    def __setitem__(self, index, value):
+        raise RuntimeError("?")
+
+    def __iter__(self):
+        yield 0
+
+    def __len__(self):
+        return 1
+
+
+class LazyReferenceWrapper(Mapping[int, Tproxy]):
+    '''The wrapper that evaluates a lazy reference when required.'''
+    def __init__(self, sub_proxy: Tproxy):
+        super().__init__()
+        self._proxy = sub_proxy
+        self._target: Optional[ObjectProperty] = None
+        self._cache: Optional[Tproxy] = None
+
+    def __iter__(self):
+        yield 0
+
+    def __len__(self):
+        return 1
+
+    def __getitem__(self, index) -> Tproxy:
+        '''Retrieve the associated proxy.'''
+        if index != 0:
+            raise ValueError("References can only have index 0")
+
+        if not self._target:
+            raise ValueError("Lazy reference has no value")
+
+        if not self._cache:
+            assert self._target.asset and self._target.asset.loader
+            loader: AssetLoader = self._target.asset.loader
+            export = loader.load_class(self._target.value.value.fullname)
+
+            # Lazy import to avoid cyclic dependency
+            from .gathering import gather_properties  # pylint: disable=import-outside-toplevel
+            self._cache = gather_properties(export)
+
+        return self._cache
+
+    def __setitem__(self, index, value: ObjectProperty):
+        '''Update the target from the given ObjectProperty.'''
+        if index != 0:
+            raise ValueError("Components can only have index 0")
+
+        if not isinstance(value, ObjectProperty):
+            raise TypeError("Expected ObjectProperty")
+
+        self._target = value
+
+
+class LazyReference(Mapping[int, Tproxy]):
+    _cmp_type: Optional[Type] = None
+
+    def _init_proxy_field(self):
+        '''Grab the generic type of this class and store it locally for use later.'''
+        if self._cmp_type is not None:
+            return
+
+        # Sadly this can't be done in __init__ as the typing variables are not yet set
+        args = get_generic_args(self)
+        if not args or len(args) != 1 or not issubclass(args[0], UEProxyStructure):
+            raise TypeError("This class must be used generically with a single UEProxyStructure type argument")
+
+        self._cmp_type = args[0]
+
+    def __copy__(self) -> LazyReferenceWrapper[Tproxy]:
+        self._init_proxy_field()
+        assert self._cmp_type
+        proxy = self._cmp_type()
+        copy = LazyReferenceWrapper[Tproxy](proxy)
         return copy
 
     def __getitem__(self, index):
