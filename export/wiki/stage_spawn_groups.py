@@ -24,7 +24,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "1"
+        return "2"
 
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
@@ -59,15 +59,6 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         if container.has_override('NPCSpawnEntries'):
             values['entries'] = [convert_group_entry(entry) for entry in container.NPCSpawnEntries[0].values]
 
-        # Calculates chances for each entry (weigh them) and sort
-        weight_sum = sum([entry['weight'] for entry in values['entries']])
-        for entry in values['entries']:
-            if weight_sum != 0:
-                entry['chance'] = entry['weight'] / weight_sum  # type: ignore
-            else:
-                entry['chance'] = entry['weight']  # type: ignore
-        values['entries'].sort(key=lambda e: e['chance'], reverse=True)
-
         # Export class spawn limits
         if container.has_override('NPCSpawnLimits'):
             values['limits'] = [convert_limit_entry(entry) for entry in container.NPCSpawnLimits[0].values]
@@ -80,7 +71,6 @@ def convert_group_entry(struct):
 
     v = dict()
     v['name'] = d['AnEntryName']
-    v['chance'] = 0  # Add field so the order is right later
     v['weight'] = d['EntryWeight']
     v['classes'] = d['NPCsToSpawn']
     v['spawnOffsets'] = d['NPCsSpawnOffsets']
