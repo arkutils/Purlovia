@@ -94,10 +94,14 @@ class WikiSpawnMapsStage(ProcessingStage):
 
         # Load ASB and spawning group data
         # TODO: Check if these files fail to load.
-        asb_values = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=None)
-        mod_spawning_groups = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=None)
+        asb_values_core = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=None)
+        asb_values_mod = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=modid)
+        spawning_groups_core = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=None)
+        spawning_groups_mod = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=modid)
+        asb_values_mod['species'] += asb_values_core['species']
+        spawning_groups_mod['spawngroups'] += spawning_groups_core['spawngroups']
         # Generate mapping table (blueprint path to name)
-        species_mapping = make_species_mapping_from_asb(asb_values)
+        species_mapping = make_species_mapping_from_asb(asb_values_mod)
 
         for map_data_path in map_data_dirs:
             map_name = map_data_path.name
@@ -106,7 +110,7 @@ class WikiSpawnMapsStage(ProcessingStage):
             map_spawns = self.load_json_file(Path(map_data_path) / 'npc_spawns.json')
             map_settings = self.load_json_file(map_data_path / 'world_settings.json')
             # ???
-            species = collect_npc_class_spawning_data(species_mapping, map_settings, mod_spawning_groups)
+            species = collect_npc_class_spawning_data(species_mapping, map_settings, spawning_groups_mod)
 
             for bp, bp_data in species.items():
                 for species_name in bp_data:
@@ -114,7 +118,7 @@ class WikiSpawnMapsStage(ProcessingStage):
                     point_radius = max(map_size // 150, 2)
                     svg = generate_svg_map(
                         map_spawns,
-                        mod_spawning_groups,
+                        spawning_groups_mod,
                         map_size,
                         0,
                         0,
