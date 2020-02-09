@@ -24,7 +24,7 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def process_mod(self, path: Path, modid: Optional[str]):
+    def process_mod(self, path: Path, modid: str):
         '''Process data extracted from a mod.'''
         raise NotImplementedError
 

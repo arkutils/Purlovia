@@ -8,35 +8,36 @@ import re
 from processing.spawn_maps.intermediate_types import *
 
 
-def CreateSvgFile(spawns, spawngroups, map_size, borderL, borderT, coordsW, coordsH, pointRadius, bp, species_name,
-                  spawningModifier):
+def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, coordsH, pointRadius, bp, species_name,
+                     spawningModifier):
     always_untameable = 'Alpha' in species_name
     svgOutput = ('<svg xmlns="http://www.w3.org/2000/svg"'
                  f' width="{map_size}" height="{map_size}" viewBox="0 0 {map_size} {map_size}"'
                  f''' class="creatureMap" style="position:absolute;">
         <defs>
-           <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
-               <feGaussianBlur stdDeviation="{round(map_size / 100)}" />
-           </filter>
-           <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
-               <rect width="4" height="10" fill="black"></rect>
-           </pattern>
-           <filter id="groupStroke">
-               <feFlood result="outsideColor" flood-color="black"/>
-               <feMorphology in="SourceAlpha" operator="dilate" radius="2"/>
-               <feComposite result="strokeoutline1" in="outsideColor" operator="in"/>
-               <feComposite result="strokeoutline2" in="strokeoutline1" in2="SourceAlpha" operator="out"/>
-               <feGaussianBlur in="strokeoutline2" result="strokeblur" stdDeviation="1"/>
-           </filter>'''
+            <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="{round(map_size / 100)}" />
+            </filter>
+            <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
+                <rect width="4" height="10" fill="black"></rect>
+            </pattern>
+            <filter id="groupStroke">
+                <feFlood result="outsideColor" flood-color="black"/>
+                <feMorphology in="SourceAlpha" operator="dilate" radius="2"/>
+                <feComposite result="strokeoutline1" in="outsideColor" operator="in"/>
+                <feComposite result="strokeoutline2" in="strokeoutline1" in2="SourceAlpha" operator="out"/>
+                <feGaussianBlur in="strokeoutline2" result="strokeblur" stdDeviation="1"/>
+            </filter>
+            '''
                  '''<style>
-               .spawningMap-very-common { fill: #0F0; }
-               .spawningMap-common { fill: #B2FF00; }
-               .spawningMap-uncommon { fill: #FF0; }
-               .spawningMap-very-uncommon { fill: #FC0; }
-               .spawningMap-rare { fill: #F60; }
-               .spawningMap-very-rare { fill: #F00; }
-               .spawning-map-point { stroke:black; stroke-width:1; }
-           </style>
+                .spawningMap-very-common { fill: #0F0; }
+                .spawningMap-common { fill: #B2FF00; }
+                .spawningMap-uncommon { fill: #FF0; }
+                .spawningMap-very-uncommon { fill: #FC0; }
+                .spawningMap-rare { fill: #F60; }
+                .spawningMap-very-rare { fill: #F00; }
+                .spawning-map-point { stroke:black; stroke-width:1; }
+            </style>
         </defs>\n''')
 
     # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
@@ -89,7 +90,6 @@ def CreateSvgFile(spawns, spawngroups, map_size, borderL, borderT, coordsW, coor
     pointSpawnsExist = False
     for s in spawns['spawns']:
         # Check if spawngroup exists for current species
-
         if 'minDesiredNumberOfNPC' not in s or 'locations' not in s:
             continue
 
@@ -111,6 +111,7 @@ def CreateSvgFile(spawns, spawngroups, map_size, borderL, borderT, coordsW, coor
         if rarity > 5:
             rarity = 5
 
+        # TODO: Check for locations going out of the map region (lat/long over 100)
         if 'spawnLocations' in s:
             for region in s['spawnLocations']:
                 # add small border to avoid gaps

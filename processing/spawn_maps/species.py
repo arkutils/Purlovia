@@ -27,34 +27,33 @@ def make_species_mapping_from_asb(d: Dict[str, Any]) -> Dict[str, str]:
     return v
 
 
-def collect_npc_spawning_data(bp_mappings, jsonSpawngroups):
-    blueprintSpecies = {}
+def collect_npc_class_spawning_data(bp_mappings, world_settings, spawning_groups):
+    v = {}
 
-    for sg in jsonSpawngroups['spawngroups']:
-        if 'entries' not in sg:
+    for container in spawning_groups['spawngroups']:
+        if 'entries' not in container:
             continue
 
-        for e in sg['entries']:
-            if 'classes' not in e:
-                continue
-
-            for bp in e['classes']:
-                if bp not in blueprintSpecies and bp in bp_mappings:
-                    blueprintSpecies[bp] = {bp_mappings[bp]: 1}
+        for entry in container['entries']:
+            for blueprint_path in entry['classes']:
+                if blueprint_path not in v and blueprint_path in bp_mappings:
+                    v[blueprint_path] = {bp_mappings[blueprint_path]: 1}
 
     # extra classes
     # TODO: not present in spawngroups.
-    if 'npcRandomSpawnClassWeights' in jsonSpawngroups:
-        for scw in jsonSpawngroups['npcRandomSpawnClassWeights']:
-            if 'chances' not in scw or len(scw['chances']) == 0 or 'to' not in scw or 'from' not in scw or len(
-                    scw['from']) == 0 or len(scw['to']) != len(scw['chances']):
-                continue
+    global_npc_weights = world_settings['worldSettings'].get('randomNPCClassWeights', [])
+    for scw in global_npc_weights:
+        if not scw['weights'] or not scw['from'] or len(scw['to']) != len(scw['weights']):
+            continue
 
-            for num, bp in enumerate(scw['to']):
-                if bp in bp_mappings:
-                    if scw['from'] in blueprintSpecies:
-                        blueprintSpecies[scw['from']][bp_mappings[bp]] = scw['chances'][num]
-                    else:
-                        blueprintSpecies[scw['from']] = {bp_mappings[bp]: scw['chances'][num]}
+        total_weights = sum(scw['weights']) or 1
+        chances = [weight / total_weights for weight in scw['weights']]
 
-    return blueprintSpecies
+        for index, blueprint_path in enumerate(scw['to']):
+            if blueprint_path in bp_mappings:
+                if scw['from'] not in v:
+                    v[scw['from']] = dict()
+
+                v[scw['from']][bp_mappings[blueprint_path]] = chances[index]
+
+    return v
