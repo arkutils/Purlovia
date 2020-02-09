@@ -91,7 +91,9 @@ class WorldSettingsExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
         settings: PrimalWorldSettings = cast(PrimalWorldSettings, proxy)
+        source: ExportTableItem = cast(ExportTableItem, proxy.get_source())
         yield dict(
+            source=source.asset.assetname,
             name=settings.Title[0],
             # Geo
             latOrigin=settings.LatitudeOrigin[0],
@@ -167,7 +169,7 @@ class NPCZoneManagerExport(MapGathererBase):
         if spawn_volumes:
             data['spawnLocations'] = list(cls._extract_spawn_volumes(spawn_volumes))
         # Check if we extracted any spawn data at all, otherwise we can skip it.
-        if not data.get('spawnPoints', default=None) and not data.get('spawnLocations', default=None):
+        if not data.get('spawnPoints', None) and not data.get('spawnLocations', None):
             yield from ()
             return
 

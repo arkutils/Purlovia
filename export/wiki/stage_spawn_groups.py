@@ -24,7 +24,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "2"
+        return '3'
 
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
@@ -95,7 +95,7 @@ def convert_single_class_swap(d):
     return {
         'from': d['FromClass'],
         'to': d['ToClasses'],
-        'chances': d['Weights'],
+        'weights': d['Weights'],
     }
 
 
