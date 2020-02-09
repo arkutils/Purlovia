@@ -167,7 +167,7 @@ class NPCZoneManagerExport(MapGathererBase):
         if spawn_volumes:
             data['spawnLocations'] = list(cls._extract_spawn_volumes(spawn_volumes))
         # Check if we extracted any spawn data at all, otherwise we can skip it.
-        if 'spawnPoints' not in data and 'spawnLocations' not in data:
+        if not data.get('spawnPoints', default=None) and not data.get('spawnLocations', default=None):
             yield from ()
             return
 
