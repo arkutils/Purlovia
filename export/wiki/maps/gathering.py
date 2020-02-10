@@ -148,7 +148,7 @@ class NPCZoneManagerExport(MapGathererBase):
             return
 
         # Export properties
-        data: Dict[str, Union[bool, UEBase, List]] = dict(disabled=not manager.bEnabled,
+        data: Dict[str, Union[bool, UEBase, List]] = dict(disabled=not manager.bEnabled[0],
                                                           spawnGroup=spawn_group,
                                                           minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
                                                           neverSpawnInWater=manager.bNeverSpawnInWater[0],
