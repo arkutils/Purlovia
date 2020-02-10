@@ -52,15 +52,11 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
         frequency = g['maxNPCNumberMultiplier']
         entry_frequency_sum = 0
 
+        total_group_weights = sum(entry['weight'] for entry in g['entries']) or 1
+
         for entry in g['entries']:
             if 'classes' not in entry or len(entry['classes']) == 0:
                 continue
-
-            # Calculate total weight of the spawning group
-            if entry['classWeights']:
-                total_weights = sum(entry['classWeights']) or 1
-            else:
-                total_weights = len(entry['classes']) or 1
 
             # Check all entries for the current blueprint
             # Some groups have multiple entries for the same blueprint
@@ -70,15 +66,21 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
                 if npc_spawn and bp in npc_spawn:
                     spawn_indices.append(index)
 
+            # Calculate total weight of classes in the spawning group
+            if entry['classWeights']:
+                total_entry_class_weights = sum(entry['classWeights']) or 1
+            else:
+                total_entry_class_weights = len(entry['classes']) or 1
+            entry_class_chances_data = [weight / total_entry_class_weights for weight in entry['classWeights']]
+
             entry_class_chance = 0  # The combined chance of all entries for current blueprint
             for index in spawn_indices:
                 if len(entry['classWeights']) > index:
-                    entry_class_chance += entry['classWeights'][index]
+                    entry_class_chance += entry_class_chances_data[index]
                 # assume default weight of 1 if there is no specific value
                 else:
                     entry_class_chance += 1
-            entry_class_chance /= len(entry['classWeights']) or 1
-            entry_class_chance *= (entry['weight'] / total_weights)
+            entry_class_chance *= (entry['weight'] / total_group_weights)
             entry_frequency_sum += entry_class_chance
 
         frequency *= entry_frequency_sum * spawningModifier
