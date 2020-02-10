@@ -31,7 +31,14 @@ class GenericActorExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
-        yield get_actor_location_vector(proxy)
+        data = dict(
+            hidden=not proxy.get('bIsVisible', fallback=True),
+            **get_actor_location_vector(proxy).format_for_json(),
+        )
+        # Remove the "hidden" mark if not hidden
+        if not data['hidden']:
+            del data['hidden']
+        yield data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -53,12 +60,11 @@ class GenericActorListExport(MapGathererBase):
 
     @classmethod
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        if inherits_from(export, CUSTOM_ACTOR_LIST_CLS):
-            # Check the tag
-            tag = export.properties.get_property('CustomTag', fallback='')
-            if str(tag) in cls.TAGS:
-                return True
-        return False
+        if not inherits_from(export, CUSTOM_ACTOR_LIST_CLS):
+            return False
+        # Check the tag
+        tag = export.properties.get_property('CustomTag', fallback='')
+        return str(tag) in cls.TAGS
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
@@ -154,20 +160,28 @@ class NPCZoneManagerExport(MapGathererBase):
             return
 
         # Export properties
-        data: Dict[str, Union[UEBase, List]] = dict(spawnGroup=spawn_group,
-                                                    minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
-                                                    neverSpawnInWater=manager.bNeverSpawnInWater[0],
-                                                    forceUntameable=manager.bForceUntameable[0])
+        data: Dict[str, Union[bool, UEBase, List]] = dict(disabled=not manager.bEnabled,
+                                                          spawnGroup=spawn_group,
+                                                          minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
+                                                          neverSpawnInWater=manager.bNeverSpawnInWater[0],
+                                                          forceUntameable=manager.bForceUntameable[0])
+        # Remove "disabled" entirely if enabled
+        if not data['disabled']:
+            del data['disabled']
+
         # Export dino counting regions
         data['locations'] = list(cls._extract_counting_volumes(count_volumes))
         # Export spawn points if present
         spawn_points = manager.get('SpawnPointOverrides', 0, None)
+        spawn_volumes = manager.get('LinkedZoneSpawnVolumeEntries', 0, None)
         if spawn_points:
             data['spawnPoints'] = list(cls._extract_spawn_points(spawn_points))
         # Export spawn regions if present
-        spawn_volumes = manager.get('LinkedZoneSpawnVolumeEntries', 0, None)
-        if spawn_volumes:
+        # Behaviour verified in DevKit. Dinos don't spawn in spawning volumes if
+        # points were manually specified.
+        elif spawn_volumes:
             data['spawnLocations'] = list(cls._extract_spawn_volumes(spawn_volumes))
+
         # Check if we extracted any spawn data at all, otherwise we can skip it.
         if not data.get('spawnPoints', None) and not data.get('spawnLocations', None):
             yield from ()
@@ -337,7 +351,9 @@ class LootCrateSpawnExport(MapGathererBase):
 
     @classmethod
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS)
+        if not inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS):
+            return False
+        return bool(export.properties.get_property('bIsEnabled', fallback=True))
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
@@ -408,6 +424,10 @@ class RadiationZoneExport(MapGathererBase):
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
         if not inherits_from(export, TOGGLE_PAIN_VOLUME_CLS):
             return False
+        # Check if disabled
+        is_enabled = bool(export.properties.get_property('bPainCausing', fallback=True))
+        if not is_enabled:
+            return False
         # Check if this is a radiation volume
         damage_type = export.properties.get_property('DamageType', fallback=None)
         if damage_type and damage_type.value.value.fullname == DAMAGE_TYPE_RADIATION_PKG:
@@ -446,7 +466,15 @@ class ExplorerNoteExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
         note: ExplorerNote = cast(ExplorerNote, proxy)
-        yield dict(noteIndex=note.ExplorerNoteIndex[0], **get_actor_location_vector(note).format_for_json())
+        data = dict(
+            noteIndex=note.ExplorerNoteIndex[0],
+            hidden=not note.bIsVisible[0],
+            **get_actor_location_vector(proxy).format_for_json(),
+        )
+        # Remove the "hidden" mark if not hidden
+        if not data['hidden']:
+            del data['hidden']
+        yield data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
