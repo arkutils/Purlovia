@@ -92,7 +92,7 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
     pointSpawnsExist = False
     for s in spawns['spawns']:
         # Check if spawngroup exists for current species
-        if 'minDesiredNumberOfNPC' not in s or 'locations' not in s:
+        if not s.get('locations', default=None) or s.get('disabled', default=False) or 'minDesiredNumberOfNPC' not in s:
             continue
 
         frequency = 0
