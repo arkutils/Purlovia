@@ -530,6 +530,9 @@ class NameProperty(UEBase):
     def _deserialise(self, size=None):
         self._newField('value', NameIndex(self))
 
+    def format_for_json(self):
+        return str(self)
+
 
 class StringProperty(UEBase):
     main_field = 'value'
@@ -572,6 +575,9 @@ class StringProperty(UEBase):
     def __str__(self):
         return self.value
 
+    def format_for_json(self):
+        return str(self)
+
     def __bool__(self):
         assert self.is_serialised
         return bool(self.value)
@@ -597,6 +603,9 @@ class TextProperty(UEBase):
 
     def __str__(self):
         return f'{self.source_string}'
+
+    def format_for_json(self):
+        return str(self)
 
 
 class Guid(UEBase):
@@ -1039,6 +1048,9 @@ class LinearColor(UEBase):
 
     def as_tuple(self):
         return tuple(v for v in self.field_values.values())
+
+    def format_for_json(self):
+        return self.as_tuple()
 
 
 class IntPoint(UEBase):

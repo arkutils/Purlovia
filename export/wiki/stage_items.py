@@ -4,10 +4,13 @@ from typing import *
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
+from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 from .items.cooking import convert_cooking_values
-from .items.crafting import convert_crafting_values, convert_repair_values
+from .items.crafting import convert_crafting_values
+from .items.durability import convert_durability_values
+from .items.egg import convert_egg_values
 from .items.status import convert_status_effect
 
 __all__ = [
@@ -40,6 +43,7 @@ class ItemsStage(JsonHierarchyExportStage):
         v: Dict[str, Any] = dict()
         if not item.has_override('DescriptiveNameBase'):
             return None
+        v['index'] = -1
         v['name'] = item.get('DescriptiveNameBase', 0, None)
         v['description'] = item.get('ItemDescription', 0, None)
         v['blueprintPath'] = item.get_source().fullname
@@ -76,33 +80,61 @@ class ItemsStage(JsonHierarchyExportStage):
                 v['spoilage']['productBP'] = item.SpoilingItem[0]
 
         if item.bUseItemDurability[0].value:
-            v['durability'] = dict(
-                min=item.MinItemDurability[0],
-                ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0],
-            )
+            v.update(convert_durability_values(item))
 
-        v['crafting'] = convert_crafting_values(item)
-        if item.bAllowRepair[0]:
-            v['repair'] = convert_repair_values(item)
+        v.update(convert_crafting_values(item))
 
         if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
             v['structureTemplate'] = item.StructureToBuild[0]
 
-        if 'WeaponToBuild' in item and item.WeaponToBuild[0].value.value:
-            v['weaponTemplate'] = item.WeaponToBuild[0]
+        if 'WeaponTemplate' in item and item.WeaponTemplate[0].value.value:
+            v['weaponTemplate'] = item.WeaponTemplate[0]
 
         if item.has_override('UseItemAddCharacterStatusValues'):
             status_effects = item.UseItemAddCharacterStatusValues[0]
             v['statEffects'] = dict(convert_status_effect(entry) for entry in status_effects.values)
 
-        eggDinoClass = item.get('EggDinoClassToSpawn', 0, None)
-        if item.bIsEgg[0] and eggDinoClass:
-            v['egg'] = dict(
-                dinoClass=eggDinoClass,
-                temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0]),
-            )
+        if item.bIsEgg[0]:
+            egg_data = convert_egg_values(item)
+            if egg_data:
+                v['egg'] = egg_data
 
         if item.bIsCookingIngredient[0]:
-            v['cookingStats'] = convert_cooking_values(item)
+            v.update(convert_cooking_values(item))
 
         return v
+
+    def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        if not self.gathered_results:
+            return None
+
+        if not modid:
+            # Add indices from the base PGD
+            pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
+            self._add_pgd_indices(pgd_asset, None)
+        else:
+            for v in self.gathered_results:
+                del v['index']
+
+        return None
+    
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+        if not self.gathered_results or not pgd_asset.default_export or mod_data:
+            return
+
+        properties = pgd_asset.default_export.properties
+        d = properties.get_property('MasterItemList', fallback=None)
+        if not d:
+            return
+        
+        master_list = []
+        for ref in d.values:
+            if ref.value.value:
+                master_list.append(ref.value.value.fullname)
+        
+        for v in self.gathered_results:
+            try:
+                index = master_list.index(v['blueprintPath'])
+                v['index'] = index
+            except ValueError:
+                del v['index']

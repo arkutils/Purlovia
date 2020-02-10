@@ -13,31 +13,27 @@ def convert_recipe_entry(entry):
 
 
 def convert_crafting_values(item: PrimalItem) -> Dict[str, Any]:
-    v: Dict[str, Any] = dict(
+    v: Dict[str, Any] = dict(crafting=dict(
         xp=item.BaseCraftingXP[0],
         bpCraftTime=item.BlueprintTimeToCraft[0],
         minLevelReq=item.CraftingMinLevelRequirement[0],
         productCount=item.CraftingGiveItemCount[0],
         skillQualityMult=(item.CraftingSkillQualityMultiplierMin[0], item.CraftingSkillQualityMultiplierMax[0]),
-    )
+    ))
 
     recipe = item.get('BaseCraftingResourceRequirements', 0, None)
     if recipe and recipe.values:
-        v['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+        v['crafting']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
 
-    return v
-
-
-def convert_repair_values(item: PrimalItem) -> Dict[str, Any]:
-    v: Dict[str, Any] = dict(
-        xp=item.BaseRepairingXP[0],
-        time=item.TimeForFullRepair[0],
-        resourceMult=item.RepairResourceRequirementMultiplier[0],
-    )
-
-    if item.bOverrideRepairingRequirements[0]:
-        recipe = item.get('OverrideRepairingRequirements', 0, None)
-        if recipe and recipe.values:
-            v['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+    if item.bAllowRepair[0]:
+        v['repair'] = dict(
+            xp=item.BaseRepairingXP[0],
+            time=item.TimeForFullRepair[0],
+            resourceMult=item.RepairResourceRequirementMultiplier[0],
+        )
+        if item.bOverrideRepairingRequirements[0]:
+            recipe = item.get('OverrideRepairingRequirements', 0, None)
+            if recipe and recipe.values:
+                v['repair']['recipe'] = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
 
     return v

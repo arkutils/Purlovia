@@ -159,7 +159,7 @@ def handle_args(args: Any) -> ConfigFile:
         config.git.SkipPush = True
 
     if args.mods is not None:
-        config.mods = args.mods
+        config.extract_mods = args.mods
 
     return config
 

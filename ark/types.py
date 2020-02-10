@@ -8,6 +8,45 @@ STAT_COUNT = 12
 COLOR_REGION_COUNT = 6
 
 
+class Blueprint(UEProxyStructure, uetype='/Script/Engine.Blueprint'):
+    # DevKit Unverified
+
+    ParentClass: Mapping[int, ObjectProperty]
+    SimpleConstructionScript: Mapping[int, ObjectProperty]
+    BlueprintSystemVersion = ueints(0)
+    GeneratedClass: Mapping[int, ObjectProperty]
+    bLegacyNeedToPurgeSkelRefs = uebools()
+    bLegacyGeneratedClassIsAuthoritative = uebools()
+    # BlueprintGuid: Mapping[int, StructProperty]
+
+
+class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.ShooterCharacterMovement'):
+    # DevKit Verified
+    Mass = uefloats(100.0)
+    MaxCustomMovementSpeed = uefloats(600.0)
+    MaxFlySpeed = uefloats(600.0)
+    MaxSwimSpeed = uefloats(300.0)
+    MaxWalkSpeed = uefloats(600.0)
+    MaxWalkSpeedCrouched = uefloats(300.0)
+    MaxWalkSpeedProne = uefloats(100.0)
+
+    # DevKit Unverified
+
+    # MaxStepHeight = [0] = '75.0',
+    # JumpZVelocity[0] = '800.0',
+    # WalkableFloorAngle[0] = '38.0',
+    # WalkableFloorZ[0] = '0.788011 (inexact)',
+    # MaxImpulseVelocityMagnitude[0] = '1.0',
+    # MaxImpulseVelocityZ[0] = '1.0',
+    # RotationRate[0] = StructProperty(Rotator(a='0.0', b='200.0', c='0.0')),
+    # RotationAcceleration[0] = '78.0',
+    # RotationBraking[0] = '78.0',
+    # AngleToStartRotationBraking[0] = '70.0',
+    # bUseRotationAcceleration[0] = True,
+    # NavAgentProps[0] = StructProperty('bCanJump = (BoolProperty) True'),
+    # UpdatedComponent[0] = ObjectProperty('CollisionCylinder (CapsuleComponent (Class) from /Script/Engine) [None]')
+
+
 class PrimalDinoStatusComponent(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoStatusComponent'):
     # DevKit Verified
     AmountMaxGainedPerLevelUpValue = uefloats(*repeat(0, STAT_COUNT))
@@ -39,6 +78,9 @@ DCSC = PrimalDinoStatusComponent
 class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDinoCharacter'):
     # DevKit Verified
 
+    # Components
+    CharacterMovement = ProxyComponent[ShooterCharacterMovement]()
+
     # Flags
     bAllowCarryFlyerDinos = uebools(False)
     bAllowFlyerLandedRider = uebools(False)
@@ -46,12 +88,8 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     bCanBeTamed = uebools(True)
     bCanBeTorpid = uebools(True)
     bCanCrouch = uebools(False)
-    bCanFly = uebools(False)
     bCanHaveBaby = uebools(False)
-    bCanJump = uebools(True)
     bCanRun = uebools(False)
-    bCanSwim = uebools(True)
-    bCanWalk = uebools(True)
     bFlyerAllowRidingInCaves = uebools(False)
     bIgnoreAllImmobilizationTraps = uebools(False)
     bIsBossDino = uebools(False)
@@ -70,7 +108,6 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     DescriptiveName = uestrings('')  # StringProperty (Default: 'PrimalCharacter')
     DinoNameTag = uestrings('')  # NameProperty (Default: None)
     DragWeight = uefloats(35.0)
-    Mass = uefloats(100.0)
     PreventColorizationRegions = uebytes(*repeat(0, COLOR_REGION_COUNT))
 
     # Breeding/reproduction
@@ -100,30 +137,21 @@ class PrimalDinoCharacter(UEProxyStructure, uetype='/Script/ShooterGame.PrimalDi
     MeleeSwingRadius = uefloats(0.0)
 
     # Movement
-    FallDamageMultiplier = uefloats(165.0)
-    FlyingRunSpeedModifier = uefloats(1.0)
-    MaxCustomMovementSpeed = uefloats(600.0)
     MaxFallSpeed = uefloats(1200.0)
-    MaxFlySpeed = uefloats(600.0)
-    MaxSwimSpeed = uefloats(300.0)
-    MaxWalkSpeed = uefloats(600.0)
-    MaxWalkSpeedCrouched = uefloats(300.0)
-    MaxWalkSpeedProne = uefloats(100.0)
+    FallDamageMultiplier = uefloats(165.0)
+
+    FlyingRunSpeedModifier = uefloats(1.0)
     RidingSwimmingRunSpeedModifier = uefloats(1.0)
     RunningSpeedModifier = uefloats(1.5)
+    TamedRunningSpeedModifier = uefloats(1.0)
+    UntamedRunningSpeedModifier = uefloats(1.0)
+    ExtraUnTamedSpeedMultiplier = uefloats(1.0)
+    ExtraTamedSpeedMultiplier = uefloats(1.0)
+
     ScaleExtraRunningMultiplierMax = uefloats(0.0)
     ScaleExtraRunningMultiplierMin = uefloats(0.0)
     ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
     ScaleExtraRunningSpeedModifier = uebools(False)
-    TamedRunningSpeedModifier = uefloats(1.0)
-    UntamedRunningSpeedModifier = uefloats(1.0)
-
-    # DevKit Unverified
-
-
-class ShooterCharacterMovement(UEProxyStructure, uetype='/Script/ShooterGame.ShooterCharacterMovement'):
-    # DevKit Verified
-    Mass = uefloats(100.0)
 
     # DevKit Unverified
 
@@ -181,11 +209,12 @@ class PrimalItem(UEProxyStructure, uetype='/Script/ShooterGame.PrimalItem'):
     Ingredient_StaminaIncreasePerQuantity = uefloats(0.1)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
+    ItemIconMaterialParent: Mapping[int, ObjectProperty]  # = 'None'
     OverrideRepairingRequirements: Mapping[int, ArrayProperty]  # = []
     UseItemAddCharacterStatusValues: Mapping[int, ArrayProperty]  # = []
     SpoilingItem: Mapping[int, ObjectProperty]  # = 'None'
     StructureToBuild: Mapping[int, ObjectProperty]  # = 'None'
-    WeaponToBuild: Mapping[int, ObjectProperty]  # = 'None'
+    WeaponTemplate: Mapping[int, ObjectProperty]  # = 'None'
     EggDinoClassToSpawn: Mapping[int, ObjectProperty]  # = 'None'
 
     # DevKit Unverified

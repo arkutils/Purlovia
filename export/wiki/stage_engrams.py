@@ -4,6 +4,7 @@ from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalEngramEntry
+from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 __all__ = [
@@ -30,10 +31,20 @@ class EngramsStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalEngramEntry.get_ue_type()
 
+    def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            title = mod_data['title'] or mod_data['name']
+            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+
+        return None
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
         v: Dict[str, Any] = dict()
+        v['index'] = -1
         if engram.has_override('ExtraEngramDescription'):
             v['description'] = engram.ExtraEngramDescription[0]
         v['blueprintPath'] = engram.get_source().fullname
@@ -50,6 +61,50 @@ class EngramsStage(JsonHierarchyExportStage):
             v['requirements']['otherEngrams'] = list(convert_requirement_sets(engram))
 
         return v
+
+    def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        if not self.gathered_results:
+            return None
+
+        if not modid:
+            # Add indexes from the base PGD
+            pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
+            self._add_pgd_indices(pgd_asset, None)
+        else:
+            # Mod indexes are dependent on load order, and thus
+            # unstable. It's up to the user to concat indexes in mods.
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            package = mod_data.get('package', None)
+            if package:
+                pgd_asset = self.manager.loader[package]
+                self._add_pgd_indices(pgd_asset, mod_data)
+
+        return None
+    
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+        if not self.gathered_results or not pgd_asset.default_export:
+            return
+
+        properties = pgd_asset.default_export.properties
+        if not mod_data:
+            d = properties.get_property('EngramBlueprintClasses', fallback=None)
+        else:
+            d = properties.get_property('AdditionalEngramBlueprintClasses', fallback=None)
+        if not d:
+            return
+        
+        engrams = []
+        for ref in d.values:
+            if ref.value.value:
+                engrams.append(ref.value.value.fullname)
+        
+        for v in self.gathered_results:
+            try:
+                index = engrams.index(v['blueprintPath'])
+                v['index'] = index
+            except ValueError:
+                del v['index']
 
 
 _ENGRAM_GROUP_MAP = {

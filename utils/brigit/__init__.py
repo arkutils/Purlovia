@@ -42,7 +42,7 @@ class RawGit(object):
         """Run a command with args as arguments."""
         full_command = (('git', kebab_case(command)) + tuple(
             (u"--%s=%s" % (key, value) if len(key) > 1 else u"-%s %s" % (key, value)) for key, value in kwargs.items()) + args)
-        self.logger.info(u"> %s" % u' '.join(full_command))
+        self.logger.debug(u"> %s" % u' '.join(full_command))
         process = Popen(full_command, stdout=PIPE, stderr=PIPE, cwd=self.path)
         out, err = process.communicate()
         out = out.decode(self.encoding)
