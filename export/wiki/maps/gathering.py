@@ -45,10 +45,6 @@ class GenericActorExport(MapGathererBase):
         data['lat'] = map_info.lat.from_units(data['y'])
         data['long'] = map_info.long.from_units(data['x'])
 
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['x'], data['y'], data['z'])
-
 
 class GenericActorListExport(MapGathererBase):
     TAGS: Tuple[str, ...]
@@ -79,10 +75,6 @@ class GenericActorListExport(MapGathererBase):
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         data['lat'] = map_info.lat.from_units(data['y'])
         data['long'] = map_info.long.from_units(data['x'])
-
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['x'], data['y'], data['z'])
 
 
 class WorldSettingsExport(MapGathererBase):
@@ -133,10 +125,6 @@ class WorldSettingsExport(MapGathererBase):
         data['longMulti'] = map_info.long.multiplier
         data['latShift'] = map_info.lat.shift
         data['longShift'] = map_info.long.shift
-
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (1, )
 
 
 class NPCZoneManagerExport(MapGathererBase):
@@ -232,11 +220,6 @@ class NPCZoneManagerExport(MapGathererBase):
             for point in data['spawnPoints']:
                 point['lat'] = map_info.lat.from_units(point['y'])
                 point['long'] = map_info.long.from_units(point['x'])
-
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['spawnGroup'], data['minDesiredNumberOfNPC'], len(data['locations']), len(data.get('spawnLocations', ())),
-                -len(data.get('spawnPoints', ())))
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -339,10 +322,6 @@ class BiomeZoneExport(MapGathererBase):
         for box in data['boxes']:
             convert_box_bounds_for_export(map_info, box)
 
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['name'], data['priority'], len(data['boxes']))
-
 
 class LootCrateSpawnExport(MapGathererBase):
     @classmethod
@@ -410,10 +389,6 @@ class LootCrateSpawnExport(MapGathererBase):
             location['lat'] = map_info.lat.from_units(location['y'])
             location['long'] = map_info.long.from_units(location['x'])
 
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['crateClasses'], data['maxCrateNumber'], len(data['crateLocations']))
-
 
 class RadiationZoneExport(MapGathererBase):
     @classmethod
@@ -449,10 +424,6 @@ class RadiationZoneExport(MapGathererBase):
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         convert_box_bounds_for_export(map_info, data)
 
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['start']['x'], data['start']['y'], data['start']['z'])
-
 
 class ExplorerNoteExport(MapGathererBase):
     @classmethod
@@ -480,10 +451,6 @@ class ExplorerNoteExport(MapGathererBase):
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         data['lat'] = map_info.lat.from_units(data['y'])
         data['long'] = map_info.long.from_units(data['x'])
-
-    @classmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        return (data['noteIndex'], data['x'], data['y'], data['z'])
 
 
 class OilVeinExport(GenericActorExport):

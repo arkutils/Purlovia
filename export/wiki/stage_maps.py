@@ -191,8 +191,6 @@ class MapStage(ExportStage):
             # Add lat and long keys as world settings have been found.
             for data in values:
                 helper.before_saving(map_info, data)  # type:ignore
-            # Sort the list
-            #values.sort(key=helper.sorting_key)  # type:ignore
 
         # Move the world settings out of the single element list
         map_info.data['worldSettings'] = world_settings
