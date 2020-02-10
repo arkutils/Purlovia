@@ -69,7 +69,7 @@ class EngramsStage(JsonHierarchyExportStage):
         if not modid:
             # Add indexes from the base PGD
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
-            self._add_pgd_indexes(pgd_asset, None)
+            self._add_pgd_indices(pgd_asset, None)
         else:
             # Mod indexes are dependent on load order, and thus
             # unstable. It's up to the user to concat indexes in mods.
@@ -78,11 +78,11 @@ class EngramsStage(JsonHierarchyExportStage):
             package = mod_data.get('package', None)
             if package:
                 pgd_asset = self.manager.loader[package]
-                self._add_pgd_indexes(pgd_asset, mod_data)
+                self._add_pgd_indices(pgd_asset, mod_data)
 
         return None
     
-    def _add_pgd_indexes(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
         if not self.gathered_results or not pgd_asset.default_export:
             return
 

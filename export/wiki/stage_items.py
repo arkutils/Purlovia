@@ -109,13 +109,16 @@ class ItemsStage(JsonHierarchyExportStage):
             return None
 
         if not modid:
-            # Add indexes from the base PGD
+            # Add indices from the base PGD
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
-            self._add_pgd_indexes(pgd_asset, None)
+            self._add_pgd_indices(pgd_asset, None)
+        else:
+            for v in self.gathered_results:
+                del v['index']
 
         return None
     
-    def _add_pgd_indexes(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
         if not self.gathered_results or not pgd_asset.default_export or mod_data:
             return
 
