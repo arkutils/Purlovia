@@ -115,7 +115,7 @@ class WorldSettingsExport(MapGathererBase):
             randomNPCClassWeights=[{
                 'from': struct.get_property('FromClass'),
                 'to': struct.get_property('ToClasses'),
-                'chances': struct.get_property('Weights'),
+                'weights': struct.get_property('Weights'),
             } for struct in settings.NPCRandomSpawnClassWeights[0].values] if 'NPCRandomSpawnClassWeights' in proxy else [],
             allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()))
 
