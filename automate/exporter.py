@@ -110,8 +110,9 @@ class ExportManager:
 
     def _perform_export(self):
         game_version = self.arkman.getGameVersion()
-        modids = self.config.mods
         base_path = self.config.settings.OutputPath
+
+        modids = self.config.mods if self.config.extract_mods is None else self.config.extract_mods
 
         if not game_version:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")
@@ -152,7 +153,7 @@ class ExportManager:
                 self._log_stats()
 
         # Extract : Mods : Run each stage of each root
-        for modid in self.config.mods:
+        for modid in modids:
             for root in self.roots:
                 if root.get_skip():
                     continue
@@ -314,7 +315,6 @@ class ExportManager:
                 logger.warning('Failed to gather properties from asset: %s', cls_name)
                 continue
 
-            proxy.set_source(export)
             yield proxy
 
     def get_mod_version(self, modid: str) -> str:

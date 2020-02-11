@@ -18,6 +18,7 @@ __all__ = [
 
 
 class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
+    gathered_results: Optional[List[Any]]
     '''
     An intermediate helper class that performs hierarchy discovery for core/mods,
     calls the user's `extract_class` for each of them and handles saving the results.
@@ -62,15 +63,23 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
     def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
         '''
         Return any extra dict entries that should be put *before* the main entries.
-        The precense or absence of pre-data *is not* considered when deciding if a file "has content" and should be saved,
-        thus pre-data should be used for metadata and not content.
+        The precense or absence of pre-data *is not* considered when deciding if a file should be saved,
+        thus pre-data should be used for metadata only.
+        Default behaviour is to include the mod's metadata if extracting for a mod.
         '''
-        ...
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            title = mod_data['title'] or mod_data['name']
+            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+
+        return dict()
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:  # pylint: disable=unused-argument
         '''
         Return any extra dict entries that should be put *after* the main entries.
         If any post-data is present it will stop the file being considered empty and avoid it being removed.
+        Has access to results gathered from `extract` in self.gathered_results.
         '''
         ...
 
@@ -109,11 +118,6 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         # Main items array
         output[self.get_field()] = results
 
-        # Post-data comes after the main items
-        post_data = self.get_post_data(modid) or {}
-        post_data = sanitise_output(post_data)
-        output.update(post_data)
-
         # Do the actual export into the existing `results` list
         for proxy in proxy_iter:
             item_output = self.extract(proxy)
@@ -121,8 +125,20 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
                 item_output = sanitise_output(item_output)
                 results.append(item_output)
 
+        # Make the results available to get_post_data
+        self.gathered_results = results
+
+        # Post-data comes after the main items
+        post_data = self.get_post_data(modid) or {}
+        post_data = sanitise_output(post_data)
+        output.update(post_data)
+        post_data_has_content = post_data and any(post_data.values())
+
+        # Clear gathered data reference
+        del self.gathered_results
+
         # Save if the data changed
-        if results or post_data:
+        if results or post_data_has_content:
             save_json_if_changed(output, output_path, self.get_use_pretty())
         else:
             # ...but remove an existing one if the output was empty

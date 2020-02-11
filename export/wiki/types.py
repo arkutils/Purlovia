@@ -46,7 +46,6 @@ class BiomeZoneVolume(UEProxyStructure, uetype='/Script/ShooterGame.BiomeZoneVol
     # DevKit Verified
     BiomeZoneName = uestrings('')  # Should be None.
     BiomeZonePriority = ueints(0)
-    bHidden = uebools(False)
     bIsOutside = uebools(True)
     bPreventCrops = uebools(False)
 
@@ -93,7 +92,7 @@ class BiomeZoneVolume(UEProxyStructure, uetype='/Script/ShooterGame.BiomeZoneVol
 
 class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.SupplyCrateSpawningVolume'):
     # DevKit Verified
-    bHidden = uebools(False)  # Devkit calls this bIsEnabled
+    bIsEnabled = uebools(False)
     MaxNumCrates = ueints(0)
     DelayBeforeFirstCrate = uefloats(0)
     MaxDelayBeforeFirstCrate = uefloats(0)
@@ -114,11 +113,14 @@ class SupplyCrateSpawningVolume(UEProxyStructure, uetype='/Script/ShooterGame.Su
 
 
 class TogglePainVolume(UEProxyStructure, uetype='/Script/ShooterGame.TogglePainVolume'):
-    # No properties we can assume type for.
+    # DevKit Verified
+    bPainCausing = uebools(True)
+
+    # DevKit Unverified
+
     ActorClassesToExclude: Mapping[int, ArrayProperty]
     DamageType: Mapping[int, ObjectProperty]
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
-
 
 class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorList'):
     # No properties we can assume type for.
@@ -152,6 +154,9 @@ class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
 
 
 class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
+    # DevKit Verified
+    bIsVisible = uebools(True)
+
     # DevKit Unverified
     ExplorerNoteIndex = ueints(0)
 

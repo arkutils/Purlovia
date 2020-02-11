@@ -35,8 +35,3 @@ class MapGathererBase(ABC):
     @abstractmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         ...
-
-    @classmethod
-    @abstractmethod
-    def sorting_key(cls, data: Dict[str, Any]) -> Tuple[Any, ...]:
-        ...
