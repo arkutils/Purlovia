@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, cast
 
 from export.wiki.consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, CUSTOM_ACTOR_LIST_CLS, \
@@ -9,7 +10,7 @@ from ue.asset import ExportTableItem
 from ue.base import UEBase
 from ue.hierarchy import MissingParent, inherits_from
 from ue.loader import AssetLoadException
-from ue.properties import ArrayProperty, Vector
+from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 
 from .base import MapGathererBase
@@ -90,9 +91,19 @@ class WorldSettingsExport(MapGathererBase):
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
         settings: PrimalWorldSettings = cast(PrimalWorldSettings, proxy)
         source: ExportTableItem = cast(ExportTableItem, proxy.get_source())
+
+        display_name: Union[StringProperty, str]
+        if settings.has_override('Title'):
+            display_name = settings.Title[0]
+        else:
+            display_name = source.asset.assetname.rsplit('/', 1)[1]
+            display_name = display_name.rstrip('_P')
+            # Insert spaces before capital letters
+            display_name = re.sub(r'\B([A-Z])', r' \1', display_name)
+
         yield dict(
             source=source.asset.assetname,
-            name=settings.Title[0],
+            name=display_name,
             # Geo
             latOrigin=settings.LatitudeOrigin[0],
             longOrigin=settings.LongitudeOrigin[0],
