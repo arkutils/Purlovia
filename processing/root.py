@@ -4,6 +4,7 @@ from typing import Optional
 from automate.exporter import ExportRoot
 from config import ConfigFile
 
+from .stage_region_maps import WikiRegionMapsStage
 from .stage_spawn_maps import WikiSpawnMapsStage
 
 __all__ = [
@@ -35,4 +36,5 @@ class ProcessingRoot(ExportRoot):
 
         self.stages = [
             WikiSpawnMapsStage(),
+            WikiRegionMapsStage(),
         ]

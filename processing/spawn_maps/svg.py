@@ -5,18 +5,26 @@ import math
 import os
 import re
 
-from processing.spawn_maps.intermediate_types import *
+from .consts import POINT_RADIUS, SVG_SIZE
+from .intermediate_types import *
+
+# These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.
+CSS_RARITY_CLASSES = [
+    'spawningMap-very-rare', 'spawningMap-rare', 'spawningMap-very-uncommon', 'spawningMap-uncommon', 'spawningMap-common',
+    'spawningMap-very-common'
+]
 
 
-def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, coordsH, pointRadius, bp, species_name,
-                     spawningModifier):
+def generate_svg_map(spawns, spawngroups, borderL, borderT, coordsW, coordsH, species_name, spawning_modifiers):
+    blueprints = spawning_modifiers.keys()
+
     always_untameable = 'Alpha' in species_name
     svgOutput = ('<svg xmlns="http://www.w3.org/2000/svg"'
-                 f' width="{map_size}" height="{map_size}" viewBox="0 0 {map_size} {map_size}"'
+                 f' width="{SVG_SIZE}" height="{SVG_SIZE}" viewBox="0 0 {SVG_SIZE} {SVG_SIZE}"'
                  f''' class="creatureMap" style="position:absolute;">
         <defs>
             <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="{round(map_size / 100)}" />
+                <feGaussianBlur stdDeviation="{round(SVG_SIZE / 100)}" />
             </filter>
             <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
                 <rect width="4" height="10" fill="black"></rect>
@@ -63,8 +71,8 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
             spawn_indices = []
             for index, npc_spawn in enumerate(entry['classes']):
                 # TODO: Review later. npc_spawn is an str. Object path format differs between ASB and wiki. Perhaps this is already solved in make_species_mapping_from_asb?
-                if npc_spawn and bp in npc_spawn:
-                    spawn_indices.append(index)
+                if npc_spawn in blueprints:
+                    spawn_indices.append((index, spawning_modifiers[npc_spawn]))
 
             # Calculate total weight of classes in the spawning group
             if entry['classWeights']:
@@ -74,16 +82,16 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
             entry_class_chances_data = [weight / total_entry_class_weights for weight in entry['classWeights']]
 
             entry_class_chance = 0  # The combined chance of all entries for current blueprint
-            for index in spawn_indices:
+            for index, modifier in spawn_indices:
                 if len(entry['classWeights']) > index:
-                    entry_class_chance += entry_class_chances_data[index]
+                    entry_class_chance += entry_class_chances_data[index] * modifier
                 # assume default weight of 1 if there is no specific value
                 else:
                     entry_class_chance += 1
             entry_class_chance *= (entry['weight'] / total_group_weights)
             entry_frequency_sum += entry_class_chance
 
-        frequency *= entry_frequency_sum * spawningModifier
+        frequency *= entry_frequency_sum
         if frequency > 0:
             spawn_entries_frequencies.append(SpawnFrequency(g['blueprintPath'], frequency))
 
@@ -92,7 +100,7 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
     pointSpawnsExist = False
     for s in spawns['spawns']:
         # Check if spawngroup exists for current species
-        if not s.get('locations', default=None) or s.get('disabled', default=False) or 'minDesiredNumberOfNPC' not in s:
+        if not s.get('locations', None) or s.get('disabled', False) or 'minDesiredNumberOfNPC' not in s:
             continue
 
         frequency = 0
@@ -105,10 +113,10 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
             continue
 
         number = frequency * s['minDesiredNumberOfNPC']
-        # calculate density from number of creatures and area
+        # Calculate density from number of creatures and area
         creatureDensity = number / ((s['locations'][0]['end']['long'] - s['locations'][0]['start']['long']) *
                                     (s['locations'][0]['end']['lat'] - s['locations'][0]['start']['lat']))
-        # this formula is arbitrarily constructed to create 5 naturally feeling groups of rarity 0..5 (very rare to very common)
+        # This formula is arbitrarily constructed to create 5 naturally feeling groups of rarity 0..5 (very rare to very common)
         rarity = round(1.5 * (math.log(1 + 50*creatureDensity)))
         if rarity > 5:
             rarity = 5
@@ -117,10 +125,10 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
         if 'spawnLocations' in s:
             for region in s['spawnLocations']:
                 # add small border to avoid gaps
-                xStart = round((region['start']['long'] - borderL) * map_size / coordsW) - 3
-                xEnd = round((region['end']['long'] - borderL) * map_size / coordsW) + 3
-                yStart = round((region['start']['lat'] - borderT) * map_size / coordsH) - 3
-                yEnd = round((region['end']['lat'] - borderT) * map_size / coordsH) + 3
+                xStart = round((region['start']['long'] - borderL) * SVG_SIZE / coordsW) - 3
+                xEnd = round((region['end']['long'] - borderL) * SVG_SIZE / coordsW) + 3
+                yStart = round((region['start']['lat'] - borderT) * SVG_SIZE / coordsH) - 3
+                yEnd = round((region['end']['lat'] - borderT) * SVG_SIZE / coordsH) + 3
 
                 rarity_regions[rarity].append(
                     SpawnRectangle(xStart, yStart, xEnd - xStart, yEnd - yStart,
@@ -131,27 +139,21 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
         if 'spawnPoints' in s:
             for point in s['spawnPoints']:
                 # add small border to avoid gaps
-                x = round((point['long'] - borderL) * map_size / coordsW)
-                y = round((point['lat'] - borderT) * map_size / coordsW)
+                x = round((point['long'] - borderL) * SVG_SIZE / coordsW)
+                y = round((point['lat'] - borderT) * SVG_SIZE / coordsW)
                 if x < 0:
                     x = 0
-                if x > map_size:
-                    x = map_size
+                if x > SVG_SIZE:
+                    x = SVG_SIZE
                 if y < 0:
                     y = 0
-                if y > map_size:
-                    y = map_size
+                if y > SVG_SIZE:
+                    y = SVG_SIZE
 
                 rarity_points[rarity].append(
                     SpawnPoint(x, y, ('Cave' in s['spawnGroup'] or 'UnderwaterGround' in s['spawnGroup']),
                                (always_untameable or s['forceUntameable'])))
                 pointSpawnsExist = True
-
-    # These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.
-    cssRarityClasses = [
-        'spawningMap-very-rare', 'spawningMap-rare', 'spawningMap-very-uncommon', 'spawningMap-uncommon', 'spawningMap-common',
-        'spawningMap-very-common'
-    ]
 
     untameableRegionsExist = False
     caveRegionsExist = False
@@ -164,7 +166,7 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
             cssRarity += 1
             if len(rarityRegions) == 0:
                 continue
-            svgOutput += '<g class="' + cssRarityClasses[cssRarity] + '">'
+            svgOutput += '<g class="' + CSS_RARITY_CLASSES[cssRarity] + '">'
             for region in rarityRegions:
                 svgOutput += '<rect x="' + str(region.x) + '" y="' + str(region.y) + '" width="' + str(
                     region.w) + '" height="' + str(region.h) + '" />'
@@ -184,9 +186,9 @@ def generate_svg_map(spawns, spawngroups, map_size, borderL, borderT, coordsW, c
             cssRarity += 1
             if len(rarityPoints) == 0:
                 continue
-            svgOutput += '<g class="' + cssRarityClasses[cssRarity] + '">'
+            svgOutput += f'<g class="{CSS_RARITY_CLASSES[cssRarity]}">'
             for point in rarityPoints:
-                svgOutput += '<circle cx="' + str(point.x) + '" cy="' + str(point.y) + '" r="' + str(2 * pointRadius) + '" />'
+                svgOutput += f'<circle cx="{point.x}" cy="{point.y}" r="{2 * POINT_RADIUS}" />'
                 if point.untameable:
                     untameableRegionsExist = True
                 if point.cave:
