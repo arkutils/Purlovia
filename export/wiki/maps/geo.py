@@ -15,13 +15,13 @@ class GeoCoordCalculator:
     def __init__(self, origin: float, scale: float):
         '''
         Origin is the location of the top left corner of the map.
-        Scale is the distance from the top left corner to the opposite
-        (bottom right) corner.
+        Scale is the distance from a corner to the opposite corner.
+        Shift is the offset of landscape origin to world origin (0, 0 point).
         '''
         self.origin = origin
         self.scale = scale
         self.multiplier = self.scale * 10
-        self.shift = (self.scale * 1000 + self.origin) / self.multiplier
+        self.shift = -self.origin / self.multiplier
 
     def from_units(self, units: Union[int, float]) -> float:
         '''

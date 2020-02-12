@@ -75,7 +75,7 @@ def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
     box_data['start']['long'] = map_info.long.from_units(box_data['start']['x'])
     # Center
     box_data['center']['lat'] = map_info.lat.from_units(box_data['center']['y'])
-    box_data['center']['long'] = map_info.lat.from_units(box_data['center']['x'])
+    box_data['center']['long'] = map_info.long.from_units(box_data['center']['x'])
     # End
     box_data['end']['lat'] = map_info.lat.from_units(box_data['end']['y'])
     box_data['end']['long'] = map_info.long.from_units(box_data['end']['x'])
