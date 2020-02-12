@@ -27,7 +27,7 @@ def make_species_mapping_from_asb(d: Dict[str, Any]) -> Dict[str, str]:
     return v
 
 
-def collect_class_spawning_data(bp_mappings, world_settings, spawning_groups):
+def collect_class_spawning_data(bp_mappings, spawning_groups, random_class_weights):
     '''
     Collects chances of a specific dino class appearing.
     '''
@@ -43,8 +43,7 @@ def collect_class_spawning_data(bp_mappings, world_settings, spawning_groups):
                     v[blueprint_path] = {bp_mappings[blueprint_path]: 1}
 
     # Include random class swaps that might happen
-    global_npc_weights = world_settings['worldSettings'].get('randomNPCClassWeights', [])
-    for scw in global_npc_weights:
+    for scw in random_class_weights:
         if not scw['weights'] or not scw['from'] or len(scw['to']) != len(scw['weights']):
             continue
 
