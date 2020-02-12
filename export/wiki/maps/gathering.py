@@ -14,7 +14,8 @@ from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 
 from .base import MapGathererBase
-from .common import convert_box_bounds_for_export, get_actor_location_vector, get_volume_bounds, get_volume_box_count
+from .common import BIOME_REMOVE_WIND_INFO, convert_box_bounds_for_export, \
+    get_actor_location_vector, get_volume_bounds, get_volume_box_count
 from .data_container import MapInfo
 
 
@@ -247,12 +248,14 @@ class BiomeZoneExport(MapGathererBase):
         biome: BiomeZoneVolume = cast(BiomeZoneVolume, proxy)
         volume_bounds = get_volume_bounds(biome)
 
-        data: Dict[str, Union[UEBase, List, Dict]] = dict(name=biome.BiomeZoneName[0],
-                                                          priority=biome.BiomeZonePriority[0],
-                                                          isOutside=biome.bIsOutside[0],
-                                                          preventCrops=biome.bPreventCrops[0],
-                                                          temperature=dict(),
-                                                          wind=dict())
+        biome_name = str(biome.BiomeZoneName[0])
+        biome_name = re.sub(BIOME_REMOVE_WIND_INFO, '', biome_name)
+        data: Dict[str, Union[UEBase, List, Dict, str]] = dict(name=biome_name,
+                                                               priority=biome.BiomeZonePriority[0],
+                                                               isOutside=biome.bIsOutside[0],
+                                                               preventCrops=biome.bPreventCrops[0],
+                                                               temperature=dict(),
+                                                               wind=dict())
 
         # Add overriden temperature and wind data
         cls._extract_temperature_data(biome, data)

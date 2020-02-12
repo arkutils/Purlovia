@@ -1,3 +1,4 @@
+import re
 from typing import Dict, Tuple
 
 from export.wiki.consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
@@ -7,6 +8,8 @@ from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
+
+BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W')
 
 
 def get_actor_location_vector(actor) -> Vector:
