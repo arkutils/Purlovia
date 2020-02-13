@@ -40,8 +40,8 @@ class WikiRegionMapsStage(ProcessingStage):
             map_settings = self.load_json_file(map_data_path / 'world_settings.json')
 
             map_size = 1024
-            svg = generate_svg_map(f'({map_name})', map_settings['worldSettings'], map_biomes, map_size, 7.2, 7.2, 92.8 - 7.2,
-                                   92.8 - 7.2)
+            svg = generate_svg_map(map_name, map_settings['worldSettings'], map_biomes, map_size, 7.2, 7.2, 92.8 - 7.2,
+                                   92.8 - 7.2, False)
             if svg:
                 self._save_raw_file(svg, (path / f'Regions {map_name}').with_suffix('.svg'))
 
@@ -87,8 +87,8 @@ class WikiRegionMapsStage(ProcessingStage):
             map_display_name = map_settings['worldSettings']['name']
 
             map_size = 1024
-            svg = generate_svg_map(f' ({map_display_name})', map_settings['worldSettings'], map_biomes, map_size, 7.2, 7.2,
-                                   92.8 - 7.2, 92.8 - 7.2)
+            svg = generate_svg_map(map_name, map_settings['worldSettings'], map_biomes, map_size, 7.2, 7.2, 92.8 - 7.2,
+                                   92.8 - 7.2, True)
             if svg:
                 self._save_raw_file(svg, (path / f'Regions {map_name}').with_suffix('.svg'))
 

@@ -4,14 +4,13 @@ import html
 import json
 import math
 import re
-from urllib.parse import quote
 
-from .regionMapsFunctions import coordTrans, fix_region_name, mapTrans
+from .func import coordTrans, make_biome_article_name, map_translate_coord
 
 REGEX_INVALID_BIOME = re.compile(r'^\?+$')
 
 
-def generate_svg_map(mod_suffix, world_settings, biomes, map_size, borderL, borderT, coordsW, coordsH):
+def generate_svg_map(map_name, world_settings, biomes, map_size, borderL, borderT, coordsW, coordsH, follow_mod_convention):
     svg_output = (
         '<svg xmlns="http://www.w3.org/2000/svg"'
         f''' width="{map_size}" height="{map_size}" viewBox="0 0 {map_size} {map_size}" style="position: absolute; width:100%; height:100%;">
@@ -40,8 +39,6 @@ def generate_svg_map(mod_suffix, world_settings, biomes, map_size, borderL, bord
             biome['boxes'] = valid_boxes
         elif biome['name'] == 'Deep Ocean':
             biome['priority'] = -2
-        else:
-            biome['name'] = fix_region_name(biome['name'])
 
         valid_biomes.append(biome)
 
@@ -67,23 +64,23 @@ def generate_svg_map(mod_suffix, world_settings, biomes, map_size, borderL, bord
 
     # Create svg
     for biome in valid_biomes:
-        svg_output += f'''<a href="{quote(biome['name'] + mod_suffix, safe='()')}" class="svgRegion">
+        svg_output += f'''<a href="{make_biome_article_name(map_name, biome['name'], follow_mod_convention)}" class="svgRegion">
     <g filter="url(#blur)">'''
 
         for box in biome['boxes']:
             # rectangle-coords
             xStart = round(
-                mapTrans(coordTrans(box['start']['x'], world_settings['latShift'], world_settings['latMulti']), borderL, coordsW,
-                         map_size))
+                map_translate_coord(coordTrans(box['start']['x'], world_settings['latShift'], world_settings['latMulti']),
+                                    borderL, coordsW, map_size))
             xEnd = round(
-                mapTrans(coordTrans(box['end']['x'], world_settings['latShift'], world_settings['latMulti']), borderL, coordsW,
-                         map_size))
+                map_translate_coord(coordTrans(box['end']['x'], world_settings['latShift'], world_settings['latMulti']), borderL,
+                                    coordsW, map_size))
             yStart = round(
-                mapTrans(coordTrans(box['start']['y'], world_settings['longShift'], world_settings['longMulti']), borderT,
-                         coordsH, map_size))
+                map_translate_coord(coordTrans(box['start']['y'], world_settings['longShift'], world_settings['longMulti']),
+                                    borderT, coordsH, map_size))
             yEnd = round(
-                mapTrans(coordTrans(box['end']['y'], world_settings['longShift'], world_settings['longMulti']), borderT, coordsH,
-                         map_size))
+                map_translate_coord(coordTrans(box['end']['y'], world_settings['longShift'], world_settings['longMulti']),
+                                    borderT, coordsH, map_size))
             if xStart < 0:
                 xStart = 0
             if xEnd > map_size:
