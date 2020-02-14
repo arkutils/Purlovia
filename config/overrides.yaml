@@ -76,6 +76,12 @@ species:
     /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
         skip_export: true
 
+    # Some variants share the same names
+    /Game/Mods/Valguero/Assets/Dinos/RockGolem/IceGolem/IceGolem_Character_BP:
+        descriptive_name: Ice Golem
+    /Game/Mods/Valguero/Assets/Dinos/RockGolem/ChalkGolem/ChalkGolem_Character_BP:
+        descriptive_name: Chalk Golem
+
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
         color_regions:

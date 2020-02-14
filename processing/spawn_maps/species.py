@@ -12,13 +12,6 @@ def make_species_mapping_from_asb(d: Dict[str, Any]) -> Dict[str, str]:
         species_name = species['name']
         blueprint_path = species['blueprintPath']
 
-        # TODO: Move to ASB overrides.
-        if species_name == 'Rock Elemental':
-            if re.search(r'IceGolem', blueprint_path):
-                species_name = 'Ice Golem'
-            elif re.search(r'ChalkGolem', blueprint_path):
-                species_name = 'Chalk Golem'
-
         if not blueprint_path.endswith('_C'):
             blueprint_path += '_C'
 
