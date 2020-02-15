@@ -2,13 +2,7 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
-from automate.exporter import ExportManager, ExportRoot
-from automate.jsonutils import save_json_if_changed
-from export.asb.root import ASBRoot
-from export.asb.stage_species import SpeciesStage
-from export.wiki.root import WikiRoot
-from export.wiki.stage_maps import MapStage
-from export.wiki.stage_spawn_groups import SpawnGroupStage
+from automate.exporter import ExportManager
 
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import collect_class_spawning_data, make_species_mapping_from_asb, merge_class_spawning_data
@@ -33,8 +27,8 @@ class WikiSpawnMapsStage(ProcessingStage):
         map_set: List[Path] = [path.parent for path in root_wiki_dir.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
-        data_asb = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=None)
-        data_groups = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=None)
+        data_asb = self._load_asb(None)
+        data_groups = self._load_spawning_groups(None)
         if not data_asb or not data_groups:
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
@@ -54,6 +48,26 @@ class WikiSpawnMapsStage(ProcessingStage):
         elif mod_type == 2:
             return self._map_mod_generate_svgs(path, modid, mod_data['name'])
 
+    def _load_asb(self, modid: Optional[str]):
+        path = (self.manager.config.settings.OutputPath / self.manager.config.export_asb.PublishSubDir)
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            path = (path / f'{modid}-{mod_data["name"]}.json')
+        else:
+            path = (path / 'values.json')
+        return self.load_json_file(path)
+
+    def _load_spawning_groups(self, modid: Optional[str]):
+        path = (self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir)
+        if modid:
+            mod_data = self.manager.arkman.getModData(modid)
+            assert mod_data
+            path = (path / f'{modid}-{mod_data["name"]}/spawngroups.json')
+        else:
+            path = (path / 'spawngroups.json')
+        return self.load_json_file(path)
+
     def _map_mod_generate_svgs(self, path: Path, modid: str, mod_name: str):
         # Find data of maps with NPC spawns
         root_wiki_mod_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir /
@@ -61,16 +75,16 @@ class WikiSpawnMapsStage(ProcessingStage):
         map_set: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
 
         # Load and merge ASB data
-        data_asb_core = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=None)
-        data_asb_mod = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=modid)
+        data_asb_core = self._load_asb(None)
+        data_asb_mod = self._load_asb(modid)
         if not data_asb_core or not data_asb_mod:
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
         data_asb_mod['species'] += data_asb_core['species']
 
         # Load and merge spawning group data
-        data_groups_core = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=None)
-        data_groups_mod = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=modid)
+        data_groups_core = self._load_spawning_groups(None)
+        data_groups_mod = self._load_spawning_groups(modid)
         if not data_groups_core or not data_groups_mod:
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
@@ -88,9 +102,9 @@ class WikiSpawnMapsStage(ProcessingStage):
         map_set: List[Path] = [path.parent for path in root_wiki_dir.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
-        data_asb = self.load_exported_json_file(ASBRoot, SpeciesStage, modid=modid)
-        data_groups_core = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=None)
-        data_groups_mod = self.load_exported_json_file(WikiRoot, SpawnGroupStage, modid=modid)
+        data_asb = self._load_asb(modid)
+        data_groups_core = self._load_spawning_groups(None)
+        data_groups_mod = self._load_spawning_groups(modid)
         if not data_asb or not data_groups_core or not data_groups_mod:
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return

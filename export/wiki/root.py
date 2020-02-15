@@ -2,6 +2,8 @@ from pathlib import Path, PurePosixPath
 from typing import Optional
 
 from automate.exporter import ExportRoot
+from processing.stage_region_maps import WikiRegionMapsStage
+from processing.stage_spawn_maps import WikiSpawnMapsStage
 
 from .stage_drops import DropsStage
 from .stage_engrams import EngramsStage
@@ -40,4 +42,6 @@ class WikiRoot(ExportRoot):
             DropsStage(),
             LootCratesStage(),
             SpeciesStage(),
+            WikiRegionMapsStage(),
+            WikiSpawnMapsStage(),
         ]

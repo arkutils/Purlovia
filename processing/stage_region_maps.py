@@ -4,12 +4,6 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 from automate.exporter import ExportManager, ExportRoot
 from automate.jsonutils import save_json_if_changed
-from export.asb.root import ASBRoot
-from export.asb.stage_species import SpeciesStage
-from export.wiki.maps.discovery import LevelDiscoverer
-from export.wiki.root import WikiRoot
-from export.wiki.stage_maps import MapStage
-from export.wiki.stage_spawn_groups import SpawnGroupStage
 
 from .region_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage

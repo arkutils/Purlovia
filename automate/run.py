@@ -13,7 +13,6 @@ from config import ConfigFile, get_global_config
 from export.asb.root import ASBRoot
 from export.example.root import ExampleRoot
 from export.wiki.root import WikiRoot
-from processing.root import ProcessingRoot
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
@@ -190,7 +189,6 @@ def run(config: ConfigFile):
         # exporter.add_root(ExampleRoot())
         exporter.add_root(ASBRoot())
         exporter.add_root(WikiRoot())
-        exporter.add_root(ProcessingRoot())
         exporter.perform()
 
         # Push any changes

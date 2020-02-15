@@ -51,26 +51,6 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
 
         return None
 
-    def load_exported_json_file(self,
-                                root_type: Type[ExportRoot],
-                                stage_type: Type[ExportStage],
-                                modid: Optional[str] = None) -> Any:
-        root = self._find_export_root_of_type(root_type)
-        assert root
-        stage = self._find_export_stage_of_type(root, stage_type)
-        assert stage
-        path = Path(self.manager.config.settings.OutputPath / root.get_relative_path())
-
-        if isinstance(stage, JsonHierarchyExportStage):
-            if not modid:
-                path = (path / stage.get_core_file_path())
-            else:
-                path = (path / stage.get_mod_file_path(modid))
-        else:
-            raise ValueError('Unable to determine file path - no hierarchy-based stage and no file path.')
-
-        return self.load_json_file(path)
-
     def load_json_file(self, path: Path) -> Any:
         try:
             with open(path, 'r') as fp:
