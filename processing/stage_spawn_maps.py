@@ -2,6 +2,7 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
+from ark.overrides import SVGGenerationSettings, get_overrides_for_map
 from automate.exporter import ExportManager
 
 from .spawn_maps.game_mod import merge_game_mod_groups
@@ -153,6 +154,10 @@ class WikiSpawnMapsStage(ProcessingStage):
             output_path = (output_path / map_name)
 
         for descriptive_name, modifiers in species.items():
-            svg = generate_svg_map(data_map_spawns, spawning_groups, 0, 0, 100, 100, descriptive_name, modifiers)
+            config: SVGGenerationSettings = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+
+            svg = generate_svg_map(data_map_spawns, spawning_groups, config.border_left, config.border_top,
+                                   config.border_right - config.border_left, config.border_bottom - config.border_top,
+                                   descriptive_name, modifiers)
             if svg:
                 self.save_raw_file(svg, (output_path / f'Spawning {descriptive_name}.svg'))

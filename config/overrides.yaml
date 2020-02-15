@@ -52,10 +52,57 @@ mods:
                 unkown: 'Unkown'  # Misspelt to match mod
 
 
-# Override settings on a per-map bases
+# Override settings on a per-map basis
 maps:
+    # Some levels are not configured as World Composition tiles, and we might wrongly treat them as persistent levels
     /Game/Maps/Extinction/Ext_Landscape:
         skip_export: true
+
+    # SVG generation overrides
+    # Core maps
+    /Game/Maps/Aberration/Aberration_P:
+        svgs:
+            border_top: 7.2
+            border_left: 7.2
+            border_right: 92.8
+            border_bottom: 92.8
+    /Game/Maps/Extinction/Extinction:
+        svgs:
+            border_top: 7.2
+            border_left: 7.2
+            border_right: 92.8
+            border_bottom: 92.8
+    /Game/Maps/TheIslandSubMaps/TheIsland:
+        svgs:
+            border_top: 7.2
+            border_left: 7.2
+            border_right: 92.8
+            border_bottom: 92.8
+    /Game/Maps/ScorchedEarth/ScorchedEarth_P:
+        svgs:
+            border_top: 7.2
+            border_left: 7.2
+            border_right: 92.8
+            border_bottom: 92.8
+    # Official mods
+    /Game/Mods/TheCenter/TheCenter:
+        svgs:
+            border_top: -3
+            border_left: 3
+            border_right: 102
+            border_bottom: 102
+    /Game/Maps/Ragnarok/Ragnarok:
+        svgs:
+            border_top: 0
+            border_left: 0
+            border_right: 100
+            border_bottom: 100
+    /Game/Maps/Valguero/Valguero_P:
+        svgs:
+            border_top: 0
+            border_left: 0
+            border_right: 100
+            border_bottom: 100
 
 
 # Override settings on a per-species basis
