@@ -51,7 +51,9 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
 
         return None
 
-    def load_exported_json_file(self, root_type: Type[ExportRoot], stage_type: Type[ExportStage],
+    def load_exported_json_file(self,
+                                root_type: Type[ExportRoot],
+                                stage_type: Type[ExportStage],
                                 modid: Optional[str] = None) -> Any:
         root = self._find_export_root_of_type(root_type)
         assert root
@@ -70,7 +72,15 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
         return self.load_json_file(path)
 
     def load_json_file(self, path: Path) -> Any:
-        #path = PurePosixPath(self.manager.config.settings.OutputPath / path)
-        with open(path, 'r') as fp:
-            data = json.load(fp)
-            return data
+        try:
+            with open(path, 'r') as fp:
+                data = json.load(fp)
+                return data
+        except:
+            return None
+
+    def save_raw_file(self, content: Any, path: Path):
+        parent = path.parent
+        parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as fp:
+            fp.write(content)
