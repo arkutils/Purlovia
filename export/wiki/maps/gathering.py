@@ -160,11 +160,13 @@ class NPCZoneManagerExport(MapGathererBase):
             return
 
         # Export properties
-        data: Dict[str, Union[bool, UEBase, List]] = dict(disabled=not manager.bEnabled[0],
-                                                          spawnGroup=spawn_group,
-                                                          minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
-                                                          neverSpawnInWater=manager.bNeverSpawnInWater[0],
-                                                          forceUntameable=manager.bForceUntameable[0])
+        data: Dict[str, Union[bool, UEBase, List]] = dict(
+            disabled=not manager.bEnabled[0],
+            spawnGroup=spawn_group,
+            minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
+            neverSpawnInWater=manager.bNeverSpawnInWater[0],
+            forceUntameable=manager.bForceUntameable[0],
+        )
         # Remove "disabled" entirely if enabled
         if not data['disabled']:
             del data['disabled']
@@ -250,12 +252,14 @@ class BiomeZoneExport(MapGathererBase):
 
         biome_name = str(biome.BiomeZoneName[0])
         biome_name = re.sub(BIOME_REMOVE_WIND_INFO, '', biome_name)
-        data: Dict[str, Union[UEBase, List, Dict, str]] = dict(name=biome_name,
-                                                               priority=biome.BiomeZonePriority[0],
-                                                               isOutside=biome.bIsOutside[0],
-                                                               preventCrops=biome.bPreventCrops[0],
-                                                               temperature=dict(),
-                                                               wind=dict())
+        data: Dict[str, Any] = dict(
+            name=biome_name,
+            priority=biome.BiomeZonePriority[0],
+            isOutside=biome.bIsOutside[0],
+            preventCrops=biome.bPreventCrops[0],
+            temperature=dict(),
+            wind=dict(),
+        )
 
         # Add overriden temperature and wind data
         cls._extract_temperature_data(biome, data)
@@ -291,15 +295,21 @@ class BiomeZoneExport(MapGathererBase):
         ## Above offset
         if proxy.has_override('AboveTemperatureOffsetThreshold') or proxy.has_override(
                 'AboveTemperatureOffsetMultiplier') or proxy.has_override('AboveTemperatureOffsetExponent'):
-            data['temperature']['aboveOffset'] = (proxy.AboveTemperatureOffsetThreshold[0],
-                                                  proxy.AboveTemperatureOffsetMultiplier[0],
-                                                  proxy.AboveTemperatureOffsetExponent[0], None)
+            data['temperature']['aboveOffset'] = (
+                proxy.AboveTemperatureOffsetThreshold[0],
+                proxy.AboveTemperatureOffsetMultiplier[0],
+                proxy.AboveTemperatureOffsetExponent[0],
+                None,
+            )
         ## Below offset
         if proxy.has_override('BelowTemperatureOffsetThreshold') or proxy.has_override(
                 'BelowTemperatureOffsetMultiplier') or proxy.has_override('BelowTemperatureOffsetExponent'):
-            data['temperature']['belowOffset'] = (proxy.BelowTemperatureOffsetThreshold[0],
-                                                  proxy.BelowTemperatureOffsetMultiplier[0],
-                                                  proxy.BelowTemperatureOffsetExponent[0], None)
+            data['temperature']['belowOffset'] = (
+                proxy.BelowTemperatureOffsetThreshold[0],
+                proxy.BelowTemperatureOffsetMultiplier[0],
+                proxy.BelowTemperatureOffsetExponent[0],
+                None,
+            )
         ## Final
         if proxy.has_override('FinalTemperatureMultiplier') or proxy.has_override(
                 'FinalTemperatureExponent') or proxy.has_override('FinalTemperatureAddition'):
@@ -314,22 +324,39 @@ class BiomeZoneExport(MapGathererBase):
         ## Pre-offset
         if proxy.has_override('PreOffsetWindMultiplier') or proxy.has_override('PreOffsetWindExponent') or proxy.has_override(
                 'PreOffsetWindAddition'):
-            data['wind']['preOffset'] = (None, proxy.PreOffsetWindMultiplier[0], proxy.PreOffsetWindExponent[0],
-                                         proxy.PreOffsetWindAddition[0])
+            data['wind']['preOffset'] = (
+                None,
+                proxy.PreOffsetWindMultiplier[0],
+                proxy.PreOffsetWindExponent[0],
+                proxy.PreOffsetWindAddition[0],
+            )
         ## Above offset
         if proxy.has_override('AboveWindOffsetThreshold') or proxy.has_override(
                 'AboveWindOffsetMultiplier') or proxy.has_override('AboveWindOffsetExponent'):
-            data['wind']['aboveOffset'] = (proxy.AboveWindOffsetThreshold[0], proxy.AboveWindOffsetMultiplier[0],
-                                           proxy.AboveWindOffsetExponent[0], None)
+            data['wind']['aboveOffset'] = (
+                proxy.AboveWindOffsetThreshold[0],
+                proxy.AboveWindOffsetMultiplier[0],
+                proxy.AboveWindOffsetExponent[0],
+                None,
+            )
         ## Below offset
         if proxy.has_override('BelowWindOffsetThreshold') or proxy.has_override(
                 'BelowWindOffsetMultiplier') or proxy.has_override('BelowWindOffsetExponent'):
-            data['wind']['belowOffset'] = (proxy.BelowWindOffsetThreshold[0], proxy.BelowWindOffsetMultiplier[0],
-                                           proxy.BelowWindOffsetExponent[0], None)
+            data['wind']['belowOffset'] = (
+                proxy.BelowWindOffsetThreshold[0],
+                proxy.BelowWindOffsetMultiplier[0],
+                proxy.BelowWindOffsetExponent[0],
+                None,
+            )
         ## Final
         if proxy.has_override('FinalWindMultiplier') or proxy.has_override('FinalWindExponent') or proxy.has_override(
                 'FinalWindAddition'):
-            data['wind']['final'] = (None, proxy.FinalWindMultiplier[0], proxy.FinalWindExponent[0], proxy.FinalWindAddition[0])
+            data['wind']['final'] = (
+                None,
+                proxy.FinalWindMultiplier[0],
+                proxy.FinalWindExponent[0],
+                proxy.FinalWindAddition[0],
+            )
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -360,26 +387,34 @@ class LootCrateSpawnExport(MapGathererBase):
             return
 
         # Make range tuples of numerical properties.
-        ranges = dict(delayBeforeFirst=(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
-                      intervalBetweenSpawns=(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
-                      intervalBetweenMaxedSpawns=(spawner.IntervalBetweenMaxedCrateSpawns[0],
-                                                  spawner.MaxIntervalBetweenMaxedCrateSpawns[0]))
+        ranges = dict(
+            delayBeforeFirst=(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
+            intervalBetweenSpawns=(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
+            intervalBetweenMaxedSpawns=(spawner.IntervalBetweenMaxedCrateSpawns[0],
+                                        spawner.MaxIntervalBetweenMaxedCrateSpawns[0]),
+        )
 
         # Single-player overrides. Export only if changed.
         if spawner.has_override('SP_IntervalBetweenCrateSpawns') or spawner.has_override('SP_MaxIntervalBetweenCrateSpawns'):
-            ranges['intervalBetweenSpawnsSP'] = (spawner.SP_IntervalBetweenCrateSpawns[0],
-                                                 spawner.SP_MaxIntervalBetweenCrateSpawns[0])
+            ranges['intervalBetweenSpawnsSP'] = (
+                spawner.SP_IntervalBetweenCrateSpawns[0],
+                spawner.SP_MaxIntervalBetweenCrateSpawns[0],
+            )
         if spawner.has_override('SP_IntervalBetweenMaxedCrateSpawns') or spawner.has_override(
                 'SP_MaxIntervalBetweenMaxedCrateSpawns'):
-            ranges['intervalBetweenMaxedSpawnsSP'] = (spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
-                                                      spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
+            ranges['intervalBetweenMaxedSpawnsSP'] = (
+                spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
+                spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0],
+            )
 
         # Combine all properties into a single dict
-        yield dict(maxCrateNumber=spawner.MaxNumCrates[0],
-                   crateClasses=sorted(cls._convert_crate_classes(class_entries)),
-                   crateLocations=list(cls._extract_spawn_points(spawn_points)),
-                   minTimeBetweenSpawnsAtSamePoint=spawner.MinTimeBetweenCrateSpawnsAtSamePoint[0],
-                   **ranges)
+        yield dict(
+            maxCrateNumber=spawner.MaxNumCrates[0],
+            crateClasses=sorted(cls._convert_crate_classes(class_entries)),
+            crateLocations=list(cls._extract_spawn_points(spawn_points)),
+            minTimeBetweenSpawnsAtSamePoint=spawner.MinTimeBetweenCrateSpawnsAtSamePoint[0],
+            **ranges,
+        )
 
     @classmethod
     def _convert_crate_classes(cls, entries):

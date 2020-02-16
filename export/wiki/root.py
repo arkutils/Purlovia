@@ -42,6 +42,9 @@ class WikiRoot(ExportRoot):
             DropsStage(),
             LootCratesStage(),
             SpeciesStage(),
+
+            # The following are processing stages, depending on the output of previous stages
+            # TODO: Allow these to move to their own root
             WikiRegionMapsStage(),
             WikiSpawnMapsStage(),
         ]

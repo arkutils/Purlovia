@@ -58,14 +58,13 @@ class WikiRegionMapsStage(ProcessingStage):
         map_display_name = data_map_settings['worldSettings']['name']
 
         config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-        dimens: SVGDimensions = SVGDimensions(size=1024,
-                                              border_top=config.border_top,
-                                              border_left=config.border_left,
-                                              coord_width=config.border_right - config.border_left,
-                                              coord_height=config.border_bottom - config.border_top)
+        dimens: SVGDimensions = SVGDimensions(
+            size=1024,
+            border_top=config.border_top,
+            border_left=config.border_left,
+            coord_width=config.border_right - config.border_left,
+            coord_height=config.border_bottom - config.border_top,
+        )
         svg = generate_svg_map(dimens, map_display_name, data_map_settings['worldSettings'], data_biomes, True)
         if svg:
             self.save_raw_file(svg, (path / f'Regions {map_name}').with_suffix('.svg'))
-
-
-#

@@ -1,4 +1,6 @@
-# Creates an svg-file with spawning regions of a species colored depending on the rarity
+'''
+Creates an svg-file with spawning regions of a species colored depending on the rarity.
+'''
 
 import json
 import math

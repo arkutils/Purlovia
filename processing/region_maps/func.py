@@ -1,4 +1,6 @@
-# Helper for regionMaps.py
+'''
+Helpers for regionMaps.py
+'''
 
 import re
 from urllib.parse import quote

@@ -46,9 +46,9 @@ class WikiSpawnMapsStage(ProcessingStage):
         assert mod_data
         mod_type = int(mod_data.get('type', 1))
         if mod_type == 1:
-            return self._game_mod_generate_svgs(path, modid)
+            self._game_mod_generate_svgs(path, modid)
         elif mod_type == 2:
-            return self._map_mod_generate_svgs(path, modid, mod_data['name'])
+            self._map_mod_generate_svgs(path, modid, mod_data['name'])
 
     def _load_asb(self, modid: Optional[str]):
         path = (self.manager.config.settings.OutputPath / self.manager.config.export_asb.PublishSubDir)
@@ -156,11 +156,13 @@ class WikiSpawnMapsStage(ProcessingStage):
 
         for descriptive_name, modifiers in species.items():
             config: SVGGenerationSettings = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-            dimens: SVGDimensions = SVGDimensions(size=300,
-                                                  border_top=config.border_top,
-                                                  border_left=config.border_left,
-                                                  coord_width=config.border_right - config.border_left,
-                                                  coord_height=config.border_bottom - config.border_top)
+            dimens: SVGDimensions = SVGDimensions(
+                size=300,
+                border_top=config.border_top,
+                border_left=config.border_left,
+                coord_width=config.border_right - config.border_left,
+                coord_height=config.border_bottom - config.border_top,
+            )
 
             svg = generate_svg_map(dimens, descriptive_name, modifiers, data_map_spawns, spawning_groups)
             if svg:

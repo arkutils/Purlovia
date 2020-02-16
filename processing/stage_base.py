@@ -56,7 +56,7 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
             with open(path, 'r') as fp:
                 data = json.load(fp)
                 return data
-        except:
+        except OSError:
             return None
 
     def save_raw_file(self, content: Any, path: Path):

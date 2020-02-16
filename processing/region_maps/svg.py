@@ -1,4 +1,7 @@
-# Creates an svg-file with regions that contain links to the according region-page (used on the ARK: Survival evolved Wiki)
+'''
+Creates an svg-file with regions that contain links to the according region-page
+(used on the ARK: Survival Evolved Wiki)
+'''
 
 import html
 import json
