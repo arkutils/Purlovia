@@ -5,25 +5,16 @@ import json
 import math
 import re
 
+from processing.common import SVGDimensions
+
 from .func import coordTrans, make_biome_article_name, map_translate_coord
 
 REGEX_INVALID_BIOME = re.compile(r'^\?+$')
 
 
-def generate_svg_map(map_name, world_settings, biomes, map_size, borderL, borderT, coordsW, coordsH, follow_mod_convention):
-    svg_output = (
-        '<svg xmlns="http://www.w3.org/2000/svg"'
-        f''' width="{map_size}" height="{map_size}" viewBox="0 0 {map_size} {map_size}" style="position: absolute; width:100%; height:100%;">
-<defs>
-    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
-        <feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0"/>
-        <feGaussianBlur stdDeviation="10" />
-    </filter>
-</defs>\n''')
-
-    # Remove regions without regions or if the name is only \?+, namefixes
-    # TODO: Split into other function
+def filter_biomes(biomes):
     valid_biomes = []
+
     for biome in biomes['biomes']:
         if not biome['boxes'] or not biome['name'].strip() or REGEX_INVALID_BIOME.search(biome['name']):
             continue
@@ -42,6 +33,46 @@ def generate_svg_map(map_name, world_settings, biomes, map_size, borderL, border
 
         valid_biomes.append(biome)
 
+    return valid_biomes
+
+
+def _generate_biome_rects(dimens: SVGDimensions, world_settings, biome):
+    svg_output = ''
+    for box in biome['boxes']:
+        # rectangle-coords
+        x1 = coordTrans(box['start']['x'], world_settings['longShift'], world_settings['longMulti'])
+        x2 = coordTrans(box['end']['x'], world_settings['longShift'], world_settings['longMulti'])
+        y1 = coordTrans(box['start']['y'], world_settings['latShift'], world_settings['latMulti'])
+        y2 = coordTrans(box['end']['y'], world_settings['latShift'], world_settings['latMulti'])
+
+        x1 = round(map_translate_coord(x1, dimens.border_left, dimens.coord_width, dimens.size))
+        x2 = round(map_translate_coord(x2, dimens.border_left, dimens.coord_width, dimens.size))
+        y1 = round(map_translate_coord(y1, dimens.border_top, dimens.coord_height, dimens.size))
+        y2 = round(map_translate_coord(y2, dimens.border_top, dimens.coord_height, dimens.size))
+
+        x1 = max(0, x1)
+        x2 = min(x2, dimens.size)
+        y1 = max(0, y1)
+        y2 = min(y2, dimens.size)
+
+        svg_output += f'\n<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" />'
+    return svg_output
+
+
+def generate_svg_map(dimens: SVGDimensions, map_name, world_settings, biomes, follow_mod_convention):
+    svg_output = (
+        '<svg xmlns="http://www.w3.org/2000/svg"'
+        f''' width="{dimens.size}" height="{dimens.size}" viewBox="0 0 {dimens.size} {dimens.size}" style="position: absolute; width:100%; height:100%;">
+<defs>
+    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
+        <feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0"/>
+        <feGaussianBlur stdDeviation="10" />
+    </filter>
+</defs>\n''')
+
+    # Remove invalid biome entries
+    valid_biomes = filter_biomes(biomes)
+
     # Combine regions with the same name
     index = 0
     biome_count = len(valid_biomes)
@@ -59,7 +90,7 @@ def generate_svg_map(map_name, world_settings, biomes, map_size, borderL, border
     # Sort biomes by priority
     valid_biomes.sort(key=lambda biome: biome['priority'], reverse=False)
 
-    textX = map_size / 2
+    textX = dimens.size / 2
     textY = 60
 
     # Create svg
@@ -67,31 +98,7 @@ def generate_svg_map(map_name, world_settings, biomes, map_size, borderL, border
         svg_output += f'''<a href="{make_biome_article_name(map_name, biome['name'], follow_mod_convention)}" class="svgRegion">
     <g filter="url(#blur)">'''
 
-        for box in biome['boxes']:
-            # rectangle-coords
-            xStart = round(
-                map_translate_coord(coordTrans(box['start']['x'], world_settings['latShift'], world_settings['latMulti']),
-                                    borderL, coordsW, map_size))
-            xEnd = round(
-                map_translate_coord(coordTrans(box['end']['x'], world_settings['latShift'], world_settings['latMulti']), borderL,
-                                    coordsW, map_size))
-            yStart = round(
-                map_translate_coord(coordTrans(box['start']['y'], world_settings['longShift'], world_settings['longMulti']),
-                                    borderT, coordsH, map_size))
-            yEnd = round(
-                map_translate_coord(coordTrans(box['end']['y'], world_settings['longShift'], world_settings['longMulti']),
-                                    borderT, coordsH, map_size))
-            if xStart < 0:
-                xStart = 0
-            if xEnd > map_size:
-                xEnd = map_size
-            if yStart < 0:
-                yStart = 0
-            if yEnd > map_size:
-                yEnd = map_size
-
-            svg_output += f'''
-        <rect x="{xStart}" y="{yStart}" width="{xEnd - xStart}" height="{yEnd - yStart}" />'''
+        svg_output += _generate_biome_rects(dimens, world_settings, biome)
 
         svg_output += f'''
     </g>

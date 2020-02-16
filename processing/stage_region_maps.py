@@ -2,8 +2,10 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
+from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager, ExportRoot
 from automate.jsonutils import save_json_if_changed
+from processing.common import SVGDimensions
 
 from .region_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
@@ -55,9 +57,13 @@ class WikiRegionMapsStage(ProcessingStage):
             return
         map_display_name = data_map_settings['worldSettings']['name']
 
-        map_size = 1024
-        svg = generate_svg_map(map_display_name, data_map_settings['worldSettings'], data_biomes, map_size, 7.2, 7.2, 92.8 - 7.2,
-                               92.8 - 7.2, True)
+        config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+        dimens: SVGDimensions = SVGDimensions(size=1024,
+                                              border_top=config.border_top,
+                                              border_left=config.border_left,
+                                              coord_width=config.border_right - config.border_left,
+                                              coord_height=config.border_bottom - config.border_top)
+        svg = generate_svg_map(dimens, map_display_name, data_map_settings['worldSettings'], data_biomes, True)
         if svg:
             self.save_raw_file(svg, (path / f'Regions {map_name}').with_suffix('.svg'))
 

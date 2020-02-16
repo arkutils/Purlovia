@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 from ark.overrides import SVGGenerationSettings, get_overrides_for_map
 from automate.exporter import ExportManager
+from processing.common import SVGDimensions
 
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import collect_class_spawning_data, make_species_mapping_from_asb, merge_class_spawning_data
@@ -155,9 +156,12 @@ class WikiSpawnMapsStage(ProcessingStage):
 
         for descriptive_name, modifiers in species.items():
             config: SVGGenerationSettings = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+            dimens: SVGDimensions = SVGDimensions(size=300,
+                                                  border_top=config.border_top,
+                                                  border_left=config.border_left,
+                                                  coord_width=config.border_right - config.border_left,
+                                                  coord_height=config.border_bottom - config.border_top)
 
-            svg = generate_svg_map(data_map_spawns, spawning_groups, config.border_left, config.border_top,
-                                   config.border_right - config.border_left, config.border_bottom - config.border_top,
-                                   descriptive_name, modifiers)
+            svg = generate_svg_map(dimens, descriptive_name, modifiers, data_map_spawns, spawning_groups)
             if svg:
                 self.save_raw_file(svg, (output_path / f'Spawning {descriptive_name}.svg'))
