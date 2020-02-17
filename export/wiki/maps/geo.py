@@ -3,6 +3,7 @@ from typing import Union
 from export.wiki.types import PrimalWorldSettings
 from ue.loader import AssetLoader
 from ue.properties import FloatProperty
+from ue.utils import clean_float
 
 
 class GeoCoordCalculator:
@@ -29,7 +30,7 @@ class GeoCoordCalculator:
         '''
         Calculates a coordinate from UE's units (centimeters).
         '''
-        return units / self.multiplier + self.shift
+        return clean_float(units / self.multiplier + self.shift)
 
     def __str__(self):
         return f'GeoCoordCalculator (origin={self.origin}, scale={self.scale})'
