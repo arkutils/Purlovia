@@ -20,7 +20,7 @@ __all__ = [
 
 class WikiRegionMapsStage(ProcessingStage):
     def get_skip(self) -> bool:
-        return False
+        return self.manager.config.processing.ProcessBiomeData
 
     def extract_core(self, _: Path):
         # Find data of maps with biomes

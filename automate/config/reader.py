@@ -10,6 +10,7 @@ SIMPLE_SECTION_TYPES = {
     'git': GitSection,
     'errors': ErrorsSection,
     'export-defaults': ExportDefaultsSection,
+    'processing': ProcessingSection,
     'optimisation': OptimisationSection,
 }
 
