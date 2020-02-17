@@ -30,7 +30,7 @@ class ColorRegionSettings(BaseModel):
     region_names: Dict[int, Optional[str]] = dict()
 
 
-class SVGGenerationSettings(BaseModel):
+class MapBoundariesSettings(BaseModel):
     border_top: float = 7.2
     border_left: float = 7.2
     border_right: float = 92.8
@@ -45,7 +45,7 @@ class OverrideSettings(BaseModel):
     descriptive_name: Optional[str]
 
     # Maps
-    svgs: SVGGenerationSettings = SVGGenerationSettings()
+    svgs: MapBoundariesSettings = MapBoundariesSettings()
 
 
 class OverridesFile(BaseModel):

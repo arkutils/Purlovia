@@ -9,8 +9,16 @@ def merge_game_mod_groups(core_groups, changeset):
         blueprint_path = change['blueprintPath']
         if blueprint_path not in groups:
             continue
+        orig_group = groups[blueprint_path]
 
         if 'entries' in change:
-            groups[blueprint_path]['entries'] += change['entries']
+            if 'entries' in orig_group:
+                orig_group['entries'] += change['entries']
+            else:
+                orig_group['entries'] = change['entries']
+
         if 'limits' in change:
-            groups[blueprint_path]['limits'] += change['limits']
+            if 'limits' in orig_group:
+                orig_group['limits'] += change['limits']
+            else:
+                orig_group['limits'] = change['limits']

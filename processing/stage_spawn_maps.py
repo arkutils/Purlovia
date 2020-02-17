@@ -2,9 +2,9 @@ from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
-from ark.overrides import SVGGenerationSettings, get_overrides_for_map
+from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager
-from processing.common import SVGDimensions
+from processing.common import SVGBoundaries
 
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import collect_class_spawning_data, make_species_mapping_from_asb, merge_class_spawning_data
@@ -23,10 +23,9 @@ class WikiSpawnMapsStage(ProcessingStage):
     def get_skip(self) -> bool:
         return False
 
-    def process_core(self, path: Path):
+    def extract_core(self, _: Path):
         # Find data of maps with NPC spawns
-        root_wiki_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir)
-        map_set: List[Path] = [path.parent for path in root_wiki_dir.glob('*/npc_spawns.json')]
+        map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(None)
@@ -41,17 +40,17 @@ class WikiSpawnMapsStage(ProcessingStage):
         for map_data_path in map_set:
             self._map_process_data(map_data_path, species_mapping, data_groups)
 
-    def process_mod(self, path: Path, modid: str):
+    def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         mod_type = int(mod_data.get('type', 1))
         if mod_type == 1:
-            self._game_mod_generate_svgs(path, modid)
+            self._game_mod_generate_svgs(modid, mod_data['name'])
         elif mod_type == 2:
-            self._map_mod_generate_svgs(path, modid, mod_data['name'])
+            self._map_mod_generate_svgs(modid, mod_data['name'])
 
     def _load_asb(self, modid: Optional[str]):
-        path = (self.manager.config.settings.OutputPath / self.manager.config.export_asb.PublishSubDir)
+        path = self.asb_path
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
             assert mod_data
@@ -61,7 +60,7 @@ class WikiSpawnMapsStage(ProcessingStage):
         return self.load_json_file(path)
 
     def _load_spawning_groups(self, modid: Optional[str]):
-        path = (self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir)
+        path = self.wiki_path
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
             assert mod_data
@@ -70,10 +69,9 @@ class WikiSpawnMapsStage(ProcessingStage):
             path = (path / 'spawngroups.json')
         return self.load_json_file(path)
 
-    def _map_mod_generate_svgs(self, path: Path, modid: str, mod_name: str):
+    def _map_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of maps with NPC spawns
-        root_wiki_mod_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir /
-                                 f'{modid}-{mod_name}')
+        root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_name}')
         map_set: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
 
         # Load and merge ASB data
@@ -98,10 +96,9 @@ class WikiSpawnMapsStage(ProcessingStage):
         for map_data_path in map_set:
             self._map_process_data(map_data_path, species_mapping, data_groups_mod, None)
 
-    def _game_mod_generate_svgs(self, path: Path, modid: str):
+    def _game_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of core maps with NPC spawns
-        root_wiki_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir)
-        map_set: List[Path] = [path.parent for path in root_wiki_dir.glob('*/npc_spawns.json')]
+        map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
@@ -112,14 +109,15 @@ class WikiSpawnMapsStage(ProcessingStage):
             return
 
         # Merge spawning group data
-        merge_game_mod_groups(data_groups_core['spawngroups'], data_groups_mod['externalGroupChanges'])
+        if 'externalGroupChanges' in data_groups_mod:
+            merge_game_mod_groups(data_groups_core['spawngroups'], data_groups_mod['externalGroupChanges'])
 
         # Generate mapping table (blueprint path to name)
         species_mapping = make_species_mapping_from_asb(data_asb)
 
         for map_data_path in map_set:
             self._map_process_data(map_data_path, species_mapping, data_groups_core, data_groups_mod.get('classSwaps', []),
-                                   (path / 'spawn_maps'))
+                                   (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps'))
 
     def _map_process_data(self,
                           data_path: Path,
@@ -155,8 +153,8 @@ class WikiSpawnMapsStage(ProcessingStage):
             output_path = (output_path / map_name)
 
         for descriptive_name, modifiers in species.items():
-            config: SVGGenerationSettings = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-            dimens: SVGDimensions = SVGDimensions(
+            config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+            bounds = SVGBoundaries(
                 size=300,
                 border_top=config.border_top,
                 border_left=config.border_left,
@@ -164,6 +162,6 @@ class WikiSpawnMapsStage(ProcessingStage):
                 coord_height=config.border_bottom - config.border_top,
             )
 
-            svg = generate_svg_map(dimens, descriptive_name, modifiers, data_map_spawns, spawning_groups)
+            svg = generate_svg_map(bounds, descriptive_name, modifiers, data_map_spawns, spawning_groups)
             if svg:
                 self.save_raw_file(svg, (output_path / f'Spawning {descriptive_name}.svg'))

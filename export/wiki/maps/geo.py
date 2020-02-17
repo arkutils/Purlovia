@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from typing import Union
 
 from export.wiki.types import PrimalWorldSettings
@@ -9,14 +8,17 @@ from ue.properties import FloatProperty
 class GeoCoordCalculator:
     origin: Union[float, FloatProperty]
     scale: Union[float, FloatProperty]
-    multiplier: Union[float, FloatProperty] = field(init=False)
-    shift: Union[float, FloatProperty] = field(init=False)
+    multiplier: Union[float, FloatProperty]
+    shift: Union[float, FloatProperty]
 
-    def __init__(self, origin: float, scale: float):
+    def __init__(self, origin: Union[float, FloatProperty], scale: Union[float, FloatProperty]):
         '''
-        Origin is the location of the top left corner of the map.
-        Scale is the distance from a corner to the opposite corner.
-        Shift is the offset of landscape origin to world origin (0, 0 point).
+        Origin is the Y (for latitude, or X for longitude coord of map's
+        corner in the second quadrant.
+        Scale is the width (longitude) or height (latitude) of the map.
+
+        Calculated shift value is equal to the shift required (on a given
+        axis) to reposition the landscape origin to world origin (point 0, 0).
         '''
         self.origin = origin
         self.scale = scale

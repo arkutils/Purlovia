@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager, ExportRoot
 from automate.jsonutils import save_json_if_changed
-from processing.common import SVGDimensions
+from processing.common import SVGBoundaries
 
 from .region_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
@@ -22,15 +22,14 @@ class WikiRegionMapsStage(ProcessingStage):
     def get_skip(self) -> bool:
         return False
 
-    def process_core(self, path: Path):
+    def extract_core(self, _: Path):
         # Find data of maps with biomes
-        root_wiki_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir)
-        map_set: List[Path] = [path.parent for path in root_wiki_dir.glob('*/biomes.json')]
+        map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/biomes.json')]
 
         for map_data_path in map_set:
-            self._process(map_data_path)
+            self._process(map_data_path, None)
 
-    def process_mod(self, path: Path, modid: str):
+    def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         if int(mod_data.get('type', 1)) != 2:
@@ -38,14 +37,13 @@ class WikiRegionMapsStage(ProcessingStage):
             return
 
         # Find data of maps with biomes
-        root_wiki_mod_dir = Path(self.manager.config.settings.OutputPath / self.manager.config.export_wiki.PublishSubDir /
-                                 f'{modid}-{mod_data["name"]}')
+        root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_data["name"]}')
         map_set: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/biomes.json')]
 
         for map_data_path in map_set:
-            self._process(map_data_path)
+            self._process(map_data_path, modid)
 
-    def _process(self, path: Path):
+    def _process(self, path: Path, modid: Optional[str]):
         map_name = path.name
         logger.info(f'Processing data of map: {map_name}')
 
@@ -58,13 +56,13 @@ class WikiRegionMapsStage(ProcessingStage):
         map_display_name = data_map_settings['worldSettings']['name']
 
         config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-        dimens: SVGDimensions = SVGDimensions(
+        bounds = SVGBoundaries(
             size=1024,
             border_top=config.border_top,
             border_left=config.border_left,
             coord_width=config.border_right - config.border_left,
             coord_height=config.border_bottom - config.border_top,
         )
-        svg = generate_svg_map(dimens, map_display_name, data_map_settings['worldSettings'], data_biomes, True)
+        svg = generate_svg_map(bounds, map_name, data_map_settings['worldSettings'], data_biomes, modid is not None)
         if svg:
-            self.save_raw_file(svg, (path / f'Regions {map_name}').with_suffix('.svg'))
+            self.save_raw_file(svg, (path / f'Regions {map_name}.svg'))

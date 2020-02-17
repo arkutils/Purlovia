@@ -8,9 +8,9 @@ import json
 import math
 import re
 
-from processing.common import SVGDimensions
+from processing.common import SVGBoundaries
 
-from .func import coordTrans, make_biome_article_name, map_translate_coord
+from .func import make_biome_link, map_translate_coord, translate_coord
 
 REGEX_INVALID_BIOME = re.compile(r'^\?+$')
 
@@ -39,33 +39,34 @@ def filter_biomes(biomes):
     return valid_biomes
 
 
-def _generate_biome_rects(dimens: SVGDimensions, world_settings, biome):
+def _generate_biome_rects(bounds: SVGBoundaries, world_settings, biome):
     svg_output = ''
     for box in biome['boxes']:
         # rectangle-coords
-        x1 = coordTrans(box['start']['x'], world_settings['longShift'], world_settings['longMulti'])
-        x2 = coordTrans(box['end']['x'], world_settings['longShift'], world_settings['longMulti'])
-        y1 = coordTrans(box['start']['y'], world_settings['latShift'], world_settings['latMulti'])
-        y2 = coordTrans(box['end']['y'], world_settings['latShift'], world_settings['latMulti'])
+        x1 = translate_coord(box['start']['x'], world_settings['longShift'], world_settings['longMulti'])
+        x2 = translate_coord(box['end']['x'], world_settings['longShift'], world_settings['longMulti'])
+        y1 = translate_coord(box['start']['y'], world_settings['latShift'], world_settings['latMulti'])
+        y2 = translate_coord(box['end']['y'], world_settings['latShift'], world_settings['latMulti'])
 
-        x1 = round(map_translate_coord(x1, dimens.border_left, dimens.coord_width, dimens.size))
-        x2 = round(map_translate_coord(x2, dimens.border_left, dimens.coord_width, dimens.size))
-        y1 = round(map_translate_coord(y1, dimens.border_top, dimens.coord_height, dimens.size))
-        y2 = round(map_translate_coord(y2, dimens.border_top, dimens.coord_height, dimens.size))
+        x1 = round(map_translate_coord(x1, bounds.border_left, bounds.coord_width, bounds.size))
+        x2 = round(map_translate_coord(x2, bounds.border_left, bounds.coord_width, bounds.size))
+        y1 = round(map_translate_coord(y1, bounds.border_top, bounds.coord_height, bounds.size))
+        y2 = round(map_translate_coord(y2, bounds.border_top, bounds.coord_height, bounds.size))
 
         x1 = max(0, x1)
-        x2 = min(x2, dimens.size)
+        x2 = min(x2, bounds.size)
         y1 = max(0, y1)
-        y2 = min(y2, dimens.size)
+        y2 = min(y2, bounds.size)
 
         svg_output += f'\n<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" />'
     return svg_output
 
 
-def generate_svg_map(dimens: SVGDimensions, map_name, world_settings, biomes, follow_mod_convention):
+def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, follow_mod_convention):
     svg_output = (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
         '<svg xmlns="http://www.w3.org/2000/svg"'
-        f''' width="{dimens.size}" height="{dimens.size}" viewBox="0 0 {dimens.size} {dimens.size}" style="position: absolute; width:100%; height:100%;">
+        f''' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}" style="position: absolute; width:100%; height:100%;">
 <defs>
     <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
         <feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0"/>
@@ -93,15 +94,15 @@ def generate_svg_map(dimens: SVGDimensions, map_name, world_settings, biomes, fo
     # Sort biomes by priority
     valid_biomes.sort(key=lambda biome: biome['priority'], reverse=False)
 
-    textX = dimens.size / 2
+    textX = bounds.size / 2
     textY = 60
 
     # Create svg
     for biome in valid_biomes:
-        svg_output += f'''<a href="{make_biome_article_name(map_name, biome['name'], follow_mod_convention)}" class="svgRegion">
+        svg_output += f'''<a href="{make_biome_link(world_settings['name'], biome['name'], follow_mod_convention)}" class="svgRegion">
     <g filter="url(#blur)">'''
 
-        svg_output += _generate_biome_rects(dimens, world_settings, biome)
+        svg_output += _generate_biome_rects(bounds, world_settings, biome)
 
         svg_output += f'''
     </g>

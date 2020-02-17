@@ -9,9 +9,9 @@ import re
 from collections import namedtuple
 from typing import List
 
-from processing.common import SVGDimensions
+from processing.common import SVGBoundaries
 
-from .consts import POINT_RADIUS, SVG_SIZE
+from .consts import POINT_RADIUS
 from .intermediate_types import *
 from .rarity import calculate_group_frequencies, get_rarity_for_spawn
 
@@ -34,7 +34,7 @@ def find_frequency_for_group(frequency_set, group_path) -> float:
     return 0
 
 
-def build_shapes(dimens: SVGDimensions, spawns, spawn_entries_frequencies, always_untameable):
+def build_shapes(bounds: SVGBoundaries, spawns, spawn_entries_frequencies, always_untameable):
     v_regions: List[List[SpawnRectangle]] = [[] for _ in range(6)]
     v_points: List[List[SpawnPoint]] = [[] for _ in range(6)]
     for s in spawns['spawns']:
@@ -51,10 +51,10 @@ def build_shapes(dimens: SVGDimensions, spawns, spawn_entries_frequencies, alway
         if 'spawnLocations' in s:
             for region in s['spawnLocations']:
                 # Add small border to avoid gaps
-                x1 = round((region['start']['long'] - dimens.border_left) * dimens.size / dimens.coord_width) - 3
-                x2 = round((region['end']['long'] - dimens.border_left) * dimens.size / dimens.coord_width) + 3
-                y1 = round((region['start']['lat'] - dimens.border_top) * dimens.size / dimens.coord_height) - 3
-                y2 = round((region['end']['lat'] - dimens.border_top) * dimens.size / dimens.coord_height) + 3
+                x1 = round((region['start']['long'] - bounds.border_left) * bounds.size / bounds.coord_width) - 3
+                x2 = round((region['end']['long'] - bounds.border_left) * bounds.size / bounds.coord_width) + 3
+                y1 = round((region['start']['lat'] - bounds.border_top) * bounds.size / bounds.coord_height) - 3
+                y2 = round((region['end']['lat'] - bounds.border_top) * bounds.size / bounds.coord_height) + 3
                 w = x2 - x1
                 h = y2 - y1
                 untameable = always_untameable or s['forceUntameable']
@@ -64,10 +64,10 @@ def build_shapes(dimens: SVGDimensions, spawns, spawn_entries_frequencies, alway
         if 'spawnPoints' in s:
             for point in s['spawnPoints']:
                 # add small border to avoid gaps
-                x = round((point['long'] - dimens.border_left) * dimens.size / dimens.coord_width)
-                y = round((point['lat'] - dimens.border_top) * dimens.size / dimens.coord_height)
-                x = min(dimens.size, max(0, x))
-                y = min(dimens.size, max(0, y))
+                x = round((point['long'] - bounds.border_left) * bounds.size / bounds.coord_width)
+                y = round((point['lat'] - bounds.border_top) * bounds.size / bounds.coord_height)
+                x = min(bounds.size, max(0, x))
+                y = min(bounds.size, max(0, y))
                 untameable = always_untameable or s['forceUntameable']
 
                 v_points[rarity].append(SpawnPoint(x, y, is_group_in_cave(s['spawnGroup']), untameable))
@@ -125,14 +125,15 @@ def _generate_svg_caves(rarity_sets):
     return ''
 
 
-def generate_svg_map(dimens: SVGDimensions, species_name, spawning_modifiers, spawns, spawngroups):
+def generate_svg_map(bounds: SVGBoundaries, species_name, spawning_modifiers, spawns, spawngroups):
     always_untameable = 'Alpha' in species_name
-    svg_output = ('<svg xmlns="http://www.w3.org/2000/svg"'
-                  f' width="{dimens.size}" height="{dimens.size}" viewBox="0 0 {dimens.size} {dimens.size}"'
+    svg_output = ('<?xml version="1.0" encoding="utf-8"?>\n'
+                  '<svg xmlns="http://www.w3.org/2000/svg"'
+                  f' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"'
                   f''' class="creatureMap" style="position:absolute;">
     <defs>
         <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="{round(dimens.size / 100)}" />
+            <feGaussianBlur stdDeviation="{round(bounds.size / 100)}" />
         </filter>
         <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
             <rect width="4" height="10" fill="black"></rect>
@@ -160,7 +161,7 @@ def generate_svg_map(dimens: SVGDimensions, species_name, spawning_modifiers, sp
     entry_freqs = calculate_group_frequencies(spawngroups['spawngroups'], spawning_modifiers)
 
     # Generate intermediate shape objects out of spawning data
-    regions_by_rarity, points_by_rarity = build_shapes(dimens, spawns, entry_freqs, always_untameable)
+    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, entry_freqs, always_untameable)
 
     has_regions = sum(len(regions) for regions in regions_by_rarity) != 0
     has_points = sum(len(points) for points in points_by_rarity) != 0
