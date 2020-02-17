@@ -934,7 +934,7 @@ class ArrayProperty(UEBase):
         self.stream.offset = saved_offset + size
 
     def format_for_json(self):
-        return [element.format_for_json() for element in self.values]
+        return self.values
 
     if INCLUDE_METADATA and support_pretty:
 

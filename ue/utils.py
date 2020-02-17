@@ -7,7 +7,6 @@ __all__ = [
     'get_clean_namespaced_name',
     'get_clean_name',
     'get_property',
-    'property_serialiser',
     'sanitise_output',
     'clean_float',
     'clean_double',
@@ -45,16 +44,6 @@ def get_property(export, name) -> Optional[UEBase]:
     return None
 
 
-def property_serialiser(obj):
-    if hasattr(obj, 'format_for_json'):
-        return obj.format_for_json()
-
-    if isinstance(obj, UEBase):
-        return str(obj)
-
-    return json._default_encoder.default(obj)  # pylint: disable=protected-access
-
-
 def sanitise_output(data):
     '''
     Prepare data for output as JSON, removing references to the UE tree so they can be freed.
@@ -62,7 +51,7 @@ def sanitise_output(data):
     # Convert anything with a format_for_json method
     fmt = getattr(data, 'format_for_json', None)
     if fmt:
-        data = fmt()
+        data = sanitise_output(fmt())
 
     if isinstance(data, UEBase):
         raise TypeError("Found UEBase item in output data without conversion method")

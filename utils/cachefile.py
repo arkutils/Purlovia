@@ -11,8 +11,6 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-from ue.utils import property_serialiser
-
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
@@ -80,7 +78,7 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
 
 
 def _hash_from_object(key: object) -> str:
-    json_string = json.dumps(key, default=property_serialiser, indent=None, separators=(',', ':'))
+    json_string = json.dumps(key, indent=None, separators=(',', ':'))
     as_bytes = json_string.encode('utf8')
     digest = hashlib.sha512(as_bytes).hexdigest()
     return "sha512:" + digest
