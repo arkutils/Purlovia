@@ -65,4 +65,4 @@ class WikiRegionMapsStage(ProcessingStage):
         )
         svg = generate_svg_map(bounds, map_name, data_map_settings['worldSettings'], data_biomes, modid is not None)
         if svg:
-            self.save_raw_file(svg, (path / f'Regions {map_name}.svg'))
+            self.save_raw_file(svg, (path / f'Regions_{map_name}.svg'))

@@ -6,10 +6,7 @@ import re
 import unicodedata
 from urllib.parse import quote
 
-
-def remove_unicode_control_chars(s):
-    return ''.join(c for c in re.sub(r'\s+', '_', s) if not unicodedata.category(c).startswith('C'))
-
+from processing.common import remove_unicode_control_chars
 
 LINK_SAFE_CHARS = '()'
 

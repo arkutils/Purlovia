@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager
-from processing.common import SVGBoundaries
+from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import collect_class_spawning_data, make_species_mapping_from_asb, merge_class_spawning_data
@@ -164,4 +164,5 @@ class WikiSpawnMapsStage(ProcessingStage):
 
             svg = generate_svg_map(bounds, descriptive_name, modifiers, data_map_spawns, spawning_groups)
             if svg:
-                self.save_raw_file(svg, (output_path / f'Spawning {descriptive_name}.svg'))
+                clean_species_name = remove_unicode_control_chars(descriptive_name)
+                self.save_raw_file(svg, (output_path / f'Spawning_{clean_species_name}.svg'))
