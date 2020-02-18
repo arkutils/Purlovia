@@ -13,7 +13,7 @@ from processing.common import SVGBoundaries
 
 from .consts import POINT_RADIUS
 from .intermediate_types import *
-from .rarity import calculate_group_frequencies, get_rarity_for_spawn
+from .rarity import get_rarity_for_spawn
 
 # These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.
 CSS_RARITY_CLASSES = [
@@ -125,7 +125,7 @@ def _generate_svg_caves(rarity_sets):
     return ''
 
 
-def generate_svg_map(bounds: SVGBoundaries, species_name, spawning_modifiers, spawns, spawngroups):
+def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
     always_untameable = 'Alpha' in species_name
     svg_output = ('<?xml version="1.0" encoding="utf-8"?>\n'
                   '<svg xmlns="http://www.w3.org/2000/svg"'
@@ -157,11 +157,8 @@ def generate_svg_map(bounds: SVGBoundaries, species_name, spawning_modifiers, sp
         </style>
     </defs>\n''')
 
-    # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
-    entry_freqs = calculate_group_frequencies(spawngroups['spawngroups'], spawning_modifiers)
-
     # Generate intermediate shape objects out of spawning data
-    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, entry_freqs, always_untameable)
+    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, always_untameable)
 
     has_regions = sum(len(regions) for regions in regions_by_rarity) != 0
     has_points = sum(len(points) for points in points_by_rarity) != 0

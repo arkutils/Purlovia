@@ -5,65 +5,21 @@ import re
 from typing import Any, Dict
 
 
-def make_species_mapping_from_asb(d: Dict[str, Any]) -> Dict[str, str]:
+def generate_dino_mappings(asb):
+    '''
+    Collects a map of blueprints sharing names.
+    '''
     v = dict()
 
-    for species in d['species']:
-        species_name = species['name']
+    for species in asb['species']:
+        descriptive_name = species['name']
         blueprint_path = species['blueprintPath']
 
         if not blueprint_path.endswith('_C'):
             blueprint_path += '_C'
 
-        v[blueprint_path] = species_name
+        if descriptive_name not in v:
+            v[descriptive_name] = []
+        v[descriptive_name].append(blueprint_path)
 
     return v
-
-
-def collect_class_spawning_data(bp_mappings, spawning_groups, random_class_weights):
-    '''
-    Collects chances of a specific dino class appearing.
-    '''
-    v = {}
-
-    for container in spawning_groups['spawngroups']:
-        if 'entries' not in container:
-            continue
-
-        for entry in container['entries']:
-            for blueprint_path in entry['classes']:
-                if blueprint_path not in v and blueprint_path in bp_mappings:
-                    v[blueprint_path] = {bp_mappings[blueprint_path]: 1}
-
-    # Include random class swaps that might happen
-    for scw in random_class_weights:
-        if not scw['weights'] or not scw['from'] or len(scw['to']) != len(scw['weights']):
-            continue
-
-        total_weights = sum(scw['weights']) or 1
-        chances = [weight / total_weights for weight in scw['weights']]
-
-        for index, blueprint_path in enumerate(scw['to']):
-            if blueprint_path in bp_mappings:
-                if scw['from'] not in v:
-                    v[scw['from']] = dict()
-
-                v[scw['from']][bp_mappings[blueprint_path]] = chances[index]
-
-    return v
-
-
-def merge_class_spawning_data(species):
-    '''
-    Merges data of species with the same name and generates a new structure.
-    '''
-    copy = dict(**species)
-    new = dict()
-    for blueprint, blueprint_data in copy.items():
-        for descriptive_name, modifier in blueprint_data.items():
-            if descriptive_name not in new:
-                new[descriptive_name] = {blueprint: modifier}
-            else:
-                new[descriptive_name][blueprint] = modifier
-
-    return new

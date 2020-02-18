@@ -3,44 +3,114 @@ import math
 from .intermediate_types import SpawnFrequency
 
 
-def calculate_group_frequencies(spawngroups, class_modifiers):
+def fix_up_groups(spawngroups):
+    '''Adds missing weights to classes without copying the data.'''
+    for container in spawngroups['spawngroups']:
+        for entry in container['entries']:
+            class_num = len(entry['classes'])
+            weight_num = len(entry['classWeights'])
+
+            # Remove excess weights if present
+            if weight_num > class_num:
+                entry['classWeights'] = entry['classWeights'][:class_num]
+            # Grow the weights to match number of classes
+            elif weight_num < class_num:
+                entry['classWeights'] += [1] * (class_num-weight_num)
+
+
+def make_random_class_weights_dict(random_class_weights):
+    '''
+    Generates a look-up dict for random class weights.
+    '''
+    lookup = dict()
+    for remap_entry in random_class_weights:
+        input_class = remap_entry['from']
+        if input_class not in lookup:
+            lookup[input_class] = remap_entry
+    return lookup
+
+
+def apply_ideal_swaps_to_entry(entry, class_swaps):
+    '''
+    Recalculates classes and their weights to include class swaps of specific entries.
+    Returns new lists of classes and weights.
+    '''
+    old_weights = entry['classWeights']
+    new_classes = list()
+    new_weights = list()
+
+    for index, dino_class in enumerate(entry['classes']):
+        weight = old_weights[index]
+        if dino_class in class_swaps:
+            # Make new entries. Swap occurs.
+            swap_rule = class_swaps[dino_class]
+            rule_weight_sum = sum(swap_rule['weights'])
+            swap_rule['weights'] = [weight / rule_weight_sum for weight in swap_rule['weights']]
+
+            for swap_index, target in enumerate(swap_rule['to']):
+                new_classes.append(target)
+                new_weights.append(weight * swap_rule['weights'][swap_index])
+        else:
+            # Copy the values. No swap.
+            new_classes.append(dino_class)
+            new_weights.append(weight)
+
+    return new_classes, new_weights
+
+
+def apply_ideal_grouplevel_swaps(spawngroups):
+    '''
+    Recalculates classes and weights of all groups to include swaps
+    at entry level.
+    Does not copy the input.
+    '''
+    for container in spawngroups['spawngroups']:
+        for entry in container['entries']:
+            if 'classSwaps' in entry:
+                class_swaps = make_random_class_weights_dict(entry['classSwaps'])
+                new_classes, new_weights = apply_ideal_swaps_to_entry(entry, class_swaps)
+                entry['classes'] = new_classes
+                entry['classWeights'] = new_weights
+
+
+def apply_ideal_global_swaps(spawngroups, random_class_weights):
+    '''
+    Recalculates classes and weights of all groups to include global swaps.
+    Does not copy the input.
+    '''
+    for container in spawngroups['spawngroups']:
+        for entry in container['entries']:
+            class_swaps = make_random_class_weights_dict(random_class_weights)
+            new_classes, new_weights = apply_ideal_swaps_to_entry(entry, class_swaps)
+            entry['classes'] = new_classes
+            entry['classWeights'] = new_weights
+
+
+def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
     # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
     frequencies = []
 
     # Calculate how frequently spawning groups are chosen
-    for group in spawngroups:
+    for group in spawngroups['spawngroups']:
         if 'entries' not in group:
             continue
-        frequency = group['maxNPCNumberMultiplier']
         entry_frequency_sum = 0
-
+        frequency = group['maxNPCNumberMultiplier']
         total_group_weights = sum(entry['weight'] for entry in group['entries']) or 1
 
         for entry in group['entries']:
-            if 'classes' not in entry or len(entry['classes']) == 0:
+            if not bool(set(dino_classes) & set(entry['classes'])):
                 continue
 
-            # Check all entries for the current blueprint
-            # Some groups have multiple entries for the same blueprint
-            spawn_indices = []
-            for index, npc_spawn in enumerate(entry['classes']):
-                if npc_spawn in class_modifiers.keys():
-                    spawn_indices.append((index, class_modifiers[npc_spawn]))
+            # Apply class swaps
+            classes, weights = apply_ideal_swaps_to_entry(entry, class_swaps)
 
             # Calculate total weight of classes in the spawning group
-            if entry['classWeights']:
-                total_entry_class_weights = sum(entry['classWeights']) or 1
-            else:
-                total_entry_class_weights = len(entry['classes']) or 1
-            entry_class_chances_data = [weight / total_entry_class_weights for weight in entry['classWeights']]
+            total_entry_class_weights = sum(weights) or 1
+            chances = [weight / total_entry_class_weights for weight in weights]
 
-            entry_class_chance = 0  # The combined chance of all entries for current blueprint
-            for index, modifier in spawn_indices:
-                if len(entry['classWeights']) > index:
-                    entry_class_chance += entry_class_chances_data[index] * modifier
-                # assume default weight of 1 if there is no specific value
-                else:
-                    entry_class_chance += 1
+            # Calculate a combined chance of all entries for current blueprint
+            entry_class_chance = sum(chances[index] for index, klass in enumerate(classes) if klass in dino_classes)
             entry_class_chance *= (entry['weight'] / total_group_weights)
             entry_frequency_sum += entry_class_chance
 

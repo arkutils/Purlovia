@@ -7,7 +7,8 @@ from automate.exporter import ExportManager
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.species import collect_class_spawning_data, make_species_mapping_from_asb, merge_class_spawning_data
+from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, fix_up_groups
+from .spawn_maps.species import generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
 
@@ -34,11 +35,12 @@ class WikiSpawnMapsStage(ProcessingStage):
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        # Generate mapping table (blueprint path to name)
-        species_mapping = make_species_mapping_from_asb(data_asb)
+        # Do all the insanity now and fix up the groups.
+        fix_up_groups(data_groups)
+        apply_ideal_grouplevel_swaps(data_groups)
 
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, species_mapping, data_groups)
+            self._map_process_data(map_data_path, data_asb, data_groups)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
@@ -90,11 +92,12 @@ class WikiSpawnMapsStage(ProcessingStage):
             return
         data_groups_mod['spawngroups'] += data_groups_core['spawngroups']
 
-        # Generate mapping table (blueprint path to name)
-        species_mapping = make_species_mapping_from_asb(data_asb_mod)
+        # Do all the insanity now and fix up the groups.
+        fix_up_groups(data_groups_mod)
+        apply_ideal_grouplevel_swaps(data_groups_mod)
 
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, species_mapping, data_groups_mod, None)
+            self._map_process_data(map_data_path, data_asb_mod, data_groups_mod, None)
 
     def _game_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of core maps with NPC spawns
@@ -102,29 +105,25 @@ class WikiSpawnMapsStage(ProcessingStage):
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
-        data_groups_core = self._load_spawning_groups(None)
+        data_groups = self._load_spawning_groups(None)
         data_groups_mod = self._load_spawning_groups(modid)
-        if not data_asb or not data_groups_core or not data_groups_mod:
+        if not data_asb or not data_groups or not data_groups_mod:
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
         # Merge spawning group data
         if 'externalGroupChanges' in data_groups_mod:
-            merge_game_mod_groups(data_groups_core['spawngroups'], data_groups_mod['externalGroupChanges'])
+            merge_game_mod_groups(data_groups['spawngroups'], data_groups_mod['externalGroupChanges'])
 
-        # Generate mapping table (blueprint path to name)
-        species_mapping = make_species_mapping_from_asb(data_asb)
+        # Do all the insanity now and fix up the groups.
+        fix_up_groups(data_groups)
+        apply_ideal_grouplevel_swaps(data_groups)
+        apply_ideal_global_swaps(data_groups, data_groups_mod.get('classSwaps', []))
 
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, species_mapping, data_groups_core, data_groups_mod.get('classSwaps', []),
-                                   (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps'))
+            self._map_process_data(map_data_path, data_asb, data_groups, (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps'))
 
-    def _map_process_data(self,
-                          data_path: Path,
-                          species_mapping,
-                          spawning_groups,
-                          extra_random_class_weights: Optional[List] = None,
-                          output_path: Optional[Path] = None):
+    def _map_process_data(self, data_path: Path, asb, spawngroups, output_path: Optional[Path] = None):
         map_name = data_path.name
         logger.info(f'Processing data of map: {map_name}')
 
@@ -135,14 +134,16 @@ class WikiSpawnMapsStage(ProcessingStage):
             logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        # Join random class weights if that data has been passed.
+        # Generate mapping table (blueprint path to name)
+        species = generate_dino_mappings(asb)
+
+        # Get world-level random dino class swaps.
         random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
-        if extra_random_class_weights:
-            random_class_weights = [*extra_random_class_weights, *random_class_weights]
 
         # Gather spawning modifiers from NPC class data and random class weights.
-        species = collect_class_spawning_data(species_mapping, spawning_groups, random_class_weights)
-        species = merge_class_spawning_data(species)
+        # TODO: UNNEEDED? INTERMEDIATE, NOT FALLING TO CAD'S SCRIPT
+        #species = collect_class_spawning_data(species_mapping)
+        #species = merge_class_spawning_data(species)
 
         if not output_path:
             if data_path.name != map_name:
@@ -152,7 +153,10 @@ class WikiSpawnMapsStage(ProcessingStage):
         else:
             output_path = (output_path / map_name)
 
-        for descriptive_name, modifiers in species.items():
+        for descriptive_name, blueprints in species.items():
+            # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
+            freqs = calculate_blueprint_freqs(spawngroups, random_class_weights, blueprints)
+
             config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
             bounds = SVGBoundaries(
                 size=300,
@@ -162,7 +166,7 @@ class WikiSpawnMapsStage(ProcessingStage):
                 coord_height=config.border_bottom - config.border_top,
             )
 
-            svg = generate_svg_map(bounds, descriptive_name, modifiers, data_map_spawns, spawning_groups)
+            svg = generate_svg_map(bounds, descriptive_name, freqs, data_map_spawns)
             if svg:
                 clean_species_name = remove_unicode_control_chars(descriptive_name)
                 self.save_raw_file(svg, (output_path / f'Spawning_{clean_species_name}.svg'))
