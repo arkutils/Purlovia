@@ -252,6 +252,7 @@ class BiomeZoneExport(MapGathererBase):
 
         biome_name = str(biome.BiomeZoneName[0])
         biome_name = re.sub(BIOME_REMOVE_WIND_INFO, '', biome_name)
+        biome_name = biome_name.strip()
         data: Dict[str, Any] = dict(
             name=biome_name,
             priority=biome.BiomeZonePriority[0],

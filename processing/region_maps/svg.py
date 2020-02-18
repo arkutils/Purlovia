@@ -64,7 +64,6 @@ def _generate_biome_rects(bounds: SVGBoundaries, world_settings, biome):
 
 def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, follow_mod_convention):
     svg_output = (
-        '<?xml version="1.0" encoding="utf-8"?>\n'
         '<svg xmlns="http://www.w3.org/2000/svg"'
         f''' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}" style="position: absolute; width:100%; height:100%;">
 <defs>
@@ -99,7 +98,7 @@ def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, fo
 
     # Create svg
     for biome in valid_biomes:
-        svg_output += f'''<a href="{make_biome_link(world_settings['name'], biome['name'], follow_mod_convention)}" class="svgRegion">
+        svg_output += f'''<a href="/{make_biome_link(world_settings['name'], biome['name'], follow_mod_convention)}" class="svgRegion">
     <g filter="url(#blur)">'''
 
         svg_output += _generate_biome_rects(bounds, world_settings, biome)

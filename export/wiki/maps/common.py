@@ -9,7 +9,7 @@ from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
 
-BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W')
+BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
 
 
 def get_actor_location_vector(actor) -> Vector:
