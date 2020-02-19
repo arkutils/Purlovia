@@ -54,22 +54,23 @@ def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[st
     convex_elements = geometry.values[0].value
     box = convex_elements.values[convex_index].as_dict()['ElemBox'].values[0]
 
-    v_start = dict(
+    start = dict(
         x=box.min.x + volume_location.x,
         y=box.min.y + volume_location.y,
         z=box.min.z + volume_location.z,
     )
-    v_end = dict(
+    end = dict(
         x=box.max.x + volume_location.x,
         y=box.max.y + volume_location.y,
         z=box.max.z + volume_location.z,
     )
-    v_center = dict(
-        x=(v_start['x'] + v_end['x']) / 2,
-        y=(v_start['y'] + v_end['y']) / 2,
-        z=(v_start['z'] + v_end['z']) / 2,
+
+    center = dict(
+        x=(start['x'] + end['x']) / 2,
+        y=(start['y'] + end['y']) / 2,
+        z=(start['z'] + end['z']) / 2,
     )
-    return (v_start, v_center, v_end)
+    return (start, center, end)
 
 
 def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):

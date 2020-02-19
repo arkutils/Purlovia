@@ -53,12 +53,26 @@ def _generate_biome_rects(bounds: SVGBoundaries, world_settings, biome):
         y1 = round(map_translate_coord(y1, bounds.border_top, bounds.coord_height, bounds.size))
         y2 = round(map_translate_coord(y2, bounds.border_top, bounds.coord_height, bounds.size))
 
-        x1 = max(0, x1)
-        x2 = min(x2, bounds.size)
-        y1 = max(0, y1)
-        y2 = min(y2, bounds.size)
+        # Clamp the coords
+        x1 = min(max(0, x1), bounds.size)
+        x2 = min(max(0, x2), bounds.size)
+        y1 = min(max(0, y1), bounds.size)
+        y2 = min(max(0, y2), bounds.size)
 
-        svg_output += f'\n<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" />'
+        # Make sure the order is right
+        if x1 > x2:
+            x2, x1 = x1, x2
+        if y1 > y2:
+            y2, y1 = y1, y2
+
+        w = x2 - x1
+        h = y2 - y1
+
+        # Skip if the volume's area is zero, or if out of bounds
+        if w == 0 or h == 0:
+            continue
+
+        svg_output += f'\n<rect x="{x1}" y="{y1}" width="{w}" height="{h}" />'
     return svg_output
 
 

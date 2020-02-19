@@ -55,17 +55,39 @@ def build_shapes(bounds: SVGBoundaries, spawns, spawn_entries_frequencies, alway
                 x2 = round((region['end']['long'] - bounds.border_left) * bounds.size / bounds.coord_width) + 3
                 y1 = round((region['start']['lat'] - bounds.border_top) * bounds.size / bounds.coord_height) - 3
                 y2 = round((region['end']['lat'] - bounds.border_top) * bounds.size / bounds.coord_height) + 3
+
+                # Clamp the values
+                x1 = min(bounds.size, max(0, x1))
+                x2 = min(bounds.size, max(0, x2))
+                y1 = min(bounds.size, max(0, y1))
+                y2 = min(bounds.size, max(0, y2))
+
+                # Make sure the order is right
+                if x1 > x2:
+                    x2, x1 = x1, x2
+                if y1 > y2:
+                    y2, y1 = y1, y2
+
                 w = x2 - x1
                 h = y2 - y1
                 untameable = always_untameable or s['forceUntameable']
+
+                # Skip if the volume does not cover a non-zero area
+                if w == 0 or h == 0:
+                    continue
 
                 v_regions[rarity].append(SpawnRectangle(x1, y1, w, h, is_group_in_cave(s['spawnGroup']), untameable))
 
         if 'spawnPoints' in s:
             for point in s['spawnPoints']:
-                # add small border to avoid gaps
+                # Add small border to avoid gaps
                 x = round((point['long'] - bounds.border_left) * bounds.size / bounds.coord_width)
                 y = round((point['lat'] - bounds.border_top) * bounds.size / bounds.coord_height)
+
+                if x < 0 or y < 0 or x > bounds.size or y > bounds.size:
+                    # Out of bounds, skip
+                    continue
+
                 x = min(bounds.size, max(0, x))
                 y = min(bounds.size, max(0, y))
                 untameable = always_untameable or s['forceUntameable']
