@@ -135,15 +135,10 @@ class WikiSpawnMapsStage(ProcessingStage):
             return
 
         # Generate mapping table (blueprint path to name)
-        species = generate_dino_mappings(asb)
+        species = generate_dino_mappings(self.manager.loader, asb)
 
         # Get world-level random dino class swaps.
         random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
-
-        # Gather spawning modifiers from NPC class data and random class weights.
-        # TODO: UNNEEDED? INTERMEDIATE, NOT FALLING TO CAD'S SCRIPT
-        #species = collect_class_spawning_data(species_mapping)
-        #species = merge_class_spawning_data(species)
 
         if not output_path:
             if data_path.name != map_name:
