@@ -78,6 +78,10 @@ def convert_group_entry(struct):
     # Weights, as confirmed by ZenRowe. It's up to the user to calculate actual chances.
     v['classWeights'] = d['NPCsToSpawnPercentageChance']
 
+    d_swaps = d['NPCRandomSpawnClassWeights'].values
+    if d_swaps:
+        v['classSwaps'] = [convert_single_class_swap(entry.as_dict()) for entry in d_swaps]
+
     return v
 
 
@@ -112,15 +116,16 @@ def convert_class_swaps(pgd: UAsset):
 
     return all_values
 
+
 def segregate_container_additions(pgd: UAsset):
     if not pgd.default_export:
         return None
-        
+
     export_data = pgd.default_export.properties
     d = export_data.get_property('TheNPCSpawnEntriesContainerAdditions', fallback=None)
     if not d:
         return None
-    
+
     # Extract the addition entries
     change_queues: Dict[str, List[Dict[str, Any]]] = dict()
     for add in d.values:
@@ -142,13 +147,13 @@ def segregate_container_additions(pgd: UAsset):
         # Skip if no data
         if 'limits' not in v and 'entries' not in v:
             continue
-        
+
         # Append to the fragment list
         klass_name = klass.format_for_json()
         if klass_name not in change_queues:
             change_queues[klass_name] = []
         change_queues[klass_name].append(v)
-    
+
     # Merge
     vs = []
     for klass_name, changes in change_queues.items():
@@ -162,19 +167,19 @@ def segregate_container_additions(pgd: UAsset):
             v['entries'] = []
         if 'limits' not in v:
             v['limits'] = []
-        
+
         # Concat data arrays
         for extra in changes:
             if 'entries' in extra:
                 v['entries'] += extra['entries']
             if 'limits' in extra:
                 v['limits'] += extra['limits']
-        
+
         # Remove empty arrays and add the container mod
         if not v['limits']:
             del v['limits']
         if not v['entries']:
             del v['entries']
         vs.append(v)
-    
+
     return vs

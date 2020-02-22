@@ -216,7 +216,7 @@ class ExportManager:
         return None
 
     def _find_matching_root(self, path: str) -> Optional[ExportRoot]:
-        '''Look for a root that owns the given file path, which can bee deep within the root.'''
+        '''Look for a root that owns the given file path, which can be deep within the root.'''
         # We use Unix-style paths on both sides and just compare using startswith
         path = str(PurePosixPath(path))
 

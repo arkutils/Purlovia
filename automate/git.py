@@ -50,8 +50,8 @@ class GitManager:
             logger.info('No local changes, aborting')
             return
 
-        # Add changed files
-        self._do_add(relative_path)
+        # Add changed files in this path, recursively
+        self._do_add(relative_path, all=True)
 
         # Construct commit message using the supplied message function
         message = self._create_commit_msg(relative_path, commit_header, msg_fn)
@@ -92,11 +92,14 @@ class GitManager:
             logger.info('Performing pull')
             self.git.pull('--no-rebase', '--ff-only')
 
-    def _do_add(self, relative_path: Path):
+    def _do_add(self, relative_path: Path, all=False):
         if self.config.git.SkipCommit:
             logger.info('(add skipped by request)')
         else:
-            self.git.add('--', str(relative_path))
+            if all:
+                self.git.add('--all', '--', str(relative_path))
+            else:
+                self.git.add('--', str(relative_path))
 
     def _do_push(self):
         if self.config.git.SkipPush:
@@ -158,7 +161,7 @@ class GitManager:
         message = commit_header
 
         lines = []
-        status_output = self.git.status('-s', '--', str(relative_path))
+        status_output = self.git('-c', 'core.quotePath=false', 'status', '-s', '--', str(relative_path))
         filelist = [line[3:].strip() for line in status_output.split('\n')]
         for filename in filelist:
             if ' -> ' in filename:

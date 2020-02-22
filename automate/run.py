@@ -82,6 +82,9 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--skip-wiki-loot-crates', action='store_true', help='skip extracting loot crates for the wiki')
     parser.add_argument('--skip-wiki-species', action='store_true', help='skip extracting species for the wiki')
 
+    parser.add_argument('--skip-process-spawns', action='store_true', help='skip processing spawning data for the wiki')
+    parser.add_argument('--skip-process-biomes', action='store_true', help='skip processing biomes for the wiki')
+
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
     parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
@@ -149,6 +152,14 @@ def handle_args(args: Any) -> ConfigFile:
         config.export_wiki.ExportLootCrates = False
     if args.skip_wiki_species:
         config.export_wiki.ExportSpecies = False
+
+    # Processing stages
+    #if args.skip_processing:
+    #    config.processing.Skip = True
+    if args.skip_process_spawns:
+        config.processing.ProcessSpawns = False
+    if args.skip_process_biomes:
+        config.processing.ProcessBiomes = False
 
     # Git actions
     if args.skip_pull:

@@ -7,7 +7,6 @@ __all__ = [
     'get_clean_namespaced_name',
     'get_clean_name',
     'get_property',
-    'property_serialiser',
     'sanitise_output',
     'clean_float',
     'clean_double',
@@ -45,37 +44,40 @@ def get_property(export, name) -> Optional[UEBase]:
     return None
 
 
-def property_serialiser(obj):
-    if hasattr(obj, 'format_for_json'):
-        return obj.format_for_json()
-
-    if isinstance(obj, UEBase):
-        return str(obj)
-
-    return json._default_encoder.default(obj)  # pylint: disable=protected-access
-
-
-def sanitise_output(data):
+def sanitise_output(node):
     '''
     Prepare data for output as JSON, removing references to the UE tree so they can be freed.
     '''
-    # Convert anything with a format_for_json method
-    fmt = getattr(data, 'format_for_json', None)
-    if fmt:
-        data = fmt()
+    if node is None:
+        return None
 
-    if isinstance(data, UEBase):
-        raise TypeError("Found UEBase item in output data without conversion method")
+    if isinstance(node, (int, str)):
+        return node
 
-    # Recurse into dicts
-    if isinstance(data, dict):
-        return {k: sanitise_output(v) for k, v in data.items()}
+    if isinstance(node, float):
+        return clean_double(node)
 
-    # Recurse into list-likes
-    if isinstance(data, (list, tuple)):
-        return [sanitise_output(v) for v in data]
+    format_for_json = getattr(node, 'format_for_json', None)
+    if format_for_json:
+        return sanitise_output(format_for_json())
 
-    return data
+    skip_level_name = getattr(node, 'skip_level_field', None)
+    if skip_level_name:
+        sub_node = node.field_values.get(skip_level_name, None)
+        if sub_node is not None:
+            return sanitise_output(sub_node)
+
+    if isinstance(node, UEBase):
+        fields = getattr(node, 'field_order', None) or node.field_values.keys()
+        return {name: sanitise_output(node.field_values[name]) for name in fields}
+
+    if isinstance(node, (list, tuple)):
+        return [sanitise_output(value) for value in node]
+
+    if isinstance(node, dict):
+        return {sanitise_output(k): sanitise_output(v) for k, v in node.items()}
+
+    raise TypeError(f"Unexpected node type {type(node)}")
 
 
 def clean_float(value):

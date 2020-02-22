@@ -118,6 +118,16 @@ class PropertyTable(UEBase):
     def __len__(self):
         return len(self.values)
 
+    def format_for_json(self):
+        # Pull all props into `out[name][index] = value` format
+        out = defaultdict(dict)
+        for p in self.values:
+            out[p.header.name][p.header.index] = p.value
+
+        # Reduce any prop with just index 0 to only its value
+        out = {k: v[0] if list(v.keys()) == [0] else v for k, v in out.items()}
+        return out
+
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -515,7 +525,7 @@ class ObjectProperty(UEBase):
         self._newField('value', ObjectIndex(self))
 
     def format_for_json(self):
-        return self.value.format_for_json()
+        return self.value
 
     def __bool__(self):
         return bool(self.value)
@@ -620,6 +630,9 @@ class Guid(UEBase):
         # some of the fields as the rest are single bytes.
         value = uuid.UUID(bytes=struct.pack('>4I', *struct.unpack('<4I', raw_bytes)))
         self._newField('value', value)
+
+    def format_for_json(self):
+        return str(self.value)
 
 
 class CustomVersion(UEBase):
@@ -858,6 +871,12 @@ class StructProperty(UEBase):
 
         return f'{self.count} entries'
 
+    def format_for_json(self):
+        if self.count == 0:
+            return self.values
+
+        return self.as_dict()
+
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -934,7 +953,7 @@ class ArrayProperty(UEBase):
         self.stream.offset = saved_offset + size
 
     def format_for_json(self):
-        return [element.format_for_json() for element in self.values]
+        return self.values
 
     if INCLUDE_METADATA and support_pretty:
 

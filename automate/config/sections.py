@@ -91,6 +91,14 @@ class ExportWikiSection(ExportSection):
         extra = Extra.forbid
 
 
+class ProcessingSection(BaseModel):
+    ProcessSpawns: bool = True
+    ProcessBiomes: bool = True
+
+    class Config:
+        extra = Extra.forbid
+
+
 class OptimisationSection(BaseModel):
     SearchIgnore: IniStringList = IniStringList()
 
@@ -109,6 +117,7 @@ class ConfigFile(BaseModel):
 
     export_asb: ExportASBSection
     export_wiki: ExportWikiSection
+    processing: ProcessingSection
 
     official_mods: ModIdAccess = ModIdAccess(dict())
     mods: Tuple[str, ...] = tuple()

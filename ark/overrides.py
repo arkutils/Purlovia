@@ -30,10 +30,22 @@ class ColorRegionSettings(BaseModel):
     region_names: Dict[int, Optional[str]] = dict()
 
 
+class MapBoundariesSettings(BaseModel):
+    border_top: float = 7.2
+    border_left: float = 7.2
+    border_right: float = 92.8
+    border_bottom: float = 92.8
+
+
 class OverrideSettings(BaseModel):
     skip_export: Optional[bool] = False
+
+    # Species
     color_regions: ColorRegionSettings = ColorRegionSettings()
     descriptive_name: Optional[str]
+
+    # Maps
+    svgs: MapBoundariesSettings = MapBoundariesSettings()
 
 
 class OverridesFile(BaseModel):

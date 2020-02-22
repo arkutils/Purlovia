@@ -5,8 +5,6 @@ from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-from ue.utils import property_serialiser
-
 __all__ = [
     'save_json_if_changed',
     'save_as_json',
@@ -149,7 +147,7 @@ def _flatten_re_result(match):
 def _format_json(data, pretty=False):
     '''JSON with added beautification!'''
     if pretty:
-        json_string = json.dumps(data, default=property_serialiser, indent='\t')
+        json_string = json.dumps(data, indent='\t')
 
         # Handle moving sets of terms onto single lines
         for term in JOIN_LINE_FIELDS:
@@ -165,7 +163,7 @@ def _format_json(data, pretty=False):
         json_string = re.sub(COLLAPSE_SINGLE_LINE_ARRAY_REGEX, r"[ \1 ]", json_string)
         json_string = re.sub(JOIN_COLORS_REGEX, r"[ \1, \2 ]", json_string)
     else:
-        json_string = json.dumps(data, default=property_serialiser, indent=None, separators=(',', ':'))
+        json_string = json.dumps(data, indent=None, separators=(',', ':'))
     return json_string
 
 
