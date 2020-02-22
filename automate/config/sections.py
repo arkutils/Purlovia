@@ -92,8 +92,8 @@ class ExportWikiSection(ExportSection):
 
 
 class ProcessingSection(BaseModel):
-    ProcessSpawnGroups: bool = True
-    ProcessBiomeData: bool = True
+    ProcessSpawns: bool = True
+    ProcessBiomes: bool = True
 
     class Config:
         extra = Extra.forbid

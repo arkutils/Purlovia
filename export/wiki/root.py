@@ -2,8 +2,8 @@ from pathlib import Path, PurePosixPath
 from typing import Optional
 
 from automate.exporter import ExportRoot
-from processing.stage_region_maps import WikiRegionMapsStage
-from processing.stage_spawn_maps import WikiSpawnMapsStage
+from processing.stage_biome_maps import ProcessBiomeMapsStage
+from processing.stage_spawn_maps import ProcessSpawnMapsStage
 
 from .stage_drops import DropsStage
 from .stage_engrams import EngramsStage
@@ -45,6 +45,6 @@ class WikiRoot(ExportRoot):
 
             # The following are processing stages, depending on the output of previous stages
             # TODO: Allow these to move to their own root
-            WikiRegionMapsStage(),
-            WikiSpawnMapsStage(),
+            ProcessBiomeMapsStage(),
+            ProcessSpawnMapsStage(),
         ]

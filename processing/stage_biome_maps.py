@@ -14,13 +14,13 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 __all__ = [
-    'WikiRegionMapsStage',
+    'ProcessBiomeMapsStage',
 ]
 
 
-class WikiRegionMapsStage(ProcessingStage):
+class ProcessBiomeMapsStage(ProcessingStage):
     def get_skip(self) -> bool:
-        return not self.manager.config.processing.ProcessBiomeData
+        return not self.manager.config.processing.ProcessBiomes
 
     def extract_core(self, _: Path):
         # Find data of maps with biomes

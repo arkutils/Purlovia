@@ -16,13 +16,13 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 __all__ = [
-    'WikiSpawnMapsStage',
+    'ProcessSpawnMapsStage',
 ]
 
 
-class WikiSpawnMapsStage(ProcessingStage):
+class ProcessSpawnMapsStage(ProcessingStage):
     def get_skip(self) -> bool:
-        return not self.manager.config.processing.ProcessSpawnGroups
+        return not self.manager.config.processing.ProcessSpawns
 
     def extract_core(self, _: Path):
         # Find data of maps with NPC spawns
