@@ -34,4 +34,5 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):
     def save_raw_file(self, content: Any, path: Path):
         parent = path.parent
         parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding='utf-8')
+        with open(path, 'wt', newline='\n', encoding='utf-8') as f:
+            f.write(content)
