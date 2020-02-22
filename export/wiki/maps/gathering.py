@@ -384,7 +384,7 @@ class LootCrateSpawnExport(MapGathererBase):
             klass = entry.as_dict()['CrateTemplate']
             if not klass or not klass.value.value:
                 continue
-            yield klass.format_for_json()
+            yield str(klass.value.value)
 
     @classmethod
     def _extract_spawn_points(cls, entries):
