@@ -7,7 +7,7 @@ from automate.exporter import ExportManager
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, fix_up_groups
+from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, fix_up_groups, make_random_class_weights_dict
 from .spawn_maps.species import generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
@@ -139,6 +139,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         # Get world-level random dino class swaps.
         random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
+        class_swaps = make_random_class_weights_dict(random_class_weights)
 
         if not output_path:
             if data_path.name != map_name:
@@ -150,7 +151,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         for descriptive_name, blueprints in species.items():
             # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
-            freqs = calculate_blueprint_freqs(spawngroups, random_class_weights, blueprints)
+            freqs = calculate_blueprint_freqs(spawngroups, class_swaps, blueprints)
 
             config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
             bounds = SVGBoundaries(
