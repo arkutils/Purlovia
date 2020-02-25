@@ -1,6 +1,7 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from ark.types import PrimalItem
+from ue.properties import IntProperty
 
 
 def convert_recipe_entry(entry):
