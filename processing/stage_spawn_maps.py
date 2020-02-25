@@ -32,7 +32,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb = self._load_asb(None)
         data_groups = self._load_spawning_groups(None)
         if not data_asb or not data_groups:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
         # Do all the insanity now and fix up the groups.
@@ -80,7 +80,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb_core = self._load_asb(None)
         data_asb_mod = self._load_asb(modid)
         if not data_asb_core or not data_asb_mod:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
         data_asb_mod['species'] += data_asb_core['species']
 
@@ -88,7 +88,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_groups_core = self._load_spawning_groups(None)
         data_groups_mod = self._load_spawning_groups(modid)
         if not data_groups_core or not data_groups_mod:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
         data_groups_mod['spawngroups'] += data_groups_core['spawngroups']
 
@@ -108,7 +108,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_groups = self._load_spawning_groups(None)
         data_groups_mod = self._load_spawning_groups(modid)
         if not data_asb or not data_groups or not data_groups_mod:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
         # Merge spawning group data
@@ -131,7 +131,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_map_settings = self.load_json_file(data_path / 'world_settings.json')
         data_map_spawns = self.load_json_file(data_path / 'npc_spawns.json')
         if not data_map_settings or not data_map_spawns:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
         # Generate mapping table (blueprint path to name)

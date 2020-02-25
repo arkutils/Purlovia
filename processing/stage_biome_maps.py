@@ -51,7 +51,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
         data_biomes = self.load_json_file(path / 'biomes.json')
         data_map_settings = self.load_json_file(path / 'world_settings.json')
         if not data_biomes or not data_map_settings:
-            logger.warning(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
         map_display_name = data_map_settings['worldSettings']['name']
 
