@@ -30,6 +30,18 @@ def make_random_class_weights_dict(random_class_weights):
     return lookup
 
 
+def fix_up_swap_rule_weights(rule):
+    swap_weights = [*rule['weights']]
+    class_num = len(rule['to'])
+    weight_num = len(rule['weights'])
+    # Remove excess weights if present
+    if weight_num > class_num:
+        swap_weights = rule['weights'][:class_num]
+    # Grow the weights to match number of classes
+    elif weight_num < class_num:
+        swap_weights += [1] * (class_num-weight_num)
+    return swap_weights
+
 def apply_ideal_swaps_to_entry(entry, class_swaps):
     '''
     Recalculates classes and their weights to include class swaps of specific entries.
@@ -44,12 +56,15 @@ def apply_ideal_swaps_to_entry(entry, class_swaps):
         if dino_class in class_swaps:
             # Make new entries. Swap occurs.
             swap_rule = class_swaps[dino_class]
-            rule_weight_sum = sum(swap_rule['weights'])
-            swap_rule['weights'] = [weight / rule_weight_sum for weight in swap_rule['weights']]
+
+            # Fix up the swap
+            swap_weights = fix_up_swap_rule_weights(swap_rule)
+            rule_weight_sum = sum(swap_weights)
+            swap_weights = [weight / rule_weight_sum for weight in swap_weights]
 
             for swap_index, target in enumerate(swap_rule['to']):
                 new_classes.append(target)
-                new_weights.append(weight * swap_rule['weights'][swap_index])
+                new_weights.append(weight * swap_weights[swap_index])
         else:
             # Copy the values. No swap.
             new_classes.append(dino_class)
@@ -99,11 +114,10 @@ def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
         total_group_weights = sum(entry['weight'] for entry in group['entries']) or 1
 
         for entry in group['entries']:
-            if not bool(set(dino_classes) & set(entry['classes'])):
-                continue
-
             # Apply class swaps
             classes, weights = apply_ideal_swaps_to_entry(entry, class_swaps)
+            if not bool(set(dino_classes) & set(classes)):
+                continue
 
             # Calculate total weight of classes in the spawning group
             total_entry_class_weights = sum(weights) or 1
