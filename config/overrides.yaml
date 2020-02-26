@@ -123,8 +123,54 @@ species:
     /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
         skip_export: true
 
+    # TODO: Temp fixes for Genesis release
+    /Game/Aberration/Dinos/ChupaCabra/ChupaCabra_Character_BP_InitialBuryOnly:
+        skip_export: true
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Female_InitialBuryOnly:
+        skip_export: true
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male_InitialBuryOnly:
+        skip_export: true
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Escort:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Escort:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Escort:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Alpha_Gauntlet:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Gauntlet:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Female_InitialBuryOnly_Gauntlet:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Gauntlet:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Gauntlet:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Hunt/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Hunt:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Hunt/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Hunt:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Retrieve:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Retrieve:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Brute_Retrieve:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Retrieve:
+        skip_export: true
+
+
+    /Game/Genesis/Dinos/MissionVariants/Race/TekHoverSkiff_Character_BP_Race.TekHoverSkiff_Character_BP_Race_C:
+        skip_export: true
+    /Game/Genesis/Dinos/TEKHoverSkiff/TekHoverSkiff_Character_BP.TekHoverSkiff_Character_BP_C:
+        skip_export: true
+
     # Some variants share the same names
     /Game/Mods/Valguero/Assets/Dinos/RockGolem/IceGolem/IceGolem_Character_BP:
+        descriptive_name: Ice Golem
+    /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP.IceGolem_Character_BP:
         descriptive_name: Ice Golem
     /Game/Mods/Valguero/Assets/Dinos/RockGolem/ChalkGolem/ChalkGolem_Character_BP:
         descriptive_name: Chalk Golem

@@ -4,6 +4,7 @@ from typing import *
 from typing import cast
 
 from ark.asset import find_dcsc
+from ark.naming import get_variants_from_assetname
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import DCSC, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
@@ -90,6 +91,10 @@ class SpeciesStage(JsonHierarchyExportStage):
             mass=species.CharacterMovement[0].Mass[0],
             dragWeight=species.DragWeight[0],
         )
+
+        variants = get_variants_from_assetname(species)
+        if variants:
+            results['variants'] = variants
 
         results['flags'] = _gather_flags(species)
 

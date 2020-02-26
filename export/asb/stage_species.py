@@ -68,7 +68,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return None
 
     def extract(self, proxy: UEProxyStructure) -> Any:
-        # TODO: Use this lovely proxy - we're currently using the old gather_properties system
+        char = cast(PrimalDinoCharacter, proxy)
         asset = proxy.get_source().asset
         asset_name = asset.assetname
 
@@ -84,7 +84,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             return None
 
         try:
-            species_data = values_for_species(asset, props, allFields=True, includeBreeding=True, includeColor=True)
+            species_data = values_for_species(asset, props, char, allFields=True, includeBreeding=True, includeColor=True)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
             return None
