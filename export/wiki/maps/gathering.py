@@ -548,6 +548,11 @@ class DeinonychusNests(GenericActorListExport):
     CATEGORY = 'deinonychusNests'
 
 
+class MagmasaurNests(GenericActorListExport):
+    TAGS = ('MagmasaurNestSpawns', )
+    CATEGORY = 'magmasaurNests'
+
+
 EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
     'world_settings': [
         # Core
@@ -585,6 +590,8 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
         RockDrakeNests,
         # Valguero
         DeinonychusNests,
+        # Genesis
+        MagmasaurNests,
     ],
 }
 
