@@ -7,8 +7,9 @@ from automate.exporter import ExportManager
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, fix_up_groups, make_random_class_weights_dict
-from .spawn_maps.species import generate_dino_mappings
+from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
+    calculate_blueprint_freqs, fix_up_groups, make_random_class_weights_dict
+from .spawn_maps.species import determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
 
@@ -134,8 +135,18 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
+        # Initialize bound structure for this map
+        config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+        bounds = SVGBoundaries(
+            size=300,
+            border_top=config.border_top,
+            border_left=config.border_left,
+            coord_width=config.border_right - config.border_left,
+            coord_height=config.border_bottom - config.border_top,
+        )
+
         # Generate mapping table (blueprint path to name)
-        species = generate_dino_mappings(self.manager.loader, asb)
+        species = generate_dino_mappings(asb)
 
         # Get world-level random dino class swaps.
         random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
@@ -149,20 +160,25 @@ class ProcessSpawnMapsStage(ProcessingStage):
         else:
             output_path = (output_path / map_name)
 
-        for descriptive_name, blueprints in species.items():
+        for export_class, blueprints in species.items():
+            untameable = not determine_tamability(asb, export_class)
+
             # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
             freqs = calculate_blueprint_freqs(spawngroups, class_swaps, blueprints)
 
-            config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-            bounds = SVGBoundaries(
-                size=300,
-                border_top=config.border_top,
-                border_left=config.border_left,
-                coord_width=config.border_right - config.border_left,
-                coord_height=config.border_bottom - config.border_top,
-            )
-
-            svg = generate_svg_map(bounds, descriptive_name, freqs, data_map_spawns)
+            svg = generate_svg_map(bounds, freqs, data_map_spawns, untameable)
             if svg:
-                clean_species_name = remove_unicode_control_chars(descriptive_name)
-                self.save_raw_file(svg, (output_path / f'Spawning_{clean_species_name}.svg'))
+                filepath = (output_path / self._make_filename_for_export(export_class))
+                self.save_raw_file(svg, filepath)
+
+    def _make_filename_for_export(self, blueprint_path):
+        clean_bp_name = blueprint_path.rsplit('/', 1)[1]
+        clean_bp_name = clean_bp_name.rsplit('.')[-1]
+        clean_bp_name = clean_bp_name.rstrip('_C')
+        clean_bp_name = remove_unicode_control_chars(clean_bp_name)
+
+        modid = self.manager.loader.get_mod_id(blueprint_path)
+        if modid:
+            clean_bp_name += f'_({modid})'
+
+        return f'Spawning_{clean_bp_name}.svg'
