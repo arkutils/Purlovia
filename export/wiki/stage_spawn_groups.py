@@ -44,6 +44,13 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 if ext_group_changes:
                     result['externalGroupChanges'] = ext_group_changes
                 return result
+        else:
+            pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
+            result = dict()
+            class_swaps = convert_class_swaps(pgd_asset)
+            if class_swaps:
+                result['classSwaps'] = class_swaps
+            return result
 
         return None
 
