@@ -39,6 +39,8 @@ class ProcessSpawnMapsStage(ProcessingStage):
         # Do all the insanity now and fix up the groups.
         fix_up_groups(data_groups)
         apply_ideal_grouplevel_swaps(data_groups)
+        # Apply PGD global swaps
+        apply_ideal_global_swaps(data_groups, data_groups['classSwaps'])
 
         for map_data_path in map_set:
             self._map_process_data(map_data_path, data_asb, data_groups)
@@ -96,6 +98,8 @@ class ProcessSpawnMapsStage(ProcessingStage):
         # Do all the insanity now and fix up the groups.
         fix_up_groups(data_groups_mod)
         apply_ideal_grouplevel_swaps(data_groups_mod)
+        # Apply PGD global swaps
+        apply_ideal_global_swaps(data_groups_mod, data_groups_core['classSwaps'])
 
         for map_data_path in map_set:
             self._map_process_data(map_data_path, data_asb_mod, data_groups_mod, None)
@@ -152,6 +156,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
         class_swaps = make_random_class_weights_dict(random_class_weights)
 
+        # Determine base output path
         if not output_path:
             if data_path.name != map_name:
                 output_path = (data_path / 'spawn_maps' / map_name)
@@ -160,6 +165,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         else:
             output_path = (output_path / map_name)
 
+        # Generate maps for every species
         for export_class, blueprints in species.items():
             untameable = not determine_tamability(asb, export_class)
 

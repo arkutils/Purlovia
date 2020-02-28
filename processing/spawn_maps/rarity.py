@@ -94,9 +94,9 @@ def apply_ideal_global_swaps(spawngroups, random_class_weights):
     Recalculates classes and weights of all groups to include global swaps.
     Does not copy the input.
     '''
+    class_swaps = make_random_class_weights_dict(random_class_weights)
     for container in spawngroups['spawngroups']:
         for entry in container['entries']:
-            class_swaps = make_random_class_weights_dict(random_class_weights)
             new_classes, new_weights = apply_ideal_swaps_to_entry(entry, class_swaps)
             entry['classes'] = new_classes
             entry['classWeights'] = new_weights
