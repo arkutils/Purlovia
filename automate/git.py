@@ -186,12 +186,11 @@ class GitManager:
 
         path: Path = self.config.settings.OutputPath / filename
 
-        if not path.is_file():
-            return f'{filename} removed'
-
         if path.suffix.lower() == '.json':
             if path.name.lower() == '_manifest.json':
                 return None
+            if not path.is_file():
+                return f'{filename} removed'
 
             with open(path) as f:
                 data = json.load(f)
