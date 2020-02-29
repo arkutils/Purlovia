@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+# TODO: Move this to overrides, or find a better way
 _MERGED_DINOS = [
     # Coelacanths
     [

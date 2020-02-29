@@ -148,15 +148,15 @@ def _generate_svg_caves(rarity_sets):
 
 
 def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameable):
-    svg_output = ('<?xml version="1.0" encoding="utf-8"?>\n'
-                  '<svg xmlns="http://www.w3.org/2000/svg"'
-                  f' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"'
-                  f''' class="creatureMap" style="position:absolute;">
+    svg_output = \
+f'''<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="{bounds.size}" height="{bounds.size}"
+        viewBox="0 0 {bounds.size} {bounds.size}" class="creatureMap" style="position:absolute;">
     <defs>
         <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="{round(bounds.size / 100)}" />
         </filter>
-        <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
+        <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">
             <rect width="4" height="10" fill="black"></rect>
         </pattern>
         <filter id="groupStroke">
@@ -166,17 +166,17 @@ def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameabl
             <feComposite result="strokeoutline2" in="strokeoutline1" in2="SourceAlpha" operator="out"/>
             <feGaussianBlur in="strokeoutline2" result="strokeblur" stdDeviation="1"/>
         </filter>
-        '''
-                  '''<style>
-            .spawningMap-very-common { fill: #0F0; }
-            .spawningMap-common { fill: #B2FF00; }
-            .spawningMap-uncommon { fill: #FF0; }
-            .spawningMap-very-uncommon { fill: #FC0; }
-            .spawningMap-rare { fill: #F60; }
-            .spawningMap-very-rare { fill: #F00; }
-            .spawning-map-point { stroke:black; stroke-width:1; }
+        <style>
+            .spawningMap-very-common {{ fill: #0F0; }}
+            .spawningMap-common {{ fill: #B2FF00; }}
+            .spawningMap-uncommon {{ fill: #FF0; }}
+            .spawningMap-very-uncommon {{ fill: #FC0; }}
+            .spawningMap-rare {{ fill: #F60; }}
+            .spawningMap-very-rare {{ fill: #F00; }}
+            .spawning-map-point {{ stroke:black; stroke-width:1; }}
         </style>
-    </defs>\n''')
+    </defs>
+'''
 
     # Generate intermediate shape objects out of spawning data
     regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, force_untameable)
@@ -199,6 +199,5 @@ def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameabl
     svg_output += _generate_svg_caves(regions_by_rarity)
 
     # end of svg
-    svg_output += '''
-</svg>'''
+    svg_output += '\n</svg>'
     return svg_output

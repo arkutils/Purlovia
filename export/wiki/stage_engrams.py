@@ -93,13 +93,7 @@ class EngramsStage(JsonHierarchyExportStage):
         if not d:
             return None
 
-        master_list = list()
-        for ref in d.values:
-            if ref.value.value:
-                master_list.append(ref.value.value.fullname)
-            else:
-                master_list.append(None)
-
+        master_list = [ref.value.value and ref.value.value.fullname for ref in d.values]
         return dict(indices=master_list)
 
 

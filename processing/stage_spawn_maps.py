@@ -178,9 +178,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
                 self.save_raw_file(svg, filepath)
 
     def _make_filename_for_export(self, blueprint_path):
-        clean_bp_name = blueprint_path.rsplit('/', 1)[1]
-        clean_bp_name = clean_bp_name.rsplit('.')[-1]
-        clean_bp_name = clean_bp_name.rstrip('_C')
+        clean_bp_name = blueprint_path.rsplit('.')[-1]
+        if clean_bp_name.endswith('_C'):
+            clean_bp_name = clean_bp_name[:-2]
         clean_bp_name = remove_unicode_control_chars(clean_bp_name)
 
         modid = self.manager.loader.get_mod_id(blueprint_path)
