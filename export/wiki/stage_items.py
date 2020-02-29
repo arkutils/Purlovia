@@ -26,7 +26,7 @@ class ItemsStage(JsonHierarchyExportStage):
         return not self.manager.config.export_wiki.ExportItems
 
     def get_format_version(self) -> str:
-        return "1"
+        return "2"
 
     def get_field(self) -> str:
         return "items"
@@ -43,7 +43,6 @@ class ItemsStage(JsonHierarchyExportStage):
         v: Dict[str, Any] = dict()
         if not item.has_override('DescriptiveNameBase'):
             return None
-        v['index'] = -1
         v['name'] = item.get('DescriptiveNameBase', 0, None)
         v['description'] = item.get('ItemDescription', 0, None)
         v['blueprintPath'] = item.get_source().fullname
@@ -105,36 +104,27 @@ class ItemsStage(JsonHierarchyExportStage):
         return v
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
-        if not self.gathered_results:
-            return None
-
-        if not modid:
+        if self.gathered_results and not modid:
             # Add indices from the base PGD
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
-            self._add_pgd_indices(pgd_asset, None)
-        else:
-            for v in self.gathered_results:
-                del v['index']
+            return self._add_pgd_indices(pgd_asset, None)
 
         return None
-    
-    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         if not self.gathered_results or not pgd_asset.default_export or mod_data:
-            return
+            return None
 
         properties = pgd_asset.default_export.properties
         d = properties.get_property('MasterItemList', fallback=None)
         if not d:
-            return
-        
-        master_list = []
+            return None
+
+        master_list = list()
         for ref in d.values:
             if ref.value.value:
                 master_list.append(ref.value.value.fullname)
-        
-        for v in self.gathered_results:
-            try:
-                index = master_list.index(v['blueprintPath'])
-                v['index'] = index
-            except ValueError:
-                del v['index']
+            else:
+                master_list.append(None)
+
+        return dict(indices=master_list)

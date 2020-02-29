@@ -147,8 +147,7 @@ def _generate_svg_caves(rarity_sets):
     return ''
 
 
-def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
-    always_untameable = 'Alpha' in species_name
+def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameable):
     svg_output = ('<?xml version="1.0" encoding="utf-8"?>\n'
                   '<svg xmlns="http://www.w3.org/2000/svg"'
                   f' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"'
@@ -180,7 +179,7 @@ def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
     </defs>\n''')
 
     # Generate intermediate shape objects out of spawning data
-    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, always_untameable)
+    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, force_untameable)
 
     has_regions = sum(len(regions) for regions in regions_by_rarity) != 0
     has_points = sum(len(points) for points in points_by_rarity) != 0

@@ -20,7 +20,7 @@ class EngramsStage(JsonHierarchyExportStage):
         return not self.manager.config.export_wiki.ExportEngrams
 
     def get_format_version(self) -> str:
-        return "1"
+        return "2"
 
     def get_field(self) -> str:
         return "engrams"
@@ -44,7 +44,6 @@ class EngramsStage(JsonHierarchyExportStage):
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
         v: Dict[str, Any] = dict()
-        v['index'] = -1
         if engram.has_override('ExtraEngramDescription'):
             v['description'] = engram.ExtraEngramDescription[0]
         v['blueprintPath'] = engram.get_source().fullname
@@ -69,7 +68,7 @@ class EngramsStage(JsonHierarchyExportStage):
         if not modid:
             # Add indexes from the base PGD
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
-            self._add_pgd_indices(pgd_asset, None)
+            return self._add_pgd_indices(pgd_asset, None)
         else:
             # Mod indexes are dependent on load order, and thus
             # unstable. It's up to the user to concat indexes in mods.
@@ -78,13 +77,13 @@ class EngramsStage(JsonHierarchyExportStage):
             package = mod_data.get('package', None)
             if package:
                 pgd_asset = self.manager.loader[package]
-                self._add_pgd_indices(pgd_asset, mod_data)
+                return self._add_pgd_indices(pgd_asset, mod_data)
 
         return None
-    
-    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]):
+
+    def _add_pgd_indices(self, pgd_asset: UAsset, mod_data: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         if not self.gathered_results or not pgd_asset.default_export:
-            return
+            return None
 
         properties = pgd_asset.default_export.properties
         if not mod_data:
@@ -92,19 +91,16 @@ class EngramsStage(JsonHierarchyExportStage):
         else:
             d = properties.get_property('AdditionalEngramBlueprintClasses', fallback=None)
         if not d:
-            return
-        
-        engrams = []
+            return None
+
+        master_list = list()
         for ref in d.values:
             if ref.value.value:
-                engrams.append(ref.value.value.fullname)
-        
-        for v in self.gathered_results:
-            try:
-                index = engrams.index(v['blueprintPath'])
-                v['index'] = index
-            except ValueError:
-                del v['index']
+                master_list.append(ref.value.value.fullname)
+            else:
+                master_list.append(None)
+
+        return dict(indices=master_list)
 
 
 _ENGRAM_GROUP_MAP = {
@@ -114,7 +110,7 @@ _ENGRAM_GROUP_MAP = {
     'ARK_UNLEARNED': 'Unavailable',
     'ARK_ABERRATION': 'Aberration',
     'ARK_EXTINCTION': 'Extinction',
-    'ARK_GENESIS': 'Genesis'
+    'ARK_GENESIS': 'Genesis',
 }
 
 
