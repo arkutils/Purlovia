@@ -31,19 +31,13 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(None)
-        data_groups = self._load_spawning_groups(None)
+        data_groups, data_swaps = self._get_spawning_groups(None)
         if not data_asb or not data_groups:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        # Do all the insanity now and fix up the groups.
-        fix_up_groups(data_groups)
-        apply_ideal_grouplevel_swaps(data_groups)
-        # Apply PGD global swaps
-        apply_ideal_global_swaps(data_groups, data_groups['classSwaps'])
-
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb, data_groups)
+            self._map_process_data(map_data_path, data_asb, data_groups, None, data_swaps)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
@@ -74,6 +68,35 @@ class ProcessSpawnMapsStage(ProcessingStage):
             path = (path / 'spawngroups.json')
         return self.load_json_file(path)
 
+    def _get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):
+        core_data = self._load_spawning_groups(None)
+        if not core_data:
+            return None, None
+        swaps = core_data['classSwaps']
+
+        # Load mod data and merge it with core
+        if modid:
+            mod_data = self._load_spawning_groups(modid)
+            if not mod_data:
+                return None, None
+            mod_data['spawngroups'] += core_data['spawngroups']
+
+            if is_game_mod:
+                if 'externalGroupChanges' in mod_data:
+                    merge_game_mod_groups(mod_data['spawngroups'], mod_data['externalGroupChanges'])
+                swaps = mod_data.get('classSwaps', [])
+
+            data = mod_data
+        else:
+            data = core_data
+
+        # Do all the insanity now and fix up the groups.
+        fix_up_groups(data)
+        apply_ideal_grouplevel_swaps(data)
+        # Global class swaps will be applied during freq calculations.
+
+        return data, swaps
+
     def _map_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of maps with NPC spawns
         root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_name}')
@@ -88,21 +111,13 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb_mod['species'] += data_asb_core['species']
 
         # Load and merge spawning group data
-        data_groups_core = self._load_spawning_groups(None)
-        data_groups_mod = self._load_spawning_groups(modid)
-        if not data_groups_core or not data_groups_mod:
+        data_groups, data_swaps = self._get_spawning_groups(modid)
+        if not data_groups:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
-        data_groups_mod['spawngroups'] += data_groups_core['spawngroups']
-
-        # Do all the insanity now and fix up the groups.
-        fix_up_groups(data_groups_mod)
-        apply_ideal_grouplevel_swaps(data_groups_mod)
-        # Apply PGD global swaps
-        apply_ideal_global_swaps(data_groups_mod, data_groups_core['classSwaps'])
 
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb_mod, data_groups_mod, None)
+            self._map_process_data(map_data_path, data_asb_mod, data_groups, None, data_swaps)
 
     def _game_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of core maps with NPC spawns
@@ -110,25 +125,24 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
-        data_groups = self._load_spawning_groups(None)
-        data_groups_mod = self._load_spawning_groups(modid)
-        if not data_asb or not data_groups or not data_groups_mod:
+        data_groups, data_swaps = self._get_spawning_groups(modid)
+        if not data_asb or not data_groups:
+            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            return
+        if not data_groups:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        # Merge spawning group data
-        if 'externalGroupChanges' in data_groups_mod:
-            merge_game_mod_groups(data_groups['spawngroups'], data_groups_mod['externalGroupChanges'])
-
-        # Do all the insanity now and fix up the groups.
-        fix_up_groups(data_groups)
-        apply_ideal_grouplevel_swaps(data_groups)
-        apply_ideal_global_swaps(data_groups, data_groups_mod.get('classSwaps', []))
-
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb, data_groups, (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps'))
+            base_output_path = (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps')
+            self._map_process_data(map_data_path, data_asb, data_groups, base_output_path, data_swaps)
 
-    def _map_process_data(self, data_path: Path, asb, spawngroups, output_path: Optional[Path] = None):
+    def _map_process_data(self,
+                          data_path: Path,
+                          asb,
+                          spawngroups,
+                          output_path: Optional[Path] = None,
+                          global_swaps: Optional[List] = None):
         map_name = data_path.name
         logger.info(f'Processing data of map: {map_name}')
 
@@ -140,46 +154,41 @@ class ProcessSpawnMapsStage(ProcessingStage):
             return
 
         # Initialize bound structure for this map
-        config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
-        bounds = SVGBoundaries(
-            size=300,
-            border_top=config.border_top,
-            border_left=config.border_left,
-            coord_width=config.border_right - config.border_left,
-            coord_height=config.border_bottom - config.border_top,
-        )
+        bounds = _get_svg_bounds_for_map(data_map_settings['persistentLevel'])
 
         # Generate mapping table (blueprint path to name)
         species = generate_dino_mappings(asb)
 
         # Get world-level random dino class swaps.
-        random_class_weights = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
-        class_swaps = make_random_class_weights_dict(random_class_weights)
+
+        map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
+        all_swaps = [
+            make_random_class_weights_dict(map_swaps),
+            make_random_class_weights_dict(global_swaps),
+        ]
 
         # Determine base output path
         if not output_path:
+            output_path = data_path / 'spawn_maps'
             if data_path.name != map_name:
-                output_path = (data_path / 'spawn_maps' / map_name)
-            else:
-                output_path = (data_path / 'spawn_maps')
+                output_path /= map_name
         else:
-            output_path = (output_path / map_name)
+            output_path = output_path / map_name
 
         # Generate maps for every species
         for export_class, blueprints in species.items():
             untameable = not determine_tamability(asb, export_class)
 
             # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
-            freqs = calculate_blueprint_freqs(spawngroups, class_swaps, blueprints)
+            freqs = calculate_blueprint_freqs(spawngroups, all_swaps, blueprints)
 
             svg = generate_svg_map(bounds, freqs, data_map_spawns, untameable)
             if svg:
-                filepath = (output_path / self._make_filename_for_export(export_class))
+                filepath = output_path / self._make_filename_for_export(export_class)
                 self.save_raw_file(svg, filepath)
 
     def _make_filename_for_export(self, blueprint_path):
-        clean_bp_name = blueprint_path.rsplit('/', 1)[1]
-        clean_bp_name = clean_bp_name.rsplit('.')[-1]
+        clean_bp_name = blueprint_path.rsplit('.')[-1]
         clean_bp_name = clean_bp_name.rstrip('_C')
         clean_bp_name = remove_unicode_control_chars(clean_bp_name)
 
@@ -188,3 +197,15 @@ class ProcessSpawnMapsStage(ProcessingStage):
             clean_bp_name += f'_({modid})'
 
         return f'Spawning_{clean_bp_name}.svg'
+
+
+def _get_svg_bounds_for_map(persistent_level: str) -> SVGBoundaries:
+    config = get_overrides_for_map(persistent_level, None).svgs
+    bounds = SVGBoundaries(
+        size=300,
+        border_top=config.border_top,
+        border_left=config.border_left,
+        coord_width=config.border_right - config.border_left,
+        coord_height=config.border_bottom - config.border_top,
+    )
+    return bounds

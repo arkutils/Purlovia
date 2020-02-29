@@ -102,7 +102,7 @@ def apply_ideal_global_swaps(spawngroups, random_class_weights):
             entry['classWeights'] = new_weights
 
 
-def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
+def calculate_blueprint_freqs(spawngroups, class_swap_rulesets, dino_classes):
     # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
     frequencies = []
     dino_class_set = set(dino_classes)
@@ -117,7 +117,13 @@ def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
 
         for entry in group['entries']:
             # Apply class swaps
-            classes, weights = apply_ideal_swaps_to_entry(entry, class_swaps)
+            classes, weights = entry['classes'], entry['classWeights']
+            for swap_ruleset in class_swap_rulesets:
+                classes, weights = apply_ideal_swaps_to_entry(dict(
+                    classes=classes,
+                    classWeights=weights,
+                ), swap_ruleset)
+
             if not bool(dino_class_set & set(classes)):
                 continue
 
