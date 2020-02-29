@@ -120,8 +120,11 @@ class ItemsStage(JsonHierarchyExportStage):
         if not d:
             return None
 
-        master_list: Dict[int, str] = dict()
-        for index, ref in enumerate(d.values):
+        master_list = list()
+        for ref in d.values:
             if ref.value.value:
-                master_list[index] = ref.value.value.fullname
+                master_list.append(ref.value.value.fullname)
+            else:
+                master_list.append(None)
+
         return dict(indices=master_list)

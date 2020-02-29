@@ -93,11 +93,14 @@ class EngramsStage(JsonHierarchyExportStage):
         if not d:
             return None
 
-        engrams: Dict[int, str] = dict()
-        for index, ref in enumerate(d.values):
+        master_list = list()
+        for ref in d.values:
             if ref.value.value:
-                engrams[index] = ref.value.value.fullname
-        return dict(indices=engrams)
+                master_list.append(ref.value.value.fullname)
+            else:
+                master_list.append(None)
+
+        return dict(indices=master_list)
 
 
 _ENGRAM_GROUP_MAP = {
