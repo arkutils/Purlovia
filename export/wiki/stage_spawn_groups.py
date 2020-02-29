@@ -105,6 +105,7 @@ def convert_limit_entry(struct):
 def convert_single_class_swap(d):
     return {
         'from': d['FromClass'],
+        'exact': d['bExactMatch'],
         'to': d['ToClasses'],
         'weights': d['Weights'],
     }

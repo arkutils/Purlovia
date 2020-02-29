@@ -164,8 +164,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
         map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
         all_swaps = [
             make_random_class_weights_dict(map_swaps),
-            make_random_class_weights_dict(global_swaps),
         ]
+        if 'onlyEventGlobalSwaps' not in data_map_settings['worldSettings']:
+            all_swaps.append(make_random_class_weights_dict(global_swaps))
 
         # Determine base output path
         if not output_path:

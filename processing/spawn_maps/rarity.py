@@ -1,5 +1,7 @@
 import math
 
+from ue.hierarchy import inherits_from
+
 from .intermediate_types import SpawnFrequency
 
 
@@ -43,6 +45,18 @@ def fix_up_swap_rule_weights(rule):
     return swap_weights
 
 
+def _get_swap_for_dino(blueprint_path, rules):
+    for rule_from, rule in rules.items():
+        if rule['exact']:
+            if rule_from == blueprint_path:
+                return rule
+        else:
+            if inherits_from(blueprint_path, rule_from):
+                return rule
+
+    return None
+
+
 def apply_ideal_swaps_to_entry(entry, class_swaps):
     '''
     Recalculates classes and their weights to include class swaps of specific entries.
@@ -54,10 +68,10 @@ def apply_ideal_swaps_to_entry(entry, class_swaps):
 
     for index, dino_class in enumerate(entry['classes']):
         weight = old_weights[index]
-        if dino_class in class_swaps:
-            # Make new entries. Swap occurs.
-            swap_rule = class_swaps[dino_class]
 
+        swap_rule = _get_swap_for_dino(dino_class, class_swaps)
+        if swap_rule:
+            # Make new entries. Swap occurs.
             # Fix up the swap
             swap_weights = fix_up_swap_rule_weights(swap_rule)
             rule_weight_sum = sum(swap_weights)
