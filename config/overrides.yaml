@@ -72,13 +72,24 @@ maps:
             border_left: 7.2
             border_right: 92.8
             border_bottom: 92.8
-    /Game/Maps/TheIslandSubMaps/TheIsland:
+    /Game/Maps/Genesis/Genesis:
+        svgs:
+            border_top: 11.5
+            border_left: 11.5
+            border_right: 88.5
+            border_bottom: 88.5
+            # Following borders apply to in-game textures
+            # border_top: 2
+            # border_left: -3
+            # border_right: 100
+            # border_bottom: 100
+    /Game/Maps/ScorchedEarth/ScorchedEarth_P:
         svgs:
             border_top: 7.2
             border_left: 7.2
             border_right: 92.8
             border_bottom: 92.8
-    /Game/Maps/ScorchedEarth/ScorchedEarth_P:
+    /Game/Maps/TheIslandSubMaps/TheIsland:
         svgs:
             border_top: 7.2
             border_left: 7.2
