@@ -118,7 +118,6 @@ class ItemsStage(JsonHierarchyExportStage):
         properties = pgd_asset.default_export.properties
         d = properties.get_property('MasterItemList', fallback=None)
         if not d:
-            return
             return None
 
         master_list: Dict[int, str] = dict()
