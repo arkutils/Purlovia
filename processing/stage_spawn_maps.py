@@ -125,7 +125,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
-        data_groups, data_swaps = self._get_spawning_groups(modid)
+        data_groups, data_swaps = self._get_spawning_groups(modid, is_game_mod=True)
         if not data_asb or not data_groups:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
