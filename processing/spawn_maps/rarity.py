@@ -27,7 +27,7 @@ def make_random_class_weights_dict(random_class_weights):
     lookup = dict()
     for remap_entry in random_class_weights:
         input_class = remap_entry['from']
-        if input_class not in lookup:
+        if input_class and input_class not in lookup:
             lookup[input_class] = remap_entry
     return lookup
 
@@ -46,12 +46,15 @@ def fix_up_swap_rule_weights(rule):
 
 
 def _get_swap_for_dino(blueprint_path, rules):
+    if not blueprint_path:
+        return None
+
     for rule_from, rule in rules.items():
         if rule['exact']:
             if rule_from == blueprint_path:
                 return rule
         else:
-            if inherits_from(blueprint_path, rule_from):
+            if rule_from and inherits_from(blueprint_path, rule_from):
                 return rule
 
     return None
