@@ -1,9 +1,7 @@
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, cast
 
-from export.wiki.consts import ACTOR_CLS, BIOME_ZONE_VOLUME_CLS, CHARGE_NODE_CLS, CUSTOM_ACTOR_LIST_CLS, \
-    DAMAGE_TYPE_RADIATION_PKG, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, NPC_ZONE_MANAGER_CLS, OIL_VEIN_CLS, \
-    PRIMAL_WORLD_SETTINGS_CLS, SUPPLY_CRATE_SPAWN_VOLUME_CLS, TOGGLE_PAIN_VOLUME_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
+from export.wiki.consts import *
 from export.wiki.types import BiomeZoneVolume, CustomActorList, ExplorerNote, \
     NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
@@ -20,7 +18,7 @@ from .data_container import MapInfo
 
 
 class GenericActorExport(MapGathererBase):
-    KLASS: str
+    CLASSES: Tuple[str, ...]
     CATEGORY: str
 
     @classmethod
@@ -29,7 +27,10 @@ class GenericActorExport(MapGathererBase):
 
     @classmethod
     def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, cls.KLASS)
+        for klass in cls.CLASSES:
+            if inherits_from(export, klass):
+                return True
+        return False
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
@@ -71,7 +72,11 @@ class GenericActorListExport(MapGathererBase):
             if not entry.value.value:
                 continue
 
-            yield get_actor_location_vector(entry.value.value)
+            yield cls.extract_single(entry.value.value)
+
+    @classmethod
+    def extract_single(cls, export: ExportTableItem) -> Union[UEBase, Dict[str, Any]]:
+        return get_actor_location_vector(export)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -510,28 +515,57 @@ class ExplorerNoteExport(MapGathererBase):
         data['long'] = map_info.long.from_units(data['x'])
 
 
+class HLNAGlitchExport(GenericActorListExport):
+    @classmethod
+    def get_category_name(cls) -> str:
+        return 'glitches'
+
+    @classmethod
+    def is_export_eligible(cls, export: ExportTableItem) -> bool:
+        return inherits_from(export, '/Script/ShooterGame.PointOfInterestManagerList')
+
+    @classmethod
+    def extract_single(cls, export: ExportTableItem) -> Union[UEBase, Dict[str, Any]]:
+        # TODO: Unverified value below:
+        index = export.properties.get_property('Specific Unlocked Explorer Note Index', fallback=-1)
+        return dict(
+            noteIndex=index,
+            **get_actor_location_vector(export.value.value).format_for_json(),
+        )
+
+
 class OilVeinExport(GenericActorExport):
-    KLASS = OIL_VEIN_CLS
+    CLASSES = (OIL_VEIN_CLS, )
     CATEGORY = 'oilVeins'
 
 
 class WaterVeinExport(GenericActorExport):
-    KLASS = WATER_VEIN_CLS
+    CLASSES = (WATER_VEIN_CLS, )
     CATEGORY = 'waterVeins'
 
 
+class LunarOxygenVentExport(GenericActorExport):
+    CLASSES = (LUNAR_OXYGEN_VENT_GEN1_CLS, )
+    CATEGORY = 'lunarOxygenVents'
+
+
+class OilVentExport(GenericActorExport):
+    CLASSES = (OIL_VENT_GEN1_CLS, )
+    CATEGORY = 'oilVents'
+
+
 class GasVeinExport(GenericActorExport):
-    KLASS = GAS_VEIN_CLS
+    CLASSES = (GAS_VEIN_CLS, GAS_VEIN_GEN1_CLS)
     CATEGORY = 'gasVeins'
 
 
 class ChargeNodeExport(GenericActorExport):
-    KLASS = CHARGE_NODE_CLS
+    CLASSES = (CHARGE_NODE_CLS, )
     CATEGORY = 'chargeNodes'
 
 
 class WildPlantSpeciesZExport(GenericActorExport):
-    KLASS = WILD_PLANT_SPECIES_Z_CLS
+    CLASSES = (WILD_PLANT_SPECIES_Z_CLS, )
     CATEGORY = 'plantZNodes'
 
 
@@ -590,14 +624,18 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
         WyvernNests,
         # Ragnarok
         IceWyvernNests,
-        # Aberration
+        # Genesis and Aberration
+        OilVentExport,
+        LunarOxygenVentExport,
         GasVeinExport,
+        # Aberration
         ChargeNodeExport,
         WildPlantSpeciesZExport,
         RockDrakeNests,
         # Valguero
         DeinonychusNests,
         # Genesis
+        HLNAGlitchExport,
         MagmasaurNests,
     ],
 }

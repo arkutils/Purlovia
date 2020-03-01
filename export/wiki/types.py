@@ -3,8 +3,7 @@ from typing import Mapping
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
-from .consts import ACTOR_CLS, CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
-    GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
+from .consts import *
 
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
@@ -130,7 +129,27 @@ class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorL
     ActorList: Mapping[int, ArrayProperty]
 
 
+class PointOfInterestListGen1(UEProxyStructure, uetype=POINT_OF_INTEREST_LIST_GEN1_CLS):
+    # No properties we can assume type for.
+    ActorList: Mapping[int, ArrayProperty]
+
+
 class OilVein(UEProxyStructure, uetype=OIL_VEIN_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class OilVentGen1(UEProxyStructure, uetype=OIL_VENT_GEN1_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class GasVeinGen1(UEProxyStructure, uetype=GAS_VEIN_GEN1_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class LunarOxygenVentGen1(UEProxyStructure, uetype=LUNAR_OXYGEN_VENT_GEN1_CLS):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
