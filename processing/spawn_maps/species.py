@@ -1,9 +1,6 @@
 # Helper for creatureSpawningMaps.py
 
-import json
-import re
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Optional
 
 # TODO: Move this to overrides, or find a better way
 _MERGED_DINOS = [

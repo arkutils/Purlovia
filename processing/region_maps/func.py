@@ -2,8 +2,6 @@
 Helpers for regionMaps.py
 '''
 
-import re
-import unicodedata
 from urllib.parse import quote
 
 from processing.common import remove_unicode_control_chars

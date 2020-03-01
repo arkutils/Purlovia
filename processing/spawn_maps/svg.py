@@ -2,17 +2,12 @@
 Creates an svg-file with spawning regions of a species colored depending on the rarity.
 '''
 
-import json
-import math
-import os
-import re
-from collections import namedtuple
 from typing import List
 
 from processing.common import SVGBoundaries
 
 from .consts import POINT_RADIUS
-from .intermediate_types import *
+from .intermediate_types import SpawnPoint, SpawnRectangle
 from .rarity import get_rarity_for_spawn
 
 # These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.

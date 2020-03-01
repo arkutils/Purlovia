@@ -1,13 +1,10 @@
 import json
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Optional, Set, Type
+from pathlib import Path
+from typing import Any
 
 from automate.exporter import ExportManager, ExportRoot, ExportStage
-from automate.hierarchy_exporter import JsonHierarchyExportStage
-from automate.jsonutils import save_json_if_changed
-from automate.version import createExportVersion
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -17,7 +14,10 @@ __all__ = [
 ]
 
 
-class ProcessingStage(ExportStage, metaclass=ABCMeta):
+class ProcessingStage(ExportStage, metaclass=ABCMeta):  # pylint: disable=abstract-method
+    asb_path: Path
+    wiki_path: Path
+
     def initialise(self, manager: ExportManager, root: ExportRoot):
         super().initialise(manager, root)
         self.asb_path = self.manager.config.settings.OutputPath / self.manager.config.export_asb.PublishSubDir

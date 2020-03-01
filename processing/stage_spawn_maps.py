@@ -1,13 +1,12 @@
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Optional, Set, Union
+from pathlib import Path
+from typing import List, Optional
 
 from ark.overrides import get_overrides_for_map
-from automate.exporter import ExportManager
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.rarity import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
+from .spawn_maps.rarity import apply_ideal_grouplevel_swaps, \
     calculate_blueprint_freqs, fix_up_groups, make_random_class_weights_dict
 from .spawn_maps.species import determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
