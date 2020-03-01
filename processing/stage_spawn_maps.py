@@ -1,3 +1,4 @@
+import shutil
 from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
@@ -117,9 +118,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
             return
 
         for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb_mod, data_groups, None, data_swaps)
+            self._map_process_data(map_data_path, data_asb_mod, data_groups, modid, data_swaps)
 
-    def _game_mod_generate_svgs(self, modid: str, mod_name: str):
+    def _game_mod_generate_svgs(self, modid: str, _mod_name: str):
         # Find data of core maps with NPC spawns
         map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
 
@@ -129,19 +130,38 @@ class ProcessSpawnMapsStage(ProcessingStage):
         if not data_asb or not data_groups:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
-        if not data_groups:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
-            return
 
         for map_data_path in map_set:
-            base_output_path = (self.wiki_path / f'{modid}-{mod_name}' / 'spawn_maps')
-            self._map_process_data(map_data_path, data_asb, data_groups, base_output_path, data_swaps)
+            self._map_process_data(map_data_path, data_asb, data_groups, modid, data_swaps)
+
+    def _get_svg_output_path(self, data_path: Path, map_name: str, modid: Optional[str]) -> Path:
+        if not modid:
+            # Core maps
+            #   data/wiki/Map/spawn_maps
+            #   or data_path/spawn_maps
+            return Path(data_path / 'spawn_maps')
+
+        # Mods
+        mod_data = self.manager.arkman.getModData(modid)
+        assert mod_data
+        mod_type = int(mod_data.get('type', 1))
+        if mod_type == 2:
+            # Custom maps
+            #   data/wiki/Id-Mod/MapName/spawn_maps
+            #   or data_path / spawn_maps
+            return Path(data_path / 'spawn_maps')
+
+        # mod_type == 1
+        # Game mods
+        #   data/wiki/Id-Mod/spawn_maps/Map
+        #   Data path can't be used as it points at a core map
+        return Path(self.wiki_path / f'{modid}-{mod_data["name"]}' / 'spawn_maps' / map_name)
 
     def _map_process_data(self,
                           data_path: Path,
-                          asb,
-                          spawngroups,
-                          output_path: Optional[Path] = None,
+                          asb: Dict[str, Any],
+                          spawngroups: Dict[str, Any],
+                          modid: Optional[str],
                           global_swaps: Optional[List] = None):
         map_name = data_path.name
         logger.info(f'Processing data of map: {map_name}')
@@ -159,22 +179,20 @@ class ProcessSpawnMapsStage(ProcessingStage):
         # Generate mapping table (blueprint path to name)
         species = generate_dino_mappings(asb)
 
-        # Get world-level random dino class swaps.
-
+        # Get world-level random dino class swaps
         map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
         all_swaps = [
             make_random_class_weights_dict(map_swaps),
         ]
         if 'onlyEventGlobalSwaps' not in data_map_settings['worldSettings']:
+            # Include global swaps as the map allows them
             all_swaps.append(make_random_class_weights_dict(global_swaps))
 
         # Determine base output path
-        if not output_path:
-            output_path = data_path / 'spawn_maps'
-            if data_path.name != map_name:
-                output_path /= map_name
-        else:
-            output_path = output_path / map_name
+        output_path = self._get_svg_output_path(data_path, map_name, modid)
+        # Remove existing directory
+        if output_path.is_dir():
+            shutil.rmtree(output_path)
 
         # Generate maps for every species
         for export_class, blueprints in species.items():
