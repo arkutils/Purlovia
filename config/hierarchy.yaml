@@ -377,3 +377,6 @@
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
 - '/Script/CoreUObject.Interface'
 - '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
+- '/Script/ShooterGame.MissionType'
+- '/Script/ShooterGame.PointOfInterestManagerList'
+- '/Script/ShooterGame.PointOfInterestActor'
