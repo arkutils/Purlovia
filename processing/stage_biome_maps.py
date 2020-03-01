@@ -61,5 +61,8 @@ class ProcessBiomeMapsStage(ProcessingStage):
             coord_height=config.border_bottom - config.border_top,
         )
         svg = generate_svg_map(bounds, map_name, data_map_settings['worldSettings'], data_biomes, modid is not None)
+        filename = Path(path / f'Regions_{map_name}.svg')
         if svg:
-            self.save_raw_file(svg, (path / f'Regions_{map_name}.svg'))
+            self.save_raw_file(svg, filename)
+        elif filename.is_file():
+            filename.unlink()
