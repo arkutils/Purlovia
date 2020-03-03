@@ -10,9 +10,6 @@ defaults:
     # Parts of a classname that will be added as a variant, matching _Variant or Variant_
     classname_variant_parts:
         InitialBuryOnly: true
-        Alpha: true
-        Beta: true
-        Gamma: true
         Easy: true
         Med: true
         Medium: true
@@ -42,13 +39,6 @@ defaults:
         Gamma: ' (Gamma)'
         Beta: ' (Beta)'
         Alpha: ' (Alpha)'
-
-    #     Easy: ' (Gamma)'
-    #     Medium: ' (Beta)'
-    #     Hard: ' (Alpha)'
-    #     Gamma: ' (Easy)'
-    #     Beta: ' (Medium)'
-    #     Alpha: ' (Hard)'
 
     color_regions:
         # Whether to capitalize the first character of region names
@@ -85,6 +75,9 @@ mods:
             Corrupt: true
             Corrupted: true
             Aberrant: true
+            Alpha: true
+            Beta: true
+            Gamma: true
 
             # Genesis variants
             Bog: true
