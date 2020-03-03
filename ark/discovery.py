@@ -49,16 +49,16 @@ def _generate_hierarchy(loader: AssetLoader):
     ue.hierarchy.load_internal_hierarchy(Path('config') / 'hierarchy.yaml')
 
     # Scan /Game, excluding /Game/Mods and any excludes from config
-    ue.hierarchy.explore_path('/Game', loader, core_excludes)
+    ue.hierarchy.explore_path('/Game', loader, core_excludes, disable_debug=True)
 
     # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
     official_modids = set(config.official_mods.ids())
     official_modids -= set(config.settings.SeparateOfficialMods)
     for modid in official_modids:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
     # Scan /Game/Mods/<modid> for each configured mod
     for modid in config.mods:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
     return ue.hierarchy.tree

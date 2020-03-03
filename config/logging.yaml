@@ -22,7 +22,7 @@ handlers:
         level: DEBUG
         formatter: withtime
         filename: logs/debug.log
-        maxBytes: 10485760 # 10MB
+        maxBytes: 52428800 # 50MB
         backupCount: 5
         encoding: utf8
 

@@ -190,10 +190,7 @@ def load_internal_hierarchy(filename: Path):
     walk_hierarchy_yaml(ROOT_NAME, hierarchy_config[ROOT_NAME])
 
 
-# export_path('...', loader, config.optimisation.SearchIgnore)
-
-
-def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbose=False):
+def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbose=False, disable_debug=False):
     '''Run hierarchy discovery over every matching asset within the given path.'''
     excludes = set(excludes)
 
@@ -208,7 +205,7 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
             if verbose and n % 200 == 0: logger.info(assetname)
 
             try:
-                asset = loader[assetname]
+                asset = loader.load_asset(assetname, quiet=disable_debug)
             except AssetLoadException:
                 logger.warning("Failed to load asset: %s", assetname)
                 continue
@@ -280,7 +277,7 @@ def _ingest_export(export: ExportTableItem, loader: AssetLoader):
             return
 
         # Load parent class and replace current
-        parent_cls = loader.load_class(parent_name)
+        parent_cls = loader.load_class(parent_name, quiet=True)
         current_cls = parent_cls
         fullname = current_cls.fullname
         assert fullname

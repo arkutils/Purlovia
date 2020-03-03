@@ -406,10 +406,10 @@ class AssetLoader:
 
         raise ValueError(f"Unsupported type for load_related '{type(obj)}'")
 
-    def load_class(self, fullname: str, fallback=NO_FALLBACK) -> ExportTableItem:
+    def load_class(self, fullname: str, fallback=NO_FALLBACK, quiet=False) -> ExportTableItem:
         (assetname, cls_name) = fullname.split('.')
         assetname = self.clean_asset_name(assetname)
-        asset = self[assetname]
+        asset = self.load_asset(assetname, quiet=quiet)
         for export in asset.exports:
             if str(export.name) == cls_name:
                 return export
@@ -444,10 +444,10 @@ class AssetLoader:
 
         raise AssetNotFound(name)
 
-    def __getitem__(self, assetname: str) -> UAsset:
+    def load_asset(self, assetname: str, quiet=False) -> UAsset:
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
         assetname = self.clean_asset_name(assetname)
-        asset = self.cache.lookup(assetname) or self._load_asset(assetname)
+        asset = self.cache.lookup(assetname) or self._load_asset(assetname, quiet=quiet)
 
         # Keep track of some stats
         mem_used = psutil.Process().memory_info().rss
@@ -459,6 +459,10 @@ class AssetLoader:
 
         return asset
 
+    def __getitem__(self, assetname: str) -> UAsset:
+        '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
+        return self.load_asset(assetname)
+
     def __delitem__(self, assetname: str) -> None:
         '''Remove the specified assetname from the cache.'''
         assetname = self.clean_asset_name(assetname)
@@ -468,8 +472,9 @@ class AssetLoader:
         asset = self._load_asset(assetname, doNotLink=True)
         return asset
 
-    def _load_asset(self, assetname: str, doNotLink=False) -> UAsset:
-        logger.debug(f"Loading asset: {assetname}")
+    def _load_asset(self, assetname: str, doNotLink=False, quiet=False) -> UAsset:
+        if not quiet:
+            logger.debug("Loading asset: %s", assetname)
         mem, ext = self.load_raw_asset(assetname)
         stream = MemoryStream(mem, 0, len(mem))
         asset = UAsset(weakref.proxy(stream))
