@@ -18,7 +18,7 @@ logger.addHandler(NullHandler())
 
 class LootCratesStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "1"
+        return "2"
 
     def get_name(self) -> str:
         return "loot_crates"
@@ -36,12 +36,12 @@ class LootCratesStage(JsonHierarchyExportStage):
         crate: PrimalStructureItemContainer_SupplyCrate = cast(PrimalStructureItemContainer_SupplyCrate, proxy)
 
         v: Dict[str, Any] = dict()
-        v['blueprintPath'] = crate.get_source().fullname
+        v['bp'] = crate.get_source().fullname
         v['requiredLevel'] = crate.RequiredLevelToAccess[0]
         v['maxLevel'] = crate.MaxLevelToAccess[0]
-        v['randomSetsWithNoReplacement'] = crate.bSetsRandomWithoutReplacement[0]
-        v['itemQualityMult'] = (crate.MinQualityMultiplier[0], crate.MaxQualityMultiplier[0])
         v['healthLoss'] = dict(initialTime=crate.InitialTimeToLoseHealth[0], interval=crate.IntervalTimeToLoseHealth[0])
+        v['randomSetsWithNoReplacement'] = crate.bSetsRandomWithoutReplacement[0]
+        v['qualityMult'] = (crate.MinQualityMultiplier[0], crate.MaxQualityMultiplier[0])
         v['setCount'] = (crate.MinItemSets[0], crate.MaxItemSets[0], crate.NumItemSetsPower[0])
 
         item_sets: List[Any] = []
@@ -53,7 +53,6 @@ class LootCratesStage(JsonHierarchyExportStage):
         if not item_sets:
             return None
 
-        v['blueprintPath'] = str(proxy.get_source().fullname)
         v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
 
         return v

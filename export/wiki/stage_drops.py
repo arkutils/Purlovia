@@ -4,6 +4,7 @@ from typing import *
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
+from ue.hierarchy import find_parent_classes
 from ue.properties import ArrayProperty
 from ue.proxy import UEProxyStructure
 
@@ -25,7 +26,7 @@ class DinoDropInventoryComponent(
 
 class DropsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "1"
+        return "2"
 
     def get_name(self) -> str:
         return "drops"
@@ -50,7 +51,7 @@ class DropsStage(JsonHierarchyExportStage):
         if not item_sets:
             return None
 
-        v['blueprintPath'] = str(proxy.get_source().fullname)
+        v['bp'] = str(proxy.get_source().fullname)
         v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
 
         if not v['sets']:
@@ -79,11 +80,43 @@ def decode_item_entry(entry):
     )
 
 
+def _gather_lootitemset_data(asset_ref):
+    loader = asset_ref.asset.loader
+    asset = loader.load_related(asset_ref)
+    assert asset.default_export
+    d = dict()
+
+    for node in find_parent_classes(asset.default_export):
+        if not node.startswith('/Game/'):
+            break
+
+        asset = loader[node]
+        assert asset.default_export
+
+        item_set = asset.default_export.properties.get_property('ItemSet', fallback=None)
+        if item_set:
+            set_data = item_set.as_dict()
+            for key, value in set_data.items():
+                if key not in d:
+                    d[key] = value
+
+    return d
+
+
 def decode_item_set(item_set):
-    d = item_set.as_dict()
+    if isinstance(item_set, dict):
+        d = item_set
+        override = None
+    else:
+        d = item_set.as_dict()
+        override = d['ItemSetOverride']
+
+    if override:
+        return decode_item_set(_gather_lootitemset_data(override))
+
     return dict(
-        name=d['SetName'] or None,
-        itemsQuantity=(d['MinNumItems'], d['MaxNumItems'], d['NumItemsPower']),
-        setWeight=d['SetWeight'],
+        name=d.get('SetName', None) or None,
+        weight=d.get('SetWeight', 1.0),
+        qtyScale=(d.get('MinNumItems', 1.0), d.get('MaxNumItems', 1.0), d.get('NumItemsPower', 1.0)),
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )
