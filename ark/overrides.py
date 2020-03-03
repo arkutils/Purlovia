@@ -40,6 +40,14 @@ class MapBoundariesSettings(BaseModel):
 class OverrideSettings(BaseModel):
     skip_export: Optional[bool] = False
 
+    # Variants, currently only applying to species
+    add_variants: Dict[str, bool] = dict()
+    remove_variants: Dict[str, bool] = dict()
+    variant_renames: Dict[str, str] = dict()
+    classname_variant_parts: Dict[str, bool] = dict()
+    variants_to_skip_export: Dict[str, bool] = dict()
+    variants_to_remove_name_parts: Dict[str, str] = dict()
+
     # Species
     color_regions: ColorRegionSettings = ColorRegionSettings()
     descriptive_name: Optional[str]

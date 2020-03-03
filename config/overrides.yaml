@@ -7,6 +7,49 @@ defaults:
     # True to leave this species out of the exported data files (e.g. for baseclasses)
     skip_export: false
 
+    # Parts of a classname that will be added as a variant, matching _Variant or Variant_
+    classname_variant_parts:
+        InitialBuryOnly: true
+        Alpha: true
+        Beta: true
+        Gamma: true
+        Easy: true
+        Med: true
+        Medium: true
+        Hard: true
+        Minion: true
+        Surface: true
+        Male: true
+        Female: true
+        Tamed: true
+        Base: true
+        Rare: true
+
+    # Rename these variants, if present
+    variant_renames:
+        Med: Medium
+        Easy: Gamma
+        Medium: Beta
+        Hard: Alpha
+
+    # If these variants are found, the object will not be exported
+    variants_to_skip_export:
+        Base: true
+        InitialBuryOnly: true
+
+    # If these variants are found, remove the given part of the descriptive name
+    variants_to_remove_name_parts:
+        Gamma: ' (Gamma)'
+        Beta: ' (Beta)'
+        Alpha: ' (Alpha)'
+
+    #     Easy: ' (Gamma)'
+    #     Medium: ' (Beta)'
+    #     Hard: ' (Alpha)'
+    #     Gamma: ' (Easy)'
+    #     Beta: ' (Medium)'
+    #     Alpha: ' (Hard)'
+
     color_regions:
         # Whether to capitalize the first character of region names
         capitalize: true
@@ -34,7 +77,57 @@ defaults:
 
 # Override settings on a per-mod basis
 mods:
-    # '': # Core
+    '': # Core-only
+        classname_variant_parts:
+            TekCave: true
+            TheCenter: true
+            Alpha: true
+            Corrupt: true
+            Corrupted: true
+            Aberrant: true
+
+            # Genesis variants
+            Bog: true
+            Lunar: true
+            Ocean: true
+            Snow: true
+            VR: true
+            Volcano: true
+            Volcanic: true
+            IceFishMission: true
+            BreakNet: true
+            Shapeshifter_Large: true
+            Shapeshifter_Small: true
+
+        variant_renames:
+            # Correct some inconsistency in naming
+            Volcanic: Volcano
+            Lava: Volcano
+            Arctic: Snow
+            IceFishMission: IceFishing
+            Shapeshifter_Large: Large
+            Shapeshifter_Small: Small
+            Corrupt: Corrupted
+
+
+    Ragnarok:
+        add_variants:
+            Ragnarok: true
+
+        classname_variant_parts:
+            Alpha: true
+            LL: true
+
+        variant_renames:
+            LL: LifeLabyrinth
+
+    Valguero:
+        add_variants:
+            Valguero: true
+
+        classname_variant_parts:
+            Alpha: true
+
 
     839162288: # Primal Fear
         color_regions:
@@ -50,6 +143,22 @@ mods:
         color_regions:
             useless_name_regexes:
                 unkown: 'Unkown'  # Misspelt to match mod
+
+    1576299694: # Elemental Ark
+        classname_variant_parts:
+            BASE: true
+
+        variant_renames:
+            BASE: Base
+
+    1300713111: # Rare Sightings
+        classname_variant_parts:
+            Rare: false
+
+    1090809604: # Pyria
+        classname_variant_parts:
+            Flame: true
+            Tranq: true
 
 
 # Override settings on a per-map basis
@@ -118,12 +227,18 @@ maps:
 
 # Override settings on a per-species basis
 species:
-    # Some classes that base-classes non-spawnable detector doesn't catch
+    # Things that aren't really species
     /Game/PrimalEarth/Items/Raft/MotorRaft_BP:
         skip_export: true
     /Game/PrimalEarth/Items/Raft/Raft_BP:
         skip_export: true
     /Game/PrimalEarth/Vehicles/VH_Buggy/Blueprint/VH_Buggy:
+        skip_export: true
+    /Game/Genesis/Dinos/MissionVariants/Race/TekHoverSkiff_Character_BP_Race:
+        skip_export: true
+    /Game/Genesis/Dinos/TEKHoverSkiff/TekHoverSkiff_Character_BP:
+        skip_export: true
+    /Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP:
         skip_export: true
 
     # Primitive Plus
@@ -134,54 +249,93 @@ species:
     /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
         skip_export: true
 
-    # TODO: Temp fixes for Genesis release
-    /Game/Aberration/Dinos/ChupaCabra/ChupaCabra_Character_BP_InitialBuryOnly:
+    # These will not be exported as they are only baseclasses
+    /Game/Aberration/Boss/Rockwell/Rockwell_Character_BP:
         skip_export: true
-    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Female_InitialBuryOnly:
+    /Game/Aberration/Boss/RockwellTentacle/RockwellTentacle_Character_BP:
         skip_export: true
-    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male_InitialBuryOnly:
+    /Game/Extinction/Dinos/Corrupt/Raptor/BabyRaptor_Character_BP_Corrupt:
         skip_export: true
-    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent:
+    /Game/EndGame/Dinos/Endboss/EndBoss_Character:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Escort:
+    /Game/EndGame/Dinos/Endboss/EndbossDragon/EndBossDragon_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Escort:
+    /Game/EndGame/Dinos/Endboss/EndbossGorilla/EndBossGorilla_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Escort/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Escort:
+    /Game/EndGame/Dinos/Endboss/EndbossSpider/EndBossSpiderL_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Alpha_Gauntlet:
+    /Game/Genesis/Dinos/EelBoss/EelBoss_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Gauntlet:
+    /Game/Genesis/Dinos/EelBoss/EelMinion_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Female_InitialBuryOnly_Gauntlet:
+    /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Gauntlet:
+    /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Gauntlet/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Gauntlet:
+    /Game/PrimalEarth/Dinos/Gorilla/Gorilla_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Hunt/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Hunt:
+    /Game/PrimalEarth/Dinos/Spider-Large/SpiderL_Character_BP:
         skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Hunt/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Hunt:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/ChupaCabra_Character_BP_InitialBuryOnly_Retrieve:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Adolescent_Retrieve:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Brute_Retrieve:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Retrieve/Lunar/Xenomorph_Character_BP_Male_InitialBuryOnly_Retrieve:
+    /Game/ScorchedEarth/Dinos/Manticore/Manticore_Character_BP:
         skip_export: true
 
+    # Manual variant modifications
+    /Game/Aberration/Dinos/Lightbug/Lightbug_Character_BaseBP:
+        remove_variants:
+            Base: true
+    /Game/Extinction/Dinos/KingKaiju/Minions/Corrupt_Arthro_Character_BP:
+        remove_variants:
+            Corrupted: true
+    /Game/EndGame/Dinos/Drone/EndDrone_Character_BP:
+        add_variants:
+            Easy: true
+    /Game/EndGame/Dinos/Tank/EndTank_Character_BP:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP_Aggressive:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive_DragonBoss:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Gorilla/Gorilla_Character_BP_TheCenter:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Monkey/Monkey_Character_BP_Aggressive:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Ptero/Ptero_Minion_Character_BP:
+        add_variants:
+            Easy: true
+    /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP_Aggressive:
+        add_variants:
+            Easy: true
+    /Game/Extinction/Dinos/KingKaiju/KingKaiju_Character_BP:
+        add_variants:
+            Gamma: true
+    /Game/PrimalEarth/Dinos/Spider-Large/SpiderL_Character_BP_TheCenter:
+        add_variants:
+            Gamma: true
+    /Game/PrimalEarth/Dinos/Leedsichthys/Alpha_Leedsichthys_Character_BP:
+        remove_variants:
+            Alpha: true # Alpha is used only for boss difficulty
+    /Game/Genesis/Dinos/MissionVariants/Retrieve/Volcanic/Volcano_Trike_Character_BP_Retrieve_Alpha:
+        remove_variants:
+            Alpha: true # Alpha is used only for boss difficulty
+    /Game/PrimalEarth/Dinos/Mosasaurus/Mosa_Character_BP_Cave:
+        add_variants:
+            Cave: true
+    /Game/PrimalEarth/Dinos/Mosasaurus/Mosa_Character_BP_Mega_Cave:
+        add_variants:
+            Cave: true
+    /Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP_Caves:
+        add_variants:
+            Cave: true
 
-    /Game/Genesis/Dinos/MissionVariants/Race/TekHoverSkiff_Character_BP_Race.TekHoverSkiff_Character_BP_Race_C:
-        skip_export: true
-    /Game/Genesis/Dinos/TEKHoverSkiff/TekHoverSkiff_Character_BP.TekHoverSkiff_Character_BP_C:
-        skip_export: true
-
-    # Some variants share the same names
-    /Game/Mods/Valguero/Assets/Dinos/RockGolem/IceGolem/IceGolem_Character_BP:
+    # Distinguish between species that share the same names
+    /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP:
         descriptive_name: Ice Golem
-    /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP.IceGolem_Character_BP:
+    /Game/Mods/Valguero/Assets/Dinos/RockGolem/IceGolem/IceGolem_Character_BP:
         descriptive_name: Ice Golem
     /Game/Mods/Valguero/Assets/Dinos/RockGolem/ChalkGolem/ChalkGolem_Character_BP:
         descriptive_name: Chalk Golem
