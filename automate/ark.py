@@ -1,10 +1,13 @@
 import datetime
 import json
+import re
 import shutil
 from logging import NullHandler, getLogger
 from os import walk
 from pathlib import Path
 from typing import *
+
+import requests
 
 from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, ModNotFound, ModResolver
@@ -321,10 +324,13 @@ def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
     return result
 
 
-def fetchGameVersion(gamedata_path: Path) -> str:
-    verFile = gamedata_path / 'version.txt'
-    with open(verFile) as f:
-        version = f.read().strip()
+def fetchGameVersion(_gamedata_path: Path) -> str:
+    rsp = requests.get('http://arkdedicated.com/version')
+    rsp.raise_for_status()
+    version = (rsp.text or '').strip()
+    if not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
+        raise ValueError(f"Unexpected response querying http://arkdedicated.com/version: {version}")
+
     return version
 
 
