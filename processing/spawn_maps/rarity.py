@@ -1,6 +1,6 @@
 import math
 
-from ue.hierarchy import inherits_from
+from ue.hierarchy import find_sub_classes, inherits_from
 
 from .intermediate_types import SpawnFrequency
 
@@ -26,9 +26,14 @@ def make_random_class_weights_dict(random_class_weights):
     '''
     lookup = dict()
     for remap_entry in random_class_weights:
-        input_class = remap_entry['from']
-        if input_class and input_class not in lookup:
-            lookup[input_class] = remap_entry
+        if not remap_entry['to']:
+            continue
+
+        from_classes = remap_entry['from']
+
+        for from_class in from_classes:
+            if from_class and from_class not in lookup:
+                lookup[from_class] = remap_entry
     return lookup
 
 
@@ -45,19 +50,32 @@ def fix_up_swap_rule_weights(rule):
     return swap_weights
 
 
+def inflate_swap_rules(random_class_weights):
+    '''
+    Mutates a rule set with pre-processed inheritance.
+    
+    Target's "from" field will turn into a list of classes.
+    '''
+    for rule in random_class_weights:
+        from_class = rule['from']
+        # Make sure number of weights is equal to the number of targets
+        weights = fix_up_swap_rule_weights(rule)
+
+        from_classes = [from_class]
+        if not rule['exact']:
+            # Pre-process non-exact match
+            from_classes += find_sub_classes(from_class)
+            rule['exact'] = True
+
+        rule['from'] = from_classes
+        rule['weights'] = weights
+
+
 def _get_swap_for_dino(blueprint_path, rules):
     if not blueprint_path:
         return None
 
-    for rule_from, rule in rules.items():
-        if rule['exact']:
-            if rule_from == blueprint_path:
-                return rule
-        else:
-            if rule_from and inherits_from(blueprint_path, rule_from):
-                return rule
-
-    return None
+    return rules.get(blueprint_path, None)
 
 
 def apply_ideal_swaps_to_entry(entry, class_swaps):
@@ -76,7 +94,7 @@ def apply_ideal_swaps_to_entry(entry, class_swaps):
         if swap_rule:
             # Make new entries. Swap occurs.
             # Fix up the swap
-            swap_weights = fix_up_swap_rule_weights(swap_rule)
+            swap_weights = swap_rule['weights']
             rule_weight_sum = sum(swap_weights)
             swap_weights = [weight / rule_weight_sum for weight in swap_weights]
 
@@ -100,10 +118,10 @@ def apply_ideal_grouplevel_swaps(spawngroups):
     for container in spawngroups['spawngroups']:
         for entry in container['entries']:
             if 'classSwaps' in entry:
+                inflate_swap_rules(entry['classSwaps'])
                 class_swaps = make_random_class_weights_dict(entry['classSwaps'])
-                new_classes, new_weights = apply_ideal_swaps_to_entry(entry, class_swaps)
-                entry['classes'] = new_classes
-                entry['classWeights'] = new_weights
+
+                entry['classes'], entry['classWeights'] = apply_ideal_swaps_to_entry(entry, class_swaps)
 
 
 def apply_ideal_global_swaps(spawngroups, random_class_weights):

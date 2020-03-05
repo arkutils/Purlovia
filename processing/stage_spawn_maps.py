@@ -7,8 +7,8 @@ from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.rarity import apply_ideal_grouplevel_swaps, \
-    calculate_blueprint_freqs, fix_up_groups, make_random_class_weights_dict
+from .spawn_maps.rarity import apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, \
+    fix_up_groups, inflate_swap_rules, make_random_class_weights_dict
 from .spawn_maps.species import determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
@@ -93,6 +93,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         # Do all the insanity now and fix up the groups.
         fix_up_groups(data)
         apply_ideal_grouplevel_swaps(data)
+        inflate_swap_rules(swaps)
         # Global class swaps will be applied during freq calculations.
 
         return data, swaps
@@ -180,6 +181,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
         # Get world-level random dino class swaps
         map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
+        inflate_swap_rules(map_swaps)
         all_swaps = [
             make_random_class_weights_dict(map_swaps),
         ]
