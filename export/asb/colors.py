@@ -130,7 +130,7 @@ def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: Overrid
                 region_name = region_name[0].upper() + region_name[1:]
 
             if not region_name:
-                color = None  # type: ignore
+                color['name'] = None  # type: ignore
             else:
                 color['name'] = region_name
                 if region_name and color_names:
