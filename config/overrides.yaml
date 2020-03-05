@@ -71,7 +71,6 @@ mods:
         classname_variant_parts:
             TekCave: true
             TheCenter: true
-            Alpha: true
             Corrupt: true
             Corrupted: true
             Aberrant: true

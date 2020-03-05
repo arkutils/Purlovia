@@ -130,12 +130,15 @@ def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: Overrid
                 region_name = region_name[0].upper() + region_name[1:]
 
             if not region_name:
-                color['name'] = None  # type: ignore
+                color['name'] = None
             else:
                 color['name'] = region_name
                 if region_name and color_names:
                     color['colors'] = sorted(color_names)
 
-        colors.append(color)
+        if color['name'] is None:
+            colors.append(None)  # type: ignore
+        else:
+            colors.append(color)
 
     return colors
