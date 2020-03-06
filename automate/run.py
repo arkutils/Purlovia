@@ -207,6 +207,8 @@ def run(config: ConfigFile):
 
         logger.info('Automation completed')
 
+    except KeyboardInterrupt:
+        logger.error("Aborting on Ctrl-C.")
     except:  # pylint: disable=bare-except
         handle_exception(logfile='logs/errors.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
