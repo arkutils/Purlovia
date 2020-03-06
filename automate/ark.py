@@ -324,13 +324,39 @@ def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
     return result
 
 
-def fetchGameVersion(_gamedata_path: Path) -> str:
+def _fetchGameVersionFromAPI() -> Optional[str]:
     rsp = requests.get('http://arkdedicated.com/version')
     rsp.raise_for_status()
     version = (rsp.text or '').strip()
-    if not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
-        raise ValueError(f"Unexpected response querying http://arkdedicated.com/version: {version}")
+    return version
 
+
+def _fetchGameVersionFromFile(gamedata_path: Path) -> Optional[str]:
+    verFile = Path(gamedata_path / 'version.txt')
+    if not verFile.is_file():
+        return None
+    with open(verFile, 'rt') as f:
+        version = f.read().strip()
+    return version
+
+
+def fetchGameVersion(gamedata_path: Path) -> str:
+    # Try version.txt in depot... cross fingers
+    version = _fetchGameVersionFromFile(gamedata_path)
+    if version:
+        if not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
+            logger.warning(f"Falling back to version API due to invalid version.txt!: {version}")
+        else:
+            logger.info(f"Game version from version.txt: {version}")
+            return version
+
+    # Fall back to possibly out-of-sync official server network version API
+    logger.warning('Falling back to version API as version.txt is missing (again)!')
+    version = _fetchGameVersionFromAPI()
+    if not version or not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
+        raise ValueError(f"Fallback version API return unexpected data: {version}")
+
+    logger.info(f"Game version from server API: {version}")
     return version
 
 
