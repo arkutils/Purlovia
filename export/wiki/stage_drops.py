@@ -24,13 +24,10 @@ class DinoDropInventoryComponent(
 
 
 class DropsStage(JsonHierarchyExportStage):
-    def get_skip(self):
-        return not self.manager.config.export_wiki.ExportDrops
-
     def get_format_version(self) -> str:
         return "1"
 
-    def get_field(self) -> str:
+    def get_name(self) -> str:
         return "drops"
 
     def get_use_pretty(self) -> bool:

@@ -26,10 +26,7 @@ logger.addHandler(NullHandler())
 
 
 class SpeciesStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_asb.ExportSpecies
-
-    def get_field(self):
+    def get_name(self):
         return 'species'
 
     def get_use_pretty(self) -> bool:

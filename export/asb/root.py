@@ -12,11 +12,11 @@ __all__ = [
 
 
 class ASBRoot(ExportRoot):
+    def get_name(self) -> str:
+        return 'asb'
+
     def get_relative_path(self) -> PurePosixPath:
         return PurePosixPath(self.manager.config.export_asb.PublishSubDir)
-
-    def get_skip(self) -> bool:
-        return self.manager.config.export_asb.Skip
 
     def get_commit_header(self) -> str:
         return self.manager.config.export_asb.CommitHeader

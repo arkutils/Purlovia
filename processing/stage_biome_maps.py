@@ -17,8 +17,8 @@ __all__ = [
 
 
 class ProcessBiomeMapsStage(ProcessingStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.processing.ProcessBiomes
+    def get_name(self) -> str:
+        return "biome_maps"
 
     def extract_core(self, _: Path):
         # Find data of maps with biomes

@@ -16,13 +16,10 @@ logger.addHandler(NullHandler())
 
 
 class EngramsStage(JsonHierarchyExportStage):
-    def get_skip(self):
-        return not self.manager.config.export_wiki.ExportEngrams
-
     def get_format_version(self) -> str:
         return "2"
 
-    def get_field(self) -> str:
+    def get_name(self) -> str:
         return "engrams"
 
     def get_use_pretty(self) -> bool:

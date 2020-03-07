@@ -1,7 +1,7 @@
 import shutil
 from logging import NullHandler, getLogger
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
@@ -22,8 +22,8 @@ __all__ = [
 
 
 class ProcessSpawnMapsStage(ProcessingStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.processing.ProcessSpawns
+    def get_name(self) -> str:
+        return "spawn_maps"
 
     def extract_core(self, _: Path):
         # Find data of maps with NPC spawns

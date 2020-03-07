@@ -17,11 +17,11 @@ logger.addHandler(NullHandler())
 
 
 class LootCratesStage(JsonHierarchyExportStage):
-    def get_skip(self):
-        return not self.manager.config.export_wiki.ExportLootCrates
-
     def get_format_version(self) -> str:
         return "1"
+
+    def get_name(self) -> str:
+        return "loot_crates"
 
     def get_field(self) -> str:
         return "lootCrates"

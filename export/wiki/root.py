@@ -19,11 +19,11 @@ __all__ = [
 
 
 class WikiRoot(ExportRoot):
+    def get_name(self) -> str:
+        return 'wiki'
+
     def get_relative_path(self) -> PurePosixPath:
         return PurePosixPath(self.manager.config.export_wiki.PublishSubDir)
-
-    def get_skip(self) -> bool:
-        return self.manager.config.export_wiki.Skip
 
     def get_commit_header(self) -> str:
         return self.manager.config.export_wiki.CommitHeader

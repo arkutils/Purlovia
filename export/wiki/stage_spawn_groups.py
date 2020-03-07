@@ -14,10 +14,10 @@ __all__ = [
 
 
 class SpawnGroupStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_wiki.ExportSpawningGroups
+    def get_name(self) -> str:
+        return 'spawn_groups'
 
-    def get_field(self):
+    def get_field(self) -> str:
         return 'spawngroups'
 
     def get_use_pretty(self) -> bool:

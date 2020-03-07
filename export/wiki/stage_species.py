@@ -58,10 +58,7 @@ OUTPUT_FLAGS = (
 
 
 class SpeciesStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_wiki.ExportSpecies
-
-    def get_field(self):
+    def get_name(self) -> str:
         return 'species'
 
     def get_use_pretty(self) -> bool:
