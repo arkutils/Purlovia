@@ -1,4 +1,5 @@
 import shutil
+from collections import namedtuple
 from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -7,10 +8,10 @@ from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 
 from .spawn_maps.game_mod import merge_game_mod_groups
-from .spawn_maps.rarity import apply_ideal_grouplevel_swaps, calculate_blueprint_freqs, \
-    fix_up_groups, inflate_swap_rules, make_random_class_weights_dict
-from .spawn_maps.species import determine_tamability, generate_dino_mappings
+from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
+from .spawn_maps.swaps import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
+    copy_spawn_groups, fix_up_groups, inflate_swap_rules, make_random_class_weights_dict
 from .stage_base import ProcessingStage
 
 logger = getLogger(__name__)
@@ -20,6 +21,8 @@ __all__ = [
     'ProcessSpawnMapsStage',
 ]
 
+_SpawningData = namedtuple('_SpawningData', ('asb', 'species', 'groups', 'global_swaps'))
+
 
 class ProcessSpawnMapsStage(ProcessingStage):
     def get_name(self) -> str:
@@ -27,7 +30,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
     def extract_core(self, _: Path):
         # Find data of maps with NPC spawns
-        map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(None)
@@ -36,8 +39,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb, data_groups, None, data_swaps)
+        self._process_all_maps(maps, data_asb, data_groups, data_swaps, None)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
@@ -90,18 +92,18 @@ class ProcessSpawnMapsStage(ProcessingStage):
         else:
             data = core_data
 
-        # Do all the insanity now and fix up the groups.
-        fix_up_groups(data)
-        apply_ideal_grouplevel_swaps(data)
+        # Do all the insanity now and fix up the groups
+        fix_up_groups(data['spawngroups'])
+        apply_ideal_grouplevel_swaps(data['spawngroups'])
         inflate_swap_rules(swaps)
-        # Global class swaps will be applied during freq calculations.
+        # Global class swaps will be applied during freq calculations
 
-        return data, swaps
+        return data['spawngroups'], swaps
 
     def _map_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of maps with NPC spawns
         root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_name}')
-        map_set: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
 
         # Load and merge ASB data
         data_asb_core = self._load_asb(None)
@@ -117,12 +119,11 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb_mod, data_groups, modid, data_swaps)
+        self._process_all_maps(maps, data_asb_mod, data_groups, data_swaps, modid)
 
     def _game_mod_generate_svgs(self, modid: str, _mod_name: str):
         # Find data of core maps with NPC spawns
-        map_set: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
@@ -131,8 +132,20 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
 
-        for map_data_path in map_set:
-            self._map_process_data(map_data_path, data_asb, data_groups, modid, data_swaps)
+        self._process_all_maps(maps, data_asb, data_groups, data_swaps, modid)
+
+    def _process_all_maps(self, maps, data_asb, data_groups, data_swaps, modid):
+        spawndata = _SpawningData(
+            asb=data_asb,
+            # Generate species groups
+            species=generate_dino_mappings(data_asb),
+            # Original spawning groups
+            groups=data_groups,
+            global_swaps=data_swaps,
+        )
+
+        for map_path in maps:
+            self._map_process_data(map_path, spawndata, modid)
 
     def _get_svg_output_path(self, data_path: Path, map_name: str, modid: Optional[str]) -> Path:
         if not modid:
@@ -157,14 +170,14 @@ class ProcessSpawnMapsStage(ProcessingStage):
         #   Data path can't be used as it points at a core map
         return Path(self.wiki_path / f'{modid}-{mod_data["name"]}' / 'spawn_maps' / map_name)
 
-    def _map_process_data(self,
-                          data_path: Path,
-                          asb: Dict[str, Any],
-                          spawngroups: Dict[str, Any],
-                          modid: Optional[str],
-                          global_swaps: Optional[List] = None):
-        map_name = data_path.name
-        logger.info(f'Processing data of map: {map_name}')
+    def _map_process_data(self, data_path: Path, spawndata: _SpawningData, modid: Optional[str]):
+        logger.info(f'Processing data of map: {data_path.name}')
+
+        # Determine base output path
+        output_path = self._get_svg_output_path(data_path, data_path.name, modid)
+        # Remove existing directory
+        if output_path.is_dir():
+            shutil.rmtree(output_path)
 
         # Load exported data
         data_map_settings = self.load_json_file(data_path / 'world_settings.json')
@@ -176,31 +189,25 @@ class ProcessSpawnMapsStage(ProcessingStage):
         # Initialize bound structure for this map
         bounds = _get_svg_bounds_for_map(data_map_settings['persistentLevel'])
 
-        # Generate mapping table (blueprint path to name)
-        species = generate_dino_mappings(asb)
+        # Copy spawning groups data
+        allows_global_swaps = 'onlyEventGlobalSwaps' not in data_map_settings['worldSettings']
+        spawngroups = copy_spawn_groups(spawndata.groups)
 
-        # Get world-level random dino class swaps
+        # Apply world-level random dino class swaps
         map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
         inflate_swap_rules(map_swaps)
-        all_swaps = [
-            make_random_class_weights_dict(map_swaps),
-        ]
-        if 'onlyEventGlobalSwaps' not in data_map_settings['worldSettings']:
-            # Include global swaps as the map allows them
-            all_swaps.append(make_random_class_weights_dict(global_swaps))
+        apply_ideal_global_swaps(spawngroups, map_swaps)
 
-        # Determine base output path
-        output_path = self._get_svg_output_path(data_path, map_name, modid)
-        # Remove existing directory
-        if output_path.is_dir():
-            shutil.rmtree(output_path)
+        # Apply global swaps if allowed
+        if allows_global_swaps:
+            apply_ideal_global_swaps(spawngroups, spawndata.global_swaps)
 
         # Generate maps for every species
-        for export_class, blueprints in species.items():
-            untameable = not determine_tamability(asb, export_class)
+        for export_class, blueprints in spawndata.species.items():
+            untameable = not determine_tamability(spawndata.asb, export_class)
 
             # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
-            freqs = calculate_blueprint_freqs(spawngroups, all_swaps, blueprints)
+            freqs = calculate_blueprint_freqs(spawngroups, [], blueprints)
 
             svg = generate_svg_map(bounds, freqs, data_map_spawns, untameable)
             if svg:

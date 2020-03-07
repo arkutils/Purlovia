@@ -1,6 +1,10 @@
 # Helper for creatureSpawningMaps.py
 
+import math
 from typing import Optional
+
+from .intermediate_types import SpawnFrequency
+from .swaps import apply_ideal_swaps_to_entry
 
 # TODO: Move this to overrides, or find a better way
 _MERGED_DINOS = [
@@ -78,3 +82,54 @@ def determine_tamability(asb, blueprint_path) -> bool:
         if species['blueprintPath'] == blueprint_path_compat:
             return (species['taming']['violent'] or species['taming']['nonViolent']) if 'taming' in species else False
     return False
+
+
+def calculate_blueprint_freqs(spawngroups, class_swap_rulesets, dino_classes):
+    # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
+    frequencies = []
+    dino_class_set = set(dino_classes)
+
+    # Calculate how frequently spawning groups are chosen
+    for group in spawngroups:
+        if 'entries' not in group:
+            continue
+        entry_frequency_sum = 0
+        frequency = group['maxNPCNumberMultiplier']
+        total_group_weights = sum(entry['weight'] for entry in group['entries']) or 1
+
+        for entry in group['entries']:
+            # Apply class swaps
+            classes, weights = entry['classes'], entry['classWeights']
+            for swap_ruleset in class_swap_rulesets:
+                classes, weights = apply_ideal_swaps_to_entry(dict(
+                    classes=classes,
+                    classWeights=weights,
+                ), swap_ruleset)
+
+            if not bool(dino_class_set & set(classes)):
+                continue
+
+            # Calculate total weight of classes in the spawning group
+            total_entry_class_weights = sum(weights) or 1
+            chances = [weight / total_entry_class_weights for weight in weights]
+
+            # Calculate a combined chance of all entries for current blueprint
+            entry_class_chance = sum(chances[index] for index, klass in enumerate(classes) if klass in dino_classes)
+            entry_class_chance *= (entry['weight'] / total_group_weights)
+            entry_frequency_sum += entry_class_chance
+
+        frequency *= entry_frequency_sum
+        if frequency > 0:
+            frequencies.append(SpawnFrequency(group['blueprintPath'], frequency))
+
+    return frequencies
+
+
+def get_rarity_for_spawn(spawn_data, frequency: float):
+    creature_number = frequency * spawn_data['minDesiredNumberOfNPC']
+    # Calculate density from number of creatures and area
+    area_density = ((spawn_data['locations'][0]['end']['long'] - spawn_data['locations'][0]['start']['long']) *
+                    (spawn_data['locations'][0]['end']['lat'] - spawn_data['locations'][0]['start']['lat']))
+    creature_density = creature_number / area_density
+    # This formula is arbitrarily constructed to create 5 naturally feeling groups of rarity 0..5 (very rare to very common)
+    return min(5, round(1.5 * (math.log(1 + 50*creature_density))))
