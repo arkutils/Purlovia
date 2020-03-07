@@ -42,6 +42,11 @@ _MERGED_DINOS = [
     [
         '/Game/Genesis/Dinos/BiomeVariants/Lunar_Salmon/Lunar_Salmon_Character_BP.Lunar_Salmon_Character_BP_C',
         '/Game/Genesis/Dinos/BiomeVariants/Lunar_Salmon/Rare_Lunar_Salmon_Character_BP.Rare_Lunar_Salmon_Character_BP_C',
+    ],
+    # Titanomyrma
+    [
+        '/Game/PrimalEarth/Dinos/Ant/Ant_Character_BP.Ant_Character_BP',
+        '/Game/PrimalEarth/Dinos/Ant/FlyingAnt_Character_BP.FlyingAnt_Character_BP',
     ]
 ]
 
