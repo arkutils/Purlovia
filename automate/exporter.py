@@ -104,10 +104,16 @@ class ExportManager:
         '''Run the defined root/stages structure.'''
         self._perform_export()
 
-    def _get_name_for_stage(self, root: ExportRoot, stage: ExportStage) -> str:
+    def _get_name_for_stage(self, root: ExportRoot, stage: Optional[ExportStage]) -> str:
         root_name = root.__class__.__name__.replace('Root', '')
+        if not stage:
+            return root_name
         stage_name = stage.__class__.__name__.replace('Stage', '')
         return f'{root_name}:{stage_name}'
+
+    def _get_mod_name(self, modid: str) -> str:
+        moddata = self.arkman.getModData(modid)
+        return moddata['title']
 
     def _perform_export(self):
         game_version = self.arkman.getGameVersion()
@@ -148,7 +154,7 @@ class ExportManager:
             for stage in root.stages:
                 if not should_run_section(stage.section_name, self.config.run_sections):
                     continue
-                logger.info('Performing core extraction for %s', self._get_name_for_stage(root, stage))
+                logger.info('Extracting %s in core', self._get_name_for_stage(root, stage))
                 stage.extract_core(root_path)
                 self._log_stats()
 
@@ -159,14 +165,15 @@ class ExportManager:
                 for stage in root.stages:
                     if not should_run_section(stage.section_name, self.config.run_sections):
                         continue
-                    logger.info('Performing mod %s extraction for %s', modid, self._get_name_for_stage(root, stage))
+                    logger.info("Extracting %s in mod %s '%s'", self._get_name_for_stage(root, stage), modid,
+                                self._get_mod_name(modid))
                     stage.extract_mod(root_path, modid)
                     self._clear_mod_from_cache(modid)
                     self._log_stats()
 
         # Finish up : manifests, commit
         for root in self.roots:
-            logger.info('Finishing up %s', self._get_name_for_stage(root, stage))
+            logger.info('Finishing up %s root', self._get_name_for_stage(root, None))
 
             # Update manifest in this root
             root.manifest = update_manifest(root.path)
