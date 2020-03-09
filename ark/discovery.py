@@ -30,10 +30,10 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
 
 def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
-    if not arkman.mod_data_cache or not arkman.getGameVersion():
+    if not arkman.mod_data_cache or not arkman.getGameBuildId():
         raise AssertionError("ArkManager must be fully initialised")
-    key = dict(format=4,
-               core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
+    key = dict(format=5,
+               core=dict(buildid=arkman.getGameBuildId()),
                mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))  # type: ignore
     return key
 
