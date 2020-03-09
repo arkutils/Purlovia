@@ -14,7 +14,7 @@ from .tree import is_fullname_an_asset
 
 __all__ = [
     'gather_properties',
-    'get_default_props_for_class',
+    'find_default_for_class',
 ]
 
 Tproxy = TypeVar('Tproxy', bound=UEProxyStructure)
@@ -30,26 +30,31 @@ def gather_properties(export: ExportTableItem) -> Tproxy:
 
     loader = export.asset.loader
 
+    # Find the most specific proxy type defined
     chain = list(find_parent_classes(export, include_self=True))
     proxy = None
-    while not proxy and chain:
-        baseclass_fullname = chain.pop()
+    for baseclass_fullname in chain:
         proxy = proxy_for_type(baseclass_fullname)
-
-    if not proxy:
-        raise TypeError(f"No proxy type available for {baseclass_fullname}")
+        if proxy:
+            break
+    else:
+        raise TypeError(f"No proxy type available for {export.fullname}")
 
     proxy.set_source(export)
 
+    # Now fill properties in, starting from the bottom-most baseclass
     done: Set[ExportTableItem] = set()
     for fullname in reversed(chain):
+        # Ignore classes outside /Game as they are not loadable assets
+        # ...and their default values should already be built in to the proxies
         if not is_fullname_an_asset(fullname):
-            continue  # Defaults are already in proxy - skip
-
-        export_to_read = find_default_for_class(fullname, loader)
-        if export_to_read in done:
             continue
 
+        export_to_read = find_default_for_class(fullname, loader)
+        # Where an asset contains <cls> and Default__<cls> we redirect to the Default__
+        # ...and ensure we don't import from the same place twice
+        if export_to_read in done:
+            continue
         done.add(export_to_read)
 
         props = export_to_read.properties.as_dict()
