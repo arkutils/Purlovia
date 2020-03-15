@@ -39,3 +39,24 @@ def snake_to_kebab(name: str) -> str:
     'export-asb'
     '''
     return name.replace('_', '-')
+
+
+REGEX_UE_PRETTY = re.compile(r'((?<=[^\W[A-Z])[A-Z]|(?<=\S)[A-Z](?=[a-z]))')
+
+
+def uelike_prettify(name: str) -> str:
+    '''
+    >>> uelike_prettify('ARK')                                                                                                                                          
+    'ARK'
+    >>> uelike_prettify('ARK:SurvivalEvolved')                                                                                                                                          
+    'ARK: Survival Evolved'
+    >>> uelike_prettify('ARKAdditions')                                                                                                                                 
+    'ARK Additions'
+    >>> uelike_prettify('PrimalFear')                                                                                                                                 
+    'Primal Fear'
+    >>> uelike_prettify('AAAABBBc')                                                                                                                                     
+     'AAAABB Bc'
+    '''
+    # Insert spaces before capital letters
+    name = REGEX_UE_PRETTY.sub(r' \1', name)
+    return name
