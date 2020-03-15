@@ -14,15 +14,8 @@
                 "--skip-install",
                 "--skip-push",
                 // "--remove-cache",
-                // "--skip-extract-wiki",
-                "--skip-extract-asb",
-                "--skip-wiki-spawn-groups",
-                "--skip-wiki-loot-crates",
-                "--skip-wiki-maps",
-                "--skip-wiki-items",
-                "--skip-wiki-drops",
-                "--skip-wiki-engrams",
-                "--skip-wiki-species",
+                "--mods", "839162288,895711211",
+                "asb.species",
             ]
         },
         {
