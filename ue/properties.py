@@ -148,16 +148,23 @@ class PropertyTable(UEBase):
 class PropertyHeader(UEBase):
     display_fields = ['name', 'index']
 
-    name: NameIndex
+    name: str
+    name_id: NameIndex
     type: NameIndex
     size: int
     index: int
 
     def _deserialise(self):
-        self._newField('name', NameIndex(self))
+        self._newField('name_id', NameIndex(self))
         self._newField('type', NameIndex(self))
         self._newField('size', self.stream.readUInt32())
         self._newField('index', self.stream.readUInt32())
+
+    def _link(self):
+        super()._link()
+        clean_name = str(self.name_id).strip()
+        clean_name = clean_name.replace(' ', '_')
+        self._newField('name', clean_name)
 
 
 class Property(UEBase):
