@@ -656,18 +656,22 @@ class CustomVersion(UEBase):
 class StructEntry(UEBase):
     string_format = '{name} = ({type}) {value}'
 
-    name: NameIndex
+    name: str
+    name_id: NameIndex
     type: NameIndex
     length: int
     value: UEBase
 
     def _deserialise(self):
-        self._newField('name', NameIndex(self))
+        self._newField('name_id', NameIndex(self))
         self._newField('type', '<not yet defined>')
         entryType = NameIndex(self).deserialise()
         self._newField('length', self.stream.readInt64())
 
-        self.name.link()
+        self.name_id.link()
+        clean_name = str(self.name_id).strip()
+        clean_name = clean_name.replace(' ', '_')
+        self._newField('name', clean_name)
 
         name, propertyType, skipLength = decode_type_or_name(entryType, skip_deserialise=True)
         self.field_values['type'] = entryType

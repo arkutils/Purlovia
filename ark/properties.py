@@ -21,7 +21,7 @@ def extract_properties_from_export(export, props: PriorityPropDict, recurse=Fals
             extract_properties_from_export(parent, props, recurse=recurse)
 
     for prop in export.properties.values:
-        propname = get_clean_name(prop.header.name)
+        propname = str(prop.header.name)
         if propname:
             propindex = prop.header.index or 0
             props[propname][propindex].append(prop.value)
