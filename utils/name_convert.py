@@ -46,16 +46,16 @@ REGEX_UE_PRETTY = re.compile(r'((?<=[^\W[A-Z])[A-Z]|(?<=\S)[A-Z](?=[a-z]))')
 
 def uelike_prettify(name: str) -> str:
     '''
-    >>> uelike_prettify('ARK')                                                                                                                                          
+    >>> uelike_prettify('ARK')
     'ARK'
-    >>> uelike_prettify('ARK:SurvivalEvolved')                                                                                                                                          
+    >>> uelike_prettify('ARK:SurvivalEvolved')
     'ARK: Survival Evolved'
-    >>> uelike_prettify('ARKAdditions')                                                                                                                                 
+    >>> uelike_prettify('ARKAdditions')
     'ARK Additions'
-    >>> uelike_prettify('PrimalFear')                                                                                                                                 
+    >>> uelike_prettify('PrimalFear')
     'Primal Fear'
-    >>> uelike_prettify('AAAABBBc')                                                                                                                                     
-     'AAAABB Bc'
+    >>> uelike_prettify('AAAABBBc')
+    'AAAABB Bc'
     '''
     # Insert spaces before capital letters
     name = REGEX_UE_PRETTY.sub(r' \1', name)
