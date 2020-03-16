@@ -4,6 +4,7 @@ from logging import INFO, NullHandler, basicConfig, getLogger
 from pathlib import Path
 from typing import *
 
+from ark.common import *
 from ark.discovery import initialise_hierarchy
 from ark.types import *
 from automate.ark import ArkSteamManager
@@ -12,7 +13,6 @@ from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import find_parent_classes, find_sub_classes, inherits_from
 from ue.loader import AssetLoader, AssetNotFound
-from ark.common import *
 
 basicConfig(level=INFO)
 

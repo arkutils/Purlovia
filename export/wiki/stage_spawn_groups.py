@@ -14,10 +14,10 @@ __all__ = [
 
 
 class SpawnGroupStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_wiki.ExportSpawningGroups
+    def get_name(self) -> str:
+        return 'spawn_groups'
 
-    def get_field(self):
+    def get_field(self) -> str:
         return 'spawngroups'
 
     def get_use_pretty(self) -> bool:
@@ -44,6 +44,13 @@ class SpawnGroupStage(JsonHierarchyExportStage):
                 if ext_group_changes:
                     result['externalGroupChanges'] = ext_group_changes
                 return result
+        else:
+            pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
+            result = dict()
+            class_swaps = convert_class_swaps(pgd_asset)
+            if class_swaps:
+                result['classSwaps'] = class_swaps
+            return result
 
         return None
 
@@ -98,6 +105,7 @@ def convert_limit_entry(struct):
 def convert_single_class_swap(d):
     return {
         'from': d['FromClass'],
+        'exact': d['bExactMatch'],
         'to': d['ToClasses'],
         'weights': d['Weights'],
     }

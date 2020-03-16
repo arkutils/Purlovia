@@ -30,10 +30,10 @@ def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_globa
 
 def _gather_version_data(arkman: ArkSteamManager, config: ConfigFile):
     # Gather identities and versions of all involved components
-    if not arkman.mod_data_cache or not arkman.getGameVersion():
+    if not arkman.mod_data_cache or not arkman.getGameBuildId():
         raise AssertionError("ArkManager must be fully initialised")
-    key = dict(format=4,
-               core=dict(version=arkman.getGameVersion(), buildid=arkman.getGameBuildId()),
+    key = dict(format=5,
+               core=dict(buildid=arkman.getGameBuildId()),
                mods=dict((modid, arkman.getModData(modid)['version']) for modid in config.mods))  # type: ignore
     return key
 
@@ -49,16 +49,16 @@ def _generate_hierarchy(loader: AssetLoader):
     ue.hierarchy.load_internal_hierarchy(Path('config') / 'hierarchy.yaml')
 
     # Scan /Game, excluding /Game/Mods and any excludes from config
-    ue.hierarchy.explore_path('/Game', loader, core_excludes)
+    ue.hierarchy.explore_path('/Game', loader, core_excludes, disable_debug=True)
 
     # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
     official_modids = set(config.official_mods.ids())
     official_modids -= set(config.settings.SeparateOfficialMods)
     for modid in official_modids:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
     # Scan /Game/Mods/<modid> for each configured mod
     for modid in config.mods:
-        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes)
+        ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
     return ue.hierarchy.tree

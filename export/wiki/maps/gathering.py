@@ -102,7 +102,7 @@ class WorldSettingsExport(MapGathererBase):
             # Insert spaces before capital letters
             display_name = re.sub(r'\B([A-Z])', r' \1', display_name)
 
-        yield dict(
+        data = dict(
             source=source.asset.assetname,
             name=display_name,
             # Geo
@@ -126,10 +126,17 @@ class WorldSettingsExport(MapGathererBase):
             ),
             randomNPCClassWeights=[{
                 'from': struct.get_property('FromClass'),
+                'exact': struct.get_property('bExactMatch'),
                 'to': struct.get_property('ToClasses'),
                 'weights': struct.get_property('Weights'),
             } for struct in settings.NPCRandomSpawnClassWeights[0].values] if 'NPCRandomSpawnClassWeights' in proxy else [],
-            allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()))
+            allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
+        )
+
+        if settings.bPreventGlobalNonEventSpawnOverrides[0]:
+            data['onlyEventGlobalSwaps'] = True
+
+        yield data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -548,6 +555,11 @@ class DeinonychusNests(GenericActorListExport):
     CATEGORY = 'deinonychusNests'
 
 
+class MagmasaurNests(GenericActorListExport):
+    TAGS = ('MagmasaurNestSpawns', )
+    CATEGORY = 'magmasaurNests'
+
+
 EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
     'world_settings': [
         # Core
@@ -585,6 +597,8 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
         RockDrakeNests,
         # Valguero
         DeinonychusNests,
+        # Genesis
+        MagmasaurNests,
     ],
 }
 

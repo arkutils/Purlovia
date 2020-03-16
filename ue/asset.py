@@ -113,8 +113,8 @@ class UAsset(UEBase):
         ctx = get_ctx()
 
         if ctx.bulk_data:
-            bulk_chunk = namedtuple('FakeChunkPtr', ['offset', 'count'])(self.bulk_data_start_offset, self.bulk_length)
-            self._newField('bulk', self._parseTable(bulk_chunk, PropertyTable))
+            # bulk_chunk = namedtuple('FakeChunkPtr', ['offset', 'count'])(self.bulk_data_start_offset, self.bulk_length)
+            # self._newField('bulk', self._parseTable(bulk_chunk, PropertyTable))
             self.has_bulk_data = True
 
         if ctx.properties:

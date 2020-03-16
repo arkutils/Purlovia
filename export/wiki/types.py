@@ -15,6 +15,7 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
     LatitudeScale = uefloats(800.0)
     LongitudeScale = uefloats(800.0)
     OverrideDifficultyMax = uefloats(5.0)
+    bPreventGlobalNonEventSpawnOverrides = uebools(False)
 
     # DevKit Unverified
 
@@ -121,6 +122,7 @@ class TogglePainVolume(UEProxyStructure, uetype='/Script/ShooterGame.TogglePainV
     ActorClassesToExclude: Mapping[int, ArrayProperty]
     DamageType: Mapping[int, ObjectProperty]
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
 
 class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorList'):
     # No properties we can assume type for.

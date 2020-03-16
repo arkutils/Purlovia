@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from pydantic import BaseModel, Extra, UrlStr
 
@@ -118,6 +118,9 @@ class ConfigFile(BaseModel):
     export_asb: ExportASBSection
     export_wiki: ExportWikiSection
     processing: ProcessingSection
+
+    run_sections: Dict[str, bool] = {'': True}
+    display_sections: bool = False
 
     official_mods: ModIdAccess = ModIdAccess(dict())
     mods: Tuple[str, ...] = tuple()

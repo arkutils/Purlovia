@@ -28,10 +28,9 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         '''Return the a format version identifier.'''
         ...
 
-    @abstractmethod
     def get_field(self) -> str:
         '''Return the name to be used as the top-level container in the output JSON.'''
-        ...
+        return self.get_name()
 
     @abstractmethod
     def get_use_pretty(self) -> bool:

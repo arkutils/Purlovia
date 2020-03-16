@@ -6,6 +6,8 @@ from typing import cast
 from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import DCSC, PrimalDinoCharacter
+from ark.variants import adjust_name_from_variants, get_variants_from_assetname, \
+    get_variants_from_species, should_skip_from_variants
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
@@ -31,6 +33,7 @@ OUTPUT_FLAGS = (
     'bCanBeDragged',
     'bCanBeTorpid',
     'bCanDrag',
+    'bCanMountOnHumans',
     'bDoStepDamage',
     'bFlyerAllowRidingInCaves',
     'bIsAmphibious',
@@ -55,10 +58,7 @@ OUTPUT_FLAGS = (
 
 
 class SpeciesStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_wiki.ExportSpecies
-
-    def get_field(self):
+    def get_name(self) -> str:
         return 'species'
 
     def get_use_pretty(self) -> bool:
@@ -81,8 +81,17 @@ class SpeciesStage(JsonHierarchyExportStage):
         if _should_skip_species(species, overrides):
             return None
 
+        name = str(species.DescriptiveName[0])
+
+        variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(species)
+        if variants:
+            if should_skip_from_variants(variants, overrides):
+                return None
+
+            name = adjust_name_from_variants(name, variants, overrides)
+
         results: Dict[str, Any] = dict(
-            name=species.DescriptiveName[0],
+            name=name,
             blueprintPath=asset.default_class.fullname,
             dinoNameTag=species.DinoNameTag[0],
             customTag=species.CustomTag[0],
@@ -90,6 +99,9 @@ class SpeciesStage(JsonHierarchyExportStage):
             mass=species.CharacterMovement[0].Mass[0],
             dragWeight=species.DragWeight[0],
         )
+
+        if variants:
+            results['variants'] = tuple(sorted(variants))
 
         results['flags'] = _gather_flags(species)
 

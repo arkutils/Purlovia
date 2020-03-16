@@ -26,10 +26,7 @@ logger.addHandler(NullHandler())
 
 
 class SpeciesStage(JsonHierarchyExportStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_asb.ExportSpecies
-
-    def get_field(self):
+    def get_name(self):
         return 'species'
 
     def get_use_pretty(self) -> bool:
@@ -68,7 +65,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return None
 
     def extract(self, proxy: UEProxyStructure) -> Any:
-        # TODO: Use this lovely proxy - we're currently using the old gather_properties system
+        char = cast(PrimalDinoCharacter, proxy)
         asset = proxy.get_source().asset
         asset_name = asset.assetname
 
@@ -84,7 +81,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             return None
 
         try:
-            species_data = values_for_species(asset, props, allFields=True, includeBreeding=True, includeColor=True)
+            species_data = values_for_species(asset, props, char, allFields=True, includeBreeding=True, includeColor=True)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
             return None

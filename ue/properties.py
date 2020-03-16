@@ -148,16 +148,23 @@ class PropertyTable(UEBase):
 class PropertyHeader(UEBase):
     display_fields = ['name', 'index']
 
-    name: NameIndex
+    name: str
+    name_id: NameIndex
     type: NameIndex
     size: int
     index: int
 
     def _deserialise(self):
-        self._newField('name', NameIndex(self))
+        self._newField('name_id', NameIndex(self))
         self._newField('type', NameIndex(self))
         self._newField('size', self.stream.readUInt32())
         self._newField('index', self.stream.readUInt32())
+
+    def _link(self):
+        super()._link()
+        clean_name = str(self.name_id).strip()
+        clean_name = clean_name.replace(' ', '_')
+        self._newField('name', clean_name)
 
 
 class Property(UEBase):
@@ -238,8 +245,8 @@ class ValueProperty(UEBase, Real, ABC):
         return self.value
 
     # Not sure why we have to specifically override these, but we do
-    __eq__ = UEBase.__eq__
-    __hash__ = UEBase.__hash__
+    __eq__ = UEBase.__eq__  # type: ignore
+    __hash__ = UEBase.__hash__  # type: ignore
 
     def __bool__(self):
         assert self.is_serialised
@@ -649,18 +656,22 @@ class CustomVersion(UEBase):
 class StructEntry(UEBase):
     string_format = '{name} = ({type}) {value}'
 
-    name: NameIndex
+    name: str
+    name_id: NameIndex
     type: NameIndex
     length: int
     value: UEBase
 
     def _deserialise(self):
-        self._newField('name', NameIndex(self))
+        self._newField('name_id', NameIndex(self))
         self._newField('type', '<not yet defined>')
         entryType = NameIndex(self).deserialise()
         self._newField('length', self.stream.readInt64())
 
-        self.name.link()
+        self.name_id.link()
+        clean_name = str(self.name_id).strip()
+        clean_name = clean_name.replace(' ', '_')
+        self._newField('name', clean_name)
 
         name, propertyType, skipLength = decode_type_or_name(entryType, skip_deserialise=True)
         self.field_values['type'] = entryType

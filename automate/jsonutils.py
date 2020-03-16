@@ -50,7 +50,7 @@ def should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str]
     try:
         with open(fullpath) as f:
             existing_data = json.load(f)
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=broad-except
         # Old file doesn't exist/isn't readable/is corrupt
         return (True, new_version)
 
@@ -89,6 +89,10 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
     # Take a shallow copy of the data and remove the version field
     values = dict(values)
     version: Optional[str] = values.pop('version', None)
+
+    # Also remove the format field
+    # If it changes, but no content changes, we're content to use the old format
+    values.pop('format', None)
 
     # Calculate the digest of the minified output, using SHA512
     as_bytes = _format_json(values, pretty=False).encode('utf8')

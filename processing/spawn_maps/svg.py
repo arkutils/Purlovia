@@ -2,17 +2,12 @@
 Creates an svg-file with spawning regions of a species colored depending on the rarity.
 '''
 
-import json
-import math
-import os
-import re
-from collections import namedtuple
 from typing import List
 
 from processing.common import SVGBoundaries
 
 from .consts import POINT_RADIUS
-from .intermediate_types import *
+from .intermediate_types import SpawnPoint, SpawnRectangle
 from .rarity import get_rarity_for_spawn
 
 # These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.
@@ -147,17 +142,16 @@ def _generate_svg_caves(rarity_sets):
     return ''
 
 
-def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
-    always_untameable = 'Alpha' in species_name
-    svg_output = ('<?xml version="1.0" encoding="utf-8"?>\n'
-                  '<svg xmlns="http://www.w3.org/2000/svg"'
-                  f' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"'
-                  f''' class="creatureMap" style="position:absolute;">
+def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameable):
+    svg_output = \
+f'''<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="{bounds.size}" height="{bounds.size}"
+        viewBox="0 0 {bounds.size} {bounds.size}" class="creatureMap" style="position:absolute;">
     <defs>
         <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="{round(bounds.size / 100)}" />
         </filter>
-        <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">'
+        <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">
             <rect width="4" height="10" fill="black"></rect>
         </pattern>
         <filter id="groupStroke">
@@ -167,20 +161,20 @@ def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
             <feComposite result="strokeoutline2" in="strokeoutline1" in2="SourceAlpha" operator="out"/>
             <feGaussianBlur in="strokeoutline2" result="strokeblur" stdDeviation="1"/>
         </filter>
-        '''
-                  '''<style>
-            .spawningMap-very-common { fill: #0F0; }
-            .spawningMap-common { fill: #B2FF00; }
-            .spawningMap-uncommon { fill: #FF0; }
-            .spawningMap-very-uncommon { fill: #FC0; }
-            .spawningMap-rare { fill: #F60; }
-            .spawningMap-very-rare { fill: #F00; }
-            .spawning-map-point { stroke:black; stroke-width:1; }
+        <style>
+            .spawningMap-very-common {{ fill: #0F0; }}
+            .spawningMap-common {{ fill: #B2FF00; }}
+            .spawningMap-uncommon {{ fill: #FF0; }}
+            .spawningMap-very-uncommon {{ fill: #FC0; }}
+            .spawningMap-rare {{ fill: #F60; }}
+            .spawningMap-very-rare {{ fill: #F00; }}
+            .spawning-map-point {{ stroke:black; stroke-width:1; }}
         </style>
-    </defs>\n''')
+    </defs>
+'''
 
     # Generate intermediate shape objects out of spawning data
-    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, always_untameable)
+    regions_by_rarity, points_by_rarity = build_shapes(bounds, spawns, spawn_freqs, force_untameable)
 
     has_regions = sum(len(regions) for regions in regions_by_rarity) != 0
     has_points = sum(len(points) for points in points_by_rarity) != 0
@@ -200,6 +194,5 @@ def generate_svg_map(bounds: SVGBoundaries, species_name, spawn_freqs, spawns):
     svg_output += _generate_svg_caves(regions_by_rarity)
 
     # end of svg
-    svg_output += '''
-</svg>'''
+    svg_output += '\n</svg>'
     return svg_output

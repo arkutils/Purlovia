@@ -11,18 +11,23 @@ import yaml
 import ark.discovery
 from config import ConfigFile, get_global_config
 from export.asb.root import ASBRoot
-from export.example.root import ExampleRoot
 from export.wiki.root import WikiRoot
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
 from .git import GitManager
 from .notification import handle_exception
+from .run_sections import parse_runlist, should_run_section
 
 # pylint: enable=invalid-name
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 logger.addHandler(logging.NullHandler())
+
+ROOT_TYPES = [
+    ASBRoot,
+    WikiRoot,
+]
 
 
 def setup_logging(path='config/logging.yaml', level=logging.INFO):
@@ -68,38 +73,40 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
-
-    parser.add_argument('--skip-extract-asb', action='store_true', help='skip extracting all ASB data completely')
-    parser.add_argument('--skip-asb-species', action='store_true', help='skip extracting species for ASB')
-
-    parser.add_argument('--skip-extract-wiki', action='store_true', help='skip extracting all wiki data completely')
-    parser.add_argument('--skip-wiki-maps', action='store_true', help='skip extracting map data for the wiki')
-    parser.add_argument('--skip-wiki-vanilla-maps', action='store_true', help='skip extracting vanilla map data for the wiki')
-    parser.add_argument('--skip-wiki-spawn-groups', action='store_true', help='skip extracting spawning groups for the wiki')
-    parser.add_argument('--skip-wiki-engrams', action='store_true', help='skip extracting engrams for the wiki')
-    parser.add_argument('--skip-wiki-items', action='store_true', help='skip extracting items for the wiki')
-    parser.add_argument('--skip-wiki-drops', action='store_true', help='skip extracting drops for the wiki')
-    parser.add_argument('--skip-wiki-loot-crates', action='store_true', help='skip extracting loot crates for the wiki')
-    parser.add_argument('--skip-wiki-species', action='store_true', help='skip extracting species for the wiki')
-
-    parser.add_argument('--skip-process-spawns', action='store_true', help='skip processing spawning data for the wiki')
-    parser.add_argument('--skip-process-biomes', action='store_true', help='skip processing biomes for the wiki')
-
     parser.add_argument('--skip-commit', action='store_true', help='skip git commit of the output repo (use dry-run mode)')
     parser.add_argument('--skip-pull', action='store_true', help='skip git pull or reset of the output repo')
     parser.add_argument('--skip-push', action='store_true', help='skip git push of the output repo')
 
     parser.add_argument('--notify', action='store_true', help='enable sending error notifications')
 
+    parser.add_argument('--list-stages', action='store_true', help='display extraction stage options and exit')
+
     parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
+
+    parser.add_argument('sections',
+                        action='store',
+                        default=parse_runlist('all'),
+                        type=parse_runlist,
+                        metavar='SECTIONS',
+                        nargs='?',
+                        help='override extraction sections to be run (format: `all,-root1,-root2.stage1`, default: `all`)')
 
     return parser
 
 
 def handle_args(args: Any) -> ConfigFile:
-    setup_logging(path='config/logging.yaml')
-
     config = get_global_config()
+
+    # Action selections
+    config.run_sections = args.sections
+
+    # If stage list requested, skip everything else
+    if args.list_stages:
+        config.display_sections = True
+        return config
+
+    # Logging can be setup now we know we're not aborting
+    setup_logging(path='config/logging.yaml')
 
     if args.live:
         logger.info('LIVE mode enabled')
@@ -127,39 +134,8 @@ def handle_args(args: Any) -> ConfigFile:
     if args.skip_extract:
         config.settings.SkipExtract = True
 
-    # ASB extract stages
-    if args.skip_extract_asb:
-        config.export_asb.Skip = True
-    if args.skip_asb_species:
-        config.export_asb.ExportSpecies = False
-
-    # Wiki extract stages
-    if args.skip_extract_wiki:
-        config.export_wiki.Skip = True
-    if args.skip_wiki_maps:
-        config.export_wiki.ExportMaps = False
-    if args.skip_wiki_vanilla_maps:
-        config.export_wiki.ExportVanillaMaps = False
-    if args.skip_wiki_spawn_groups:
-        config.export_wiki.ExportSpawningGroups = False
-    if args.skip_wiki_engrams:
-        config.export_wiki.ExportEngrams = False
-    if args.skip_wiki_items:
-        config.export_wiki.ExportItems = False
-    if args.skip_wiki_drops:
-        config.export_wiki.ExportDrops = False
-    if args.skip_wiki_loot_crates:
-        config.export_wiki.ExportLootCrates = False
-    if args.skip_wiki_species:
-        config.export_wiki.ExportSpecies = False
-
-    # Processing stages
-    #if args.skip_processing:
-    #    config.processing.Skip = True
-    if args.skip_process_spawns:
-        config.processing.ProcessSpawns = False
-    if args.skip_process_biomes:
-        config.processing.ProcessBiomes = False
+    if args.mods is not None:
+        config.extract_mods = args.mods
 
     # Git actions
     if args.skip_pull:
@@ -169,14 +145,23 @@ def handle_args(args: Any) -> ConfigFile:
     if args.skip_push:
         config.git.SkipPush = True
 
-    if args.mods is not None:
-        config.extract_mods = args.mods
-
     return config
 
 
-def run(config: ConfigFile):
+def display_sections(config: ConfigFile):
+    print('Available stages:')
+    for root_type in ROOT_TYPES:
+        root = root_type()  # type: ignore
+        root_name = root.get_name()
+        print(f'  {root_name}')
+        for stage in root.stages:
+            stage_name = stage.get_name()
+            fullname = f'{root_name}.{stage_name}'
+            match = should_run_section(fullname, config.run_sections)
+            print(f'    {fullname} {("[*]" if match else "")}')
 
+
+def run(config: ConfigFile):
     # Run update then export
     try:
         # Get mod list
@@ -197,9 +182,8 @@ def run(config: ConfigFile):
 
         # Handle exporting
         exporter = ExportManager(arkman, git, config)
-        # exporter.add_root(ExampleRoot())
-        exporter.add_root(ASBRoot())
-        exporter.add_root(WikiRoot())
+        for root_type in ROOT_TYPES:
+            exporter.add_root(root_type())  # type: ignore
         exporter.perform()
 
         # Push any changes
@@ -207,6 +191,8 @@ def run(config: ConfigFile):
 
         logger.info('Automation completed')
 
+    except KeyboardInterrupt:
+        logger.error("Aborting on Ctrl-C.")
     except:  # pylint: disable=bare-except
         handle_exception(logfile='logs/errors.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
@@ -216,4 +202,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     config = handle_args(args)
-    run(config)
+    if config.display_sections:
+        display_sections(config)
+    else:
+        run(config)

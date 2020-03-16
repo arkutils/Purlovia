@@ -1,10 +1,8 @@
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Optional, Set, Union
+from pathlib import Path
+from typing import List, Optional
 
 from ark.overrides import get_overrides_for_map
-from automate.exporter import ExportManager, ExportRoot
-from automate.jsonutils import save_json_if_changed
 from processing.common import SVGBoundaries
 
 from .region_maps.svg import generate_svg_map
@@ -19,8 +17,8 @@ __all__ = [
 
 
 class ProcessBiomeMapsStage(ProcessingStage):
-    def get_skip(self) -> bool:
-        return not self.manager.config.processing.ProcessBiomes
+    def get_name(self) -> str:
+        return "biome_maps"
 
     def extract_core(self, _: Path):
         # Find data of maps with biomes
@@ -53,7 +51,6 @@ class ProcessBiomeMapsStage(ProcessingStage):
         if not data_biomes or not data_map_settings:
             logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
             return
-        map_display_name = data_map_settings['worldSettings']['name']
 
         config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
         bounds = SVGBoundaries(
@@ -64,5 +61,8 @@ class ProcessBiomeMapsStage(ProcessingStage):
             coord_height=config.border_bottom - config.border_top,
         )
         svg = generate_svg_map(bounds, map_name, data_map_settings['worldSettings'], data_biomes, modid is not None)
+        filename = Path(path / f'Regions_{map_name}.svg')
         if svg:
-            self.save_raw_file(svg, (path / f'Regions_{map_name}.svg'))
+            self.save_raw_file(svg, filename)
+        elif filename.is_file():
+            filename.unlink()

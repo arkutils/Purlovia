@@ -20,6 +20,7 @@ from ue.proxy import UEProxyStructure, proxy_for_type
 
 from .git import GitManager
 from .manifest import MANIFEST_FILENAME, update_manifest
+from .run_sections import should_run_section
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -37,14 +38,13 @@ class ExportRoot(metaclass=ABCMeta):
     manager: ExportManager
 
     @abstractmethod
-    def get_relative_path(self) -> PurePosixPath:
-        '''Return the relative path of this root (e.g. 'data/asb').'''
+    def get_name(self) -> str:
+        '''Return the primary name of this root (e.g. 'asb').'''
         ...
 
-    @abstractmethod
-    def get_skip(self) -> bool:
-        '''Return True if this entire root should be skipped based on current config.'''
-        ...
+    def get_relative_path(self) -> PurePosixPath:
+        '''Return the relative path of this root (e.g. 'data/asb').'''
+        return PurePosixPath(f'data/{self.get_name()}')
 
     @abstractmethod
     def get_commit_header(self) -> str:
@@ -58,6 +58,7 @@ class ExportRoot(metaclass=ABCMeta):
 
 
 class ExportStage(metaclass=ABCMeta):
+    section_name: str
     manager: ExportManager
     root: ExportRoot
 
@@ -67,8 +68,8 @@ class ExportStage(metaclass=ABCMeta):
         self.manager = manager
 
     @abstractmethod
-    def get_skip(self) -> bool:
-        '''Return True if this exporter should be skipped (for example if disabled in config).'''
+    def get_name(self) -> str:
+        '''Return the primary name of this stage (e.g. 'species').'''
         ...
 
     @abstractmethod
@@ -103,10 +104,16 @@ class ExportManager:
         '''Run the defined root/stages structure.'''
         self._perform_export()
 
-    def _get_name_for_stage(self, root: ExportRoot, stage: ExportStage) -> str:
+    def _get_name_for_stage(self, root: ExportRoot, stage: Optional[ExportStage]) -> str:
         root_name = root.__class__.__name__.replace('Root', '')
+        if not stage:
+            return root_name
         stage_name = stage.__class__.__name__.replace('Stage', '')
         return f'{root_name}:{stage_name}'
+
+    def _get_mod_name(self, modid: str) -> str:
+        moddata = self.arkman.getModData(modid)
+        return moddata['title'] if moddata else modid
 
     def _perform_export(self):
         game_version = self.arkman.getGameVersion()
@@ -136,39 +143,37 @@ class ExportManager:
             root.manager = self
             for stage in root.stages:
                 stage.initialise(self, root)
+                stage.section_name = f'{root.get_name()}.{stage.get_name()}'
 
         # Extract : Core : Run each stage of each root
         official_modids = set(self.config.official_mods.ids())
         official_modids -= set(self.config.settings.SeparateOfficialMods)
         self.official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
         for root in self.roots:
-            if root.get_skip():
-                continue
             root_path = Path(base_path / root.get_relative_path())
             for stage in root.stages:
-                if stage.get_skip():
+                if not should_run_section(stage.section_name, self.config.run_sections):
                     continue
-                logger.info('Performing core extraction for %s', self._get_name_for_stage(root, stage))
+                logger.info('Extracting %s in core', self._get_name_for_stage(root, stage))
                 stage.extract_core(root_path)
                 self._log_stats()
 
         # Extract : Mods : Run each stage of each root
         for modid in modids:
             for root in self.roots:
-                if root.get_skip():
-                    continue
                 root_path = Path(base_path / root.get_relative_path())
                 for stage in root.stages:
-                    if stage.get_skip():
+                    if not should_run_section(stage.section_name, self.config.run_sections):
                         continue
-                    logger.info('Performing mod %s extraction for %s', modid, self._get_name_for_stage(root, stage))
+                    logger.info("Extracting %s in mod %s '%s'", self._get_name_for_stage(root, stage), modid,
+                                self._get_mod_name(modid))
                     stage.extract_mod(root_path, modid)
                     self._clear_mod_from_cache(modid)
                     self._log_stats()
 
         # Finish up : manifests, commit
         for root in self.roots:
-            logger.info('Finishing up %s', self._get_name_for_stage(root, stage))
+            logger.info('Finishing up %s root', self._get_name_for_stage(root, None))
 
             # Update manifest in this root
             root.manifest = update_manifest(root.path)

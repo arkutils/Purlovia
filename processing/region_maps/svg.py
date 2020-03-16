@@ -4,8 +4,6 @@ Creates an svg-file with regions that contain links to the according region-page
 '''
 
 import html
-import json
-import math
 import re
 
 from processing.common import SVGBoundaries

@@ -32,8 +32,8 @@ class MapStage(ExportStage):
     def get_format_version(self) -> str:
         return '1'
 
-    def get_skip(self) -> bool:
-        return not self.manager.config.export_wiki.ExportMaps
+    def get_name(self) -> str:
+        return 'maps'
 
     def extract_core(self, path: Path):
         '''Perform extraction for core (non-mod) data.'''
@@ -71,7 +71,12 @@ class MapStage(ExportStage):
             directory_name = PurePosixPath(directory.split('/')[-1])
             self._extract_and_save(version, path, directory_name, levels, known_persistent=f'{directory}/{selectable_maps[0]}')
 
-    def _extract_and_save(self, version: str, base_path: Path, relative_path: PurePosixPath, levels: List[str], known_persistent: Optional[str]=None):
+    def _extract_and_save(self,
+                          version: str,
+                          base_path: Path,
+                          relative_path: PurePosixPath,
+                          levels: List[str],
+                          known_persistent: Optional[str] = None):
         # Work out the output path
         output_path = Path(base_path / relative_path)
 
@@ -124,7 +129,7 @@ class MapStage(ExportStage):
 
         return {path: list(sorted(names)) for path, names in levels.items()}
 
-    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str]=None) -> MapInfo:
+    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> MapInfo:
         '''
         Goes through each sublevel, gathering data and looking for the persistent level.
         '''

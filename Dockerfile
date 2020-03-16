@@ -12,9 +12,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 #  ssh for git to use contacting GitHub
 #  lib32gcc1 as required by SteamCMD
 RUN set -ex \
-    && apt-get update && apt-get install --no-install-recommends -y git openssh-client lib32gcc1 \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y git openssh-client lib32gcc1 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/log/* \
     && mkdir -p /app \
     && groupadd -r purlovia \
     && useradd --no-log-init -r -g purlovia -d /app purlovia
@@ -24,10 +25,15 @@ WORKDIR /app
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
 RUN set -ex \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y gcc libc6-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/log/* \
     && pip3 install pipenv \
     && pipenv install --deploy --system \
     && pip3 uninstall -y pipenv \
-    && rm Pipfile Pipfile.lock
+    && apt-get purge -y --auto-remove gcc libc6-dev \
+    && rm -r /root/.cache
 
 # Copy the app over and prepare its environment
 COPY . .

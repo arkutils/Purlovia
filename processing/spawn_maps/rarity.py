@@ -1,5 +1,7 @@
 import math
 
+from ue.hierarchy import inherits_from
+
 from .intermediate_types import SpawnFrequency
 
 
@@ -25,7 +27,7 @@ def make_random_class_weights_dict(random_class_weights):
     lookup = dict()
     for remap_entry in random_class_weights:
         input_class = remap_entry['from']
-        if input_class not in lookup:
+        if input_class and input_class not in lookup:
             lookup[input_class] = remap_entry
     return lookup
 
@@ -42,6 +44,22 @@ def fix_up_swap_rule_weights(rule):
         swap_weights += [1] * (class_num-weight_num)
     return swap_weights
 
+
+def _get_swap_for_dino(blueprint_path, rules):
+    if not blueprint_path:
+        return None
+
+    for rule_from, rule in rules.items():
+        if rule['exact']:
+            if rule_from == blueprint_path:
+                return rule
+        else:
+            if rule_from and inherits_from(blueprint_path, rule_from):
+                return rule
+
+    return None
+
+
 def apply_ideal_swaps_to_entry(entry, class_swaps):
     '''
     Recalculates classes and their weights to include class swaps of specific entries.
@@ -53,10 +71,10 @@ def apply_ideal_swaps_to_entry(entry, class_swaps):
 
     for index, dino_class in enumerate(entry['classes']):
         weight = old_weights[index]
-        if dino_class in class_swaps:
-            # Make new entries. Swap occurs.
-            swap_rule = class_swaps[dino_class]
 
+        swap_rule = _get_swap_for_dino(dino_class, class_swaps)
+        if swap_rule:
+            # Make new entries. Swap occurs.
             # Fix up the swap
             swap_weights = fix_up_swap_rule_weights(swap_rule)
             rule_weight_sum = sum(swap_weights)
@@ -93,17 +111,18 @@ def apply_ideal_global_swaps(spawngroups, random_class_weights):
     Recalculates classes and weights of all groups to include global swaps.
     Does not copy the input.
     '''
+    class_swaps = make_random_class_weights_dict(random_class_weights)
     for container in spawngroups['spawngroups']:
         for entry in container['entries']:
-            class_swaps = make_random_class_weights_dict(random_class_weights)
             new_classes, new_weights = apply_ideal_swaps_to_entry(entry, class_swaps)
             entry['classes'] = new_classes
             entry['classWeights'] = new_weights
 
 
-def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
+def calculate_blueprint_freqs(spawngroups, class_swap_rulesets, dino_classes):
     # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
     frequencies = []
+    dino_class_set = set(dino_classes)
 
     # Calculate how frequently spawning groups are chosen
     for group in spawngroups['spawngroups']:
@@ -115,8 +134,14 @@ def calculate_blueprint_freqs(spawngroups, class_swaps, dino_classes):
 
         for entry in group['entries']:
             # Apply class swaps
-            classes, weights = apply_ideal_swaps_to_entry(entry, class_swaps)
-            if not bool(set(dino_classes) & set(classes)):
+            classes, weights = entry['classes'], entry['classWeights']
+            for swap_ruleset in class_swap_rulesets:
+                classes, weights = apply_ideal_swaps_to_entry(dict(
+                    classes=classes,
+                    classWeights=weights,
+                ), swap_ruleset)
+
+            if not bool(dino_class_set & set(classes)):
                 continue
 
             # Calculate total weight of classes in the spawning group

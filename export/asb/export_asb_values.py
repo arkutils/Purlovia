@@ -4,6 +4,9 @@ from typing import *
 from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
 from ark.overrides import get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
+from ark.types import PrimalDinoCharacter
+from ark.variants import adjust_name_from_variants, get_variants_from_assetname, \
+    get_variants_from_species, should_skip_from_variants
 from export.asb.bones import gather_damage_mults
 from export.asb.breeding import gather_breeding_data
 from export.asb.colors import gather_color_data, gather_pgd_colors
@@ -71,6 +74,7 @@ def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, 
 
 def values_for_species(asset: UAsset,
                        props: PriorityPropDict,
+                       proxy: PrimalDinoCharacter,
                        allFields=False,
                        fullStats=True,
                        includeColor=True,
@@ -99,14 +103,23 @@ def values_for_species(asset: UAsset,
     if get_overrides_for_species(asset.assetname, modid).skip_export:
         return
 
-    # TODO: Discuss having ASB append the class and remove the C and only provide the asset path
     bp: str = asset.default_class.fullname
     if bp.endswith('_C'):
         bp = bp[:-2]
 
     # Replace names to match ASB's hardcoding of specific species
     name = overrides.descriptive_name or name
+
+    # Variant information
+    variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(proxy)
+    if variants:
+        if should_skip_from_variants(variants, overrides):
+            return
+        name = adjust_name_from_variants(name, variants, overrides)
+
     species = dict(name=name, blueprintPath=bp)
+    if variants:
+        species['variants'] = tuple(sorted(variants))
 
     # Stat data
     statsField = 'fullStatsRaw' if fullStats else 'statsRaw'
