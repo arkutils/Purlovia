@@ -113,7 +113,7 @@ class ExportManager:
 
     def _get_mod_name(self, modid: str) -> str:
         moddata = self.arkman.getModData(modid)
-        return moddata['title']
+        return moddata['title'] if moddata else modid
 
     def _perform_export(self):
         game_version = self.arkman.getGameVersion()
