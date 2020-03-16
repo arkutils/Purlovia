@@ -11,6 +11,7 @@ import requests
 
 from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, ModNotFound, ModResolver
+from utils.name_convert import uelike_prettify
 
 from .modutils import readACFFile, readModInfo, readModMetaInfo, unpackModFile
 from .steamapi import SteamApi
@@ -217,11 +218,7 @@ class ArkSteamManager:
             moddata['version'] = str(newVersions[modid])
 
             # See if we got a title for this mod from either the mod's PGD or the SteamAPI earlier
-            title = self._fetchModTitleFromPGD(moddata)
-            if not title and modid in self.steam_mod_details and 'title' in self.steam_mod_details[modid]:
-                title = self.steam_mod_details[modid]['title']  # ^ inefficient
-
-            moddata['title'] = title or moddata['name']
+            moddata['title'] = self._fetch_mod_title(moddata)
 
             moddata_path = self.mods_path / modid / MODDATA_FILENAME
             with open(moddata_path, 'w') as f:
@@ -230,15 +227,31 @@ class ArkSteamManager:
             # Save the data so we can refer to it later
             self.mod_data_cache[modid] = moddata
 
-    def _fetchModTitleFromPGD(self, moddata):
+    def _fetch_mod_title_from_pgd(self, moddata):
         resolver = FixedModResolver({moddata['name']: moddata['id']})
         loader = AssetLoader(resolver, self.asset_path)
         pkg = moddata['package']
+
         if pkg:
             pgd_asset = loader[moddata['package']]
-            title = pgd_asset.default_export.properties.get_property('ModName').value
-        else:
-            title = moddata['id']
+            title = pgd_asset.default_export.properties.get_property('ModName', fallback=None)
+            if title:
+                return str(title)
+
+        return None
+
+    def _fetch_mod_title(self, moddata):
+        modid = moddata['id']
+        title = self._fetch_mod_title_from_pgd(moddata)
+
+        # Fallback to a name provided by SteamAPI (if any)
+        if not title and modid in self.steam_mod_details and 'title' in self.steam_mod_details[modid]:
+            title = self.steam_mod_details[modid]['title']  # ^ inefficient
+
+        # Fallback to mod tag prettified with UE-like rules
+        if not title:
+            title = uelike_prettify(moddata['name'])
+
         return title
 
     def _removeMods(self, modids):
