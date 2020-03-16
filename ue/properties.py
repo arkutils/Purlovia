@@ -245,8 +245,8 @@ class ValueProperty(UEBase, Real, ABC):
         return self.value
 
     # Not sure why we have to specifically override these, but we do
-    __eq__ = UEBase.__eq__
-    __hash__ = UEBase.__hash__
+    __eq__ = UEBase.__eq__  # type: ignore
+    __hash__ = UEBase.__hash__  # type: ignore
 
     def __bool__(self):
         assert self.is_serialised
