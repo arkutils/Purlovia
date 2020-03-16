@@ -34,8 +34,8 @@ The project *strictly* uses `yapf` for formatting and `isort` for import orderin
 
 To run these project-wide:
 ```sh
-isort --settings-path=./setup.cfg -rc
-yapf -ir ue ark automate interactive utils *.py
+pipenv run isort
+pipenv run yapf
 ```
 
 ## Linting
