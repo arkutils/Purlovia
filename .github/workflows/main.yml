@@ -33,7 +33,7 @@ jobs:
     - name: Cache pipenv cache
       uses: actions/cache@v1
       with:
-        path: $PIPENV_CACHE_DIR
+        path: ${{ env.PIPENV_CACHE_DIR }}
         key: pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
         restore-keys: |
           pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-
@@ -42,7 +42,7 @@ jobs:
     - name: Cache pipenv venv
       uses: actions/cache@v1
       with:
-        path: $WORKON_HOME
+        path: ${{ env.WORKON_HOME }}
         key: pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
         restore-keys: |
           pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-
