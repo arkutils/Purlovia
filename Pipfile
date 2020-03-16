@@ -21,7 +21,7 @@ guppy3 = "~=3.0.8"
 requests = "~=2.22.0"
 pydantic = "~=0.30.1"
 pyyaml = "~=5.1.1"
-psutil = "~=5.6.3"
+psutil = "~=5.6.6"
 
 [requires]
 python_version = "3.7"
