@@ -247,8 +247,8 @@ class MissionDispatcher_MultiUsePylon(
 
 class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
     # DevKit Verified
+    SpawnPointRegion = ueints(-1)
 
     # DevKit Unverified
-    SpawnPointRegion = ueints(-1)
 
     RootComponent: Mapping[int, ObjectProperty]  # Collision/Trigger component
