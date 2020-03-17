@@ -1,5 +1,6 @@
 from typing import Mapping
 
+from ark.types import PrimalItem
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
@@ -226,3 +227,28 @@ class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngr
     BluePrintEntry: Mapping[int, ObjectProperty]  # PrimalItem ref
     EngramRequirementSets: Mapping[int, ArrayProperty]
     EngramGroup: Mapping[int, ByteProperty]
+
+
+class DayCycleManager_Gen1(UEProxyStructure, uetype='/Script/ShooterGame.DayCycleManager'):
+    # No properties we can assume type for.
+    GenesisTradableOptions: Mapping[int, ArrayProperty]
+
+
+class MissionDispatcher_MultiUsePylon(
+        UEProxyStructure, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    MissionTypeIndex = ueints(0)
+
+    MissionTypes: Mapping[int, ArrayProperty]
+    RootComponent: Mapping[int, ObjectProperty]
+
+
+class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    SpawnPointRegion = ueints(-1)
+
+    RootComponent: Mapping[int, ObjectProperty]  # Collision/Trigger component

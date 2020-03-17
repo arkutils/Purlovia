@@ -1,39 +1,35 @@
 import re
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, cast
+from typing import *
 
 from export.wiki.consts import *
-from export.wiki.types import BiomeZoneVolume, CustomActorList, ExplorerNote, \
-    NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+from export.wiki.types import *
 from ue.asset import ExportTableItem
 from ue.base import UEBase
-from ue.hierarchy import MissingParent, inherits_from
+from ue.hierarchy import MissingParent, find_parent_classes, inherits_from
 from ue.loader import AssetLoadException
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 
-from .base import MapGathererBase
+from .base import GatheredData, GatheringResult, MapGathererBase
 from .common import BIOME_REMOVE_WIND_INFO, convert_box_bounds_for_export, \
     get_actor_location_vector, get_volume_bounds, get_volume_box_count
 from .data_container import MapInfo
 
 
 class GenericActorExport(MapGathererBase):
-    CLASSES: Tuple[str, ...]
+    CLASSES: Set[str]
     CATEGORY: str
 
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return cls.CATEGORY
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        for klass in cls.CLASSES:
-            if inherits_from(export, klass):
-                return True
-        return False
+    def get_ue_types(cls) -> Set[str]:
+        return cls.CLASSES
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         data = dict(
             hidden=not proxy.get('bIsVisible', fallback=True),
             **get_actor_location_vector(proxy).format_for_json(),
@@ -41,7 +37,7 @@ class GenericActorExport(MapGathererBase):
         # Remove the "hidden" mark if not hidden
         if not data['hidden']:
             del data['hidden']
-        yield data
+        return data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -50,23 +46,25 @@ class GenericActorExport(MapGathererBase):
 
 
 class GenericActorListExport(MapGathererBase):
-    TAGS: Tuple[str, ...]
+    TAGS: Set[str]
     CATEGORY: str
 
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return cls.CATEGORY
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        if not inherits_from(export, CUSTOM_ACTOR_LIST_CLS):
-            return False
+    def get_ue_types(cls) -> Set[str]:
+        return {CustomActorList.get_ue_type()}
+
+    @classmethod
+    def do_early_checks(cls, export: ExportTableItem) -> bool:
         # Check the tag
         tag = export.properties.get_property('CustomTag', fallback='')
         return str(tag) in cls.TAGS
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Union[UEBase, Dict[str, Any]]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         actors: CustomActorList = cast(CustomActorList, proxy)
         for entry in actors.ActorList[0].values:
             if not entry.value.value:
@@ -75,7 +73,7 @@ class GenericActorListExport(MapGathererBase):
             yield cls.extract_single(entry.value.value)
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> Union[UEBase, Dict[str, Any]]:
+    def extract_single(cls, export: ExportTableItem) -> GatheredData:
         return get_actor_location_vector(export)
 
     @classmethod
@@ -86,15 +84,19 @@ class GenericActorListExport(MapGathererBase):
 
 class WorldSettingsExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'worldSettings'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, PRIMAL_WORLD_SETTINGS_CLS) and not getattr(export.asset, 'tile_info', None)
+    def get_ue_types(cls) -> Set[str]:
+        return {PrimalWorldSettings.get_ue_type()}
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def do_early_checks(cls, export: ExportTableItem) -> bool:
+        return not getattr(export.asset, 'tile_info', None)
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         settings: PrimalWorldSettings = cast(PrimalWorldSettings, proxy)
         source: ExportTableItem = cast(ExportTableItem, proxy.get_source())
 
@@ -141,7 +143,7 @@ class WorldSettingsExport(MapGathererBase):
         if settings.bPreventGlobalNonEventSpawnOverrides[0]:
             data['onlyEventGlobalSwaps'] = True
 
-        yield data
+        return data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -153,23 +155,22 @@ class WorldSettingsExport(MapGathererBase):
 
 class NPCZoneManagerExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'spawns'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, NPC_ZONE_MANAGER_CLS)
+    def get_ue_types(cls) -> Set[str]:
+        return {NPCZoneManager.get_ue_type()}
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         manager: NPCZoneManager = cast(NPCZoneManager, proxy)
 
         # Sanity checks
         spawn_group = manager.get('NPCSpawnEntriesContainerObject', 0, None)
         count_volumes = manager.get('LinkedZoneVolumes', 0, None)
         if not spawn_group or not spawn_group.value.value or not count_volumes:
-            yield from ()
-            return
+            return None
 
         # Export properties
         data: Dict[str, Any] = dict(
@@ -198,10 +199,9 @@ class NPCZoneManagerExport(MapGathererBase):
 
         # Check if we extracted any spawn data at all, otherwise we can skip it.
         if not data.get('spawnPoints', None) and not data.get('spawnLocations', None):
-            yield from ()
-            return
+            return None
 
-        yield data
+        return data
 
     @classmethod
     def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[Dict[str, Dict[str, float]]]:
@@ -250,15 +250,15 @@ class NPCZoneManagerExport(MapGathererBase):
 
 class BiomeZoneExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'biomes'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, BIOME_ZONE_VOLUME_CLS)
+    def get_ue_types(cls) -> Set[str]:
+        return {BiomeZoneVolume.get_ue_type()}
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         biome: BiomeZoneVolume = cast(BiomeZoneVolume, proxy)
         volume_bounds = get_volume_bounds(biome)
 
@@ -291,7 +291,7 @@ class BiomeZoneExport(MapGathererBase):
             volume_bounds = get_volume_bounds(biome, box_index)
             boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
         data['boxes'] = boxes
-        yield data
+        return data
 
     @classmethod
     def _extract_temperature_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
@@ -379,25 +379,26 @@ class BiomeZoneExport(MapGathererBase):
 
 class LootCrateSpawnExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'lootCrates'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        if not inherits_from(export, SUPPLY_CRATE_SPAWN_VOLUME_CLS):
-            return False
+    def get_ue_types(cls) -> Set[str]:
+        return {SupplyCrateSpawningVolume.get_ue_type()}
+
+    @classmethod
+    def do_early_checks(cls, export: ExportTableItem) -> bool:
         return bool(export.properties.get_property('bIsEnabled', fallback=True))
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         spawner: SupplyCrateSpawningVolume = cast(SupplyCrateSpawningVolume, proxy)
 
         # Sanity checks
         class_entries = spawner.get('LinkedSupplyCrateEntries', 0, None)
         spawn_points = spawner.get('LinkedSpawnPointEntries', 0, None)
         if not class_entries or not spawn_points:
-            yield from ()
-            return
+            return None
 
         # Make range tuples of numerical properties.
         ranges = dict(
@@ -421,7 +422,7 @@ class LootCrateSpawnExport(MapGathererBase):
             )
 
         # Combine all properties into a single dict
-        yield dict(
+        return dict(
             maxCrateNumber=spawner.MaxNumCrates[0],
             crateClasses=sorted(cls._convert_crate_classes(class_entries)),
             crateLocations=list(cls._extract_spawn_points(spawn_points)),
@@ -454,28 +455,28 @@ class LootCrateSpawnExport(MapGathererBase):
 
 class RadiationZoneExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'radiationVolumes'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        if not inherits_from(export, TOGGLE_PAIN_VOLUME_CLS):
-            return False
+    def get_ue_types(cls) -> Set[str]:
+        return {TogglePainVolume.get_ue_type()}
+
+    @classmethod
+    def do_early_checks(cls, export: ExportTableItem) -> bool:
         # Check if disabled
         is_enabled = bool(export.properties.get_property('bPainCausing', fallback=True))
         if not is_enabled:
             return False
         # Check if this is a radiation volume
         damage_type = export.properties.get_property('DamageType', fallback=None)
-        if damage_type and damage_type.value.value.fullname == DAMAGE_TYPE_RADIATION_PKG:
-            return True
-        return False
+        return bool(damage_type and damage_type.value.value.fullname == DAMAGE_TYPE_RADIATION_PKG)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         volume: TogglePainVolume = cast(TogglePainVolume, proxy)
         volume_bounds = get_volume_bounds(volume)
-        yield dict(
+        return dict(
             start=volume_bounds[0],
             center=volume_bounds[1],
             end=volume_bounds[2],
@@ -489,15 +490,15 @@ class RadiationZoneExport(MapGathererBase):
 
 class ExplorerNoteExport(MapGathererBase):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'notes'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, EXPLORER_CHEST_BASE_CLS)
+    def get_ue_types(cls) -> Set[str]:
+        return {ExplorerNote.get_ue_type()}
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         note: ExplorerNote = cast(ExplorerNote, proxy)
         data = dict(
             noteIndex=note.ExplorerNoteIndex[0],
@@ -507,7 +508,7 @@ class ExplorerNoteExport(MapGathererBase):
         # Remove the "hidden" mark if not hidden
         if not data['hidden']:
             del data['hidden']
-        yield data
+        return data
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -517,15 +518,19 @@ class ExplorerNoteExport(MapGathererBase):
 
 class HLNAGlitchExport(GenericActorListExport):
     @classmethod
-    def get_category_name(cls) -> str:
+    def get_export_name(cls) -> str:
         return 'glitches'
 
     @classmethod
-    def is_export_eligible(cls, export: ExportTableItem) -> bool:
-        return inherits_from(export, '/Script/ShooterGame.PointOfInterestManagerList')
+    def get_ue_types(cls) -> Set[str]:
+        return {PointOfInterestListGen1.get_ue_type()}
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> Union[UEBase, Dict[str, Any]]:
+    def do_early_checks(cls, _: ExportTableItem) -> bool:
+        return True
+
+    @classmethod
+    def extract_single(cls, export: ExportTableItem) -> GatheredData:
         # TODO: Unverified value below:
         index = export.properties.get_property('Specific Unlocked Explorer Note Index', fallback=-1)
         return dict(
@@ -534,63 +539,76 @@ class HLNAGlitchExport(GenericActorListExport):
         )
 
 
+class PlayerSpawnPointExport(GenericActorExport):
+    CLASSES = {PlayerStart.get_ue_type()}
+    CATEGORY = 'playerSpawns'
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        point: PlayerStart = cast(PlayerStart, proxy)
+        return dict(
+            regionId=point.SpawnPointRegion[0],
+            **get_actor_location_vector(proxy).format_for_json(),
+        )
+
+
 class OilVeinExport(GenericActorExport):
-    CLASSES = (OIL_VEIN_CLS, )
+    CLASSES = {OilVein.get_ue_type()}
     CATEGORY = 'oilVeins'
 
 
 class WaterVeinExport(GenericActorExport):
-    CLASSES = (WATER_VEIN_CLS, )
+    CLASSES = {WaterVein.get_ue_type()}
     CATEGORY = 'waterVeins'
 
 
 class LunarOxygenVentExport(GenericActorExport):
-    CLASSES = (LUNAR_OXYGEN_VENT_GEN1_CLS, )
+    CLASSES = {LunarOxygenVentGen1.get_ue_type()}
     CATEGORY = 'lunarOxygenVents'
 
 
 class OilVentExport(GenericActorExport):
-    CLASSES = (OIL_VENT_GEN1_CLS, )
+    CLASSES = {OilVentGen1.get_ue_type()}
     CATEGORY = 'oilVents'
 
 
 class GasVeinExport(GenericActorExport):
-    CLASSES = (GAS_VEIN_CLS, GAS_VEIN_GEN1_CLS)
+    CLASSES = {GasVein.get_ue_type(), GasVeinGen1.get_ue_type()}
     CATEGORY = 'gasVeins'
 
 
 class ChargeNodeExport(GenericActorExport):
-    CLASSES = (CHARGE_NODE_CLS, )
+    CLASSES = {PrimalStructurePowerNode.get_ue_type()}
     CATEGORY = 'chargeNodes'
 
 
 class WildPlantSpeciesZExport(GenericActorExport):
-    CLASSES = (WILD_PLANT_SPECIES_Z_CLS, )
+    CLASSES = {WildPlantSpeciesZ.get_ue_type()}
     CATEGORY = 'plantZNodes'
 
 
 class WyvernNests(GenericActorListExport):
-    TAGS = ('DragonNestSpawns', )
+    TAGS = {'DragonNestSpawns'}
     CATEGORY = 'wyvernNests'
 
 
 class IceWyvernNests(GenericActorListExport):
-    TAGS = ('IceNestSpawns', )
+    TAGS = {'IceNestSpawns'}
     CATEGORY = 'iceWyvernNests'
 
 
 class RockDrakeNests(GenericActorListExport):
-    TAGS = ('DrakeNestSpawns', )
+    TAGS = {'DrakeNestSpawns'}
     CATEGORY = 'drakeNests'
 
 
 class DeinonychusNests(GenericActorListExport):
-    TAGS = ('DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns')
+    TAGS = {'DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns'}
     CATEGORY = 'deinonychusNests'
 
 
 class MagmasaurNests(GenericActorListExport):
-    TAGS = ('MagmasaurNestSpawns', )
+    TAGS = {'MagmasaurNestSpawns'}
     CATEGORY = 'magmasaurNests'
 
 
@@ -598,6 +616,7 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
     'world_settings': [
         # Core
         WorldSettingsExport,
+        PlayerSpawnPointExport,
     ],
     'radiation_zones': [
         # Core
@@ -642,13 +661,16 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
 
 
 def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
+    try:
+        parents = set(find_parent_classes(export, include_self=True))
+    except MissingParent:
+        return None
+
     for _, helpers in EXPORTS.items():
         for helper in helpers:
-            try:
-                if helper.is_export_eligible(export):
+            if parents & helper.get_ue_types():
+                if helper.do_early_checks(export):
                     return helper
-            except (MissingParent, AssetLoadException):
-                continue
 
     return None
 
@@ -656,7 +678,7 @@ def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGather
 def find_gatherer_by_category_name(category: str) -> Optional[Type[MapGathererBase]]:
     for _, helpers in EXPORTS.items():
         for helper in helpers:
-            if helper.get_category_name() == category:
+            if helper.get_export_name() == category:
                 return helper
 
     return None

@@ -1,5 +1,6 @@
 from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
+from types import GeneratorType
 from typing import Any, Dict, Iterable, List, Optional, Set
 
 from ark.overrides import get_overrides_for_map
@@ -46,8 +47,10 @@ class MapStage(ExportStage):
         # Extract every core map
         maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
+            directory_name = directory.split('/')[-1]
+            if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
+                continue
             logger.info(f'Performing extraction from map: {directory}')
-            directory_name = PurePosixPath(directory.split('/')[-1])
             self._extract_and_save(version, path, directory_name, levels)
 
     def extract_mod(self, path: Path, modid: str):
@@ -67,14 +70,16 @@ class MapStage(ExportStage):
         path = (path / f'{modid}-{mod_data["name"]}')
         maps = self._group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
         for directory, levels in maps.items():
+            directory_name = directory.split('/')[-1]
+            if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
+                continue
             logger.info(f'Performing extraction from map: {directory}')
-            directory_name = PurePosixPath(directory.split('/')[-1])
             self._extract_and_save(version, path, directory_name, levels, known_persistent=f'{directory}/{selectable_maps[0]}')
 
     def _extract_and_save(self,
                           version: str,
                           base_path: Path,
-                          relative_path: PurePosixPath,
+                          relative_path: str,
                           levels: List[str],
                           known_persistent: Optional[str] = None):
         # Work out the output path
@@ -100,7 +105,7 @@ class MapStage(ExportStage):
 
         # Add exported data to the output
         for helper in EXPORTS[file_name]:
-            output_key = helper.get_category_name()
+            output_key = helper.get_export_name()
             if output_key in intermediate.data:
                 results[output_key] = intermediate.data[output_key]
 
@@ -137,39 +142,42 @@ class MapStage(ExportStage):
         for assetname in levels:
             asset = self.manager.loader[assetname]
 
-            # Check if asset is a persistent level and collect data from it.
+            # Check if asset is a persistent level and mark it as such in map info object
             if not getattr(asset, 'tile_info', None) and (not known_persistent or known_persistent == assetname):
                 if getattr(map_info, 'persistent_level', None):
                     logger.warning(
                         f'Found another persistent level ({assetname}), but {map_info.persistent_level} was located earlier: skipping.'
                     )
                     continue
-
                 map_info.persistent_level = assetname
 
             # Go through each export and, if valuable, gather data from it.
             for export in asset.exports:
                 helper = find_gatherer_for_export(export)
                 if helper:
-                    # Make sure the data list is initialized.
-                    category_name = helper.get_category_name()
-                    if category_name not in map_info.data:
-                        map_info.data[category_name] = list()
+                    category_name = helper.get_export_name()
 
                     # Extract data using helper class.
                     try:
-                        for data_fragment in helper.extract(proxy=gather_properties(export)):
-                            if not data_fragment:
-                                continue
-
-                            # Sanitise the data fragment to remove references to the UE tree.
-                            data_fragment = sanitise_output(data_fragment)
-
-                            # Add to the list.
-                            map_info.data[category_name].append(data_fragment)
+                        data = helper.extract(proxy=gather_properties(export))
                     except:  # pylint: disable=bare-except
                         logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
                         continue
+                    if not data:
+                        continue
+
+                    # Make sure the data list is initialized.
+                    if category_name not in map_info.data:
+                        map_info.data[category_name] = list()
+
+                    if isinstance(data, GeneratorType):
+                        data_fragments: list = sanitise_output(list(data))
+                        for fragment in data_fragments:
+                            if fragment:
+                                map_info.data[category_name].append(fragment)
+                    else:
+                        fragment = sanitise_output(data)
+                        map_info.data[category_name].append(fragment)
 
             # Preemptively remove the level from linker cache.
             self.manager.loader.cache.remove(assetname)

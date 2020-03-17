@@ -95,6 +95,7 @@
         - '/Script/Engine.PlaneReflectionCapture'
         - '/Script/Engine.SphereReflectionCapture'
     - '/Script/Engine.TargetPoint'
+    - '/Script/Engine.PlayerStart'
     - '/Script/ShooterGame.BiomeZoneSettings'
     - '/Script/ShooterGame.DroppedItem': # Done
         - '/Script/ShooterGame.DroppedItemEgg'
