@@ -8,7 +8,7 @@ from automate.exporter import ExportManager, ExportRoot, ExportStage
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from ue.gathering import gather_properties
-from ue.utils import sanitise_output
+from ue.utils import get_assetpath_from_assetname, get_leaf_from_assetname, sanitise_output
 
 from .maps.data_container import MapInfo
 from .maps.discovery import LevelDiscoverer
@@ -47,9 +47,10 @@ class MapStage(ExportStage):
         # Extract every core map
         maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
-            directory_name = directory.split('/')[-1]
+            directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
+
             logger.info(f'Performing extraction from map: {directory}')
             self._extract_and_save(version, path, directory_name, levels)
 
@@ -70,9 +71,10 @@ class MapStage(ExportStage):
         path = (path / f'{modid}-{mod_data["name"]}')
         maps = self._group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
         for directory, levels in maps.items():
-            directory_name = directory.split('/')[-1]
+            directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
+
             logger.info(f'Performing extraction from map: {directory}')
             self._extract_and_save(version, path, directory_name, levels, known_persistent=f'{directory}/{selectable_maps[0]}')
 
@@ -127,10 +129,10 @@ class MapStage(ExportStage):
         levels: Dict[str, Set[str]] = dict()
 
         for assetname in assetnames:
-            path = assetname[:assetname.rfind('/')]
-            if path not in levels:
-                levels[path] = set()
-            levels[path].add(assetname)
+            map_ = get_assetpath_from_assetname(assetname)
+            if map_ not in levels:
+                levels[map_] = set()
+            levels[map_].add(assetname)
 
         return {path: list(sorted(names)) for path, names in levels.items()}
 

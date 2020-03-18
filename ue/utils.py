@@ -4,6 +4,7 @@ from typing import Optional
 from ue.base import UEBase
 
 __all__ = [
+    'get_leaf_from_assetname',
     'get_clean_namespaced_name',
     'get_clean_name',
     'get_property',
@@ -11,6 +12,18 @@ __all__ = [
     'clean_float',
     'clean_double',
 ]
+
+
+def get_leaf_from_assetname(name: str) -> str:
+    # Remove class name, if present
+    if '.' in name:
+        name = name[:name.index('.')]
+
+    return name[name.rfind('/') + 1:]
+
+
+def get_assetpath_from_assetname(assetname: str) -> str:
+    return assetname[:assetname.rfind('/')]
 
 
 def get_clean_namespaced_name(ns: UEBase, name: UEBase) -> str:

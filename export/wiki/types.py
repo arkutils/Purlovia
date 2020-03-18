@@ -6,6 +6,31 @@ from ue.proxy import *
 
 from .consts import *
 
+__all__ = [
+    'BiomeZoneVolume',
+    'CustomActorList',
+    'DayCycleManager_Gen1',
+    'ExplorerNote',
+    'GasVein',
+    'GasVeinGen1',
+    'LunarOxygenVentGen1',
+    'MissionDispatcher_MultiUsePylon',
+    'NPCSpawnEntriesContainer',
+    'NPCZoneManager',
+    'OilVein',
+    'OilVentGen1',
+    'PlayerStart',
+    'PointOfInterestListGen1',
+    'PrimalEngramEntry',
+    'PrimalStructureItemContainer_SupplyCrate',
+    'PrimalStructurePowerNode',
+    'PrimalWorldSettings',
+    'SupplyCrateSpawningVolume',
+    'TogglePainVolume',
+    'WaterVein',
+    'WildPlantSpeciesZ',
+]
+
 
 class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWorldSettings'):
     # DevKit Verified
