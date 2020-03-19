@@ -6,8 +6,7 @@ from typing import cast
 from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import DCSC, PrimalDinoCharacter
-from ark.variants import adjust_name_from_variants, get_variants_from_assetname, \
-    get_variants_from_species, should_skip_from_variants
+from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
@@ -55,6 +54,11 @@ OUTPUT_FLAGS = (
     # bUseColorization - in future color data will cover this
     # bCanHaveBaby/bUseBabyGestation - add breeding section
 )
+
+
+def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -> bool:
+    skip_variants = set(name for name, use in overrides.variants_to_skip_export.items() if use)
+    return bool(variants & skip_variants)
 
 
 class SpeciesStage(JsonHierarchyExportStage):
