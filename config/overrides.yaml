@@ -29,9 +29,12 @@ defaults:
         Medium: Beta
         Hard: Alpha
 
-    # If these variants are found, the object will not be exported
+    # If these variants are found, the object will not be exported in all cases
     variants_to_skip_export:
         Base: true
+
+    # If these variants are found, the object will not be exported for ASB
+    variants_to_skip_export_asb:
         InitialBuryOnly: true
 
     # If these variants are found, remove the given part of the descriptive name
