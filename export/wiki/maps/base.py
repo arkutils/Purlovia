@@ -1,11 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import *
+from typing import Any, Dict, Iterable, Optional, Set, Union
 
 from ue.asset import ExportTableItem
 from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
+
+__all__ = [
+    'GatheredData',
+    'GatheringResult',
+    'MapGathererBase',
+]
 
 GatheredData = Union[UEBase, Dict[str, Any]]
 GatheringResult = Optional[Union[GatheredData, Iterable[GatheredData]]]

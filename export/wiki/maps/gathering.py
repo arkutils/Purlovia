@@ -1,12 +1,10 @@
 import re
-from typing import *
+from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
-from export.wiki.consts import *
+from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.types import *
 from ue.asset import ExportTableItem
-from ue.base import UEBase
-from ue.hierarchy import MissingParent, find_parent_classes, inherits_from
-from ue.loader import AssetLoadException
+from ue.hierarchy import MissingParent, find_parent_classes
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 
@@ -14,6 +12,12 @@ from .base import GatheredData, GatheringResult, MapGathererBase
 from .common import BIOME_REMOVE_WIND_INFO, convert_box_bounds_for_export, \
     get_actor_location_vector, get_volume_bounds, get_volume_box_count
 from .data_container import MapInfo
+
+__all__ = [
+    'EXPORTS',
+    'find_gatherer_for_export',
+    'find_gatherer_by_category_name',
+]
 
 
 class GenericActorExport(MapGathererBase):
@@ -295,17 +299,17 @@ class BiomeZoneExport(MapGathererBase):
 
     @classmethod
     def _extract_temperature_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
-        ## Absolute
+        # Absolute
         if proxy.has_override('AbsoluteTemperatureOverride'):
             data['temperature']['override'] = proxy.AbsoluteTemperatureOverride[0]
         if proxy.has_override('AbsoluteMaxTemperature') or proxy.has_override('AbsoluteMinTemperature'):
             data['temperature']['range'] = (proxy.AbsoluteMinTemperature[0], proxy.AbsoluteMaxTemperature[0])
-        ## Pre-offset
+        # Pre-offset
         if proxy.has_override('PreOffsetTemperatureMultiplier') or proxy.has_override(
                 'PreOffsetTemperatureExponent') or proxy.has_override('PreOffsetTemperatureAddition'):
             data['temperature']['preOffset'] = (None, proxy.PreOffsetTemperatureMultiplier[0],
                                                 proxy.PreOffsetTemperatureExponent[0], proxy.PreOffsetTemperatureAddition[0])
-        ## Above offset
+        # Above offset
         if proxy.has_override('AboveTemperatureOffsetThreshold') or proxy.has_override(
                 'AboveTemperatureOffsetMultiplier') or proxy.has_override('AboveTemperatureOffsetExponent'):
             data['temperature']['aboveOffset'] = (
@@ -314,7 +318,7 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.AboveTemperatureOffsetExponent[0],
                 None,
             )
-        ## Below offset
+        # Below offset
         if proxy.has_override('BelowTemperatureOffsetThreshold') or proxy.has_override(
                 'BelowTemperatureOffsetMultiplier') or proxy.has_override('BelowTemperatureOffsetExponent'):
             data['temperature']['belowOffset'] = (
@@ -323,7 +327,7 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.BelowTemperatureOffsetExponent[0],
                 None,
             )
-        ## Final
+        # Final
         if proxy.has_override('FinalTemperatureMultiplier') or proxy.has_override(
                 'FinalTemperatureExponent') or proxy.has_override('FinalTemperatureAddition'):
             data['temperature']['final'] = (None, proxy.FinalTemperatureMultiplier[0], proxy.FinalTemperatureExponent[0],
@@ -331,10 +335,10 @@ class BiomeZoneExport(MapGathererBase):
 
     @classmethod
     def _extract_wind_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
-        ## Absolute
+        # Absolute
         if proxy.has_override('AbsoluteWindOverride'):
             data['wind']['override'] = proxy.AbsoluteWindOverride[0]
-        ## Pre-offset
+        # Pre-offset
         if proxy.has_override('PreOffsetWindMultiplier') or proxy.has_override('PreOffsetWindExponent') or proxy.has_override(
                 'PreOffsetWindAddition'):
             data['wind']['preOffset'] = (
@@ -343,7 +347,7 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.PreOffsetWindExponent[0],
                 proxy.PreOffsetWindAddition[0],
             )
-        ## Above offset
+        # Above offset
         if proxy.has_override('AboveWindOffsetThreshold') or proxy.has_override(
                 'AboveWindOffsetMultiplier') or proxy.has_override('AboveWindOffsetExponent'):
             data['wind']['aboveOffset'] = (
@@ -352,7 +356,7 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.AboveWindOffsetExponent[0],
                 None,
             )
-        ## Below offset
+        # Below offset
         if proxy.has_override('BelowWindOffsetThreshold') or proxy.has_override(
                 'BelowWindOffsetMultiplier') or proxy.has_override('BelowWindOffsetExponent'):
             data['wind']['belowOffset'] = (
@@ -361,7 +365,7 @@ class BiomeZoneExport(MapGathererBase):
                 proxy.BelowWindOffsetExponent[0],
                 None,
             )
-        ## Final
+        # Final
         if proxy.has_override('FinalWindMultiplier') or proxy.has_override('FinalWindExponent') or proxy.has_override(
                 'FinalWindAddition'):
             data['wind']['final'] = (
