@@ -2,11 +2,10 @@ from logging import NullHandler, getLogger
 from typing import *
 
 from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
-from ark.overrides import get_overrides_for_species
+from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ark.types import PrimalDinoCharacter
-from ark.variants import adjust_name_from_variants, get_variants_from_assetname, \
-    get_variants_from_species, should_skip_from_variants
+from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from export.asb.bones import gather_damage_mults
 from export.asb.breeding import gather_breeding_data
 from export.asb.colors import gather_color_data, gather_pgd_colors
@@ -70,6 +69,12 @@ def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, 
         result['dyeDefinitions'] = dyes
 
     return result
+
+
+def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -> bool:
+    skip_variants = set(name for name, use in overrides.variants_to_skip_export.items() if use)
+    skip_variants |= set(name for name, use in overrides.variants_to_skip_export_asb.items() if use)
+    return bool(variants & skip_variants)
 
 
 def values_for_species(asset: UAsset,

@@ -63,6 +63,13 @@ def modlist(value: str) -> Tuple[str, ...]:
     return mods
 
 
+def maplist(value: str) -> Tuple[str, ...]:
+    value = value.strip()
+    inputs = [v.strip() for v in value.split(',')]
+    maps = tuple(v for v in inputs if v)
+    return maps
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
@@ -82,6 +89,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--list-stages', action='store_true', help='display extraction stage options and exit')
 
     parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
+    parser.add_argument('--maps', action='store', type=maplist, help='override which maps to export (comma-separated)')
 
     parser.add_argument('sections',
                         action='store',
@@ -136,6 +144,8 @@ def handle_args(args: Any) -> ConfigFile:
 
     if args.mods is not None:
         config.extract_mods = args.mods
+    if args.maps is not None:
+        config.extract_maps = args.maps
 
     # Git actions
     if args.skip_pull:

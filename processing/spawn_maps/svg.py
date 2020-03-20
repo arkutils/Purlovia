@@ -8,7 +8,7 @@ from processing.common import SVGBoundaries
 
 from .consts import POINT_RADIUS
 from .intermediate_types import SpawnPoint, SpawnRectangle
-from .rarity import get_rarity_for_spawn
+from .species import get_rarity_for_spawn
 
 # These CSS class names are also defined on the ARK Wiki (https://ark.gamepedia.com/MediaWiki:Common.css) and thus shouldn't be renamed here.
 CSS_RARITY_CLASSES = [
