@@ -9,6 +9,14 @@ from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
 
+__all__ = [
+    'convert_box_bounds_for_export',
+    'get_actor_location_vector',
+    'get_volume_bounds',
+    'get_volume_box_count',
+    'get_volume_brush_setup',
+]
+
 BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
 
 

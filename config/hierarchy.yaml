@@ -95,6 +95,7 @@
         - '/Script/Engine.PlaneReflectionCapture'
         - '/Script/Engine.SphereReflectionCapture'
     - '/Script/Engine.TargetPoint'
+    - '/Script/Engine.PlayerStart'
     - '/Script/ShooterGame.BiomeZoneSettings'
     - '/Script/ShooterGame.DroppedItem': # Done
         - '/Script/ShooterGame.DroppedItemEgg'
@@ -377,3 +378,6 @@
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
 - '/Script/CoreUObject.Interface'
 - '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
+- '/Script/ShooterGame.MissionType'
+- '/Script/ShooterGame.PointOfInterestManagerList'
+- '/Script/ShooterGame.PointOfInterestActor'

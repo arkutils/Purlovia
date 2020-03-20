@@ -24,3 +24,8 @@ GAS_VEIN_CLS = ABERRATION_PKG + 'Structures/GasCollector/GasVein_Base_BP.GasVein
 CHARGE_NODE_CLS = ABERRATION_PKG + 'Structures/PowerNode/PrimalStructurePowerNode.PrimalStructurePowerNode_C'
 WILD_PLANT_SPECIES_Z_CLS = ABERRATION_PKG + 'WeaponPlantSpeciesZ/Structure_PlantSpeciesZ_Wild.Structure_PlantSpeciesZ_Wild_C'
 DAMAGE_TYPE_RADIATION_PKG = ABERRATION_PKG + 'CoreBlueprints/DamageTypes/DmgType_Radiation.DmgType_Radiation_C'
+# Genesis
+GAS_VEIN_GEN1_CLS = '/Game/Genesis/Structures/GasVein/GasVein_Base_Gen_BP.GasVein_Base_Gen_BP_C'
+OIL_VENT_GEN1_CLS = '/Game/Genesis/Structures/GasVein/OilVent_BP.OilVent_BP_C'
+LUNAR_OXYGEN_VENT_GEN1_CLS = '/Game/Genesis/Structures/GasVein/LunarOxygenVent_BP.LunarOxygenVent_BP_C'
+POINT_OF_INTEREST_LIST_GEN1_CLS = '/Script/ShooterGame.PointOfInterestManagerList'
