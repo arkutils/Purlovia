@@ -87,6 +87,7 @@ class ExportWikiSection(ExportSection):
     ExportLootCrates: bool = True
     ExportSpecies: bool = True
     ExportTrades: bool = True
+    ExportMissions: bool = True
 
     class Config:
         extra = Extra.forbid

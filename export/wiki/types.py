@@ -295,21 +295,135 @@ class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
     RootComponent: Mapping[int, ObjectProperty]  # Collision/Trigger component
 
 
-class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
-    # DevKit Verified
-
-    # DevKit Unverified
-    MissionSuccessMessage = uestrings('')
-    HexagonsOnCompletion = ueints(0)
-    bDivideHexogonsOnCompletion = uebools(False)  # sic
-    bAutoRewardFromCustomItemSets = uebools(False)
-
-
 class HexagonTradableOption(UEProxyStructure, uetype='/Script/ShooterGame.HexagonTradableOption'):
     # DevKit Verified
 
     # DevKit Unverified
-    Quantity = ueints(0)
+    Quantity = ueints(1)
     ItemCost = ueints(0)
 
     ItemClass: Mapping[int, ObjectProperty]
+
+
+class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    bDivideHexogonsOnCompletion = uebools(False)  # sic
+    bAutoRewardFromCustomItemSets = uebools(False)
+    bRollExtraLootSetsPerPlayer = uebools(False)
+    bRepeatableMission = uebools(False)
+    HexagonsOnCompletion = ueints(0)
+    MissionSuccessMessage = uestrings('')
+    MissionDisplayName = uestrings('')
+    MissionDescription = uestrings('')
+    MissionMaxDurationSeconds = uefloats(0)
+    GlobalMissionCooldown = uefloats(60.0)
+    MaxPlayerCount = ueints(0)
+
+    bAutoRewardXPOnMissionComplete = uebools(False)
+    TargetPlayerLevel = ueints(0)
+    MinItemSets = uefloats(1.0)
+    MaxItemSets = uefloats(1.0)
+
+    FirstTimeCompletionHexagonRewardBonus = ueints(0)
+    GenerateItemSetsQualityMultiplierMin = uefloats(1.0)
+    GenerateItemSetsQualityMultiplierMax = uefloats(1.0)
+    MissionWildDinoOutgoingDamageScale = uefloats(1.0)
+    MissionWildDinoIncomingDamageScale = uefloats(1.0)
+
+    CustomItemSets: Mapping[int, ArrayProperty]
+    MissionCustomData: Mapping[int, ObjectProperty]
+
+
+class MissionType_Retrieve(MissionType,
+                           uetype='/Game/Genesis/Missions/Retrieve/MissionType_Retrieve_Base.MissionType_Retrieve_Base_C'):
+    # DevKit Verified
+    MissionWeaponQuality = uefloats(10.0)
+    NumberOfItems = ueints(2)
+    ChanceToSpawnDino = uefloats(0.75)
+
+    # DevKit Unverified
+
+    RetrieveItemClass: Mapping[int, ObjectProperty]
+    DinosToSpawn: Mapping[int, ArrayProperty]
+    DinosToSpawnWeights: Mapping[int, ArrayProperty]
+    DinosToSpawnForStructures: Mapping[int, ArrayProperty]
+
+
+class MissionType_Escort(MissionType, uetype='/Game/Genesis/Missions/Escort/MissionType_Escort_Base.MissionType_Escort_Base_C'):
+    # DevKit Verified
+    EscortDinoBaseWalkSpeed = uefloats(20.0)
+    EscortDinoEscortedSpeed = uefloats(110.0)
+
+    EscortDinoToSpawn: Mapping[int, ArrayProperty]
+    AttackingDinoSetup: Mapping[int, ArrayProperty]
+    AttackingDinoSpawnWeight: Mapping[int, ArrayProperty]
+
+
+class MissionType_Hunt(MissionType, uetype='/Game/Genesis/Missions/Hunt/MissionType_Hunt.MissionType_Hunt_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    LastHitAdditionalHexagons = ueints(0)
+
+
+class MissionType_Race(MissionType, uetype='/Game/Genesis/Missions/Race/MissionType_Race.MissionType_Race_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_Fishing(MissionType,
+                          uetype='/Game/Genesis/Missions/Fishing/MissionType_Fishing_Base.MissionType_Fishing_Base_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_Gauntlet(
+        MissionType,
+        uetype='/Game/Genesis/Missions/GauntletWaves/MissionType_GauntletWaves_Base.MissionType_GauntletWaves_Base_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_GlitchCounter(
+        MissionType,
+        uetype='/Game/Genesis/Missions/GauntletWaves/MissionType_GlitchCounter_Base.MissionType_GlitchCounter_Base_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_Gather(MissionType,
+                         uetype='/Game/Genesis/Missions/GatherNodes/MissionType_Gather_Nodes.MissionType_Gather_Nodes_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_Sport(MissionType,
+                        uetype='/Game/Genesis/Missions/Sports/DodoBall/MissionType_Sport_Base.MissionType_Sport_Base_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    ...
+
+
+class MissionType_Basketball(
+        MissionType_Sport,
+        uetype='/Game/Genesis/Missions/Sports/DodoBall/MissionType_Sport_BasketBall.MissionType_Sport_BasketBall_C'):
+    # DevKit Verified
+    ScoreLimit = ueints(10)
+    Match_Duration = uefloats(-1.0)
+
+    # DevKit Unverified
+
+    Basketball_Dino: Mapping[int, StructProperty]

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional, Set, Union
+from typing import *
 
 from ue.asset import ExportTableItem
 from ue.base import UEBase
