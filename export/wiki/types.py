@@ -30,6 +30,17 @@ __all__ = [
     'TogglePainVolume',
     'WaterVein',
     'WildPlantSpeciesZ',
+    'MissionType_Basketball',
+    'MissionType_Sport',
+    'MissionType_Gather',
+    'MissionType_GlitchCounter',
+    'MissionType_Gauntlet',
+    'MissionType_Fishing',
+    'MissionType_Race',
+    'MissionType_Hunt',
+    'MissionType_Escort',
+    'MissionType_Retrieve',
+    'MissionType',
 ]
 
 
@@ -320,11 +331,11 @@ class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
     MissionMaxDurationSeconds = uefloats(0)
     GlobalMissionCooldown = uefloats(60.0)
     MaxPlayerCount = ueints(0)
-
     bAutoRewardXPOnMissionComplete = uebools(False)
     TargetPlayerLevel = ueints(0)
     MinItemSets = uefloats(1.0)
     MaxItemSets = uefloats(1.0)
+    RewardItemCount = ueints(1)
 
     FirstTimeCompletionHexagonRewardBonus = ueints(0)
     GenerateItemSetsQualityMultiplierMin = uefloats(1.0)
