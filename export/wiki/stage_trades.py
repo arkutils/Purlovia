@@ -21,6 +21,9 @@ class TradesStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
         return "1"
 
+    def get_name(self):
+        return 'trades'
+
     def get_field(self) -> str:
         return "trades"
 
