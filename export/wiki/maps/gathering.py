@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.types import *
 from ue.asset import ExportTableItem
+from ue.gathering import gather_properties
 from ue.hierarchy import MissingParent, find_parent_classes
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
@@ -535,12 +536,21 @@ class HLNAGlitchExport(GenericActorListExport):
 
     @classmethod
     def extract_single(cls, export: ExportTableItem) -> GatheredData:
-        # TODO: Unverified value below:
-        index = export.properties.get_property('Specific Unlocked Explorer Note Index', fallback=-1)
-        return dict(
-            noteIndex=index,
-            **get_actor_location_vector(export.value.value).format_for_json(),
-        )
+        poi: PointOfInterestBP = gather_properties(export)
+
+        d: Dict[str, Any] = dict()
+        noteid = poi.get('Specific_Unlocked_Explorer_Note_Index', fallback=-1)
+        if noteid != -1:
+            d['noteId'] = noteid
+
+        #poi_info = poi.get('MyPointOfInterestData', fallback=None)
+        #if poi_info:
+        #    tag = poi_info.as_dict().get('PointTag', None)
+        #    d['poiTag'] = tag
+
+        d['hexagons'] = poi.get('number_of_hexagons_to_reward_upon_fixing', fallback=1000)
+        d.update(get_actor_location_vector(export).format_for_json())
+        return d
 
 
 class PlayerSpawnPointExport(GenericActorExport):
