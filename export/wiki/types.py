@@ -20,6 +20,7 @@ __all__ = [
     'OilVein',
     'OilVentGen1',
     'PlayerStart',
+    'PointOfInterestBP',
     'PointOfInterestListGen1',
     'PrimalEngramEntry',
     'PrimalStructureItemContainer_SupplyCrate',
@@ -158,6 +159,19 @@ class CustomActorList(UEProxyStructure, uetype='/Script/ShooterGame.CustomActorL
 class PointOfInterestListGen1(UEProxyStructure, uetype=POINT_OF_INTEREST_LIST_GEN1_CLS):
     # No properties we can assume type for.
     ActorList: Mapping[int, ArrayProperty]
+
+
+class PointOfInterestBP(
+        UEProxyStructure,
+        uetype=
+        '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.PointOfInterestBP_MissionStart_Debugging_C'):
+    # DevKit Verified
+    Specific_Unlocked_Explorer_Note_Index = ueints(-1)
+    number_of_hexagons_to_reward_upon_fixing = ueints(1000)
+
+    # DevKit Unverified
+
+    MyPointOfInterestData: Mapping[int, StructProperty]
 
 
 class OilVein(UEProxyStructure, uetype=OIL_VEIN_CLS):
