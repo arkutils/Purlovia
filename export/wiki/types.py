@@ -291,3 +291,23 @@ class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
     # DevKit Unverified
 
     RootComponent: Mapping[int, ObjectProperty]  # Collision/Trigger component
+
+
+class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    MissionSuccessMessage = uestrings('')
+    HexagonsOnCompletion = ueints(0)
+    bDivideHexogonsOnCompletion = uebools(False)  # sic
+    bAutoRewardFromCustomItemSets = uebools(False)
+
+
+class HexagonTradableOption(UEProxyStructure, uetype='/Script/ShooterGame.HexagonTradableOption'):
+    # DevKit Verified
+
+    # DevKit Unverified
+    Quantity = ueints(0)
+    ItemCost = ueints(0)
+
+    ItemClass: Mapping[int, ObjectProperty]

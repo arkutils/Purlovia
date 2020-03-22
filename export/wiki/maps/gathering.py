@@ -158,6 +158,33 @@ class WorldSettingsExport(MapGathererBase):
         data['longShift'] = map_info.long.shift
 
 
+class TradeListExport(MapGathererBase):
+    @classmethod
+    def get_export_name(cls) -> str:
+        return 'trades'
+
+    @classmethod
+    def get_ue_types(cls) -> Set[str]:
+        return {DayCycleManager_Gen1.get_ue_type()}
+
+    @classmethod
+    def do_early_checks(cls, export: ExportTableItem) -> bool:
+        return not getattr(export.asset, 'tile_info', None)
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        manager: DayCycleManager_Gen1 = cast(DayCycleManager_Gen1, proxy)
+        option_list = manager.get('GenesisTradableOptions', fallback=None)
+        if option_list:
+            for option in option_list.values:
+                if option:
+                    yield option
+
+    @classmethod
+    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+        ...
+
+
 class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def get_export_name(cls) -> str:
@@ -631,6 +658,8 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
         # Core
         WorldSettingsExport,
         PlayerSpawnPointExport,
+        # Genesis
+        TradeListExport,
     ],
     'radiation_zones': [
         # Core

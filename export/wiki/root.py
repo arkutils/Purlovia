@@ -12,6 +12,7 @@ from .stage_loot_crates import LootCratesStage
 from .stage_maps import MapStage
 from .stage_spawn_groups import SpawnGroupStage
 from .stage_species import SpeciesStage
+from .stage_trades import TradesStage
 
 __all__ = [
     'WikiRoot',
@@ -42,6 +43,7 @@ class WikiRoot(ExportRoot):
             DropsStage(),
             LootCratesStage(),
             SpeciesStage(),
+            TradesStage(),
 
             # The following are processing stages, depending on the output of previous stages
             # TODO: Allow these to move to their own root
