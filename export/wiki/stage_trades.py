@@ -1,10 +1,8 @@
 from logging import NullHandler, getLogger
-from pathlib import PurePosixPath
-from typing import *
+from typing import Any, Dict, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import HexagonTradableOption
-from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 __all__ = [
