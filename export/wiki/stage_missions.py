@@ -3,7 +3,7 @@ from pathlib import PurePosixPath
 from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from export.wiki.types import *
+from .types import *
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
@@ -56,6 +56,7 @@ class MissionsStage(JsonHierarchyExportStage):
 
         v['rewards'] = dict(
             hexagons=_convert_hexagon_values(mission),
+            itemCount=mission.RewardItemCount[0],
             items=_convert_item_rewards(mission),
         )
 
