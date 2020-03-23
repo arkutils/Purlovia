@@ -8,6 +8,7 @@ from .swaps import apply_ideal_swaps_to_entry
 
 # TODO: Move this to overrides, or find a better way
 _MERGED_DINOS = [
+    ## Core
     # Coelacanths
     [
         '/Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP.Coel_Character_BP_C',
@@ -47,7 +48,53 @@ _MERGED_DINOS = [
     [
         '/Game/PrimalEarth/Dinos/Ant/Ant_Character_BP.Ant_Character_BP',
         '/Game/PrimalEarth/Dinos/Ant/FlyingAnt_Character_BP.FlyingAnt_Character_BP',
-    ]
+    ],
+    
+    ## 839162288: Primal Fear
+    # Alpha Bulbdog
+    [
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child.AlphaLanternPug_Character_BP_Child',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child_Rideable.AlphaLanternPug_Character_BP_Child_Rideable',
+    ],
+    # Alpha Featherlight
+    [
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Featherlight/AlphaLanternBird_Character_BP.AlphaLanternBird_Character_BP_C',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Featherlight/AlphaLanternBird_Character_BP_Rideable.AlphaLanternBird_Character_BP_Rideable_C',
+    ],
+    # Alpha Glowtail
+    [
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_LanternLizard/AlphaLanternLizard_Character_BP_Child.AlphaLanternLizard_Character_BP_Child_C',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_LanternLizard/AlphaLanternLizard_Character_BP_Child_Rideable.AlphaLanternLizard_Character_BP_Child_Rideable_C',
+    ],
+    # Alpha Shinehorn
+    [
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_ShineHorn/Alpha_LanternGoat_Character_BP_Child.Alpha_LanternGoat_Character_BP_Child_C',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_ShineHorn/Alpha_LanternGoat_Character_BP_Child_Rideable.Alpha_LanternGoat_Character_BP_Child_Rideable_C',
+    ],
+    # Celestial Wyvern
+    [
+        '/Game/Mods/Primal_Fear/Dinos/Celestial/Wyvern/CelestialWyvern_Character_BP_Fire.CelestialWyvern_Character_BP_Fire_C',
+        '/Game/Mods/Primal_Fear/Dinos/Celestial/Wyvern/CelestialWyvern_Character_BP_Ice.CelestialWyvern_Character_BP_Ice_C',
+    ],
+    
+    ## 893735676: Ark Eternal
+    # Kunimasu Salmon
+    [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon2_Character_BP.Kunimasu_Salmon2_Character_BP_C',
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon3_Character_BP.Kunimasu_Salmon3_Character_BP_C',
+    ],
+    # Latimeriidae
+    [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae2_Character_BP.Latimeriidae2_Character_BP_C',
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae3_Character_BP.Latimeriidae3_Character_BP_C',
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae4_Character_BP.Latimeriidae4_Character_BP_C',
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae5_Character_BP.Latimeriidae5_Character_BP_C',
+    ],
+    # Megapiranha Paranensis
+    [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Megapiranha_Paranensis/Megapiranha_Paranensis2_Character_BP.Megapiranha_Paranensis2_Character_BP_C',
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Megapiranha_Paranensis/Megapiranha_Paranensis3_Character_BP.Megapiranha_Paranensis3_Character_BP_C',
+    ],
 ]
 
 
