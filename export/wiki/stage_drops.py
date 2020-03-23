@@ -4,12 +4,18 @@ from typing import *
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
+from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
 from ue.properties import ArrayProperty
 from ue.proxy import UEProxyStructure
 
 __all__ = [
     'DropsStage',
+    'get_loot_sets',
+    'DinoDropInventoryComponent',
+    'decode_item_name',
+    'decode_item_entry',
+    'decode_item_set',
 ]
 
 logger = getLogger(__name__)
@@ -44,18 +50,7 @@ class DropsStage(JsonHierarchyExportStage):
 
         v: Dict[str, Any] = dict()
 
-        item_sets: List[Any] = []
-        if inv.has_override('ItemSetsOverride', 0) and inv.ItemSetsOverride[0].value.value:
-            override = _get_item_sets_override(inv.ItemSetsOverride[0])
-            item_sets.extend(override)
-        elif inv.has_override('ItemSets', 0):
-            item_sets.extend(inv.ItemSets[0].values)
-
-        if inv.has_override('AdditionalItemSetsOverride', 0) and inv.AdditionalItemSetsOverride[0].value.value:
-            item_sets.extend(_get_item_sets_override(inv.AdditionalItemSetsOverride[0]))
-        elif inv.has_override('AdditionalItemSets', 0):
-            item_sets.extend(inv.AdditionalItemSets[0].values)
-
+        item_sets = get_loot_sets(inv)
         if not item_sets:
             return None
 
@@ -66,6 +61,33 @@ class DropsStage(JsonHierarchyExportStage):
             return None
 
         return v
+
+
+def get_loot_sets(lootinv: Union[DinoDropInventoryComponent, PrimalStructureItemContainer_SupplyCrate]) -> List[Any]:
+    item_sets: List[Any] = []
+    # Add base item sets to the list
+    base_sets = lootinv.get('ItemSetsOverride', fallback=None)
+    if base_sets and base_sets.value and base_sets.value.value:
+        sets = _get_item_sets_override(base_sets)
+        item_sets.extend(sets)
+    else:
+        base_sets = lootinv.get('ItemSets', fallback=None)
+        if base_sets and base_sets.values:
+            sets = base_sets.values
+            item_sets.extend(sets)
+
+    # Add additional item sets to the list
+    extra_sets = lootinv.get('AdditionalItemSetsOverride', fallback=None)
+    if extra_sets and extra_sets.value and extra_sets.value.value:
+        sets = _get_item_sets_override(extra_sets)
+        item_sets.extend(sets)
+    else:
+        extra_sets = lootinv.get('AdditionalItemSets', fallback=None)
+        if extra_sets and extra_sets.values:
+            sets = extra_sets.values
+            item_sets.extend(sets)
+
+    return item_sets
 
 
 def decode_item_name(item):

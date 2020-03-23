@@ -6,10 +6,10 @@ from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.proxy import UEProxyStructure
 
-from .stage_drops import _get_item_sets_override, decode_item_set
+from .stage_drops import _get_item_sets_override, decode_item_set, get_loot_sets
 
 __all__ = [
-    'ItemsStage',
+    'LootCratesStage',
 ]
 
 logger = getLogger(__name__)
@@ -43,17 +43,7 @@ class LootCratesStage(JsonHierarchyExportStage):
         v['qualityMult'] = (crate.MinQualityMultiplier[0], crate.MaxQualityMultiplier[0])
         v['setQty'] = (crate.MinItemSets[0], crate.MaxItemSets[0], crate.NumItemSetsPower[0])
 
-        item_sets: List[Any] = []
-        if crate.has_override('ItemSetsOverride', 0) and crate.ItemSetsOverride[0].value.value:
-            item_sets.extend(_get_item_sets_override(crate.ItemSetsOverride[0]))
-        elif crate.has_override('ItemSets', 0):
-            item_sets.extend(crate.ItemSets[0].values)
-
-        if crate.has_override('AdditionalItemSetsOverride', 0) and crate.AdditionalItemSetsOverride[0].value.value:
-            item_sets.extend(_get_item_sets_override(crate.AdditionalItemSetsOverride[0]))
-        elif crate.has_override('AdditionalItemSets', 0):
-            item_sets.extend(crate.AdditionalItemSets[0].values)
-
+        item_sets = get_loot_sets(crate)
         if not item_sets:
             return None
 
