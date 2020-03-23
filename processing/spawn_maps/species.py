@@ -53,8 +53,8 @@ _MERGED_DINOS = [
     ## 839162288: Primal Fear
     # Alpha Bulbdog
     [
-        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child.AlphaLanternPug_Character_BP_Child',
-        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child_Rideable.AlphaLanternPug_Character_BP_Child_Rideable',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child.AlphaLanternPug_Character_BP_Child_C',
+        '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child_Rideable.AlphaLanternPug_Character_BP_Child_Rideable_C',
     ],
     # Alpha Featherlight
     [
@@ -80,11 +80,13 @@ _MERGED_DINOS = [
     ## 893735676: Ark Eternal
     # Kunimasu Salmon
     [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon1_Character_BP.Kunimasu_Salmon1_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon2_Character_BP.Kunimasu_Salmon2_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon3_Character_BP.Kunimasu_Salmon3_Character_BP_C',
     ],
     # Latimeriidae
     [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae1_Character_BP.Latimeriidae1_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae2_Character_BP.Latimeriidae2_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae3_Character_BP.Latimeriidae3_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/Latimeriidae/Latimeriidae4_Character_BP.Latimeriidae4_Character_BP_C',
@@ -92,6 +94,7 @@ _MERGED_DINOS = [
     ],
     # Megapiranha Paranensis
     [
+        '/Game/Mods/AE/Dinos/Special/TropicalOcean/Megapiranha_Paranensis/Megapiranha_Paranensis1_Character_BP.Megapiranha_Paranensis1_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/Megapiranha_Paranensis/Megapiranha_Paranensis2_Character_BP.Megapiranha_Paranensis2_Character_BP_C',
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/Megapiranha_Paranensis/Megapiranha_Paranensis3_Character_BP.Megapiranha_Paranensis3_Character_BP_C',
     ],
