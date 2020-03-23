@@ -250,7 +250,9 @@ class PrimalStructureItemContainer_SupplyCrate(UEProxyStructure,
     # DevKit Unverified
 
     ItemSets: Mapping[int, ArrayProperty]
+    ItemSetsOverride: Mapping[int, ArrayProperty]
     AdditionalItemSets: Mapping[int, ArrayProperty]
+    AdditionalItemSetsOverride: Mapping[int, ArrayProperty]
 
 
 class PrimalEngramEntry(UEProxyStructure, uetype='/Script/ShooterGame.PrimalEngramEntry'):

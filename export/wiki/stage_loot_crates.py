@@ -6,7 +6,7 @@ from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.proxy import UEProxyStructure
 
-from .stage_drops import decode_item_set
+from .stage_drops import _get_item_sets_override, decode_item_set
 
 __all__ = [
     'ItemsStage',
@@ -37,17 +37,21 @@ class LootCratesStage(JsonHierarchyExportStage):
 
         v: Dict[str, Any] = dict()
         v['bp'] = crate.get_source().fullname
-        v['requiredLevel'] = crate.RequiredLevelToAccess[0]
-        v['maxLevel'] = crate.MaxLevelToAccess[0]
-        v['healthLoss'] = dict(initialTime=crate.InitialTimeToLoseHealth[0], interval=crate.IntervalTimeToLoseHealth[0])
+        v['levelReq'] = (crate.RequiredLevelToAccess[0], crate.MaxLevelToAccess[0])
+        v['decayTime'] = dict(start=crate.InitialTimeToLoseHealth[0], interval=crate.IntervalTimeToLoseHealth[0])
         v['randomSetsWithNoReplacement'] = crate.bSetsRandomWithoutReplacement[0]
         v['qualityMult'] = (crate.MinQualityMultiplier[0], crate.MaxQualityMultiplier[0])
-        v['setCount'] = (crate.MinItemSets[0], crate.MaxItemSets[0], crate.NumItemSetsPower[0])
+        v['setQty'] = (crate.MinItemSets[0], crate.MaxItemSets[0], crate.NumItemSetsPower[0])
 
         item_sets: List[Any] = []
-        if crate.has_override('ItemSets', 0):
+        if crate.has_override('ItemSetsOverride', 0) and crate.ItemSetsOverride[0].value.value:
+            item_sets.extend(_get_item_sets_override(crate.ItemSetsOverride[0]))
+        elif crate.has_override('ItemSets', 0):
             item_sets.extend(crate.ItemSets[0].values)
-        if crate.has_override('AdditionalItemSets', 0):
+
+        if crate.has_override('AdditionalItemSetsOverride', 0) and crate.AdditionalItemSetsOverride[0].value.value:
+            item_sets.extend(_get_item_sets_override(crate.AdditionalItemSetsOverride[0]))
+        elif crate.has_override('AdditionalItemSets', 0):
             item_sets.extend(crate.AdditionalItemSets[0].values)
 
         if not item_sets:

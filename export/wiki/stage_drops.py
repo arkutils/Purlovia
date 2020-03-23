@@ -21,7 +21,9 @@ class DinoDropInventoryComponent(
         uetype=
         '/Game/PrimalEarth/CoreBlueprints/Inventories/DinoDropInventoryComponent_BP_Base.DinoDropInventoryComponent_BP_Base_C'):
     ItemSets: Mapping[int, ArrayProperty]
+    ItemSetsOverride: Mapping[int, ArrayProperty]
     AdditionalItemSets: Mapping[int, ArrayProperty]
+    AdditionalItemSetsOverride: Mapping[int, ArrayProperty]
 
 
 class DropsStage(JsonHierarchyExportStage):
@@ -38,15 +40,21 @@ class DropsStage(JsonHierarchyExportStage):
         return DinoDropInventoryComponent.get_ue_type()
 
     def extract(self, proxy: UEProxyStructure) -> Any:
-        item: DinoDropInventoryComponent = cast(DinoDropInventoryComponent, proxy)
+        inv: DinoDropInventoryComponent = cast(DinoDropInventoryComponent, proxy)
 
         v: Dict[str, Any] = dict()
 
         item_sets: List[Any] = []
-        if item.has_override('ItemSets', 0):
-            item_sets.extend(item.ItemSets[0].values)
-        if item.has_override('AdditionalItemSets', 0):
-            item_sets.extend(item.AdditionalItemSets[0].values)
+        if inv.has_override('ItemSetsOverride', 0) and inv.ItemSetsOverride[0].value.value:
+            override = _get_item_sets_override(inv.ItemSetsOverride[0])
+            item_sets.extend(override)
+        elif inv.has_override('ItemSets', 0):
+            item_sets.extend(inv.ItemSets[0].values)
+
+        if inv.has_override('AdditionalItemSetsOverride', 0) and inv.AdditionalItemSetsOverride[0].value.value:
+            item_sets.extend(_get_item_sets_override(inv.AdditionalItemSetsOverride[0]))
+        elif inv.has_override('AdditionalItemSets', 0):
+            item_sets.extend(inv.AdditionalItemSets[0].values)
 
         if not item_sets:
             return None
@@ -73,7 +81,7 @@ def decode_item_entry(entry):
     return dict(
         name=str(d['ItemEntryName']) or None,
         weight=d['EntryWeight'],
-        quantity=(d['MinQuantity'], d['MaxQuantity'], d['QuantityPower']),
+        qty=(d['MinQuantity'], d['MaxQuantity'], d['QuantityPower']),
         quality=(d['MinQuality'], d['MaxQuality'], d['QualityPower']),
         forceBP=d['bForceBlueprint'],
         items=[decode_item_name(item) for item in d['Items'].values],
@@ -101,6 +109,25 @@ def _gather_lootitemset_data(asset_ref):
                     d[key] = value
 
     return d
+
+
+def _get_item_sets_override(asset_ref):
+    loader = asset_ref.asset.loader
+    asset = loader.load_related(asset_ref)
+    assert asset.default_export
+
+    for node in find_parent_classes(asset.default_export):
+        if not node.startswith('/Game/'):
+            break
+
+        asset = loader[node]
+        assert asset.default_export
+
+        sets = asset.default_export.properties.get_property('ItemSets', fallback=None)
+        if sets:
+            return sets.values
+
+    return []
 
 
 def decode_item_set(item_set):
