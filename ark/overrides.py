@@ -45,6 +45,7 @@ class OverrideSettings(BaseModel):
     remove_variants: Dict[str, bool] = dict()
     variant_renames: Dict[str, str] = dict()
     classname_variant_parts: Dict[str, bool] = dict()
+    pathname_variant_parts: Dict[str, bool] = dict()
     variants_to_skip_export: Dict[str, bool] = dict()
     variants_to_skip_export_asb: Dict[str, bool] = dict()
     variants_to_remove_name_parts: Dict[str, str] = dict()
