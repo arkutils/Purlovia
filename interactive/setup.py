@@ -14,7 +14,10 @@ from ue.gathering import gather_properties
 from ue.hierarchy import find_parent_classes, find_sub_classes, inherits_from
 from ue.loader import AssetLoader, AssetNotFound
 
-basicConfig(level=INFO)
+is_interactive = bool(getattr(sys, 'ps1', sys.flags.interactive))
+
+if is_interactive:
+    basicConfig(level=INFO)
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -30,9 +33,10 @@ arkman.ensureModsUpdated(config.mods)
 loader = arkman.getLoader()
 initialise_hierarchy(arkman)
 
-print()
-print('Interactive session ready:')
-print('  arkman   : ArkSteamManager initialised in dry-run mode')
-print('  loader   : Asset loader')
-print('  config   : A safe default config')
-print()
+if is_interactive:
+    print()
+    print('Interactive session ready:')
+    print('  arkman   : ArkSteamManager initialised in dry-run mode')
+    print('  loader   : Asset loader')
+    print('  config   : A safe default config')
+    print()

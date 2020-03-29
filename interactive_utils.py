@@ -3,6 +3,8 @@ import sys
 
 from IPython.lib.pretty import pprint, pretty  # type: ignore
 
+is_interactive = bool(getattr(sys, 'ps1', sys.flags.interactive))
+
 
 def configure_ipython_width():
     from IPython import get_ipython  # type: ignore
@@ -20,7 +22,8 @@ def configure_ipython_width():
     else:  # Plain python shell
         import shutil
         w, h = shutil.get_terminal_size()
-        print("Wrapping pprint with terminal width:", w)
+        if is_interactive:
+            print("Wrapping pprint with terminal width:", w)
         global pretty, pprint
         opretty = pretty
         opprint = pprint
