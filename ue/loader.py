@@ -444,10 +444,11 @@ class AssetLoader:
 
         raise AssetNotFound(name)
 
-    def load_asset(self, assetname: str, quiet=False) -> UAsset:
+    def load_asset(self, assetname: str, quiet=False, use_cache=True, cache_result=True) -> UAsset:
         '''Load and parse the given asset, or fetch it from the cache if already loaded.'''
         assetname = self.clean_asset_name(assetname)
-        asset = self.cache.lookup(assetname) or self._load_asset(assetname, quiet=quiet)
+        asset = (use_cache and self.cache.lookup(assetname)) or \
+            self._load_asset(assetname, quiet=quiet, cache_result=cache_result)
 
         # Keep track of some stats
         mem_used = psutil.Process().memory_info().rss
@@ -468,11 +469,11 @@ class AssetLoader:
         assetname = self.clean_asset_name(assetname)
         self.cache.remove(assetname)
 
-    def partially_load_asset(self, assetname: str) -> UAsset:
-        asset = self._load_asset(assetname, doNotLink=True)
+    def partially_load_asset(self, assetname: str, cache_result=True) -> UAsset:
+        asset = self._load_asset(assetname, doNotLink=True, cache_result=cache_result)
         return asset
 
-    def _load_asset(self, assetname: str, doNotLink=False, quiet=False) -> UAsset:
+    def _load_asset(self, assetname: str, doNotLink=False, quiet=False, cache_result=True) -> UAsset:
         if not quiet:
             logger.debug("Loading asset: %s", assetname)
         mem, ext = self.load_raw_asset(assetname)
@@ -509,8 +510,8 @@ class AssetLoader:
             else:
                 asset.default_export = exports[0] if exports else None
 
-        # TODO: Potentially treat .umap assets different for caching purposes
-        self.cache.add(assetname, asset)
+        if cache_result:
+            self.cache.add(assetname, asset)
 
         return asset
 
