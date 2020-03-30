@@ -724,19 +724,21 @@ class CustomVersion(UEBase):
 
 
 class StructEntry(UEBase):
-    string_format = '{name} = ({type}) {value}'
+    string_format = '{name}[{index}] = ({type}) {value}'
 
     name: str
     name_id: NameIndex
     type: NameIndex
     length: int
+    index: int
     value: UEBase
 
     def _deserialise(self):
         self._newField('name_id', NameIndex(self))
         self._newField('type', '<not yet defined>')
         entryType = NameIndex(self).deserialise()
-        self._newField('length', self.stream.readInt64())
+        self._newField('length', self.stream.readInt32())
+        self._newField('index', self.stream.readUInt32())
 
         self.name_id.link()
         clean_name = str(self.name_id).strip()
@@ -747,7 +749,8 @@ class StructEntry(UEBase):
         self.field_values['type'] = entryType
 
         if dbg_structs > 1:
-            print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={entryType}, length={self.length}')
+            print(f'    StructEntry @ {self.start_offset}: name={self.name}, type={entryType}, ' +
+                  f'length={self.length}, index={self.index}')
 
         # We may know the type of the data to go into this...
         subTypeName = TYPED_ARRAY_CONTENT.get(str(self.name), None)
