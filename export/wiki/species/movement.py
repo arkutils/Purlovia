@@ -28,15 +28,16 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> Dict[str, 
     # TODO: Include ScaleExtraRunningSpeedModifier and ScaleExtraRunningMultiplier(Min|Max|Speed)
 
     cm: ShooterCharacterMovement = species.CharacterMovement[0]
-    nav_props_struct = cm.get('NavAgentProps', fallback=None)
-    nav_props = nav_props_struct.as_dict() if nav_props_struct else {}
+    nav_props = cm.get('NavAgentProps', fallback=None)
+    if not nav_props:
+        return result
 
     isWaterDino = bool(species.bIsWaterDino[0])
-    canWalk = nav_props.get('bCanWalk', True) and not isWaterDino
-    canCrouch = nav_props.get('bCanCrouch', False) and canWalk
+    canWalk = nav_props.get_property('bCanWalk', fallback=True) and not isWaterDino
+    canCrouch = nav_props.get_property('bCanCrouch', fallback=False) and canWalk
     canRun = canWalk and species.bCanRun[0]
-    canSwim = (nav_props.get('bCanSwim', True) or isWaterDino) and not species.bPreventEnteringWater[0]
-    canFly = nav_props.get('bCanFly', False) or species.bIsFlyerDino[0]
+    canSwim = (nav_props.get_property('bCanSwim', fallback=True) or isWaterDino) and not species.bPreventEnteringWater[0]
+    canFly = nav_props.get_property('bCanFly', fallback=False) or species.bIsFlyerDino[0]
 
     if canWalk:
         result['walk'] = dict(base=mult(cm.MaxWalkSpeed[0]))

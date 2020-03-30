@@ -22,14 +22,14 @@ def _convert_attack(attack: StructProperty):
     d: Dict[str, Any] = attack.as_dict()
 
     v = dict(
-        name=d['AttackName'] or None,
-        interval=d['AttackInterval'],
-        dmg=d['MeleeDamageAmount'],
-        radius=d['MeleeSwingRadius'],
-        stamina=d['StaminaCost'],
+        name=d['AttackName'][0] or None,
+        interval=d['AttackInterval'][0],
+        dmg=d['MeleeDamageAmount'][0],
+        radius=d['MeleeSwingRadius'][0],
+        stamina=d['StaminaCost'][0],
     )
 
-    proj = d['ProjectileClass']
+    proj = d['ProjectileClass'][0]
     if proj:
         v['isProjectile'] = True
 
