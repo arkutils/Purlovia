@@ -77,15 +77,15 @@ def convert_group_entry(struct):
     d = struct.as_dict()
 
     v = dict()
-    v['name'] = d['AnEntryName']
-    v['weight'] = d['EntryWeight']
-    v['classes'] = d['NPCsToSpawn']
-    v['spawnOffsets'] = d['NPCsSpawnOffsets']
+    v['name'] = d['AnEntryName'][0]
+    v['weight'] = d['EntryWeight'][0]
+    v['classes'] = d['NPCsToSpawn'][0]
+    v['spawnOffsets'] = d['NPCsSpawnOffsets'][0]
 
     # Weights, as confirmed by ZenRowe. It's up to the user to calculate actual chances.
-    v['classWeights'] = d['NPCsToSpawnPercentageChance']
+    v['classWeights'] = d['NPCsToSpawnPercentageChance'][0]
 
-    d_swaps = d['NPCRandomSpawnClassWeights'].values
+    d_swaps = d['NPCRandomSpawnClassWeights'][0].values
     if d_swaps:
         v['classSwaps'] = [convert_single_class_swap(entry.as_dict()) for entry in d_swaps]
 
@@ -96,21 +96,22 @@ def convert_limit_entry(struct):
     d = struct.as_dict()
 
     v = dict()
-    v['class'] = d['NPCClass']
-    v['desiredNumberMult'] = d['MaxPercentageOfDesiredNumToAllow']
+    v['class'] = d['NPCClass'][0]
+    v['desiredNumberMult'] = d['MaxPercentageOfDesiredNumToAllow'][0]
 
     return v
 
 
 def convert_single_class_swap(d):
     v = {
-        'from': d['FromClass'],
-        'exact': d['bExactMatch'],
-        'to': d['ToClasses'],
-        'weights': d['Weights'],
+        'from': d['FromClass'][0],
+        'exact': d['bExactMatch'][0],
+        'to': d['ToClasses'][0],
+        'weights': d['Weights'][0],
     }
 
-    if d['ActiveEvent'] and d['ActiveEvent'].value and d['ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
+    if d['ActiveEvent'] and d['ActiveEvent'].value and d[
+            'ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
         v['during'] = d['ActiveEvent']
 
     return v
@@ -143,9 +144,9 @@ def segregate_container_additions(pgd: UAsset):
     change_queues: Dict[str, List[Dict[str, Any]]] = dict()
     for add in d.values:
         add = add.as_dict()
-        klass = add['SpawnEntriesContainerClass']
-        entries = add['AdditionalNPCSpawnEntries'].values
-        limits = add['AdditionalNPCSpawnLimits'].values
+        klass = add['SpawnEntriesContainerClass'][0]
+        entries = add['AdditionalNPCSpawnEntries'][0].values
+        limits = add['AdditionalNPCSpawnLimits'][0].values
         if not klass.value.value or (not entries and not limits):
             continue
 
