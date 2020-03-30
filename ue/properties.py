@@ -867,7 +867,7 @@ class StructProperty(UEBase):
         if fallback is not NO_FALLBACK:
             return fallback
 
-        raise KeyError(f"Property {name} not found")
+        raise KeyError(f"Property {name}[{index}] not found")
 
     def _convert_to_dict(self):
         result: PropDict = defaultdict(lambda: defaultdict(lambda: None))
