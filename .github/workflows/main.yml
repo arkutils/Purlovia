@@ -52,7 +52,7 @@ jobs:
       run: pipenv install --dev --deploy --python ${{ matrix.python_version }}
 
     - name: Check for vulnerable deps
-      run: pipenv check -i 38100 -i 38107
+      run: pipenv run check
 
 #     - name: Run format check
 #       run: pipenv run tests-nogame
