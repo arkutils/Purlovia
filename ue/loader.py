@@ -477,8 +477,10 @@ class AssetLoader:
         if not quiet:
             logger.debug("Loading asset: %s", assetname)
         mem, ext = self.load_raw_asset(assetname)
+        try:
         stream = MemoryStream(mem, 0, len(mem))
-        asset = UAsset(weakref.proxy(stream))
+            # asset = UAsset(weakref.proxy(stream))
+            asset = UAsset(stream)
         asset.loader = self
         asset.assetname = assetname
         asset.name = assetname.split('/')[-1]
@@ -491,6 +493,8 @@ class AssetLoader:
             asset.link()
         except Exception as ex:
             raise AssetParseError(assetname) from ex
+        finally:
+            mem.release()
 
         leafname = assetname.split('/')[-1]
 
