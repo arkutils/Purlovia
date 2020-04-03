@@ -478,21 +478,20 @@ class AssetLoader:
             logger.debug("Loading asset: %s", assetname)
         mem, ext = self.load_raw_asset(assetname)
         try:
-        stream = MemoryStream(mem, 0, len(mem))
-            # asset = UAsset(weakref.proxy(stream))
+            stream = MemoryStream(mem, 0, len(mem))
             asset = UAsset(stream)
-        asset.loader = self
-        asset.assetname = assetname
-        asset.name = assetname.split('/')[-1]
-        asset.file_ext = ext
+            asset.loader = self
+            asset.assetname = assetname
+            asset.name = assetname.split('/')[-1]
+            asset.file_ext = ext
 
-        try:
-            asset.deserialise()
-            if doNotLink:
-                return asset
-            asset.link()
-        except Exception as ex:
-            raise AssetParseError(assetname) from ex
+            try:
+                asset.deserialise()
+                if doNotLink:
+                    return asset
+                asset.link()
+            except Exception as ex:
+                raise AssetParseError(assetname) from ex
         finally:
             mem.release()
 
