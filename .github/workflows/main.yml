@@ -52,7 +52,7 @@ jobs:
       run: pipenv install --dev --deploy --python ${{ matrix.python_version }}
 
     - name: Check for vulnerable deps
-      run: pipenv check
+      run: pipenv run check
 
 #     - name: Run format check
 #       run: pipenv run tests-nogame
@@ -65,3 +65,13 @@ jobs:
 
     # - name: Save test results
     # - name: Save code coverage
+
+
+    - name: Publishing live Docker image
+      if: github.event_name == 'push' && github.ref == 'refs/heads/live'
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: coldino/purlovia:live
+        buildargs: COMMIT=${{ env.GITHUB_SHA }},BRANCH=${{ env.GITHUB_REF }}
+        username: ${{ secrets.DCKR_USR }}
+        password: ${{ secrets.DCKR_PSSW }}

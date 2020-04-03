@@ -79,7 +79,11 @@ def get_variants_from_assetname(assetname: str, overrides: OverrideSettings) -> 
         if use and ('_' + name in cls_ or name + '_' in cls_):
             variants.add(name)
 
-    # ...currently don't have any checks that need the full assetname
+    # Search for variants within the full assetname
+    path_ = assetname[:assetname.rfind('/')].replace('/', '_')
+    for name, use in overrides.pathname_variant_parts.items():
+        if use and ('_' + name in path_ or name + '_' in path_):
+            variants.add(name)
 
     # Additions from overrides
     for name, use in overrides.add_variants.items():

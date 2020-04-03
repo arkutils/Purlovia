@@ -12,3 +12,6 @@ indent_style = tab
 
 [Pipfile*]
 end_of_line = lf
+
+[.github/**/*.yml]
+indent_size = 2
