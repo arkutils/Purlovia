@@ -12,8 +12,6 @@ pytest-cov = "*"
 pytest-mock = "*"
 pylint = "~=2.4.3"
 mypy = "!=0.740"
-jupyter = "~=1.0"
-deepdiff = "~=4.0.9"
 pygments = "~=2.4"
 guppy3 = "~=3.0.8"
 
