@@ -12,6 +12,8 @@ from typing import Any, Dict, List
 
 from guppy import hpy
 
+from .resource_monitor import resource_monitor
+
 SRC_NAME = '<cmdline>'
 
 TMPL = '''
@@ -19,7 +21,8 @@ def inner():
     {setup}
     hp = hpy()
     hp.setrelheap()
-    {article}
+    with resource_monitor():
+        {article}
     h = hp.heap()
 
     return h.size
