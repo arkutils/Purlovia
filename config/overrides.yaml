@@ -159,6 +159,15 @@ mods:
             Flame: true
             Tranq: true
 
+    893735676: # Ark Eternal
+        classname_variant_parts:
+            NoHarvest: true
+
+    1681125667: # Primal Fear Extinction Expansion
+        classname_variant_parts:
+            Child: true
+            Tamed: true
+
 
 # Override settings on a per-map basis
 maps:
