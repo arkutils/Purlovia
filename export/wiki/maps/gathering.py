@@ -6,6 +6,7 @@ from export.wiki.types import *
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.hierarchy import MissingParent, find_parent_classes
+from ue.loader import AssetLoadException
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 
@@ -706,7 +707,7 @@ EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
 def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
     try:
         parents = set(find_parent_classes(export, include_self=True))
-    except MissingParent:
+    except (AssetLoadException, MissingParent):
         return None
 
     for _, helpers in EXPORTS.items():
