@@ -138,6 +138,20 @@ mods:
             useless_name_regexes:
                 pfn_groups: '(Toxic|Alpha)\d*'
 
+    1681125667: # Primal Fear Extinction Expansion
+        classname_variant_parts:
+            Child: true
+            Tamed: true
+
+    899987403: # Primal Fear Bosses
+        classname_variant_parts:
+            Baby: true
+            Child: true
+
+        color_regions:
+            useless_name_regexes:
+                pfn_groups: 'Alpha\d*'
+
     1675895024: # No Untameables
         color_regions:
             useless_name_regexes:
@@ -163,10 +177,10 @@ mods:
         classname_variant_parts:
             NoHarvest: true
 
-    1681125667: # Primal Fear Extinction Expansion
+    2000326197: # Event Assets
         classname_variant_parts:
-            Child: true
-            Tamed: true
+            VDay: true
+            Ocean: true
 
 
 # Override settings on a per-map basis
