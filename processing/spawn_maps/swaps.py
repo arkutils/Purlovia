@@ -4,6 +4,10 @@ from ue.hierarchy import find_sub_classes
 def fix_up_groups(spawngroups):
     '''Adds missing weights to classes without copying the data.'''
     for container in spawngroups:
+        if 'entries' not in container:
+            container['entries'] = list()
+            continue
+
         for entry in container['entries']:
             class_num = len(entry['classes'])
             weight_num = len(entry['classWeights'])

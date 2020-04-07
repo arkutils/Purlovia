@@ -29,6 +29,10 @@ logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
 
+class DownloadError(Exception):
+    ...
+
+
 class ArkSteamManager:
     def __init__(self, config: ConfigFile = get_global_config()):
         self.config = config
@@ -142,19 +146,27 @@ class ArkSteamManager:
         modids_installed = set(self.mod_data_cache.keys())
 
         # Compare lists to calculate mods to 'add/keep/remove'
-        modids_keep = modids_installed & modids_requested
+        # modids_keep = modids_installed & modids_requested
         modids_add = modids_requested - modids_installed
         modids_remove = modids_installed - modids_requested
 
-        # Request details for the 'keep' and 'add' mods from steam api (specifically want update times and titles)
-        mod_details_list = SteamApi.GetPublishedFileDetails(modids_keep | modids_add) if modids_keep | modids_add else []
+        # Request details for the requested mods from steam api (specifically want update times and titles)
+        mod_details_list = SteamApi.GetPublishedFileDetails(modids_requested) if modids_requested else []
+
+        # Check all returned okay
+        for details in mod_details_list:
+            result = details.get('result', None)
+            if result != 1:
+                raise DownloadError(f'Steam API returned result {result} for mod {details.get("publishedfileid", "<unknown>")}')
+
+        # Cache the details by modid
         self.steam_mod_details = dict((details['publishedfileid'], details) for details in mod_details_list)
 
         # Calculate mods that need fetching (adds + outdated keeps)
         def isOutdated(existing_data, workshop_details):
             return int(workshop_details['time_updated']) > int(existing_data['version'])
 
-        modids_update = set(modid for modid in modids_keep
+        modids_update = set(modid for modid in modids_requested
                             if isOutdated(self.mod_data_cache[modid], self.steam_mod_details[modid]))
         modids_update = modids_update | modids_add
 

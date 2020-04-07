@@ -738,6 +738,15 @@ species:
                 3: null
                 4: "Back"
                 5: "Belly"
+    /Game/Genesis/Dinos/BiomeVariants/Volcano_Rex/Volcano_Rex_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Spine"
+                2: null
+                3: null
+                4: "Back"
+                5: "Belly"
     /Game/PrimalEarth/Dinos/Saber/Saber_Character_BP:
         color_regions:
             region_names:
