@@ -103,12 +103,17 @@ def convert_limit_entry(struct):
 
 
 def convert_single_class_swap(d):
-    return {
+    v = {
         'from': d['FromClass'],
         'exact': d['bExactMatch'],
         'to': d['ToClasses'],
         'weights': d['Weights'],
     }
+
+    if d['ActiveEvent'].value and d['ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
+        v['during'] = d['ActiveEvent']
+
+    return v
 
 
 def convert_class_swaps(pgd: UAsset):
