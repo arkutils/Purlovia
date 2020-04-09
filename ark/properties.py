@@ -4,11 +4,10 @@ from typing import Dict, List, Optional, Tuple
 import ark.asset
 import ark.tree
 from ark.tree import inherits_from
+from ark.types import DCSC_CLS
 from ue.asset import ExportTableItem, UAsset
 from ue.coretypes import UEBase
 from ue.utils import get_clean_name, get_property
-
-from .common import *
 
 PriorityPropDict = Dict[str, Dict[int, List[UEBase]]]
 

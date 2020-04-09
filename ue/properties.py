@@ -262,8 +262,6 @@ class ValueProperty(UEBase, Real, ABC):
         assert self.is_serialised
         return int(self.value)
 
-    __nonzero__ = __bool__
-
     def __pos__(self):
         assert self.is_serialised
         return self.value

@@ -7,9 +7,8 @@ from interactive_utils import *  # pylint: disable=wrong-import-order
 import json
 from typing import *
 
-from ark.common import PRIMALITEM_CLS
 from ark.discovery import initialise_hierarchy
-from ark.types import PrimalItem
+from ark.types import PRIMAL_ITEM_CLS, PrimalItem
 from automate.ark import ArkSteamManager
 from ue.asset import UAsset
 from ue.gathering import gather_properties

@@ -1,10 +1,12 @@
 from logging import NullHandler, getLogger
 from typing import *
 
+import ark.gathering
+import ue.gathering
 from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
-from ark.types import PrimalDinoCharacter
+from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from export.asb.bones import gather_damage_mults
 from export.asb.breeding import gather_breeding_data
@@ -56,13 +58,13 @@ ARK_STAT_INDEXES = tuple(range(12))
 
 
 def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, Any]:
-    assert asset and asset.loader
+    assert asset and asset.loader and asset.default_export
     loader = asset.loader
-    props = gather_properties(asset)
+    props: PrimalGameData = ue.gathering.gather_properties(asset.default_export)
 
     result: Dict[str, Any] = dict()
 
-    colors, dyes = gather_pgd_colors(props, loader, require_override=require_override)
+    colors, dyes = gather_pgd_colors(asset, props, loader, require_override=require_override)
     if colors:
         result['colorDefinitions'] = colors
     if dyes:
@@ -77,20 +79,14 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
     return bool(variants & skip_variants)
 
 
-def values_for_species(asset: UAsset,
-                       props: PriorityPropDict,
-                       proxy: PrimalDinoCharacter,
-                       allFields=False,
-                       fullStats=True,
-                       includeColor=True,
-                       includeBreeding=True,
-                       includeImmobilize=True,
-                       includeDamageMults=True,
-                       includeTaming=True):
-    assert asset.loader
+def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDinoCharacter):
+    assert asset.loader and asset.default_export and asset.default_class and asset.default_class.fullname
+
+    char_props: PrimalDinoCharacter = ue.gathering.gather_properties(asset.default_export)
+    dcsc_props: PrimalDinoStatusComponent = ark.gathering.gather_dcsc_properties(asset.default_export)
 
     # Having no name or tag is an indication that this is an intermediate class, not a spawnable species
-    name = stat_value(props, 'DescriptiveName', 0, None) or stat_value(props, 'DinoNameTag', 0, None)
+    name = (str(char_props.DescriptiveName[0]) or str(char_props.DinoNameTag[0])).strip()
     if not name:
         logger.debug(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
         return
@@ -122,75 +118,73 @@ def values_for_species(asset: UAsset,
             return
         name = adjust_name_from_variants(name, variants, overrides)
 
-    species = dict(name=name, blueprintPath=bp)
+    species: Dict[str, Any] = dict(name=name, blueprintPath=bp)
     if variants:
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    statsField = 'fullStatsRaw' if fullStats else 'statsRaw'
-    statIndexes = ARK_STAT_INDEXES if fullStats else ASB_STAT_INDEXES
-    species[statsField] = gather_stat_data(props, statIndexes)
+    species['fullStatsRaw'] = gather_stat_data(props, ARK_STAT_INDEXES)
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
-    for ark_index in statIndexes:
-        imprint_mult = stat_value(props, 'DinoMaxStatAddMultiplierImprinting', ark_index, IMPRINT_VALUES)
-        stat_imprint_mults.append(imprint_mult)
-    if stat_imprint_mults != list(IMPRINT_VALUES):
+    unique_mults = False
+    for stat_index in ARK_STAT_INDEXES:
+        imprint_mult = dcsc_props.DinoMaxStatAddMultiplierImprinting[stat_index]
+        stat_imprint_mults.append(imprint_mult.rounded_value)
+        # TODO: Should remove the dependency of the default
+        if imprint_mult.rounded_value != IMPRINT_VALUES[stat_index]:
+            unique_mults = True
+
+    if unique_mults:
         species['statImprintMult'] = stat_imprint_mults
 
-    if includeImmobilize:
-        # ImmobilizedBy format data
-        immobilization_data = None
+    # ImmobilizedBy format data
+    immobilization_data = None
+    try:
+        immobilization_data = gather_immobilization_data(props, asset.loader)
+    except (AssetNotFound, ModNotFound) as ex:
+        logger.warning(f'Failure while gathering immobilization data for {asset.assetname}:\n\t{ex}')
+    if immobilization_data is not None:
+        species['immobilizedBy'] = immobilization_data
+
+    # Breeding data
+    if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
+        breeding_data = None
         try:
-            immobilization_data = gather_immobilization_data(props, asset.loader)
+            breeding_data = gather_breeding_data(props, asset.loader)
         except (AssetNotFound, ModNotFound) as ex:
-            logger.warning(f'Failure while gathering immobilization data for {asset.assetname}:\n\t{ex}')
-        if immobilization_data is not None:
-            species['immobilizedBy'] = immobilization_data
+            logger.warning(f'Failure while gathering breeding data for {asset.assetname}:\n\t{ex}')
+        if breeding_data:
+            species['breeding'] = breeding_data
 
-    if includeBreeding:
-        # Breeding data
-        if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
-            breeding_data = None
-            try:
-                breeding_data = gather_breeding_data(props, asset.loader)
-            except (AssetNotFound, ModNotFound) as ex:
-                logger.warning(f'Failure while gathering breeding data for {asset.assetname}:\n\t{ex}')
-            if breeding_data:
-                species['breeding'] = breeding_data
-
-    if includeColor:
-        # Color data
-        if stat_value(props, 'bUseColorization', False):
-            colors = None
-            try:
-                colors = gather_color_data(asset, props, overrides)
-            except (AssetNotFound, ModNotFound) as ex:
-                logger.warning(f'Failure while gathering color data for {asset.assetname}:\n\t{ex}')
-            if colors is not None:
-                species['colors'] = colors
-
-    if includeTaming:
-        # Taming data
-        if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
-            taming = None
-            try:
-                taming = gather_taming_data(props)
-            except (AssetNotFound, ModNotFound) as ex:
-                logger.warning(f'Failure while gathering taming data for {asset.assetname}:\n\t{ex}')
-            if taming:
-                species['taming'] = taming
-
-    if includeDamageMults:
-        # Bone damage multipliers
-        dmg_mults = None
+    # Color data
+    if stat_value(props, 'bUseColorization', False):
+        colors = None
         try:
-            dmg_mults = gather_damage_mults(props)
+            colors = gather_color_data(asset, props, overrides)
         except (AssetNotFound, ModNotFound) as ex:
-            logger.warning(f'Failure while gathering bone damage data for {asset.assetname}:\n\t{ex}')
-        if dmg_mults:
-            species['boneDamageAdjusters'] = dmg_mults
+            logger.warning(f'Failure while gathering color data for {asset.assetname}:\n\t{ex}')
+        if colors is not None:
+            species['colors'] = colors
+
+    # Taming data
+    if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
+        taming = None
+        try:
+            taming = gather_taming_data(props)
+        except (AssetNotFound, ModNotFound) as ex:
+            logger.warning(f'Failure while gathering taming data for {asset.assetname}:\n\t{ex}')
+        if taming:
+            species['taming'] = taming
+
+    # Bone damage multipliers
+    dmg_mults = None
+    try:
+        dmg_mults = gather_damage_mults(props)
+    except (AssetNotFound, ModNotFound) as ex:
+        logger.warning(f'Failure while gathering bone damage data for {asset.assetname}:\n\t{ex}')
+    if dmg_mults:
+        species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
     noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
@@ -203,14 +197,14 @@ def values_for_species(asset: UAsset,
 
     displayed_stats: int = 0
 
-    for i in statIndexes:
+    for i in ARK_STAT_INDEXES:
         use_stat = not stat_value(props, 'DontUseValue', i, DONTUSESTAT_VALUES)
         if use_stat and not (i == 3 and doesntUseOxygen):
             displayed_stats |= (1 << i)
 
-    if allFields or TBHM != 1: species['TamedBaseHealthMultiplier'] = cd(TBHM)
-    if allFields or noSpeedImprint: species['NoImprintingForSpeed'] = noSpeedImprint
-    if allFields or doesntUseOxygen: species['doesNotUseOxygen'] = doesntUseOxygen
-    if allFields or displayed_stats: species['displayedStats'] = displayed_stats
+    species['TamedBaseHealthMultiplier'] = cd(TBHM)
+    species['NoImprintingForSpeed'] = noSpeedImprint
+    species['doesNotUseOxygen'] = doesntUseOxygen
+    species['displayedStats'] = displayed_stats
 
     return species

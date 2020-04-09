@@ -381,3 +381,4 @@
 - '/Script/ShooterGame.MissionType'
 - '/Script/ShooterGame.PointOfInterestManagerList'
 - '/Script/ShooterGame.PointOfInterestActor'
+- '/Script/Engine.AudioComponent'

@@ -3,8 +3,10 @@ from logging import NullHandler, getLogger
 from typing import *
 
 import ark.mod
+import ue.gathering
 from ark.overrides import OverrideSettings, any_regexes_match, get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
+from ark.types import PrimalGameData, PrimalItem_Dye
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound
 from ue.properties import LinearColor, UEBase
@@ -23,18 +25,18 @@ NULLABLE_REGION_COLORS = set(['Red'])
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
 
-def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
+def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
                       require_override=True) -> Tuple[Optional[Sequence[ColorEntry]], Optional[Sequence[ColorEntry]]]:
     '''Gather color and dye definitions from a PrimalGameData asset.'''
     colors: Optional[List[ColorEntry]] = list()
     dyes: Optional[List[ColorEntry]] = list()
 
     # Collect the color definitions
-    color_def_overrides = props['ColorDefinitions'][0]
-    if require_override and len(color_def_overrides) == 1:
+    color_def_overrides = props.ColorDefinitions[0]
+    if require_override and color_def_overrides.asset != asset:
         colors = None
     else:
-        color_defs = color_def_overrides[-1].values
+        color_defs = color_def_overrides.values
         colors = list()
         for definition in ((entry.as_dict() for entry in color_defs)):
             name = definition.get('ColorName', None) or '~~unset~~'
@@ -43,16 +45,17 @@ def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
             colors.append((str(name), color))
 
     # Collect the dye definitions
-    dye_def_overrides = props['MasterDyeList'][0]
-    if require_override and len(dye_def_overrides) == 1:
+    dye_def_overrides = props.MasterDyeList[0]
+    if require_override and dye_def_overrides.asset != asset:
         dyes = None
     else:
-        dye_defs = props['MasterDyeList'][0][-1].values
+        dye_defs = dye_def_overrides.values
         dyes = list()
         for dye_asset in (loader.load_related(entry) for entry in dye_defs):
-            dye_props = gather_properties(dye_asset)
-            name = stat_value(dye_props, 'DescriptiveNameBase', 0, None) or '~~unset~~'
-            value = dye_props['DyeColor'][0][-1]
+            assert dye_asset and dye_asset.default_export
+            dye_props: PrimalItem_Dye = ue.gathering.gather_properties(dye_asset.default_export)
+            name = dye_props.DescriptiveNameBase[0] or '~~unset~~'
+            value = dye_props.DyeColor[0]
             color = value.values[0].as_tuple() if value else None
             dyes.append((str(name), color))
 

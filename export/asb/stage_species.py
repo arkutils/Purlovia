@@ -4,9 +4,8 @@ from pathlib import Path, PurePosixPath
 from typing import *
 from typing import cast
 
-from ark.common import PGD_PKG
 from ark.properties import PriorityPropDict, gather_properties, stat_value
-from ark.types import PrimalDinoCharacter
+from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from config import ConfigFile
 from ue.asset import ExportTableItem, UAsset
@@ -59,7 +58,7 @@ class SpeciesStage(JsonHierarchyExportStage):
                 return values_from_pgd(pgd_asset, require_override=True)
         else:
             # Return the colours from the main PGD
-            pgd_asset = self.manager.loader[PGD_PKG]
+            pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
             return values_from_pgd(pgd_asset, require_override=False)
 
         return None
@@ -81,7 +80,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             return None
 
         try:
-            species_data = values_for_species(asset, props, char, allFields=True, includeBreeding=True, includeColor=True)
+            species_data = values_for_species(asset, props, char)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
             return None

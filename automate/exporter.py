@@ -16,7 +16,7 @@ from config import ConfigFile, get_global_config
 from ue.gathering import gather_properties
 from ue.hierarchy import find_sub_classes
 from ue.loader import AssetLoader, AssetLoadException
-from ue.proxy import UEProxyStructure, proxy_for_type
+from ue.proxy import UEProxyStructure
 
 from .git import GitManager
 from .manifest import MANIFEST_FILENAME, update_manifest
