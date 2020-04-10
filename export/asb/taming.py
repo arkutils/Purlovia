@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent, props) -> Dict[str, Any]:
+def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()
 
     # Currently unable to gather the foods list
@@ -18,27 +18,27 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
     favorite_kibble: Optional[str] = None
     special_food_values: Optional[List[Dict[str, Dict[str, List[int]]]]] = None
 
-    can_tame = stat_value(props, 'bCanBeTamed', 0, True)
-    can_knockout = stat_value(props, 'bCanBeTorpid', 0, True)
-    data['nonViolent'] = stat_value(props, 'bSupportWakingTame', 0, False) and can_tame
-    data['violent'] = not stat_value(props, 'bPreventSleepingTame', 0, False) and can_tame and can_knockout
+    can_tame = char_props.bCanBeTamed[0]
+    can_knockout = char_props.bCanBeTorpid[0]
+    data['nonViolent'] = char_props.bSupportWakingTame[0] and can_tame
+    data['violent'] = not char_props.bPreventSleepingTame[0] and can_tame and can_knockout
 
     if can_tame or True:
-        data['tamingIneffectiveness'] = cf(stat_value(props, 'TameIneffectivenessByAffinity', 0, 20.0))
-        data['affinityNeeded0'] = cf(stat_value(props, 'RequiredTameAffinity', 0, 100))
-        data['affinityIncreasePL'] = cf(stat_value(props, 'RequiredTameAffinityPerBaseLevel', 0, 5.0))
+        data['tamingIneffectiveness'] = cf(char_props.TameIneffectivenessByAffinity[0].rounded_value)
+        data['affinityNeeded0'] = cf(char_props.RequiredTameAffinity[0].rounded_value)
+        data['affinityIncreasePL'] = cf(char_props.RequiredTameAffinityPerBaseLevel[0].rounded_value)
 
-        torpor_depletion = stat_value(props, 'KnockedOutTorpidityRecoveryRateMultiplier', 0, 3.0) \
-            * stat_value(props, 'RecoveryRateStatusValue', 2, 0.00)
+        torpor_depletion = dcsc_props.KnockedOutTorpidityRecoveryRateMultiplier[0].rounded_value \
+            * dcsc_props.RecoveryRateStatusValue[2].rounded_value
 
         if data['violent']:
             data['torporDepletionPS0'] = cd(-torpor_depletion)
         if data['nonViolent']:
-            data['wakeAffinityMult'] = cf(stat_value(props, 'WakingTameFoodAffinityMultiplier', 0, 1.6))
-            data['wakeFoodDeplMult'] = cf(stat_value(props, 'WakingTameFoodConsumptionRateMultiplier', 0, 2.0))
+            data['wakeAffinityMult'] = cf(char_props.WakingTameFoodAffinityMultiplier[0].rounded_value)
+            data['wakeFoodDeplMult'] = cf(dcsc_props.WakingTameFoodConsumptionRateMultiplier[0].rounded_value)
 
-        data['foodConsumptionBase'] = cf(-stat_value(props, 'BaseFoodConsumptionRate', 0, -0.025000))  # pylint: disable=invalid-unary-operand-type
-        data['foodConsumptionMult'] = cf(stat_value(props, 'ProneWaterFoodConsumptionMultiplier', 0, 1.00))
+        data['foodConsumptionBase'] = cf(-dcsc_props.BaseFoodConsumptionRate[0].rounded_value)  # pylint: disable=invalid-unary-operand-type
+        data['foodConsumptionMult'] = cf(dcsc_props.ProneWaterFoodConsumptionMultiplier[0].rounded_value)
 
         if eats is not None:
             data['eats'] = eats

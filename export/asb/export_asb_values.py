@@ -173,7 +173,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     if char_props.bCanBeTamed[0] or True:  # ASB currently requires all species to have taming data
         taming = None
         try:
-            taming = gather_taming_data(char_props, dcsc_props, props)
+            taming = gather_taming_data(char_props, dcsc_props)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering taming data for {asset.assetname}:\n\t{ex}')
         if taming:
