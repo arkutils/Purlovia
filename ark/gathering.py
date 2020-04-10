@@ -49,11 +49,9 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
 
     proxy: DinoCharacterStatusComponent = get_proxy_for_type(DCSC_CLS, loader)
 
-    chain = list(find_parent_classes(species_cls, include_self=True))
-
     with ue_parsing_context(properties=True):
         # Gather DCSCs as we traverse from UObject back towards this species class
-        for cls_name in reversed(chain):
+        for cls_name in find_parent_classes(species_cls, include_self=True):
             if not cls_name.startswith('/Game'):
                 continue
 
