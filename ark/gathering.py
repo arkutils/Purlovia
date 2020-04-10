@@ -58,18 +58,15 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
                 continue
 
             asset: UAsset = loader[cls_name]
-            dcsc_export = _get_dcsc_for_species(asset)
-            if not dcsc_export:
-                continue
-
-            # Calculate the priority of this DCSC
-            pri_prop = get_property(dcsc_export, "CharacterStatusComponentPriority")
-            if pri_prop is None:
-                dcsc_cls = loader.load_related(dcsc_export.klass.value).default_export
-                pri_prop = get_property(dcsc_cls, "CharacterStatusComponentPriority")
-            pri = 0 if pri_prop is None else float(pri_prop)
-            if report: print(f'DCSC from {asset.assetname} = {dcsc_export.fullname} (pri {pri_prop} = {pri})')
-            dcscs.append((pri, dcsc_export))
+            for dcsc_export in _get_dcscs_for_species(asset):
+                # Calculate the priority of this DCSC
+                pri_prop = get_property(dcsc_export, "CharacterStatusComponentPriority")
+                if pri_prop is None:
+                    dcsc_cls = loader.load_related(dcsc_export.klass.value).default_export
+                    pri_prop = get_property(dcsc_cls, "CharacterStatusComponentPriority")
+                pri = 0 if pri_prop is None else float(pri_prop)
+                if report: print(f'DCSC from {asset.assetname} = {dcsc_export.fullname} (pri {pri_prop} = {pri})')
+                dcscs.append((pri, dcsc_export))
 
         # Order the DCSCs by CharacterStatusComponentPriority value, descending
         # Python's sort is stable, so it will maintain the gathered order of exports with identical priorities (e.g. Deinonychus)
@@ -84,9 +81,7 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
     return proxy
 
 
-def _get_dcsc_for_species(asset: UAsset) -> Optional[ExportTableItem]:
+def _get_dcscs_for_species(asset: UAsset) -> Iterable[ExportTableItem]:
     for cmp_export in ark.asset.findSubComponentExports(asset):
-        if inherits_from(cmp_export, DCSC_CLS):
-            return cmp_export
-
-    return None
+        if inherits_from(cmp_export, DCSC_CLS, safe=True):
+            yield cmp_export

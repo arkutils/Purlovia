@@ -10,6 +10,8 @@ from ue.proxy import UEProxyStructure
 
 from .common import *
 
+# pylint: disable=singleton-comparison
+
 
 @pytest.mark.requires_game
 def test_gather_purloviatest_pgd(scan_and_load):
@@ -76,6 +78,7 @@ def test_gather_troodon_dcsc_alt(scan_and_load: ScanLoadFn):
 
 @pytest.mark.requires_game
 def test_gather_deino(scan_and_load: ScanLoadFn):
+    # Deino has a species-specific DCSC with a lower priority than the one it inherits
     chr_export = scan_and_load(DEINO_CHR)
     props = gather_dcsc_properties(chr_export)
     assert isinstance(props, UEProxyStructure)
@@ -83,3 +86,23 @@ def test_gather_deino(scan_and_load: ScanLoadFn):
     assert props.MaxStatusValues[0] == 200  # from Raptor DCSC because Deino DCSC priority is -1
     assert props.MaxStatusValues[1] == 150  # from Raptor DCSC because Deino DCSC priority is -1
     assert props.MaxStatusValues[3] == 150  # from default DCSC
+
+
+@pytest.mark.requires_game
+def test_gather_dragon_boss(scan_and_load: ScanLoadFn):
+    # DragonBoss has two DCSCs, one with a higher priority
+    chr_export = scan_and_load(X_DRAGON_CHR)
+    props = gather_dcsc_properties(chr_export)
+    assert isinstance(props, UEProxyStructure)
+    assert isinstance(props, PrimalDinoStatusComponent)
+    assert props.bCanSuffocate[0] == False
+
+
+@pytest.mark.requires_game
+def test_gather_x_dragon(scan_and_load: ScanLoadFn):
+    # X-Dragon inherits the same two DCSCs from DragonBoss
+    chr_export = scan_and_load(X_DRAGON_CHR)
+    props = gather_dcsc_properties(chr_export)
+    assert isinstance(props, UEProxyStructure)
+    assert isinstance(props, PrimalDinoStatusComponent)
+    assert props.bCanSuffocate[0] == False
