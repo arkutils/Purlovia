@@ -23,6 +23,8 @@ __all__ = [
     'values_for_species',
 ]
 
+DCSC_DEFAULTS: PrimalDinoStatusComponent = PrimalDinoStatusComponent()
+
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
@@ -131,10 +133,8 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
         imprint_mult = dcsc_props.DinoMaxStatAddMultiplierImprinting[stat_index]
         stat_imprint_mults.append(imprint_mult.rounded_value)
 
-        # TODO: Doesn't work as expected since we previously compared against the default values
-        #   and now we only check if the property has been modified in a DCSC at least once.
-        #   This issue is most prevalent in Flyer mods that re-enable imprinting on Speed
-        if dcsc_props.has_override('DinoMaxStatAddMultiplierImprinting', stat_index):
+        # TODO: Optimize: Too many property look ups
+        if DCSC_DEFAULTS.DinoMaxStatAddMultiplierImprinting[stat_index] != imprint_mult:
             unique_mults = True
 
     if unique_mults:
