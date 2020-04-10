@@ -153,7 +153,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     if char_props.bCanHaveBaby[0]:  # TODO: Consider always including this data
         breeding_data = None
         try:
-            breeding_data = gather_breeding_data(char_props, dcsc_props, props, asset.loader)
+            breeding_data = gather_breeding_data(char_props, asset.loader)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering breeding data for {asset.assetname}:\n\t{ex}')
         if breeding_data:
