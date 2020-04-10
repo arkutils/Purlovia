@@ -964,16 +964,6 @@ class ArrayProperty(UEBase):
     def format_for_json(self):
         return self.values
 
-    def __bool__(self) -> bool:
-        assert self.is_serialised
-        return bool(self.values)
-
-    __nonzero__ = __bool__
-
-    def __len__(self) -> int:
-        assert self.is_serialised
-        return len(self.values)
-
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
