@@ -3,7 +3,6 @@ from typing import *
 
 import ark.gathering
 import ue.gathering
-from ark.defaults import DONTUSESTAT_VALUES, IMPRINT_VALUES
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.properties import PriorityPropDict, gather_properties, stat_value
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData
@@ -27,17 +26,17 @@ __all__ = [
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
 
-#                    Ark   ASB
-# Health              0     0
-# Stamina             1     1
-# Torpidity           2     7
-# Oxygen              3     2
-# Food                4     3
+#                    Ark
+# Health              0
+# Stamina             1
+# Torpidity           2
+# Oxygen              3
+# Food                4
 # Water               5
 # Temperature         6
-# Weight              7     4
-# Melee Damage        8     5  (add 100%)
-# Movement Speed      9     6  (add 100%)
+# Weight              7
+# Melee Damage        8   (add 100%)
+# Movement Speed      9   (add 100%)
 # Fortitude           10
 # Crafting Skill      11
 
@@ -60,11 +59,11 @@ ARK_STAT_INDEXES = tuple(range(12))
 def values_from_pgd(asset: UAsset, require_override: bool = False) -> Dict[str, Any]:
     assert asset and asset.loader and asset.default_export
     loader = asset.loader
-    props: PrimalGameData = ue.gathering.gather_properties(asset.default_export)
+    pgd_props: PrimalGameData = ue.gathering.gather_properties(asset.default_export)
 
     result: Dict[str, Any] = dict()
 
-    colors, dyes = gather_pgd_colors(asset, props, loader, require_override=require_override)
+    colors, dyes = gather_pgd_colors(asset, pgd_props, loader, require_override=require_override)
     if colors:
         result['colorDefinitions'] = colors
     if dyes:
@@ -92,7 +91,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
         return
 
     # Also consider anything that doesn't override any base status value as non-spawnable
-    if not any(stat_value(props, 'MaxStatusValues', n, None) is not None for n in ARK_STAT_INDEXES):
+    if not any(dcsc_props.has_override('MaxStatusValues', n) for n in ARK_STAT_INDEXES):
         logger.debug(f"Species {asset.assetname} has no overridden stats - skipping")
         return
 
@@ -101,7 +100,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     modid: str = asset.loader.get_mod_id(asset.assetname)
     overrides = get_overrides_for_species(asset.assetname, modid)
 
-    if get_overrides_for_species(asset.assetname, modid).skip_export:
+    if overrides.skip_export:
         return
 
     bp: str = asset.default_class.fullname
@@ -123,7 +122,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    species['fullStatsRaw'] = gather_stat_data(props, ARK_STAT_INDEXES)
+    species['fullStatsRaw'] = gather_stat_data(char_props, dcsc_props, props, ARK_STAT_INDEXES)
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
@@ -131,8 +130,11 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     for stat_index in ARK_STAT_INDEXES:
         imprint_mult = dcsc_props.DinoMaxStatAddMultiplierImprinting[stat_index]
         stat_imprint_mults.append(imprint_mult.rounded_value)
-        # TODO: Should remove the dependency of the default
-        if imprint_mult.rounded_value != IMPRINT_VALUES[stat_index]:
+
+        # TODO: Doesn't work as expected since we previously compared against the default values
+        #   and now we only check if the property has been modified in a DCSC at least once.
+        #   This issue is most prevalent in Flyer mods that re-enable imprinting on Speed
+        if dcsc_props.has_override('DinoMaxStatAddMultiplierImprinting', stat_index):
             unique_mults = True
 
     if unique_mults:
@@ -141,37 +143,37 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     # ImmobilizedBy format data
     immobilization_data = None
     try:
-        immobilization_data = gather_immobilization_data(props, asset.loader)
+        immobilization_data = gather_immobilization_data(char_props, dcsc_props, props, asset.loader)
     except (AssetNotFound, ModNotFound) as ex:
         logger.warning(f'Failure while gathering immobilization data for {asset.assetname}:\n\t{ex}')
     if immobilization_data is not None:
         species['immobilizedBy'] = immobilization_data
 
     # Breeding data
-    if stat_value(props, 'bCanHaveBaby', 0, False):  # TODO: Consider always including this data
+    if char_props.bCanHaveBaby[0]:  # TODO: Consider always including this data
         breeding_data = None
         try:
-            breeding_data = gather_breeding_data(props, asset.loader)
+            breeding_data = gather_breeding_data(char_props, dcsc_props, props, asset.loader)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering breeding data for {asset.assetname}:\n\t{ex}')
         if breeding_data:
             species['breeding'] = breeding_data
 
     # Color data
-    if stat_value(props, 'bUseColorization', False):
+    if char_props.bUseColorization[0]:
         colors = None
         try:
-            colors = gather_color_data(asset, props, overrides)
+            colors = gather_color_data(asset, char_props, dcsc_props, props, overrides)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering color data for {asset.assetname}:\n\t{ex}')
         if colors is not None:
             species['colors'] = colors
 
     # Taming data
-    if stat_value(props, 'bCanBeTamed', True) or True:  # ASB currently requires all species to have taming data
+    if char_props.bCanBeTamed[0] or True:  # ASB currently requires all species to have taming data
         taming = None
         try:
-            taming = gather_taming_data(props)
+            taming = gather_taming_data(char_props, dcsc_props, props)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering taming data for {asset.assetname}:\n\t{ex}')
         if taming:
@@ -180,29 +182,30 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     # Bone damage multipliers
     dmg_mults = None
     try:
-        dmg_mults = gather_damage_mults(props)
+        dmg_mults = gather_damage_mults(char_props, dcsc_props, props)
     except (AssetNotFound, ModNotFound) as ex:
         logger.warning(f'Failure while gathering bone damage data for {asset.assetname}:\n\t{ex}')
     if dmg_mults:
         species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
-    noSpeedImprint = (stat_value(props, 'DinoMaxStatAddMultiplierImprinting', 9, IMPRINT_VALUES) == 0)
-    usesOxyWild = stat_value(props, 'bCanSuffocate', 0, True)
-    usesOxyTamed = stat_value(props, 'bCanSuffocateIfTamed', 0, usesOxyWild)
-    forceOxy = stat_value(props, 'bForceGainOxygen', 0, False)
+    noSpeedImprint: bool = (dcsc_props.DinoMaxStatAddMultiplierImprinting[9] == 0)
+    usesOxyWild = dcsc_props.bCanSuffocate[0]
+    usesOxyTamed = True if usesOxyWild else dcsc_props.bCanSuffocateIfTamed[0]
+    forceOxy = dcsc_props.bForceGainOxygen[0]
     doesntUseOxygen = not (usesOxyTamed or forceOxy)
-    ETBHM = stat_value(props, 'ExtraTamedBaseHealthMultiplier', 0, 1)
-    TBHM = stat_value(props, 'TamedBaseHealthMultiplier', 0, 1) * ETBHM
+
+    ETBHM = char_props.ExtraTamedBaseHealthMultiplier[0]
+    TBHM = dcsc_props.TamedBaseHealthMultiplier[0] * ETBHM
 
     displayed_stats: int = 0
 
     for i in ARK_STAT_INDEXES:
-        use_stat = not stat_value(props, 'DontUseValue', i, DONTUSESTAT_VALUES)
+        use_stat = not dcsc_props.DontUseValue[i]
         if use_stat and not (i == 3 and doesntUseOxygen):
             displayed_stats |= (1 << i)
 
-    species['TamedBaseHealthMultiplier'] = cd(TBHM)
+    species['TamedBaseHealthMultiplier'] = cf(TBHM)
     species['NoImprintingForSpeed'] = noSpeedImprint
     species['doesNotUseOxygen'] = doesntUseOxygen
     species['displayedStats'] = displayed_stats

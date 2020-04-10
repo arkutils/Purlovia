@@ -62,7 +62,8 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
     return (colors, dyes)
 
 
-def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: OverrideSettings):
+# TODO: Requires conversion to the Proxy system
+def gather_color_data(asset: UAsset, char_props, dcsc_props, props: PriorityPropDict, overrides: OverrideSettings):
     '''Gather color region definitions for a species.'''
     assert asset and asset.loader and asset.assetname
     loader: AssetLoader = asset.loader

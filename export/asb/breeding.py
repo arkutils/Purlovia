@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 
-def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
+def gather_breeding_data(char_props, dcsc_props, props, loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
     gestation_breeding = stat_value(props, 'bUseBabyGestation', 0, False)

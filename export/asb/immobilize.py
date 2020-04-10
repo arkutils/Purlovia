@@ -41,7 +41,7 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
     raise NotImplementedError
 
 
-def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
+def gather_immobilization_data(char_props, dcsc_props, props: PriorityPropDict, loader: AssetLoader) -> List[str]:
     # Tag is used to identify immobilization targets and compatible saddles
     # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
 

@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 
-def gather_damage_mults(props: PriorityPropDict) -> Optional[Dict[str, float]]:
+def gather_damage_mults(char_props, dcsc_props, props: PriorityPropDict) -> Optional[Dict[str, float]]:
     if not props['BoneDamageAdjusters'][0]:
         return None
 

@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def gather_taming_data(props) -> Dict[str, Any]:
+def gather_taming_data(char_props, dcsc_props, props) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()
 
     # Currently unable to gather the foods list

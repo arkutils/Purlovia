@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-def gather_stat_data(props, statIndexes):
+def gather_stat_data(char_props, dcsc_props, props, statIndexes):
     statsArray = list()
 
     # Create a temporary set of Iw defaults, overriding torpor with TheMaxTorporIncreasePerBaseLevel or 0.06
