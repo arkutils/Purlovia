@@ -182,7 +182,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     # Bone damage multipliers
     dmg_mults = None
     try:
-        dmg_mults = gather_damage_mults(char_props, dcsc_props, props)
+        dmg_mults = gather_damage_mults(char_props)
     except (AssetNotFound, ModNotFound) as ex:
         logger.warning(f'Failure while gathering bone damage data for {asset.assetname}:\n\t{ex}')
     if dmg_mults:
