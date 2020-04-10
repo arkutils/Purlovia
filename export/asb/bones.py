@@ -1,13 +1,15 @@
-from typing import *
+from typing import Dict, Optional
 
 from ark.properties import PriorityPropDict
+from ark.types import PrimalDinoStatusComponent, PrimalDinoCharacter
 
 __all__ = [
     'gather_damage_mults',
 ]
 
 
-def gather_damage_mults(char_props, dcsc_props, props: PriorityPropDict) -> Optional[Dict[str, float]]:
+def gather_damage_mults(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent,
+                        props: PriorityPropDict) -> Optional[Dict[str, float]]:
     if not props['BoneDamageAdjusters'][0]:
         return None
 

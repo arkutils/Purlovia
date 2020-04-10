@@ -1,6 +1,7 @@
-from typing import *
+from typing import Any, Dict, List, Optional
 
 from ark.properties import stat_value
+from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 
@@ -9,7 +10,7 @@ __all__ = [
 ]
 
 
-def gather_taming_data(char_props, dcsc_props, props) -> Dict[str, Any]:
+def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent, props) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()
 
     # Currently unable to gather the foods list

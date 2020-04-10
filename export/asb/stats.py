@@ -1,5 +1,8 @@
+from typing import List, Optional
+
 from ark.defaults import *
 from ark.properties import stat_value
+from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 
@@ -8,7 +11,7 @@ __all__ = [
 ]
 
 
-def gather_stat_data(char_props, dcsc_props, props, statIndexes):
+def gather_stat_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent, props, statIndexes):
     statsArray = list()
 
     # Create a temporary set of Iw defaults, overriding torpor with TheMaxTorporIncreasePerBaseLevel or 0.06
@@ -21,7 +24,7 @@ def gather_stat_data(char_props, dcsc_props, props, statIndexes):
         zero_mult = 1 if can_level else 0
         ETHM = stat_value(props, 'ExtraTamedHealthMultiplier', ark_index, EXTRA_MULTS_VALUES)
 
-        stat_data = [
+        stat_data: Optional[List[float]] = [
             cd(stat_value(props, 'MaxStatusValues', ark_index, BASE_VALUES) + add_one),
             cd(stat_value(props, 'AmountMaxGainedPerLevelUpValue', ark_index, iw_values) * zero_mult),
             cd(stat_value(props, 'AmountMaxGainedPerLevelUpValueTamed', ark_index, 0.0) * ETHM * zero_mult),

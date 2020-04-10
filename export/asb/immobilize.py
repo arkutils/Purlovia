@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass, field
-from typing import *
+from typing import Any, List, Optional
 
 from ark.properties import PriorityPropDict, stat_value
 from ue.loader import AssetLoader
@@ -32,7 +32,7 @@ immobilization_itemdata: List[ImmobilizingItem] = [
 
 
 def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem]:
-    global immobilization_itemdata  #pylint: disable=global-statement
+    global immobilization_itemdata  # pylint: disable=global-statement
     if immobilization_itemdata:
         return immobilization_itemdata
 

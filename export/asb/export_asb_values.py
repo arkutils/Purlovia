@@ -1,10 +1,10 @@
 from logging import NullHandler, getLogger
-from typing import *
+from typing import Any, Dict, List, Set, Tuple
 
 import ark.gathering
 import ue.gathering
 from ark.overrides import OverrideSettings, get_overrides_for_species
-from ark.properties import PriorityPropDict, gather_properties, stat_value
+from ark.properties import PriorityPropDict
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from export.asb.bones import gather_damage_mults
@@ -14,7 +14,7 @@ from export.asb.immobilize import gather_immobilization_data
 from export.asb.stats import gather_stat_data
 from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetNotFound, ModNotFound
+from ue.loader import AssetNotFound, ModNotFound
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 

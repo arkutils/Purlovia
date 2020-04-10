@@ -1,15 +1,14 @@
-import warnings
 from logging import NullHandler, getLogger
-from typing import *
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 import ark.mod
 import ue.gathering
-from ark.overrides import OverrideSettings, any_regexes_match, get_overrides_for_species
-from ark.properties import PriorityPropDict, gather_properties, stat_value
-from ark.types import PrimalGameData, PrimalItem_Dye
+from ark.overrides import OverrideSettings, any_regexes_match
+from ark.properties import PriorityPropDict, stat_value
+from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData, PrimalItem_Dye
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetNotFound
-from ue.properties import LinearColor, UEBase
+from ue.properties import UEBase
 
 __all__ = [
     'gather_pgd_colors',
@@ -63,7 +62,8 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
 
 
 # TODO: Requires conversion to the Proxy system
-def gather_color_data(asset: UAsset, char_props, dcsc_props, props: PriorityPropDict, overrides: OverrideSettings):
+def gather_color_data(asset: UAsset, char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent,
+                      props: PriorityPropDict, overrides: OverrideSettings):
     '''Gather color region definitions for a species.'''
     assert asset and asset.loader and asset.assetname
     loader: AssetLoader = asset.loader

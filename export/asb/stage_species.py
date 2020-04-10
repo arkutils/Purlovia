@@ -1,19 +1,13 @@
-from abc import ABCMeta, abstractmethod
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
-from typing import *
-from typing import cast
+from pathlib import PurePosixPath
+from typing import Any, Dict, Optional, cast
 
-from ark.properties import PriorityPropDict, gather_properties, stat_value
+from ark.properties import gather_properties
 from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from config import ConfigFile
-from ue.asset import ExportTableItem, UAsset
-from ue.hierarchy import find_sub_classes
 from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure
 
-from .colors import gather_pgd_colors
 from .export_asb_values import values_for_species, values_from_pgd
 
 __all__ = [

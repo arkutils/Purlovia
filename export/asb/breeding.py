@@ -1,8 +1,9 @@
-from typing import *
+from typing import Any, Dict
 
 import ark.mod
 from ark.defaults import *
 from ark.properties import stat_value
+from ark.types import PrimalDinoStatusComponent, PrimalDinoCharacter
 from ue.loader import AssetLoader
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
@@ -12,7 +13,8 @@ __all__ = [
 ]
 
 
-def gather_breeding_data(char_props, dcsc_props, props, loader: AssetLoader) -> Dict[str, Any]:
+def gather_breeding_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent, props,
+                         loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
     gestation_breeding = stat_value(props, 'bUseBabyGestation', 0, False)
