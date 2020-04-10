@@ -82,6 +82,6 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
 
 
 def _get_dcscs_for_species(asset: UAsset) -> Iterable[ExportTableItem]:
-    for cmp_export in ark.asset.findSubComponentExports(asset):
+    for cmp_export in reversed(list(ark.asset.findSubComponentExports(asset))):
         if inherits_from(cmp_export, DCSC_CLS, safe=True):
             yield cmp_export
