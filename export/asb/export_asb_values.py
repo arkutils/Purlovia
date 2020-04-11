@@ -143,7 +143,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     # ImmobilizedBy format data
     immobilization_data = None
     try:
-        immobilization_data = gather_immobilization_data(char_props, dcsc_props, props, asset.loader)
+        immobilization_data = gather_immobilization_data(char_props, asset.loader)
     except (AssetNotFound, ModNotFound) as ex:
         logger.warning(f'Failure while gathering immobilization data for {asset.assetname}:\n\t{ex}')
     if immobilization_data is not None:
