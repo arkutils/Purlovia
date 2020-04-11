@@ -124,7 +124,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    species['fullStatsRaw'] = gather_stat_data(char_props, dcsc_props, props, ARK_STAT_INDEXES)
+    species['fullStatsRaw'] = gather_stat_data(dcsc_props, ARK_STAT_INDEXES)
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
