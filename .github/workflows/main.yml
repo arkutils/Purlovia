@@ -53,6 +53,8 @@ jobs:
 
     - name: Check for vulnerable deps
       run: pipenv run check
+      env:
+        PIPENV_PYUP_API_KEY: ""
 
 #     - name: Run format check
 #       run: pipenv run tests-nogame
@@ -60,7 +62,7 @@ jobs:
     - name: Run tests
       run: pipenv run tests-nogame
 
-    - name: Run linting
+    - name: Run type checking
       run: pipenv run mypy
 
     # - name: Save test results
