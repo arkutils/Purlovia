@@ -1,13 +1,11 @@
 from logging import NullHandler, getLogger
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
-import ark.mod
 import ue.gathering
 from ark.overrides import OverrideSettings, any_regexes_match
-from ark.properties import PriorityPropDict, stat_value
-from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData, PrimalItem_Dye
+from ark.types import PrimalColorSet, PrimalDinoCharacter, PrimalGameData, PrimalItem_Dye
 from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetNotFound
+from ue.loader import AssetLoader
 from ue.properties import UEBase
 
 __all__ = [
@@ -62,53 +60,40 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
 
 
 # TODO: Requires conversion to the Proxy system
-def gather_color_data(asset: UAsset, char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent,
-                      props: PriorityPropDict, overrides: OverrideSettings):
+def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings):
     '''Gather color region definitions for a species.'''
-    assert asset and asset.loader and asset.assetname
-    loader: AssetLoader = asset.loader
-
     settings = overrides.color_regions
-
     colors: List[Dict] = list()
-    male_colorset = props['RandomColorSetsMale'][0][-1]
-    female_colorset = props['RandomColorSetsFemale'][0][-1]
 
-    male_colorset_props: Optional[PriorityPropDict] = None
-    female_colorset_props: Optional[PriorityPropDict] = None
-
-    # Choose which color set to use
-    if male_colorset and male_colorset.value and male_colorset.value.value:
-        try:
-            male_colorset_props = ark.mod.gather_properties(loader.load_related(male_colorset))
-        except AssetNotFound as ex:
-            logger.warning(f'Unable to load male colorset for {asset.assetname}:\n\t{ex}')
-    if female_colorset and female_colorset.value and female_colorset.value.value:
-        try:
-            female_colorset_props = ark.mod.gather_properties(loader.load_related(female_colorset))
-        except AssetNotFound as ex:
-            logger.warning(f'Unable to load female colorset for {asset.assetname}:\n\t{ex}')
+    try:
+        male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]
+    except ValueError:
+        male_colorset_props = None
+    try:
+        female_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsFemale[0]
+    except ValueError:
+        female_colorset_props = None
 
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
     if not colorset_props:
         return None
 
-    if stat_value(props, 'bIsCorrupted', 0, False):
+    if char_props.bIsCorrupted[0]:
         return colors
 
     # Export a list of color names for each region
     for i in range(NUM_REGIONS):
-        prevent_region = stat_value(props, 'PreventColorizationRegions', i, 0)
+        prevent_region = char_props.PreventColorizationRegions[i]
         color: Dict[str, Any] = dict()
         color_names: Set[str] = set()
 
         if prevent_region:
             color['name'] = None
-        elif i not in colorset_props['ColorSetDefinitions']:
+        elif i not in colorset_props.ColorSetDefinitions:
             color['name'] = None
         else:
-            color_set_defs: Dict[str, UEBase] = colorset_props['ColorSetDefinitions'][i][-1].as_dict()
+            color_set_defs: Dict[str, UEBase] = colorset_props.ColorSetDefinitions[i].as_dict()
 
             if 'ColorEntryNames' in color_set_defs:
                 for color_name in color_set_defs['ColorEntryNames'].values:

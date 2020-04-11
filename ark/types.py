@@ -17,6 +17,7 @@ PRIMAL_ITEM_CLS = '/Script/ShooterGame.PrimalItem'
 PRIMAL_ITEM_DYE_CLS = '/Script/ShooterGame.PrimalItem_Dye'
 PRIMAL_DINO_SETTINGS_CLS = '/Script/ShooterGame.PrimalDinoSettings'
 SHOOTER_CHR_MOVEMENT_CLS = '/Script/ShooterGame.ShooterCharacterMovement'
+PRIMAL_COLOR_SET_CLS = '/Script/ShooterGame.PrimalColorSet'
 
 DCSC_CLS = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP.DinoCharacterStatusComponent_BP_C'
 DINO_CHR_CLS = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP.Dino_Character_BP_C'
@@ -149,6 +150,13 @@ class DinoCharacterStatusComponent(PrimalDinoStatusComponent, uetype=DCSC_CLS):
     pass
 
 
+class PrimalColorSet(UEProxyStructure, uetype=PRIMAL_COLOR_SET_CLS):
+    # DevKit Verified
+    ColorSetDefinitions: Mapping[int, ArrayProperty]
+
+    # DevKit Unverified
+
+
 class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # DevKit Verified
 
@@ -202,8 +210,8 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
 
     # Coloring
     BoneDamageAdjusters: Mapping[int, ArrayProperty]  # = []
-    RandomColorSetsFemale: Mapping[int, ObjectProperty]  # = 'None'
-    RandomColorSetsMale: Mapping[int, ObjectProperty]  # = 'None'
+    RandomColorSetsFemale = LazyReference[PrimalColorSet]()
+    RandomColorSetsMale = LazyReference[PrimalColorSet]()
 
     # Attacking
     AttackInfos: Mapping[int, ArrayProperty]

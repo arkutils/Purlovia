@@ -163,7 +163,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     if char_props.bUseColorization[0]:
         colors = None
         try:
-            colors = gather_color_data(asset, char_props, dcsc_props, props, overrides)
+            colors = gather_color_data(char_props, overrides)
         except (AssetNotFound, ModNotFound) as ex:
             logger.warning(f'Failure while gathering color data for {asset.assetname}:\n\t{ex}')
         if colors is not None:
