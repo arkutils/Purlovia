@@ -270,6 +270,10 @@ class ValueProperty(UEBase, Real, ABC):
         assert self.is_serialised
         return -self.value
 
+    def __format__(self, spec):
+        assert self.is_serialised
+        return format(self.value, spec)
+
     __pow__, __rpow__ = make_binary_operators(pow)
     __mod__, __rmod__ = make_binary_operators(operator.mod)
     __add__, __radd__ = make_binary_operators(operator.add)
