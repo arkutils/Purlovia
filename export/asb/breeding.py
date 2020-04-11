@@ -2,7 +2,6 @@ from typing import Any, Dict
 
 import ark.mod
 import ue.gathering
-from ark.defaults import *
 from ark.properties import stat_value
 from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader

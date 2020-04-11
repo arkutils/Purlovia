@@ -1,8 +1,6 @@
 from functools import lru_cache
 from typing import Optional, Set, TypeVar, Union, cast
 
-from ark.defaults import *
-
 from .asset import ExportTableItem
 from .base import UEBase
 from .consts import BLUEPRINT_GENERATED_CLASS_CLS
