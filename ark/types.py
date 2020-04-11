@@ -194,20 +194,20 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     PreventColorizationRegions = uebytes(*repeat(0, COLOR_REGION_COUNT))
 
     # Breeding/reproduction
-    BabyAgeSpeed = uefloats(0.03300000, '022b073d')
-    BabyGestationSpeed = uefloats(0.00003472, 'b4a21138')
+    BabyAgeSpeed = uefloats((0.03300000, '022b073d'))
+    BabyGestationSpeed = uefloats((0.0000347222, 'b4a21138'))
     ExtraBabyAgeSpeedMultiplier = uefloats(FLOAT_1_0)
     ExtraBabyGestationSpeedMultiplier = uefloats(FLOAT_1_0)
     ExtraTamedBaseHealthMultiplier = uefloats(FLOAT_1_0)
     FertilizedEggItemsToSpawn: Mapping[int, ArrayProperty]  # = []
     FemaleMatingTime = uefloats(0.0)
-    NewFemaleMaxTimeBetweenMating = uefloats(172800.00000000, '00c02848')
-    NewFemaleMinTimeBetweenMating = uefloats(64800.00000000, '00207d47')
+    NewFemaleMaxTimeBetweenMating = uefloats((172800.00000000, '00c02848'))
+    NewFemaleMinTimeBetweenMating = uefloats((64800.00000000, '00207d47'))
     RequiredTameAffinity = uefloats(FLOAT_100_0)
-    RequiredTameAffinityPerBaseLevel = uefloats(5.00000000, '0000a040')
-    TameIneffectivenessByAffinity = uefloats(20.00000000, '0000a041')
+    RequiredTameAffinityPerBaseLevel = uefloats((5.00000000, '0000a040'))
+    TameIneffectivenessByAffinity = uefloats((20.00000000, '0000a041'))
     TargetingTeamNameOverride = uestrings('')
-    WakingTameFoodAffinityMultiplier = uefloats(1.60000002, 'cdcccc3f')
+    WakingTameFoodAffinityMultiplier = uefloats((1.60000002, 'cdcccc3f'))
     WakingTameFoodIncreaseMultiplier = uefloats(FLOAT_1_0)
 
     # Coloring
