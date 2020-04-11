@@ -1,6 +1,6 @@
 from typing import *
 
-from ark.common import DCSC_CLS
+from ark.types import DCSC_CLS
 from ue.asset import ExportTableItem, UAsset
 from ue.hierarchy import inherits_from
 

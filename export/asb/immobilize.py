@@ -1,8 +1,8 @@
 import math
 from dataclasses import dataclass, field
-from typing import *
+from typing import Any, List, Optional
 
-from ark.properties import PriorityPropDict, stat_value
+from ark.types import PrimalDinoCharacter
 from ue.loader import AssetLoader
 
 __all__ = [
@@ -32,7 +32,7 @@ immobilization_itemdata: List[ImmobilizingItem] = [
 
 
 def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem]:
-    global immobilization_itemdata  #pylint: disable=global-statement
+    global immobilization_itemdata  # pylint: disable=global-statement
     if immobilization_itemdata:
         return immobilization_itemdata
 
@@ -41,24 +41,24 @@ def ensure_immobilization_itemdata(loader: AssetLoader) -> List[ImmobilizingItem
     raise NotImplementedError
 
 
-def gather_immobilization_data(props: PriorityPropDict, loader: AssetLoader) -> List[str]:
+def gather_immobilization_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> List[str]:
     # Tag is used to identify immobilization targets and compatible saddles
-    # tag = stat_value(props, 'CustomTag', 0, None) or f'<unknown tag for {asset.default_class.name}'
+    # tag = char_props.CustomTag[0] or f'<unknown tag for {asset.default_class.name}'
 
     # Drag weight is used for immobilization calculation and arena entry
-    # dragWeight = stat_value(props, 'DragWeight', 0, None)
+    # dragWeight = char_props.DragWeight[0]
 
     items = ensure_immobilization_itemdata(loader)
     immobilizedBy: List[Any] = []
-    if stat_value(props, 'bPreventImmobilization', 0, False):
+    if char_props.bPreventImmobilization[0]:
         return immobilizedBy
-    if stat_value(props, 'bIsWaterDino', 0, False):
+    if char_props.bIsWaterDino[0]:
         return immobilizedBy
-    weight = stat_value(props, 'DragWeight', 0, 35)
-    mass = stat_value(props, 'Mass', 0, 100.0)
-    is_boss = stat_value(props, 'bIsBossDino', 0, False)
-    tag = stat_value(props, 'CustomTag', 0, None)
-    ignore_traps = stat_value(props, 'bIgnoreAllImmobilizationTraps', 0, False)
+    weight = char_props.DragWeight[0]
+    mass = char_props.CharacterMovement[0].Mass[0].rounded_value
+    is_boss = char_props.bIsBossDino[0]
+    tag = char_props.CustomTag[0]
+    ignore_traps = char_props.bIgnoreAllImmobilizationTraps[0]
     for item in items:
         if item.is_trap and ignore_traps:
             continue

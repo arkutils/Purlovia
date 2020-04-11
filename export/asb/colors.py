@@ -1,13 +1,12 @@
-import warnings
 from logging import NullHandler, getLogger
-from typing import *
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
-import ark.mod
-from ark.overrides import OverrideSettings, any_regexes_match, get_overrides_for_species
-from ark.properties import PriorityPropDict, gather_properties, stat_value
+import ue.gathering
+from ark.overrides import OverrideSettings, any_regexes_match
+from ark.types import PrimalColorSet, PrimalDinoCharacter, PrimalGameData, PrimalItem_Dye
 from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetNotFound
-from ue.properties import LinearColor, UEBase
+from ue.loader import AssetLoader
+from ue.properties import UEBase
 
 __all__ = [
     'gather_pgd_colors',
@@ -23,18 +22,18 @@ NULLABLE_REGION_COLORS = set(['Red'])
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
 
-def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
+def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
                       require_override=True) -> Tuple[Optional[Sequence[ColorEntry]], Optional[Sequence[ColorEntry]]]:
     '''Gather color and dye definitions from a PrimalGameData asset.'''
     colors: Optional[List[ColorEntry]] = list()
     dyes: Optional[List[ColorEntry]] = list()
 
     # Collect the color definitions
-    color_def_overrides = props['ColorDefinitions'][0]
-    if require_override and len(color_def_overrides) == 1:
+    color_def_overrides = props.ColorDefinitions[0]
+    if require_override and color_def_overrides.asset != asset:
         colors = None
     else:
-        color_defs = color_def_overrides[-1].values
+        color_defs = color_def_overrides.values
         colors = list()
         for definition in ((entry.as_dict() for entry in color_defs)):
             name = definition.get('ColorName', None) or '~~unset~~'
@@ -43,68 +42,57 @@ def gather_pgd_colors(props: PriorityPropDict, loader: AssetLoader,
             colors.append((str(name), color))
 
     # Collect the dye definitions
-    dye_def_overrides = props['MasterDyeList'][0]
-    if require_override and len(dye_def_overrides) == 1:
+    dye_def_overrides = props.MasterDyeList[0]
+    if require_override and dye_def_overrides.asset != asset:
         dyes = None
     else:
-        dye_defs = props['MasterDyeList'][0][-1].values
+        dye_defs = dye_def_overrides.values
         dyes = list()
         for dye_asset in (loader.load_related(entry) for entry in dye_defs):
-            dye_props = gather_properties(dye_asset)
-            name = stat_value(dye_props, 'DescriptiveNameBase', 0, None) or '~~unset~~'
-            value = dye_props['DyeColor'][0][-1]
+            assert dye_asset and dye_asset.default_export
+            dye_props: PrimalItem_Dye = ue.gathering.gather_properties(dye_asset.default_export)
+            name = dye_props.DescriptiveNameBase[0] or '~~unset~~'
+            value = dye_props.DyeColor[0]
             color = value.values[0].as_tuple() if value else None
             dyes.append((str(name), color))
 
     return (colors, dyes)
 
 
-def gather_color_data(asset: UAsset, props: PriorityPropDict, overrides: OverrideSettings):
+def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings) -> Optional[List[Dict[str, Any]]]:
     '''Gather color region definitions for a species.'''
-    assert asset and asset.loader and asset.assetname
-    loader: AssetLoader = asset.loader
-
     settings = overrides.color_regions
-
     colors: List[Dict] = list()
-    male_colorset = props['RandomColorSetsMale'][0][-1]
-    female_colorset = props['RandomColorSetsFemale'][0][-1]
 
-    male_colorset_props: Optional[PriorityPropDict] = None
-    female_colorset_props: Optional[PriorityPropDict] = None
-
-    # Choose which color set to use
-    if male_colorset and male_colorset.value and male_colorset.value.value:
-        try:
-            male_colorset_props = ark.mod.gather_properties(loader.load_related(male_colorset))
-        except AssetNotFound as ex:
-            logger.warning(f'Unable to load male colorset for {asset.assetname}:\n\t{ex}')
-    if female_colorset and female_colorset.value and female_colorset.value.value:
-        try:
-            female_colorset_props = ark.mod.gather_properties(loader.load_related(female_colorset))
-        except AssetNotFound as ex:
-            logger.warning(f'Unable to load female colorset for {asset.assetname}:\n\t{ex}')
+    try:
+        male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]
+    except ValueError:
+        male_colorset_props = None
+    try:
+        female_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsFemale[0]
+    except ValueError:
+        female_colorset_props = None
 
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
     if not colorset_props:
         return None
 
-    if stat_value(props, 'bIsCorrupted', 0, False):
+    if char_props.bIsCorrupted[0]:
         return colors
 
     # Export a list of color names for each region
     for i in range(NUM_REGIONS):
-        prevent_region = stat_value(props, 'PreventColorizationRegions', i, 0)
+        prevent_region = char_props.PreventColorizationRegions[i]
         color: Dict[str, Any] = dict()
         color_names: Set[str] = set()
 
         if prevent_region:
             color['name'] = None
-        elif i not in colorset_props['ColorSetDefinitions']:
+        elif i not in colorset_props.ColorSetDefinitions:
             color['name'] = None
         else:
-            color_set_defs: Dict[str, UEBase] = colorset_props['ColorSetDefinitions'][i][-1].as_dict()
+            color_set_defs: Dict[str, UEBase] = colorset_props.ColorSetDefinitions[i].as_dict()
 
             if 'ColorEntryNames' in color_set_defs:
                 for color_name in color_set_defs['ColorEntryNames'].values:

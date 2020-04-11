@@ -2,7 +2,7 @@ from typing import *
 
 import pytest  # type: ignore
 
-from .proxy import UEProxyStructure, proxy_for_type, ueints
+from .proxy import UEProxyStructure, get_proxy_for_exact_type, ueints
 
 # pylint: disable=singleton-comparison  # to ignore `var == False`
 # pylint: disable=redefined-outer-name  # to allow fixture use
@@ -13,7 +13,7 @@ def simple_proxy():
     class SimpleProxy(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    proxy: SimpleProxy = proxy_for_type('DummyType1')
+    proxy: SimpleProxy = get_proxy_for_exact_type('DummyType1')
     assert proxy
     return proxy
 
@@ -71,7 +71,7 @@ def test_has_override(simple_proxy):
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    simple_proxy: Proxy1 = proxy_for_type('DummyType1')
+    simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
 
     assert simple_proxy.has_override('IntField', 0) == False
     assert simple_proxy.has_override('IntField', 1) == False
@@ -86,7 +86,7 @@ def test_unspecified_fields(simple_proxy):
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    simple_proxy: Proxy1 = proxy_for_type('DummyType1')
+    simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
 
     assert simple_proxy.has_override('IntField', 0) == False
     assert simple_proxy.has_override('OtherField', 0) == False

@@ -9,8 +9,6 @@ from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
 from utils.cachefile import cache_data
 
-from .common import CHR_CLS, CHR_PKG, DCSC_CLS, DCSC_PKG
-
 __all__ = [
     'initialise_hierarchy',
 ]

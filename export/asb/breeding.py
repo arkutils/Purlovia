@@ -1,8 +1,8 @@
-from typing import *
+from logging import NullHandler, getLogger
+from typing import Any, Dict
 
-import ark.mod
-from ark.defaults import *
-from ark.properties import stat_value
+import ue.gathering
+from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
@@ -11,47 +11,52 @@ __all__ = [
     'gather_breeding_data',
 ]
 
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
 
-def gather_breeding_data(props, loader: AssetLoader) -> Dict[str, Any]:
+
+def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
-    gestation_breeding = stat_value(props, 'bUseBabyGestation', 0, False)
-    has_eggs = False
-
-    if props['FertilizedEggItemsToSpawn'][0] and props['FertilizedEggItemsToSpawn'][0][-1].values:
-        # eggs = list(filter(lambda v: v and str(v) != 'None', props['FertilizedEggItemsToSpawn'][0][-1].values))
-        eggs = [egg for egg in props['FertilizedEggItemsToSpawn'][0][-1].values if str(egg) != 'None']
-        has_eggs = bool(eggs)
+    gestation_breeding = char_props.bUseBabyGestation[0]
+    fert_eggs = char_props.get('FertilizedEggItemsToSpawn', 0, None)
 
     if gestation_breeding:
-        gestation_speed = stat_value(props, 'BabyGestationSpeed', 0, BABYGESTATIONSPEED_DEFAULT)
-        extra_gestation_speed_m = stat_value(props, 'ExtraBabyGestationSpeedMultiplier', 0, 1.0)
+        gestation_speed = char_props.BabyGestationSpeed[0].rounded_value
+        extra_gestation_speed_m = char_props.ExtraBabyGestationSpeedMultiplier[0].rounded_value
+        try:
+            data['gestationTime'] = cd(1 / gestation_speed / extra_gestation_speed_m)
+        except ZeroDivisionError:
+            logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its gestationTime")
 
-        # TODO: Verify if these should really default to 1 - seems odd
-        gestation_speed = gestation_speed or 1
-        extra_gestation_speed_m = extra_gestation_speed_m or 1
-        # 'gestationTime' = 1 / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplier)
-        data['gestationTime'] = cd((1 / gestation_speed /
-                                    extra_gestation_speed_m) if gestation_speed and extra_gestation_speed_m else None)
+    elif fert_eggs and fert_eggs.values:
+        eggs = [egg for egg in fert_eggs.values if str(egg) != 'None']
 
-    elif has_eggs:
-        fert_egg_asset = loader.load_related(eggs[0])
-        fert_egg_props = ark.mod.gather_properties(fert_egg_asset)
-        egg_decay = stat_value(fert_egg_props, 'EggLoseDurabilityPerSecond', 0, 1)
-        extra_egg_decay_m = stat_value(fert_egg_props, 'ExtraEggLoseDurabilityPerSecondMultiplier', 0, 1)
+        if eggs:
+            fert_egg_asset = loader.load_related(eggs[0])
+            assert fert_egg_asset.default_export
+            egg_props: PrimalItem = ue.gathering.gather_properties(fert_egg_asset.default_export)
+            egg_decay = egg_props.EggLoseDurabilityPerSecond[0].rounded_value
+            extra_egg_decay_m = egg_props.ExtraEggLoseDurabilityPerSecondMultiplier[0].rounded_value
 
-        # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
-        data['incubationTime'] = cd((100 / egg_decay / extra_egg_decay_m) if egg_decay and extra_egg_decay_m else None)
-        data['eggTempMin'] = cf(stat_value(fert_egg_props, 'EggMinTemperature', 0))
-        data['eggTempMax'] = cf(stat_value(fert_egg_props, 'EggMaxTemperature', 0))
+            # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
+            try:
+                data['incubationTime'] = cd(100 / egg_decay / extra_egg_decay_m)
+            except ZeroDivisionError:
+                logger.warning(
+                    f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its incubationTime")
+            data['eggTempMin'] = egg_props.EggMinTemperature[0]
+            data['eggTempMax'] = egg_props.EggMaxTemperature[0]
 
     # 'maturationTime' = 1 / (Baby Age Speed × Extra Baby Age Speed Multiplier)
-    baby_age_speed = stat_value(props, 'BabyAgeSpeed', 0, 1)
-    extra_baby_age_speed_m = stat_value(props, 'ExtraBabyAgeSpeedMultiplier', 0, 1)
+    baby_age_speed = char_props.BabyAgeSpeed[0].rounded_value
+    extra_baby_age_speed_m = char_props.ExtraBabyAgeSpeedMultiplier[0].rounded_value
 
-    data['maturationTime'] = cd((1 / baby_age_speed /
-                                 extra_baby_age_speed_m) if baby_age_speed and extra_baby_age_speed_m else None)
-    data['matingCooldownMin'] = cf(stat_value(props, 'NewFemaleMinTimeBetweenMating', 0, FEMALE_MINTIMEBETWEENMATING_DEFAULT))
-    data['matingCooldownMax'] = cf(stat_value(props, 'NewFemaleMaxTimeBetweenMating', 0, FEMALE_MAXTIMEBETWEENMATING_DEFAULT))
+    try:
+        data['maturationTime'] = cd(1 / baby_age_speed / extra_baby_age_speed_m)
+    except ZeroDivisionError:
+        logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its maturationTime")
+    data['matingCooldownMin'] = char_props.NewFemaleMinTimeBetweenMating[0]
+    data['matingCooldownMax'] = char_props.NewFemaleMaxTimeBetweenMating[0]
 
     return data

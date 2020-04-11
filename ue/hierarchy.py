@@ -24,6 +24,7 @@ __all__ = [
     'find_sub_classes',
     'find_parent_classes',
     'load_internal_hierarchy',
+    'explore_asset',
     'explore_path',
     'iterate_all',
 ]
@@ -188,6 +189,12 @@ def load_internal_hierarchy(filename: Path):
                 walk_hierarchy_yaml(key, subvalue)
 
     walk_hierarchy_yaml(ROOT_NAME, hierarchy_config[ROOT_NAME])
+
+
+def explore_asset(assetname: str, loader: AssetLoader):
+    asset = loader[assetname]
+    assert asset.file_ext
+    _ingest_asset(asset, loader, asset.file_ext)
 
 
 def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbose=False, disable_debug=False):
