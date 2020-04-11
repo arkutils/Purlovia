@@ -2,7 +2,6 @@ from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import Any, Dict, Optional, cast
 
-from ark.properties import gather_properties
 from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.loader import AssetLoadException
@@ -57,24 +56,17 @@ class SpeciesStage(JsonHierarchyExportStage):
 
         return None
 
-    def extract(self, proxy: UEProxyStructure) -> Any:
+    def extract(self, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
         char = cast(PrimalDinoCharacter, proxy)
         asset = proxy.get_source().asset
         asset_name = asset.assetname
 
         # Extract the species!
-        # ...gather...
         try:
-            props = gather_properties(asset)
+            species_data = values_for_species(asset, char)
         except AssetLoadException as ex:
             logger.warning(f'Gathering properties failed for {asset_name}: %s', str(ex))
             return None
-        except Exception:  # pylint: disable=broad-except
-            logger.warning(f'Gathering properties failed for {asset_name}', exc_info=True)
-            return None
-
-        try:
-            species_data = values_for_species(asset, props, char)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
             return None

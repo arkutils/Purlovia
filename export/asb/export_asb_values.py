@@ -1,10 +1,9 @@
 from logging import NullHandler, getLogger
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import ark.gathering
 import ue.gathering
 from ark.overrides import OverrideSettings, get_overrides_for_species
-from ark.properties import PriorityPropDict
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from export.asb.bones import gather_damage_mults
@@ -80,7 +79,7 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
     return bool(variants & skip_variants)
 
 
-def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDinoCharacter):
+def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Dict[str, Any]]:
     assert asset.loader and asset.default_export and asset.default_class and asset.default_class.fullname
 
     char_props: PrimalDinoCharacter = ue.gathering.gather_properties(asset.default_export)
@@ -90,12 +89,12 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     name = (str(char_props.DescriptiveName[0]) or str(char_props.DinoNameTag[0])).strip()
     if not name:
         logger.debug(f"Species {asset.assetname} has no DescriptiveName or DinoNameTag - skipping")
-        return
+        return None
 
     # Also consider anything that doesn't override any base status value as non-spawnable
     if not any(dcsc_props.has_override('MaxStatusValues', n) for n in ARK_STAT_INDEXES):
         logger.debug(f"Species {asset.assetname} has no overridden stats - skipping")
-        return
+        return None
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
 
@@ -103,7 +102,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     overrides = get_overrides_for_species(asset.assetname, modid)
 
     if overrides.skip_export:
-        return
+        return None
 
     bp: str = asset.default_class.fullname
     if bp.endswith('_C'):
@@ -116,7 +115,7 @@ def values_for_species(asset: UAsset, props: PriorityPropDict, proxy: PrimalDino
     variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(proxy)
     if variants:
         if should_skip_from_variants(variants, overrides):
-            return
+            return None
         name = adjust_name_from_variants(name, variants, overrides)
 
     species: Dict[str, Any] = dict(name=name, blueprintPath=bp)

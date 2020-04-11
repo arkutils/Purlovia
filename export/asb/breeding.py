@@ -1,8 +1,6 @@
 from typing import Any, Dict
 
-import ark.mod
 import ue.gathering
-from ark.properties import stat_value
 from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader
 from ue.utils import clean_double as cd

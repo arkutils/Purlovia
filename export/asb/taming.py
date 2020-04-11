@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 
-from ark.properties import stat_value
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf

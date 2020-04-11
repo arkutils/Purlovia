@@ -59,8 +59,7 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
     return (colors, dyes)
 
 
-# TODO: Requires conversion to the Proxy system
-def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings):
+def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings) -> Optional[List[Dict[str, Any]]]:
     '''Gather color region definitions for a species.'''
     settings = overrides.color_regions
     colors: List[Dict] = list()
