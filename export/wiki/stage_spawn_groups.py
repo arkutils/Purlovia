@@ -110,7 +110,7 @@ def convert_single_class_swap(d):
         'weights': d['Weights'],
     }
 
-    if d['ActiveEvent'].value and d['ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
+    if d['ActiveEvent'] and d['ActiveEvent'].value and d['ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
         v['during'] = d['ActiveEvent']
 
     return v
