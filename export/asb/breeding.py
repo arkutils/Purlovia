@@ -25,10 +25,11 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
     fert_eggs = char_props.get('FertilizedEggItemsToSpawn', 0, None)
 
     if gestation_breeding:
-        gestation_speed = char_props.BabyGestationSpeed[0].rounded_value
-        extra_gestation_speed_m = char_props.ExtraBabyGestationSpeedMultiplier[0].rounded_value
+        gestation_speed = char_props.BabyGestationSpeed[0]
+        extra_gestation_speed_m = char_props.ExtraBabyGestationSpeedMultiplier[0]
         try:
-            data['gestationTime'] = cd(1 / gestation_speed / extra_gestation_speed_m)
+            # Gestation starts at 1% for mothers so the time remaining is 99% of this value
+            data['gestationTime'] = cd(0.99 / gestation_speed / extra_gestation_speed_m)
         except ZeroDivisionError:
             logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its gestationTime")
 
