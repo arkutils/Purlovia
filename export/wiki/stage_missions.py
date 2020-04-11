@@ -3,11 +3,12 @@ from pathlib import PurePosixPath
 from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from .types import *
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
-from .stage_drops import decode_item_set
+from .missions.dinos import gather_dino_data
+from .missions.rewards import collect_rewards
+from .types import *
 
 __all__ = [
     'MissionsStage',
@@ -41,24 +42,15 @@ class MissionsStage(JsonHierarchyExportStage):
         v['type'] = 'Base'
         v['name'] = mission.MissionDisplayName[0]
         v['description'] = mission.MissionDescription[0]
+        v['canRepeat'] = mission.bRepeatableMission[0]
 
-        v['targetPlayerLevel'] = mission.TargetPlayerLevel[0]
         v['maxPlayers'] = mission.MaxPlayerCount[0]
+        v['targetPlayerLevel'] = mission.TargetPlayerLevel[0]
+        v['cooldown'] = mission.GlobalMissionCooldown[0]
         v['maxDuration'] = mission.MissionMaxDurationSeconds[0]
-        v['globalCooldown'] = mission.GlobalMissionCooldown[0]
-        v['canBeRepeated'] = mission.bRepeatableMission[0]
 
-        v['dinos'] = dict()
-        if mission.has_override('MissionWildDinoOutgoingDamageScale') or mission.has_override(
-                'MissionWildDinoIncomingDamageScale'):
-            v['dinos']['incomingScaleW'] = mission.MissionWildDinoIncomingDamageScale[0]
-            v['dinos']['outgoingScaleW'] = mission.MissionWildDinoOutgoingDamageScale[0]
-
-        v['rewards'] = dict(
-            hexagons=_convert_hexagon_values(mission),
-            itemCount=mission.RewardItemCount[0],
-            items=_convert_item_rewards(mission),
-        )
+        v['dinos'] = gather_dino_data(mission)
+        v['rewards'] = collect_rewards(mission)
 
         _get_more_values(mission, v)
 
@@ -104,34 +96,3 @@ def _get_more_values(mission: MissionType, v: Dict[str, Any]):
         if isinstance(mission, MissionType_Basketball):
             _basketball = cast(MissionType_Basketball, _sport)
             v['type'] = 'SportBasketball'
-
-
-def _convert_item_rewards(mission: MissionType):
-    d = mission.get('CustomItemSets', fallback=None)
-    v = list()
-
-    if d:
-        for itemset in d.values:
-            v.append(decode_item_set(itemset))
-
-    return dict(
-        qtyScale=(mission.MinItemSets[0], mission.MaxItemSets[0]),
-        sets=v,
-    )
-
-
-def _convert_hexagon_values(mission: MissionType) -> Dict[str, Any]:
-    v: Dict[str, Any] = dict()
-
-    v['qty'] = mission.HexagonsOnCompletion[0]
-    if mission.bDivideHexogonsOnCompletion[0]:
-        v['split'] = True
-    if mission.has_override('FirstTimeCompletionHexagonRewardBonus'):
-        v['firstTimeBonus'] = mission.FirstTimeCompletionHexagonRewardBonus[0]
-
-    # Type-specific extra data
-    if isinstance(mission, MissionType_Hunt):
-        hunt = cast(MissionType_Hunt, mission)
-        v['lastHitBonus'] = hunt.LastHitAdditionalHexagons[0]
-
-    return v
