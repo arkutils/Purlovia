@@ -11,7 +11,7 @@ __all__ = [
 IS_PERCENT_STAT = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1)
 
 
-def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, statIndexes: Tuple[int]):
+def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, statIndexes: Tuple[int, ...]):
     statsArray = list()
 
     iw_values: List[float] = list()
