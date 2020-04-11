@@ -1,3 +1,4 @@
+from logging import NullHandler, getLogger
 from typing import Any, Dict
 
 import ue.gathering
@@ -10,6 +11,9 @@ __all__ = [
     'gather_breeding_data',
 ]
 
+logger = getLogger(__name__)
+logger.addHandler(NullHandler())
+
 
 def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
@@ -20,8 +24,10 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
     if gestation_breeding:
         gestation_speed = char_props.BabyGestationSpeed[0].rounded_value
         extra_gestation_speed_m = char_props.ExtraBabyGestationSpeedMultiplier[0].rounded_value
-        data['gestationTime'] = cd((1 / gestation_speed /
-                                    extra_gestation_speed_m) if gestation_speed and extra_gestation_speed_m else None)
+        try:
+            data['gestationTime'] = cd(1 / gestation_speed / extra_gestation_speed_m)
+        except ZeroDivisionError:
+            logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its gestationTime")
 
     elif fert_eggs and fert_eggs.values:
         eggs = [egg for egg in fert_eggs.values if str(egg) != 'None']
@@ -34,7 +40,11 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
             extra_egg_decay_m = egg_props.ExtraEggLoseDurabilityPerSecondMultiplier[0].rounded_value
 
             # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
-            data['incubationTime'] = cd((100 / egg_decay / extra_egg_decay_m) if egg_decay and extra_egg_decay_m else None)
+            try:
+                data['incubationTime'] = cd(100 / egg_decay / extra_egg_decay_m)
+            except ZeroDivisionError:
+                logger.warning(
+                    f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its incubationTime")
             data['eggTempMin'] = egg_props.EggMinTemperature[0]
             data['eggTempMax'] = egg_props.EggMaxTemperature[0]
 
@@ -42,8 +52,10 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
     baby_age_speed = char_props.BabyAgeSpeed[0].rounded_value
     extra_baby_age_speed_m = char_props.ExtraBabyAgeSpeedMultiplier[0].rounded_value
 
-    data['maturationTime'] = cd((1 / baby_age_speed /
-                                 extra_baby_age_speed_m) if baby_age_speed and extra_baby_age_speed_m else None)
+    try:
+        data['maturationTime'] = cd(1 / baby_age_speed / extra_baby_age_speed_m)
+    except ZeroDivisionError:
+        logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its maturationTime")
     data['matingCooldownMin'] = char_props.NewFemaleMinTimeBetweenMating[0]
     data['matingCooldownMax'] = char_props.NewFemaleMaxTimeBetweenMating[0]
 
