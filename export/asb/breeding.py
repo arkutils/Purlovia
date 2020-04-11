@@ -18,6 +18,9 @@ logger.addHandler(NullHandler())
 def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
+    if not char_props.bPreventMating[0]:
+        data['matingTime'] = cf(char_props.FemaleMatingTime[0])
+
     gestation_breeding = char_props.bUseBabyGestation[0]
     fert_eggs = char_props.get('FertilizedEggItemsToSpawn', 0, None)
 
