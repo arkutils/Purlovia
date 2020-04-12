@@ -20,12 +20,6 @@ class TradesStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
         return "1"
 
-    def get_name(self):
-        return 'trades'
-
-    def get_field(self) -> str:
-        return "trades"
-
     def get_use_pretty(self) -> bool:
         return bool(self.manager.config.export_wiki.PrettyJson)
 

@@ -1,9 +1,7 @@
 from logging import NullHandler, getLogger
-from pathlib import PurePosixPath
-from typing import *
+from typing import Any, Dict, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 from .missions.dinos import gather_dino_data
@@ -24,9 +22,6 @@ class MissionsStage(JsonHierarchyExportStage):
 
     def get_name(self):
         return 'missions'
-
-    def get_field(self) -> str:
-        return "missions"
 
     def get_use_pretty(self) -> bool:
         return bool(self.manager.config.export_wiki.PrettyJson)
