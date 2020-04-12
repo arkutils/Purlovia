@@ -1,17 +1,18 @@
-from typing import *
+from typing import Dict, Optional
 
-from ark.properties import PriorityPropDict
+from ark.types import PrimalDinoCharacter
 
 __all__ = [
     'gather_damage_mults',
 ]
 
 
-def gather_damage_mults(props: PriorityPropDict) -> Optional[Dict[str, float]]:
-    if not props['BoneDamageAdjusters'][0]:
+def gather_damage_mults(char_props: PrimalDinoCharacter) -> Optional[Dict[str, float]]:
+    damage_adjusters = char_props.get('BoneDamageAdjusters', 0, None)
+    if not damage_adjusters:
         return None
 
-    adjusters = props['BoneDamageAdjusters'][0][-1].values
+    adjusters = damage_adjusters.values
 
     result = dict()
     for bone_info in adjusters:

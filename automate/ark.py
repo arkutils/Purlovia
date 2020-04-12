@@ -164,10 +164,12 @@ class ArkSteamManager:
 
         # Calculate mods that need fetching (adds + outdated keeps)
         def isOutdated(existing_data, workshop_details):
+            if existing_data is None or workshop_details is None:
+                return True
             return int(workshop_details['time_updated']) > int(existing_data['version'])
 
         modids_update = set(modid for modid in modids_requested
-                            if isOutdated(self.mod_data_cache[modid], self.steam_mod_details[modid]))
+                            if isOutdated(self.mod_data_cache.get(modid, None), self.steam_mod_details.get(modid, None)))
         modids_update = modids_update | modids_add
 
         # Fetch updated mods, then unpack

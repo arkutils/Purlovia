@@ -1,20 +1,12 @@
-from abc import ABCMeta, abstractmethod
 from logging import NullHandler, getLogger
-from pathlib import Path, PurePosixPath
-from typing import *
-from typing import cast
+from pathlib import PurePosixPath
+from typing import Any, Dict, Optional, cast
 
-from ark.common import PGD_PKG
-from ark.properties import PriorityPropDict, gather_properties, stat_value
-from ark.types import PrimalDinoCharacter
+from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from config import ConfigFile
-from ue.asset import ExportTableItem, UAsset
-from ue.hierarchy import find_sub_classes
 from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure
 
-from .colors import gather_pgd_colors
 from .export_asb_values import values_for_species, values_from_pgd
 
 __all__ = [
@@ -59,29 +51,22 @@ class SpeciesStage(JsonHierarchyExportStage):
                 return values_from_pgd(pgd_asset, require_override=True)
         else:
             # Return the colours from the main PGD
-            pgd_asset = self.manager.loader[PGD_PKG]
+            pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
             return values_from_pgd(pgd_asset, require_override=False)
 
         return None
 
-    def extract(self, proxy: UEProxyStructure) -> Any:
+    def extract(self, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
         char = cast(PrimalDinoCharacter, proxy)
         asset = proxy.get_source().asset
         asset_name = asset.assetname
 
         # Extract the species!
-        # ...gather...
         try:
-            props = gather_properties(asset)
+            species_data = values_for_species(asset, char)
         except AssetLoadException as ex:
             logger.warning(f'Gathering properties failed for {asset_name}: %s', str(ex))
             return None
-        except Exception:  # pylint: disable=broad-except
-            logger.warning(f'Gathering properties failed for {asset_name}', exc_info=True)
-            return None
-
-        try:
-            species_data = values_for_species(asset, props, char, allFields=True, includeBreeding=True, includeColor=True)
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {asset_name}', exc_info=True)
             return None

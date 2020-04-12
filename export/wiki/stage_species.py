@@ -5,7 +5,7 @@ from typing import cast
 
 from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
-from ark.types import DCSC, PrimalDinoCharacter
+from ark.types import PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset

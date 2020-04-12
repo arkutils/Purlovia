@@ -71,7 +71,7 @@ def inflate_swap_rules(random_class_weights):
         rule['weights'] = weights
 
 
-def apply_ideal_swaps_to_entry(entry, class_swaps):
+def apply_ideal_swaps_to_entry(entry, class_swaps, only_events=False):
     '''
     Recalculates classes and their weights to include class swaps of specific entries.
     Returns new lists of classes and weights.
@@ -85,8 +85,12 @@ def apply_ideal_swaps_to_entry(entry, class_swaps):
 
         swap_rule = class_swaps.get(dino_class, None)
         if swap_rule:
+            # Skip if disallowed in the map
+            if only_events and 'during' not in swap_rule:
+                continue
+
             # Make new entries. Swap occurs.
-            # Fix up the swap
+            # Fix the swap up
             swap_weights = swap_rule['weights']
             rule_weight_sum = sum(swap_weights)
             swap_weights = [weight / rule_weight_sum for weight in swap_weights]
@@ -117,7 +121,7 @@ def apply_ideal_grouplevel_swaps(spawngroups):
                 entry['classes'], entry['classWeights'] = apply_ideal_swaps_to_entry(entry, class_swaps)
 
 
-def apply_ideal_global_swaps(spawngroups, random_class_weights):
+def apply_ideal_global_swaps(spawngroups, random_class_weights, only_events=False):
     '''
     Recalculates classes and weights of all groups to include global swaps.
     Does not copy the input.
@@ -125,7 +129,7 @@ def apply_ideal_global_swaps(spawngroups, random_class_weights):
     class_swaps = make_random_class_weights_dict(random_class_weights)
     for container in spawngroups:
         for entry in container['entries']:
-            entry['classes'], entry['classWeights'] = apply_ideal_swaps_to_entry(entry, class_swaps)
+            entry['classes'], entry['classWeights'] = apply_ideal_swaps_to_entry(entry, class_swaps, only_events)
 
 
 def copy_spawn_groups(spawngroups):

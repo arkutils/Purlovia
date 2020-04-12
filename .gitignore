@@ -5,6 +5,7 @@ logs/
 asb_json/
 id_*
 tmp/
+.vs/
 
 # Python profiling output
 *.prof

@@ -199,8 +199,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         apply_ideal_global_swaps(spawngroups, map_swaps)
 
         # Apply global swaps if allowed
-        if allows_global_swaps:
-            apply_ideal_global_swaps(spawngroups, spawndata.global_swaps)
+        apply_ideal_global_swaps(spawngroups, spawndata.global_swaps, only_events=not allows_global_swaps)
 
         # Generate maps for every species
         for export_class, blueprints in spawndata.species.items():

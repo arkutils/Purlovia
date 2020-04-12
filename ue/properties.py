@@ -262,8 +262,6 @@ class ValueProperty(UEBase, Real, ABC):
         assert self.is_serialised
         return int(self.value)
 
-    __nonzero__ = __bool__
-
     def __pos__(self):
         assert self.is_serialised
         return self.value
@@ -271,6 +269,10 @@ class ValueProperty(UEBase, Real, ABC):
     def __neg__(self):
         assert self.is_serialised
         return -self.value
+
+    def __format__(self, spec):
+        assert self.is_serialised
+        return format(self.value, spec)
 
     __pow__, __rpow__ = make_binary_operators(pow)
     __mod__, __rmod__ = make_binary_operators(operator.mod)

@@ -873,8 +873,18 @@ species:
             region_names:
                 0: "Skins"
                 1: "Back"
+                3: null
                 4: "Underside"
                 5: "Horn"
+    /Game/Genesis/Dinos/BiomeVariants/Snow_WoollyRhino/Snow_Rhino_Character_BP:
+        color_regions:
+            region_names:
+                0: "Underside"
+                1: "Skin Accent"
+                2: "Upper Fur Stripes"
+                3: "Back"
+                4: "Skin"
+                5: "Lower Fur Stripes"
     /Game/ScorchedEarth/Dinos/Camelsaurus/camelsaurus_Character_BP:
         color_regions:
             region_names:

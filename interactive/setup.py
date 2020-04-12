@@ -4,7 +4,6 @@ from logging import INFO, NullHandler, basicConfig, getLogger
 from pathlib import Path
 from typing import *
 
-from ark.common import *
 from ark.discovery import initialise_hierarchy
 from ark.types import *
 from automate.ark import ArkSteamManager

@@ -1,7 +1,5 @@
 from functools import lru_cache
-from typing import *
-
-from ark.defaults import *
+from typing import Optional, Set, TypeVar, Union, cast
 
 from .asset import ExportTableItem
 from .base import UEBase
@@ -9,7 +7,7 @@ from .consts import BLUEPRINT_GENERATED_CLASS_CLS
 from .hierarchy import find_parent_classes
 from .loader import AssetLoader
 from .properties import ObjectProperty
-from .proxy import UEProxyStructure, proxy_for_type
+from .proxy import UEProxyStructure, get_proxy_for_type
 from .tree import is_fullname_an_asset
 
 __all__ = [
@@ -20,31 +18,27 @@ __all__ = [
 Tproxy = TypeVar('Tproxy', bound=UEProxyStructure)
 
 
-def gather_properties(export: ExportTableItem) -> Tproxy:
+def gather_properties(export: Union[ExportTableItem, ObjectProperty]) -> Tproxy:
     '''Collect properties from an export, respecting the inheritance tree.'''
     if isinstance(export, ObjectProperty):
-        return gather_properties(export.value)
+        return gather_properties(cast(ExportTableItem, export.value))
 
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
 
+    assert export.fullname
+    assert export.asset and export.asset.loader
     loader = export.asset.loader
+    proxy: Tproxy = get_proxy_for_type(export.fullname, loader)
 
-    # Find the most specific proxy type defined
-    chain = list(find_parent_classes(export, include_self=True))
-    proxy = None
-    for baseclass_fullname in chain:
-        proxy = proxy_for_type(baseclass_fullname)
-        if proxy:
-            break
-    else:
+    if not proxy:
         raise TypeError(f"No proxy type available for {export.fullname}")
 
     proxy.set_source(export)
 
     # Now fill properties in, starting from the bottom-most baseclass
     done: Set[ExportTableItem] = set()
-    for fullname in reversed(chain):
+    for fullname in reversed(list(find_parent_classes(export, include_self=True))):
         # Ignore classes outside /Game as they are not loadable assets
         # ...and their default values should already be built in to the proxies
         if not is_fullname_an_asset(fullname):

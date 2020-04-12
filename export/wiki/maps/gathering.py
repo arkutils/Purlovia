@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
+from export.wiki.stage_spawn_groups import convert_single_class_swap
 from export.wiki.types import *
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
@@ -137,12 +138,9 @@ class WorldSettingsExport(MapGathererBase):
                 big=settings.get('OverrideUIMapTextureFilled', 0, None),
                 small=settings.get('OverrideUIMapTextureSmall', 0, None),
             ),
-            randomNPCClassWeights=[{
-                'from': struct.get_property('FromClass'),
-                'exact': struct.get_property('bExactMatch'),
-                'to': struct.get_property('ToClasses'),
-                'weights': struct.get_property('Weights'),
-            } for struct in settings.NPCRandomSpawnClassWeights[0].values] if 'NPCRandomSpawnClassWeights' in proxy else [],
+            randomNPCClassWeights=[
+                convert_single_class_swap(struct.as_dict()) for struct in settings.NPCRandomSpawnClassWeights[0].values
+            ] if 'NPCRandomSpawnClassWeights' in proxy else [],
             allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
         )
 
