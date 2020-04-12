@@ -1,4 +1,4 @@
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import Optional
 
 from automate.exporter import ExportRoot
