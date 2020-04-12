@@ -22,7 +22,7 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         "requests>=2.22.0",
-        "pydantic>=0.30.1,<1.0",
+        "pydantic>=1.4",
         "pyyaml>=5.3",
         "psutil>=5.6.6,<5.7",
     ],
