@@ -5,11 +5,12 @@
 from interactive.setup import *  # pylint: disable=wrong-import-order
 
 import ue.hierarchy
+from config import HIERARCHY_FILENAME
 
 #%% Discover
 
 ue.hierarchy.tree.clear()
-ue.hierarchy.load_internal_hierarchy(Path('config/hierarchy.yaml'))
+ue.hierarchy.load_internal_hierarchy(Path(HIERARCHY_FILENAME))
 ue.hierarchy.explore_path('/Game/PrimalEarth/Dinos/Dodo', loader, set())
 
 # ark.discovery.initialise_hierarchy(loader)
