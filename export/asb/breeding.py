@@ -18,7 +18,8 @@ logger.addHandler(NullHandler())
 def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> Dict[str, Any]:
     data: Dict[str, Any] = dict(gestationTime=0, incubationTime=0)
 
-    if not char_props.bPreventMating[0]:
+    can_mate: bool = not char_props.bPreventMating[0]
+    if can_mate:
         data['matingTime'] = cf(char_props.FemaleMatingTime[0])
 
     gestation_breeding = char_props.bUseBabyGestation[0]
@@ -60,7 +61,9 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
         data['maturationTime'] = cd(1 / baby_age_speed / extra_baby_age_speed_m)
     except ZeroDivisionError:
         logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its maturationTime")
-    data['matingCooldownMin'] = char_props.NewFemaleMinTimeBetweenMating[0]
-    data['matingCooldownMax'] = char_props.NewFemaleMaxTimeBetweenMating[0]
+
+    if can_mate:
+        data['matingCooldownMin'] = char_props.NewFemaleMinTimeBetweenMating[0]
+        data['matingCooldownMax'] = char_props.NewFemaleMaxTimeBetweenMating[0]
 
     return data
