@@ -40,8 +40,8 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
             fert_egg_asset = loader.load_related(eggs[0])
             assert fert_egg_asset.default_export
             egg_props: PrimalItem = ue.gathering.gather_properties(fert_egg_asset.default_export)
-            egg_decay = egg_props.EggLoseDurabilityPerSecond[0].rounded_value
-            extra_egg_decay_m = egg_props.ExtraEggLoseDurabilityPerSecondMultiplier[0].rounded_value
+            egg_decay = egg_props.EggLoseDurabilityPerSecond[0]
+            extra_egg_decay_m = egg_props.ExtraEggLoseDurabilityPerSecondMultiplier[0]
 
             # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
             try:
@@ -53,8 +53,8 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
             data['eggTempMax'] = egg_props.EggMaxTemperature[0]
 
     # 'maturationTime' = 1 / (Baby Age Speed × Extra Baby Age Speed Multiplier)
-    baby_age_speed = char_props.BabyAgeSpeed[0].rounded_value
-    extra_baby_age_speed_m = char_props.ExtraBabyAgeSpeedMultiplier[0].rounded_value
+    baby_age_speed = char_props.BabyAgeSpeed[0]
+    extra_baby_age_speed_m = char_props.ExtraBabyAgeSpeedMultiplier[0]
 
     try:
         data['maturationTime'] = cd(1 / baby_age_speed / extra_baby_age_speed_m)
