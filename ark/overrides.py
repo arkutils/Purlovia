@@ -7,6 +7,7 @@ from typing import *
 
 import yaml
 from pydantic import BaseModel
+from config import OVERRIDE_FILENAME
 
 __all__ = [
     'ColorRegionSettings',
@@ -18,8 +19,6 @@ __all__ = [
     'get_overrides_global',
     'any_regexes_match',
 ]
-
-OVERRIDE_FILENAME = 'config/overrides.yaml'
 
 
 class ColorRegionSettings(BaseModel):

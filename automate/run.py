@@ -9,7 +9,7 @@ from typing import *
 import yaml
 
 import ark.discovery
-from config import ConfigFile, get_global_config
+from config import LOGGING_FILENAME, ConfigFile, get_global_config
 from export.asb.root import ASBRoot
 from export.wiki.root import WikiRoot
 
@@ -30,7 +30,7 @@ ROOT_TYPES = [
 ]
 
 
-def setup_logging(path='config/logging.yaml', level=logging.INFO):
+def setup_logging(path=LOGGING_FILENAME, level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
         with open(path, 'rt') as log_config_file:
@@ -114,7 +114,7 @@ def handle_args(args: Any) -> ConfigFile:
         return config
 
     # Logging can be setup now we know we're not aborting
-    setup_logging(path='config/logging.yaml')
+    setup_logging(path=LOGGING_FILENAME)
 
     if args.live:
         logger.info('LIVE mode enabled')
