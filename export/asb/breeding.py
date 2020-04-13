@@ -20,7 +20,7 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
 
     can_mate: bool = not char_props.bPreventMating[0]
     if can_mate:
-        data['matingTime'] = cf(char_props.FemaleMatingTime[0])
+        data['matingTime'] = round(char_props.FemaleMatingTime[0])
 
     gestation_breeding = char_props.bUseBabyGestation[0]
     fert_eggs = char_props.get('FertilizedEggItemsToSpawn', 0, None)
@@ -30,7 +30,8 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
         extra_gestation_speed_m = char_props.ExtraBabyGestationSpeedMultiplier[0]
         try:
             # Gestation starts at 1% for mothers so the time remaining is 99% of this value
-            data['gestationTime'] = cd(0.99 / gestation_speed / extra_gestation_speed_m)
+            # 'gestationTime' = 99% / (Baby Gestation Speed × Extra Baby Gestation Speed Multiplier)
+            data['gestationTime'] = round(0.99 / gestation_speed / extra_gestation_speed_m)
         except ZeroDivisionError:
             logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its gestationTime")
 
@@ -38,6 +39,7 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
         eggs = [egg for egg in fert_eggs.values if str(egg) != 'None']
 
         if eggs:
+            # Ark only uses the first valid fertilized egg
             fert_egg_asset = loader.load_related(eggs[0])
             assert fert_egg_asset.default_export
             egg_props: PrimalItem = ue.gathering.gather_properties(fert_egg_asset.default_export)
@@ -46,7 +48,7 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
 
             # 'incubationTime' = 100 / (Egg Lose Durability Per Second × Extra Egg Lose Durability Per Second Multiplier)
             try:
-                data['incubationTime'] = cd(100 / egg_decay / extra_egg_decay_m)
+                data['incubationTime'] = round(100 / egg_decay / extra_egg_decay_m)
             except ZeroDivisionError:
                 logger.warning(
                     f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its incubationTime")
@@ -58,7 +60,7 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
     extra_baby_age_speed_m = char_props.ExtraBabyAgeSpeedMultiplier[0]
 
     try:
-        data['maturationTime'] = cd(1 / baby_age_speed / extra_baby_age_speed_m)
+        data['maturationTime'] = round(1 / baby_age_speed / extra_baby_age_speed_m)
     except ZeroDivisionError:
         logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its maturationTime")
 
