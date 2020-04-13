@@ -206,6 +206,7 @@ def run(config: ConfigFile):
     except:  # pylint: disable=bare-except
         handle_exception(logfile='logs/errors.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
+        exit(1)
 
 
 def main():
