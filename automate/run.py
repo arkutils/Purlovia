@@ -70,6 +70,22 @@ def maplist(value: str) -> Tuple[str, ...]:
     return maps
 
 
+class VerifyModsAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        config = get_global_config()
+        mods = modlist(values)
+        for modid in mods:
+            if modid not in config.mods:
+                raise argparse.ArgumentError(self, f"Selected mods must be present in config ({modid})")
+
+        setattr(namespace, self.dest, mods)
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
@@ -88,8 +104,8 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--list-stages', action='store_true', help='display extraction stage options and exit')
 
-    parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
     parser.add_argument('--maps', action='store', type=maplist, help='override which maps to export (comma-separated)')
+    parser.add_argument('--mods', action=VerifyModsAction, help='override which mods to export (comma-separated)')
 
     parser.add_argument('sections',
                         action='store',
