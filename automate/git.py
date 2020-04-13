@@ -20,7 +20,9 @@ MESSAGE_HEADER = "Raptor Claus just dropped some files off"
 class GitManager:
     def __init__(self, config: ConfigFile = None):
         self.config = config or get_global_config()
-        self.git = Git(str(self.config.settings.OutputPath))
+
+        brigit_logger = get_logger('brigit')
+        self.git = Git(str(self.config.settings.OutputPath), logger=brigit_logger)
 
     def before_exports(self):
         if self.config.settings.SkipGit:
