@@ -23,6 +23,7 @@ __all__ = [
 
 
 class ColorRegionSettings(BaseModel):
+    '''Color region settings for species'''
     capitalize: Optional[bool] = None
     default_name: Optional[str] = None
     nullify_name_regexes: Dict[str, str] = dict()
@@ -31,6 +32,7 @@ class ColorRegionSettings(BaseModel):
 
 
 class MapBoundariesSettings(BaseModel):
+    '''Boundary settings for maps'''
     border_top: float = 7.2
     border_left: float = 7.2
     border_right: float = 92.8
@@ -38,6 +40,7 @@ class MapBoundariesSettings(BaseModel):
 
 
 class OverrideSettings(BaseModel):
+    '''Common override settings that can be applied to defaults, mods, maps, and individual species'''
     skip_export: Optional[bool] = False
 
     # Variants, currently only applying to species
@@ -60,10 +63,14 @@ class OverrideSettings(BaseModel):
 
 
 class OverridesFile(BaseModel):
+    '''Purlovia data overrides file'''
     defaults: OverrideSettings = OverrideSettings()
     mods: Dict[str, OverrideSettings] = dict()
     species: Dict[str, OverrideSettings] = dict()
     maps: Dict[str, OverrideSettings] = dict()
+
+    class Config:
+        title = 'Purlova Overrides'
 
 
 DEFAULT_COLORREGIONSETTINGS = ColorRegionSettings(
