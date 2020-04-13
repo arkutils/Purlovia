@@ -1,9 +1,13 @@
 import os
 import zlib
+from logging import NullHandler, getLogger
 from logging.handlers import RotatingFileHandler
+
+from config import ROOT_LOGGER
 
 __all__ = [
     'CompressedRotatingFileHandler',
+    'get_logger',
 ]
 
 
@@ -35,3 +39,10 @@ def rotator_gz(source: str, dest: str):
             df.write(data)
 
     os.remove(source)
+
+
+def get_logger(name):
+    logger = getLogger(ROOT_LOGGER + name)  # pylint: disable=invalid-name
+    logger.addHandler(NullHandler())
+
+    return logger

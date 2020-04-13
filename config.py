@@ -10,12 +10,14 @@ __all__ = [
     'OVERRIDE_FILENAME',
     'LOGGING_FILENAME',
     'HIERARCHY_FILENAME',
+    'ROOT_LOGGER',
 ]
 
 CONFIG_FILENAME = 'config/config.ini'
 OVERRIDE_FILENAME = 'config/overrides.yaml'
 LOGGING_FILENAME = 'config/logging.yaml'
 HIERARCHY_FILENAME = 'config/hierarchy.yaml'
+ROOT_LOGGER = ''
 
 config: Optional[ConfigFile] = None
 

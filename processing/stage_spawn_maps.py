@@ -1,11 +1,11 @@
 import shutil
 from collections import namedtuple
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
+from utils.log import get_logger
 
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
@@ -14,8 +14,7 @@ from .spawn_maps.swaps import apply_ideal_global_swaps, apply_ideal_grouplevel_s
     copy_spawn_groups, fix_up_groups, inflate_swap_rules, make_random_class_weights_dict
 from .stage_base import ProcessingStage
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'ProcessSpawnMapsStage',

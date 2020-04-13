@@ -12,6 +12,7 @@ import ark.discovery
 from config import LOGGING_FILENAME, ConfigFile, get_global_config
 from export.asb.root import ASBRoot
 from export.wiki.root import WikiRoot
+from utils.log import get_logger
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
@@ -21,8 +22,7 @@ from .run_sections import parse_runlist, should_run_section
 
 # pylint: enable=invalid-name
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-logger.addHandler(logging.NullHandler())
+logger = get_logger(__name__)
 
 ROOT_TYPES = [
     ASBRoot,

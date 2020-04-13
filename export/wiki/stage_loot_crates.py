@@ -1,10 +1,10 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 from .stage_drops import _get_item_sets_override, decode_item_set, get_loot_sets
 
@@ -12,8 +12,8 @@ __all__ = [
     'LootCratesStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+logger = get_logger(__name__)
 
 
 class LootCratesStage(JsonHierarchyExportStage):

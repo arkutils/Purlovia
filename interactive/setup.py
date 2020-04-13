@@ -1,6 +1,6 @@
 from interactive_utils import *  # pylint: disable=wrong-import-order
 
-from logging import INFO, NullHandler, basicConfig, getLogger
+from logging import INFO, basicConfig
 from pathlib import Path
 from typing import *
 
@@ -12,14 +12,14 @@ from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import find_parent_classes, find_sub_classes, inherits_from
 from ue.loader import AssetLoader, AssetNotFound
+from utils.log import get_logger
 
 is_interactive = bool(getattr(sys, 'ps1', sys.flags.interactive))
 
 if is_interactive:
     basicConfig(level=INFO)
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 config = get_global_config()
 config.settings.SkipInstall = True

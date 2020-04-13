@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from typing import Any, Dict
 
 import ue.gathering
@@ -6,13 +5,13 @@ from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
+from utils.log import get_logger
 
 __all__ = [
     'gather_breeding_data',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -> Dict[str, Any]:

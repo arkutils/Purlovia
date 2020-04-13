@@ -1,19 +1,18 @@
 import json
 import os
 import tempfile
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import Callable, Optional
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
+from utils.log import get_logger
 
 __all__ = [
     'GitManager',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 MESSAGE_HEADER = "Raptor Claus just dropped some files off"
 

@@ -1,11 +1,10 @@
-from logging import NullHandler, getLogger
 from typing import Any, Dict
 
 from ark.types import PrimalItem
 from ue.loader import AssetLoadException
+from utils.log import get_logger
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 def gather_mic_parameters(d):
