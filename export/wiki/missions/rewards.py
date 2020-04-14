@@ -38,7 +38,11 @@ def _convert_hexagon_values(mission: MissionType) -> Dict[str, Any]:
     v['qty'] = mission.HexagonsOnCompletion[0]
     if mission.bDivideHexogonsOnCompletion[0]:
         v['split'] = True
-    if mission.has_override('FirstTimeCompletionHexagonRewardBonus'):
+
+    # First time hexagon reward
+    if int(mission.get('FirstTimeCompletionHexagonRewardOverride', fallback=-1)) != -1:
+        v['firstTime'] = mission.FirstTimeCompletionHexagonRewardOverride[0]
+    elif mission.has_override('FirstTimeCompletionHexagonRewardBonus'):
         v['bonusFirstTime'] = mission.FirstTimeCompletionHexagonRewardBonus[0]
 
     # Type-specific extra data
