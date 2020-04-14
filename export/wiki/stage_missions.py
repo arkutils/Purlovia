@@ -2,10 +2,13 @@ from logging import NullHandler, getLogger
 from typing import Any, Dict, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
+from ue.hierarchy import find_parent_classes
 from ue.proxy import UEProxyStructure
 
+from .flags import gather_flags
 from .missions.dinos import gather_dino_data
 from .missions.rewards import collect_rewards
+from .missions.typedata import MISSION_TYPES
 from .types import *
 
 __all__ = [
@@ -14,6 +17,25 @@ __all__ = [
 
 logger = getLogger(__name__)
 logger.addHandler(NullHandler())
+
+OUTPUT_FLAGS = (
+    # Meta
+    'bShowInUI',
+    'bRepeatableMission',
+    # Prerequisites
+    'bUseBPStaticIsPlayerEligibleForMission',
+    'bTreatPlayerLevelRangeAsHardCap',
+    # Restrictions
+    'bAbsoluteForcePreventLeavingMission',
+    'bRemovePlayerFromMissionOnDeath',
+    'bDestroyMissionDinosOnDeactivate',
+    'bAllowHarvestingMissionDinos',
+    'bMissionPreventsCryoDeploy',
+    'bMissionPreventsMekDeploy',
+    'bMissionWeaponsHaveInfiniteAmmo',
+    # Rewards
+    'bUseBPGenerateMissionRewards',
+)
 
 
 class MissionsStage(JsonHierarchyExportStage):
@@ -32,22 +54,41 @@ class MissionsStage(JsonHierarchyExportStage):
     def extract(self, proxy: UEProxyStructure) -> Any:
         mission: MissionType = cast(MissionType, proxy)
 
-        v: Dict[str, Any] = dict()
-        v['bp'] = proxy.get_source().fullname
-        v['type'] = 'Base'
-        v['name'] = mission.MissionDisplayName[0]
-        v['description'] = mission.MissionDescription[0]
-        v['canRepeat'] = mission.bRepeatableMission[0]
+        v: Dict[str, Any] = dict(
+            bp=proxy.get_source().fullname,
+            type='unknown',
+            name=mission.MissionDisplayName[0],
+            description=mission.MissionDescription[0],
+            flags=gather_flags(mission, OUTPUT_FLAGS),
+            duration=mission.MissionMaxDurationSeconds[0],
+        )
 
-        v['maxPlayers'] = mission.MaxPlayerCount[0]
-        v['targetPlayerLevel'] = mission.TargetPlayerLevel[0]
-        v['cooldown'] = mission.GlobalMissionCooldown[0]
-        v['maxDuration'] = mission.MissionMaxDurationSeconds[0]
+        v['cooldown'] = {
+            'player': mission.PerPlayerMissionCooldown[0],
+            'mission': mission.GlobalMissionCooldown[0],
+        }
+
+        if mission.bUseBPStaticIsPlayerEligibleForMission[0].value:
+            v['prereqs'] = None
+        else:
+            v['prereqs'] = dict(
+                missions=None,  # TODO
+                unlocks=None,  # TODO
+                playerCount=(mission.MaxPlayerCount[0], ),
+                playerLevel=dict(
+                    min=mission.MinPlayerLevel[0],
+                    tgt=mission.TargetPlayerLevel[0],
+                    max=mission.MaxPlayerLevel[0],
+                ),
+            )
 
         v['dinos'] = gather_dino_data(mission)
-        v['rewards'] = collect_rewards(mission)
+        if mission.bUseBPGenerateMissionRewards[0].value:
+            v['rewards'] = None
+        else:
+            v['rewards'] = collect_rewards(mission)
 
-        _get_more_values(mission, v)
+        _get_subclass_data(mission, v)
 
         if not v['dinos']:
             del v['dinos']
@@ -55,39 +96,11 @@ class MissionsStage(JsonHierarchyExportStage):
         return v
 
 
-def _get_more_values(mission: MissionType, v: Dict[str, Any]):
-    if isinstance(mission, MissionType_Retrieve):
-        retrieval = cast(MissionType_Retrieve, mission)
-        v['type'] = 'Retrieve'
+def _get_subclass_data(mission: MissionType, v: Dict[str, Any]):
+    parents = find_parent_classes(mission.get_source())
 
-        v['retrieval'] = dict(item=retrieval.get('RetrieveItemClass', fallback=None))
-    elif isinstance(mission, MissionType_Escort):
-        escort = cast(MissionType_Escort, mission)
-        v['type'] = 'Escort'
-
-        v['dinos']['walkSpeedTgt'] = escort.EscortDinoBaseWalkSpeed[0]
-        v['dinos']['escortedSpeedTgt'] = escort.EscortDinoEscortedSpeed[0]
-    elif isinstance(mission, MissionType_Hunt):
-        _hunt = cast(MissionType_Hunt, mission)
-        v['type'] = 'Hunt'
-    elif isinstance(mission, MissionType_Race):
-        _race = cast(MissionType_Race, mission)
-        v['type'] = 'Race'
-    elif isinstance(mission, MissionType_Fishing):
-        _fishing = cast(MissionType_Fishing, mission)
-        v['type'] = 'Fishing'
-    elif isinstance(mission, MissionType_Gauntlet):
-        _gauntlet = cast(MissionType_Gauntlet, mission)
-        v['type'] = 'Gauntlet'
-    elif isinstance(mission, MissionType_GlitchCounter):
-        _counter = cast(MissionType_GlitchCounter, mission)
-        v['type'] = 'GlitchCounter'
-    elif isinstance(mission, MissionType_Gather):
-        _gather = cast(MissionType_Gather, mission)
-        v['type'] = 'Gather'
-    elif isinstance(mission, MissionType_Sport):
-        _sport = cast(MissionType_Sport, mission)
-        v['type'] = 'SportGeneric'
-        if isinstance(mission, MissionType_Basketball):
-            _basketball = cast(MissionType_Basketball, _sport)
-            v['type'] = 'SportBasketball'
+    for subtype, support_class in MISSION_TYPES.items():
+        if subtype in parents:
+            v['type'] = support_class.get_friendly_name()
+            support_class.export(mission, v)
+            return
