@@ -8,6 +8,8 @@ from typing import *
 import yaml
 from pydantic import BaseModel
 
+from config import OVERRIDE_FILENAME
+
 __all__ = [
     'ColorRegionSettings',
     'OverrideSettings',
@@ -18,8 +20,6 @@ __all__ = [
     'get_overrides_global',
     'any_regexes_match',
 ]
-
-OVERRIDE_FILENAME = 'config/overrides.yaml'
 
 
 class ColorRegionSettings(BaseModel):
@@ -68,14 +68,14 @@ class OverridesFile(BaseModel):
 DEFAULT_COLORREGIONSETTINGS = ColorRegionSettings(
     capitalize=True,
     default_name='Unknown',
-).dict(skip_defaults=True)
+).dict(exclude_unset=True)
 
 DEFAULT_OVERRIDES = OverridesFile(
     defaults=OverrideSettings(**DEFAULT_COLORREGIONSETTINGS),
     mods=dict(),
     species=dict(),
     maps=dict(),
-).dict(skip_defaults=True)
+).dict(exclude_unset=True)
 
 
 @lru_cache()
@@ -92,7 +92,7 @@ def _get_overrides_global_dict() -> Dict:
     config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
     nested_update(settings, DEFAULT_OVERRIDES)
-    nested_update(settings, config_file.defaults.dict(skip_defaults=True))
+    nested_update(settings, config_file.defaults.dict(exclude_unset=True))
     return settings
 
 
@@ -108,7 +108,7 @@ def _get_overrides_for_mod_dict(modid: str) -> Dict:
     config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
     nested_update(settings, _get_overrides_global_dict())
-    nested_update(settings, config_file.mods.get(modid, OverrideSettings()).dict(skip_defaults=True))
+    nested_update(settings, config_file.mods.get(modid, OverrideSettings()).dict(exclude_unset=True))
     return settings
 
 
@@ -126,7 +126,7 @@ def _get_overrides_for_species_dict(species: str, modid: str) -> Dict:
     config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
     nested_update(settings, _get_overrides_for_mod_dict(modid))
-    nested_update(settings, config_file.species.get(species, OverrideSettings()).dict(skip_defaults=True))
+    nested_update(settings, config_file.species.get(species, OverrideSettings()).dict(exclude_unset=True))
     return settings
 
 
@@ -142,7 +142,7 @@ def _get_overrides_for_map_dict(map_asset: str, modid: str) -> Dict:
     config_file = _load_overrides()
     settings: Dict[str, Any] = dict()
     nested_update(settings, _get_overrides_for_mod_dict(modid))
-    nested_update(settings, config_file.maps.get(map_asset, OverrideSettings()).dict(skip_defaults=True))
+    nested_update(settings, config_file.maps.get(map_asset, OverrideSettings()).dict(exclude_unset=True))
     return settings
 
 

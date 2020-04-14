@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import Any, Dict, Optional, cast
 
@@ -6,6 +5,7 @@ from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.loader import AssetLoadException
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 from .export_asb_values import values_for_species, values_from_pgd
 
@@ -13,8 +13,7 @@ __all__ = [
     'SpeciesStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 class SpeciesStage(JsonHierarchyExportStage):

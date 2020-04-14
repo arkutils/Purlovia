@@ -5,11 +5,12 @@ import weakref
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from itertools import islice
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
 import psutil  # type: ignore
+
+from utils.log import get_logger
 
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
@@ -17,8 +18,7 @@ from .context import ParsingContext, get_ctx
 from .properties import ObjectIndex, ObjectProperty, Property
 from .stream import MemoryStream
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = (
     'AssetLoadException',

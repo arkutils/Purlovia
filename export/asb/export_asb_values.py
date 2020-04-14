@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import ark.gathering
@@ -16,6 +15,7 @@ from ue.asset import UAsset
 from ue.loader import AssetNotFound, ModNotFound
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
+from utils.log import get_logger
 
 __all__ = [
     'values_from_pgd',
@@ -24,8 +24,7 @@ __all__ = [
 
 DCSC_DEFAULTS: PrimalDinoStatusComponent = PrimalDinoStatusComponent()
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 #                    Ark
 # Health              0

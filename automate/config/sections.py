@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-from pydantic import BaseModel, Extra, UrlStr
+from pydantic import BaseModel, Extra
 
 from utils.name_convert import snake_to_kebab
 
@@ -71,31 +71,21 @@ class ExportSection(ExportDefaultsSection):
 
 
 class ExportASBSection(ExportSection):
-    ExportSpecies: bool = True
+    ...
 
     class Config:
         extra = Extra.forbid
 
 
 class ExportWikiSection(ExportSection):
-    ExportMaps: bool = True
     ExportVanillaMaps: bool = True
-    ExportSpawningGroups: bool = True
-    ExportEngrams: bool = True
-    ExportItems: bool = True
-    ExportDrops: bool = True
-    ExportLootCrates: bool = True
-    ExportSpecies: bool = True
-    ExportTrades: bool = True
-    ExportMissions: bool = True
 
     class Config:
         extra = Extra.forbid
 
 
 class ProcessingSection(BaseModel):
-    ProcessSpawns: bool = True
-    ProcessBiomes: bool = True
+    ...
 
     class Config:
         extra = Extra.forbid

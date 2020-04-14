@@ -1,15 +1,14 @@
 import json
 import os.path
-from logging import NullHandler, getLogger
 from traceback import format_exc
 from typing import List
 
 import requests
 
 from config import ConfigFile, get_global_config
+from utils.log import get_logger
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'handle_exception',

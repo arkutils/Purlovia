@@ -1,5 +1,4 @@
 from functools import lru_cache
-from logging import NullHandler, getLogger
 from operator import attrgetter
 from pathlib import Path
 from typing import *
@@ -11,6 +10,7 @@ from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
 from ue.tree import get_parent_fullname
+from utils.log import get_logger
 from utils.tree import IndexedTree, Node
 
 from .consts import BLUEPRINT_GENERATED_CLASS_CLS
@@ -29,8 +29,7 @@ __all__ = [
     'iterate_all',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 ROOT_NAME = '/Script/CoreUObject.Object'
 

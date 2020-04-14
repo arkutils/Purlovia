@@ -1,13 +1,12 @@
 import json
 from abc import ABCMeta
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import Any
 
 from automate.exporter import ExportManager, ExportRoot, ExportStage
+from utils.log import get_logger
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'ProcessingStage',

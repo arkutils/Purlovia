@@ -1,5 +1,4 @@
 from abc import ABC
-from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from typing import *
 
@@ -8,13 +7,13 @@ from automate.jsonutils import save_as_json, should_save_json
 from config import ConfigFile
 from ue.loader import AssetLoader
 from utils import throw
+from utils.log import get_logger
 
 # __all__ = [
 #     'StageHelper',
 # ]
 
-# logger = getLogger(__name__)
-# logger.addHandler(NullHandler())
+# logger = get_logger(__name__)
 
 # class StageHelper(ExportStage, ABC):
 #     '''

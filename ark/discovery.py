@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
@@ -8,13 +7,13 @@ from config import ConfigFile, get_global_config
 from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
 from utils.cachefile import cache_data
+from utils.log import get_logger
 
 __all__ = [
     'initialise_hierarchy',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_global_config()):
