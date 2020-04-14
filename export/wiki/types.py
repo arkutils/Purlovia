@@ -318,26 +318,58 @@ class HexagonTradableOption(UEProxyStructure, uetype='/Script/ShooterGame.Hexago
 
 class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
     # DevKit Verified
-
-    # DevKit Unverified
-    bDivideHexogonsOnCompletion = uebools(False)  # sic
-    bAutoRewardFromCustomItemSets = uebools(False)
-    bRollExtraLootSetsPerPlayer = uebools(False)
-    bRepeatableMission = uebools(False)
-    HexagonsOnCompletion = ueints(0)
-    MissionSuccessMessage = uestrings('')
+    # Metadata
     MissionDisplayName = uestrings('')
     MissionDescription = uestrings('')
-    MissionMaxDurationSeconds = uefloats(0)
-    GlobalMissionCooldown = uefloats(60.0)
-    MaxPlayerCount = ueints(0)
+    MissionMaxDurationSeconds = uefloats(3600.0)
+    bRepeatableMission = uebools(False)
+    bShowInUI = uebools(True)
+
+    GlobalMissionCooldown = uefloats(0.0)
+    PerPlayerMissionCooldown = uefloats(0.0)
+
+    # Prerequisites
+    bUseBPStaticIsPlayerEligibleForMission = uebools(False)
+    bTreatPlayerLevelRangeAsHardCap = uebools(False)
+
+    MaxPlayerCount = ueints(1)
+
+    MinPlayerLevel = ueints(1)
+    TargetPlayerLevel = ueints(50)
+    MaxPlayerLevel = ueints(150)
+
+    # Restrictions
+    bMissionPreventsCryoDeploy = uebools(False)
+    bMissionPreventsMekDeploy = uebools(False)
+    bAllowHarvestingMissionDinos = uebools(True)
+    bMissionWeaponsHaveInfiniteAmmo = uebools(False)
+
+    # Death & Deactivation
+    bAbsoluteForcePreventLeavingMission = uebools(False)
+    bRemovePlayerFromMissionOnDeath = uebools(True)
+    bDestroyMissionDinosOnDeactivate = uebools(False)
+
+    # Rewards
+    bUseBPGenerateMissionRewards = uebools(False)
+    bAutoRewardFromCustomItemSets = uebools(False)
+
+    bAutoRewardLootOnMissionComplete = uebools(False)
     bAutoRewardXPOnMissionComplete = uebools(False)
-    TargetPlayerLevel = ueints(0)
+
+    RewardXPRatio = uefloats(0.02)
+    HexagonsOnCompletion = ueints(0)
+    bDivideHexogonsOnCompletion = uebools(False)  # sic
+
+    FirstTimeCompletionHexagonRewardBonus = ueints(0)
+    FirstTimeCompletionHexagonRewardOverride = ueints(-1)
+
+    # DevKit Unverified
+    bAutoRewardFromCustomItemSets = uebools(False)
+    bRollExtraLootSetsPerPlayer = uebools(False)
     MinItemSets = uefloats(1.0)
     MaxItemSets = uefloats(1.0)
     RewardItemCount = ueints(1)
 
-    FirstTimeCompletionHexagonRewardBonus = ueints(0)
     GenerateItemSetsQualityMultiplierMin = uefloats(1.0)
     GenerateItemSetsQualityMultiplierMax = uefloats(1.0)
     MissionWildDinoOutgoingDamageScale = uefloats(1.0)
