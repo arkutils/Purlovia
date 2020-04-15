@@ -1,8 +1,10 @@
-from typing import Any, Dict
+from operator import itemgetter
+from typing import Any, Dict, List, Tuple
 
 import ue.gathering
 from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader
+from ue.properties import ObjectProperty
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 from utils.log import get_logger
@@ -19,6 +21,7 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
 
     gestation_breeding = char_props.bUseBabyGestation[0]
     fert_eggs = char_props.get('FertilizedEggItemsToSpawn', 0, None)
+    fert_egg_weights = char_props.get('FertilizedEggWeightsToSpawn', 0, None)
 
     if gestation_breeding:
         gestation_speed = char_props.BabyGestationSpeed[0].rounded_value
@@ -29,10 +32,21 @@ def gather_breeding_data(char_props: PrimalDinoCharacter, loader: AssetLoader) -
             logger.warning(f"Species {char_props.get_source().asset.assetname} tried dividing by zero for its gestationTime")
 
     elif fert_eggs and fert_eggs.values:
-        eggs = [egg for egg in fert_eggs.values if str(egg) != 'None']
+        eggs: List[Tuple[ObjectProperty, float]] = []
+        for index, egg in enumerate(fert_eggs.values):
+            weight = fert_egg_weights.values[index] if fert_egg_weights else 1
+            # Verify the egg is a valid Object and that weight isn't 0
+            if str(egg) == 'None' or weight == 0:
+                continue
+
+            eggs.append((egg, weight))
+
+        # Sort eggs by highest weighting
+        eggs.sort(reverse=True, key=itemgetter(1))
 
         if eggs:
-            fert_egg_asset = loader.load_related(eggs[0])
+            # We only provide the highest possibility egg to ASB
+            fert_egg_asset = loader.load_related(eggs[0][0])
             assert fert_egg_asset.default_export
             egg_props: PrimalItem = ue.gathering.gather_properties(fert_egg_asset.default_export)
             egg_decay = egg_props.EggLoseDurabilityPerSecond[0].rounded_value
