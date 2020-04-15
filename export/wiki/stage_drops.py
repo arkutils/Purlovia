@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 
@@ -8,6 +7,7 @@ from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
 from ue.properties import ArrayProperty
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 __all__ = [
     'DropsStage',
@@ -18,8 +18,9 @@ __all__ = [
     'decode_item_set',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+
+logger = get_logger(__name__)
 
 
 class DinoDropInventoryComponent(

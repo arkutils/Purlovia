@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 import ue.gathering
@@ -7,14 +6,14 @@ from ark.types import PrimalColorSet, PrimalDinoCharacter, PrimalGameData, Prima
 from ue.asset import UAsset
 from ue.loader import AssetLoader
 from ue.properties import UEBase
+from utils.log import get_logger
 
 __all__ = [
     'gather_pgd_colors',
     'gather_color_data',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 NUM_REGIONS = 6
 NULLABLE_REGION_COLORS = set(['Red'])

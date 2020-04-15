@@ -5,11 +5,11 @@ import os
 import platform
 import subprocess
 import urllib.request
-from logging import NullHandler, getLogger
 from pathlib import Path
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+from utils.log import get_logger
+
+logger = get_logger(__name__)
 
 STCMD_SUCCESS = (0, 6, 7)  # SteamCMD Success return code
 STCMD_TIMEOUT = 10  # SteamCMD Timeout return code

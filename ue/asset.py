@@ -1,7 +1,8 @@
 import weakref
 from collections import namedtuple
-from logging import NullHandler, getLogger
 from typing import *
+
+from utils.log import get_logger
 
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
@@ -27,8 +28,7 @@ __all__ = [
     'ExportTableItem',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 class UAsset(UEBase):

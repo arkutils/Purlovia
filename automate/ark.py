@@ -2,7 +2,6 @@ import datetime
 import json
 import re
 import shutil
-from logging import NullHandler, getLogger
 from os import walk
 from pathlib import Path
 from typing import *
@@ -11,6 +10,7 @@ import requests
 
 from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, ModNotFound, ModResolver
+from utils.log import get_logger
 from utils.name_convert import uelike_prettify
 
 from .modutils import readACFFile, readModInfo, readModMetaInfo, unpackModFile
@@ -25,8 +25,7 @@ ARK_MAIN_APP_ID = 346110
 
 MODDATA_FILENAME = '_moddata.json'
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 class DownloadError(Exception):

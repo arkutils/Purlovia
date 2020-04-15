@@ -65,7 +65,7 @@ class RawGit(object):
 
 class Git(RawGit):
     """Utility class overloading most used functions"""
-    def __init__(self, git_path, remote=None, quiet=True, bare=False):
+    def __init__(self, git_path, remote=None, quiet=True, bare=False, logger=None):
         """Init the repo or clone the remote if remote is not None."""
         if "~" in git_path:
             git_path = os.path.expanduser(git_path)
@@ -74,12 +74,15 @@ class Git(RawGit):
 
         dirpath = os.path.dirname(self.path)
         basename = os.path.basename(self.path)
-        self.logger = logging.getLogger("brigit")
-        if not quiet:
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.DEBUG)
+        if logger:
+            self.logger = logger
         else:
-            self.logger.addHandler(NullHandler())
+            self.logger = logging.getLogger("brigit")
+            if not quiet:
+                self.logger.addHandler(handler)
+                self.logger.setLevel(logging.DEBUG)
+            else:
+                self.logger.addHandler(NullHandler())
 
         if not os.path.exists(self.path):
             # Non existing repository

@@ -6,9 +6,10 @@ import uuid
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from logging import NullHandler, getLogger
 from numbers import Real
 from typing import *
+
+from utils.log import get_logger
 
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
@@ -30,8 +31,7 @@ else:
 
 dbg_structs = 0
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 PropDict = Dict[str, Dict[int, UEBase]]
 

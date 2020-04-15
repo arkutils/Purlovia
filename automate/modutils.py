@@ -1,8 +1,8 @@
 import zlib
-from logging import NullHandler, getLogger
 from typing import *
 
 from ue.stream import MemoryStream
+from utils.log import get_logger
 
 __all__ = (
     'DecompressionError',
@@ -14,8 +14,7 @@ __all__ = (
     'loadFileAsStream',
 )
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 class DecompressionError(Exception):

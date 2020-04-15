@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 
@@ -6,13 +5,15 @@ from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalEngramEntry
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 __all__ = [
     'EngramsStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+
+logger = get_logger(__name__)
 
 
 class EngramsStage(JsonHierarchyExportStage):

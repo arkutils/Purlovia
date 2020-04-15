@@ -1,20 +1,19 @@
 import argparse
 import re
-from logging import WARNING, NullHandler, basicConfig, getLogger
 from pathlib import Path
 from typing import *
 
 from ark.discovery import initialise_hierarchy
 from automate.ark import ArkSteamManager
-from config import ConfigFile, get_global_config
+from config import ROOT_LOGGER, ConfigFile, get_global_config
 from ue.asset import ExportTableItem, ImportTableItem, UAsset
 from ue.hierarchy import find_parent_classes, find_sub_classes, iterate_all
 from ue.loader import AssetLoader, AssetNotFound
+from utils.log import get_logger
 
 # pylint: enable=invalid-name
 
-logger = getLogger(__name__)  # pylint: disable=invalid-name
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 EPILOG = '''example: python uegrep.py Dodo_Character_C'''
 

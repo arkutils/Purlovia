@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 from typing import cast
@@ -12,6 +11,7 @@ from ue.asset import UAsset
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
+from utils.log import get_logger
 
 from .species.attacks import gather_attack_data
 from .species.movement import gather_movement_data
@@ -20,8 +20,8 @@ __all__ = [
     'SpeciesStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+logger = get_logger(__name__)
 
 OUTPUT_FLAGS = (
     'bAllowCarryFlyerDinos',

@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import Path, PurePosixPath
 from types import GeneratorType
 from typing import Any, Dict, Iterable, List, Optional, Set
@@ -9,14 +8,14 @@ from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from ue.gathering import gather_properties
 from ue.utils import get_assetpath_from_assetname, get_leaf_from_assetname, sanitise_output
+from utils.log import get_logger
 
 from .maps.data_container import MapInfo
 from .maps.discovery import LevelDiscoverer
 from .maps.gathering import EXPORTS, find_gatherer_by_category_name, find_gatherer_for_export
 from .maps.geo import GeoCoordCalculator
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'MapStage',

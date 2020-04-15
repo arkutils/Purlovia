@@ -9,9 +9,10 @@ from typing import *
 import yaml
 
 import ark.discovery
-from config import ConfigFile, get_global_config
+from config import LOGGING_FILENAME, ConfigFile, get_global_config
 from export.asb.root import ASBRoot
 from export.wiki.root import WikiRoot
+from utils.log import get_logger
 
 from .ark import ArkSteamManager
 from .exporter import ExportManager
@@ -21,8 +22,7 @@ from .run_sections import parse_runlist, should_run_section
 
 # pylint: enable=invalid-name
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-logger.addHandler(logging.NullHandler())
+logger = get_logger(__name__)
 
 ROOT_TYPES = [
     ASBRoot,
@@ -30,7 +30,7 @@ ROOT_TYPES = [
 ]
 
 
-def setup_logging(path='config/logging.yaml', level=logging.INFO):
+def setup_logging(path=LOGGING_FILENAME, level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
         with open(path, 'rt') as log_config_file:
@@ -70,6 +70,22 @@ def maplist(value: str) -> Tuple[str, ...]:
     return maps
 
 
+class VerifyModsAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        config = get_global_config()
+        mods = modlist(values)
+        for modid in mods:
+            if modid not in config.mods:
+                raise argparse.ArgumentError(self, f"Selected mods must be present in config ({modid})")
+
+        setattr(namespace, self.dest, mods)
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
@@ -88,8 +104,8 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--list-stages', action='store_true', help='display extraction stage options and exit')
 
-    parser.add_argument('--mods', action='store', type=modlist, help='override which mods to export (comma-separated)')
     parser.add_argument('--maps', action='store', type=maplist, help='override which maps to export (comma-separated)')
+    parser.add_argument('--mods', action=VerifyModsAction, help='override which mods to export (comma-separated)')
 
     parser.add_argument('sections',
                         action='store',
@@ -114,7 +130,7 @@ def handle_args(args: Any) -> ConfigFile:
         return config
 
     # Logging can be setup now we know we're not aborting
-    setup_logging(path='config/logging.yaml')
+    setup_logging(path=LOGGING_FILENAME)
 
     if args.live:
         logger.info('LIVE mode enabled')
@@ -206,6 +222,7 @@ def run(config: ConfigFile):
     except:  # pylint: disable=bare-except
         handle_exception(logfile='logs/errors.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
+        exit(1)
 
 
 def main():
