@@ -7,28 +7,58 @@ from export.wiki.types import MissionType, MissionType_Hunt
 def collect_rewards(mission: MissionType):
     d = dict()
     hexagon = _convert_hexagon_values(mission)
-    items = _convert_item_rewards(mission)
+    items = _convert_custom_item_sets(mission)
+    loottable = _convert_loot_table(mission)
 
     if hexagon['qty'] != 0:
         d['hexagon'] = hexagon
-    if items['count'] != 0:
+    if loottable:
+        d['loot'] = loottable
+    if items and items['count'] != 0:
         d['items'] = items
 
     return d or None
 
 
-def _convert_item_rewards(mission: MissionType):
-    d = mission.get('CustomItemSets', fallback=None)
-    v = list()
+def _convert_loot_table(mission: MissionType):
+    d = mission.get('RewardLootTable', fallback=None)
 
-    if d:
-        for itemset in d.values:
-            v.append(decode_item_set(itemset))
+    if not d or not bool(mission.bAutoRewardLootOnMissionComplete[0]):
+        return None
+
+    v = list()
+    for entry in d.values:
+        ed = entry.as_dict()
+        v.append(
+            dict(
+                type=ed['LootItemType'].get_enum_value_name(),
+                weight=ed['Weight'],
+                qtyScale=dict(
+                    min=ed['MinQuantity'],
+                    max=ed['MaxQuantity'],
+                    pow=ed['QuantityCurve'].get_enum_value_name(),
+                ),
+                quality=dict(
+                    min=ed['QualityRange'].values[0].x,
+                    max=ed['QualityRange'].values[0].y,
+                    pow=ed['QualityCurve'].get_enum_value_name(),
+                ),
+                pool=ed['LootItemClasses'],
+            ))
+
+    return v
+
+
+def _convert_custom_item_sets(mission: MissionType):
+    d = mission.get('CustomItemSets', fallback=None)
+
+    if not d or not bool(mission.bAutoRewardFromCustomItemSets[0]):
+        return None
 
     return dict(
         count=mission.RewardItemCount[0],
-        qtyScale=(mission.MinItemSets[0], mission.MaxItemSets[0]),
-        sets=v,
+        qtyScale=dict(min=mission.MinItemSets[0], max=mission.MaxItemSets[0]),
+        sets=[decode_item_set(itemset) for itemset in d.values],
     )
 
 

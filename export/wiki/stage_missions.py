@@ -68,13 +68,10 @@ class MissionsStage(JsonHierarchyExportStage):
             'mission': mission.GlobalMissionCooldown[0],
         }
 
-        if mission.bUseBPStaticIsPlayerEligibleForMission[0].value:
-            v['prereqs'] = None
-        else:
+        if not bool(mission.bUseBPStaticIsPlayerEligibleForMission[0]):
             v['prereqs'] = dict(
-                missions=None,  # TODO
-                unlocks=None,  # TODO
-                playerCount=(mission.MaxPlayerCount[0], ),
+                missions=mission.get('PrereqMissionTags', fallback=None),
+                playerCount=dict(max=mission.MaxPlayerCount[0], ),
                 playerLevel=dict(
                     min=mission.MinPlayerLevel[0],
                     tgt=mission.TargetPlayerLevel[0],
@@ -83,9 +80,7 @@ class MissionsStage(JsonHierarchyExportStage):
             )
 
         v['dinos'] = gather_dino_data(mission)
-        if mission.bUseBPGenerateMissionRewards[0].value:
-            v['rewards'] = None
-        else:
+        if not bool(mission.bUseBPGenerateMissionRewards[0]):
             v['rewards'] = collect_rewards(mission)
 
         _get_subclass_data(mission, v)
@@ -97,7 +92,7 @@ class MissionsStage(JsonHierarchyExportStage):
 
 
 def _get_subclass_data(mission: MissionType, v: Dict[str, Any]):
-    parents = find_parent_classes(mission.get_source())
+    parents = set(find_parent_classes(mission.get_source()))
 
     for subtype, support_class in MISSION_TYPES.items():
         if subtype in parents:
