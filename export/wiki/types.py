@@ -351,10 +351,9 @@ class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
 
     # Rewards
     bUseBPGenerateMissionRewards = uebools(False)
-    bAutoRewardFromCustomItemSets = uebools(False)
-
     bAutoRewardLootOnMissionComplete = uebools(False)
     bAutoRewardXPOnMissionComplete = uebools(False)
+    bAutoRewardFromCustomItemSets = uebools(False)
 
     RewardXPRatio = uefloats(0.02)
     HexagonsOnCompletion = ueints(0)
@@ -376,7 +375,8 @@ class MissionType(UEProxyStructure, uetype='/Script/ShooterGame.MissionType'):
     MissionWildDinoIncomingDamageScale = uefloats(1.0)
 
     CustomItemSets: Mapping[int, ArrayProperty]
-    MissionCustomData: Mapping[int, ObjectProperty]
+    PrereqMissionTags: Mapping[int, ArrayProperty]  # Names
+    RewardLootTable: Mapping[int, ArrayProperty]
 
 
 class MissionType_Retrieve(MissionType,
