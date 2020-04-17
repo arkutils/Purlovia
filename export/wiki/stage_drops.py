@@ -103,8 +103,16 @@ def decode_item_entry(entry):
     return dict(
         name=str(d['ItemEntryName']) or None,
         weight=d['EntryWeight'],
-        qty=(d['MinQuantity'], d['MaxQuantity'], d['QuantityPower']),
-        quality=(d['MinQuality'], d['MaxQuality'], d['QualityPower']),
+        qty=dict(
+            min=d['MinQuantity'],
+            max=d['MaxQuantity'],
+            pow=d['QuantityPower'],
+        ),
+        quality=dict(
+            min=d['MinQuality'],
+            max=d['MaxQuality'],
+            pow=d['QualityPower'],
+        ),
         forceBP=d['bForceBlueprint'],
         items=[decode_item_name(item) for item in d['Items'].values],
     )
@@ -166,6 +174,10 @@ def decode_item_set(item_set):
     return dict(
         name=d.get('SetName', None) or None,
         weight=d.get('SetWeight', 1.0),
-        qtyScale=(d.get('MinNumItems', 1.0), d.get('MaxNumItems', 1.0), d.get('NumItemsPower', 1.0)),
+        qtyScale=dict(
+            min=d.get('MinNumItems', 1.0),
+            max=d.get('MaxNumItems', 1.0),
+            pow=d.get('NumItemsPower', 1.0),
+        ),
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )
