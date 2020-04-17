@@ -1,6 +1,6 @@
 from typing import Any, Dict, cast
 
-from export.wiki.stage_drops import decode_item_set
+from export.wiki.stage_drops import decode_item_name, decode_item_set
 from export.wiki.types import MissionType, MissionType_Hunt
 
 
@@ -43,7 +43,7 @@ def _convert_loot_table(mission: MissionType):
                     max=ed['QualityRange'].values[0].y,
                     pow=ed['QualityCurve'].get_enum_value_name(),
                 ),
-                pool=ed['LootItemClasses'],
+                pool=[decode_item_name(item) for item in ed['LootItemClasses'].values],
             ))
 
     return v
