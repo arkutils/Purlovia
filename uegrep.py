@@ -124,7 +124,7 @@ def main():
     args = create_parser().parse_args()
     try:
         run()
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=bare-except
         logger.exception('Caught exception. Aborting.')
 
 

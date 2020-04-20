@@ -161,7 +161,7 @@ class MapStage(ExportStage):
                     # Extract data using helper class.
                     try:
                         data = helper.extract(proxy=gather_properties(export))
-                    except:  # pylint: disable=bare-except
+                    except Exception:  # pylint: disable=base-except
                         logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
                         continue
                     if not data:
