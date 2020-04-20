@@ -71,17 +71,21 @@ def maplist(value: str) -> Tuple[str, ...]:
 
 
 class VerifyModsAction(argparse.Action):
-    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+    def __init__(self, option_strings, dest, nargs=None, mods=None, **kwargs):
         if nargs is not None:
             raise ValueError("nargs not allowed")
+        if not mods:
+            raise ValueError("mods must be set to a config.mods")
+        self.mods = mods
         super().__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        config = get_global_config()
         mods = modlist(values)
-        for modid in mods:
-            if modid not in config.mods:
-                raise argparse.ArgumentError(self, f"Selected mods must be present in config ({modid})")
+
+        try:
+            mods = calculate_mods(mods, self.mods)
+        except ValueError as err:
+            raise argparse.ArgumentError(self, str(err))
 
         setattr(namespace, self.dest, mods)
 
@@ -105,7 +109,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--list-stages', action='store_true', help='display extraction stage options and exit')
 
     parser.add_argument('--maps', action='store', type=maplist, help='override which maps to export (comma-separated)')
-    parser.add_argument('--mods', action=VerifyModsAction, help='override which mods to export (comma-separated)')
+    parser.add_argument('--mods',
+                        action=VerifyModsAction,
+                        mods=get_global_config().mods,
+                        help='override which mods to export (comma-separated)')
 
     parser.add_argument('sections',
                         action='store',
@@ -128,6 +135,8 @@ def handle_args(args: Any) -> ConfigFile:
     if args.list_stages:
         config.display_sections = True
         return config
+
+    print(len(config.mods))
 
     # Logging can be setup now we know we're not aborting
     setup_logging(path=LOGGING_FILENAME)
@@ -185,6 +194,56 @@ def display_sections(config: ConfigFile):
             fullname = f'{root_name}.{stage_name}'
             match = should_run_section(fullname, config.run_sections)
             print(f'    {fullname} {("[*]" if match else "")}')
+
+
+def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[str, ...]:
+    '''
+    >>> calculate_mods(('123',), ('123', '456')) == ('123',)
+    True
+    >>> calculate_mods(('-123',), ('123', '456')) == ('456',)
+    True
+
+    >>> calculate_mods(('123',), ('456',))
+    Traceback (most recent call last):
+    ...
+    ValueError: Selected mods must be present in config: 123
+
+    >>> calculate_mods(('-123', '456'), ())
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot mix selected and deselected mods
+
+    >>> calculate_mods(('-123',), ('456',))
+    Traceback (most recent call last):
+    ...
+    ValueError: Deselected mods are not present: 123
+    '''
+    user_set = set(user)
+    existing_set = set(existing)
+    has_negatives = any(int(modid) < 0 for modid in user)
+    all_negatives = not any(int(modid) >= 0 for modid in user)
+
+    # No negatives? Just verify all listed mods are present in config
+    if not has_negatives:
+        not_present = user_set - existing_set
+        if not_present:
+            raise ValueError("Selected mods must be present in config: " + ','.join(not_present))
+        return user
+
+    # If any are negative, all entries must be negative
+    if not all_negatives:
+        raise ValueError("Cannot mix selected and deselected mods")
+
+    # Work out which mods to include
+    cleaned = set(str(-int(modid)) for modid in user)
+
+    # Check none were mis-typed
+    excess = cleaned - existing_set
+    if excess:
+        raise ValueError("Deselected mods are not present: " + ','.join(excess))
+
+    result = tuple(existing_set - cleaned)
+    return result
 
 
 def run(config: ConfigFile):
