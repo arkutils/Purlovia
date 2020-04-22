@@ -8,7 +8,7 @@ from typing import *
 from automate.ark import ArkSteamManager
 from config import get_global_config
 from ue.base import UEBase
-from ue.loader import AssetLoader, AssetLoadException
+from ue.loader import AssetLoader, AssetNotFound
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None
@@ -22,7 +22,7 @@ LEAF_TYPES = (
 
 
 def create_ui():
-    global root, tree
+    global root, tree  # pylint: disable=global-statement
 
     # Window
     root = Tk()
@@ -194,7 +194,7 @@ def find_asset(assetname, loader):
         clean_path = loader.clean_asset_name(assetname)
         asset = loader[clean_path]
         return asset.assetname
-    except Exception as ex:
+    except Exception as ex:  # pylint: disable=broad-except
         pass
 
     # Try a combination of possible roots
@@ -223,7 +223,7 @@ def find_asset(assetname, loader):
             try:
                 asset = loader[assetname]
                 return asset.assetname
-            except AssetLoadException:
+            except AssetNotFound:
                 continue
 
     print(f'Not found: {assetname}', file=sys.stderr)
