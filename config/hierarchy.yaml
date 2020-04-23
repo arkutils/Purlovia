@@ -82,6 +82,9 @@
                 - '/Script/ShooterGame.PrimalDinoCharacter':
                     - '/Script/ShooterGame.PrimalRaft'
                     - '/Script/ShooterGame.PrimalWheeledVehicleCharacter'
+                    # INEXACT, NEEDS VERIFICATION
+                    - '/Script/ShooterGame.VRMainBoss_Character'
+                    - '/Script/ShooterGame.PrimalBotCharacter'
         - '/Script/Engine.WheeledVehicle'
     - '/Script/Engine.PlayerCameraManager':
         - '/Script/ShooterGame.ShooterPlayerCameraManager'
@@ -255,6 +258,7 @@
 - '/Script/ShooterGame.PrimalItem':
     - '/Script/ShooterGame.PrimalItem_Dye'
     - '/Script/ShooterGame.PrimalItem_Radio'
+    - '/Script/ShooterGame.PrimalItem_CruiseMissile'
 - '/Script/ShooterGame.PrimalBuffPersistentData'
 - '/Script/ShooterGame.PrimalEngramEntry'
 - '/Script/ShooterGame.PrimalClimbingSettings'
