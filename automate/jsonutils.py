@@ -124,6 +124,8 @@ JOIN_LINE_FIELDS = (
     'name|interval|dmg|radius|stamina',
     'base|sprint',
     'base|crouch|sprint',
+    'min|max',
+    'min|max|pow',
 )
 
 
@@ -209,6 +211,8 @@ if __name__ == '__main__':
             ["Light Green", [0.5325, 1.0, 0.5, 0.0]],
             ["Light Grey", [0.581026, 0.6, 0.59417, 0.0]],
         ],
+        qty=dict(min=1, max=2),
+        qty_pow=dict(min=1, max=2, pow=3),
     )
 
     result = _format_json(test_data, pretty=True)
