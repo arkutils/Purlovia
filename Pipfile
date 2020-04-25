@@ -17,7 +17,7 @@ guppy3 = "~=3.0.8"
 
 [packages]
 requests = "~=2.22.0"
-pydantic = "~=1.4"
+pydantic = "~=1.5.1"
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
 
