@@ -1,6 +1,6 @@
 from typing import Callable
 
-import pytest  # type: ignore
+import pytest
 
 import ue.hierarchy
 from ark.discovery import initialise_hierarchy

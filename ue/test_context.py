@@ -1,6 +1,6 @@
 from typing import Iterable
 
-import pytest  # type: ignore
+import pytest
 
 from .context import DEFAULT_CONTEXT, ParsingContext, get_ctx, ue_parsing_context
 
