@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import *
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from config import OVERRIDE_FILENAME
 
@@ -24,11 +24,26 @@ __all__ = [
 
 class ColorRegionSettings(BaseModel):
     '''Color region settings for species'''
-    capitalize: Optional[bool] = None
-    default_name: Optional[str] = None
-    nullify_name_regexes: Dict[str, str] = dict()
-    useless_name_regexes: Dict[str, str] = dict()
-    region_names: Dict[int, Optional[str]] = dict()
+    capitalize: Optional[bool] = Field(
+        None,
+        description="Whether to capitalize the first character of region names",
+    )
+    default_name: Optional[str] = Field(
+        None,
+        description="What to name regions that have no name",
+    )
+    nullify_name_regexes: Dict[str, str] = Field(
+        dict(),
+        description="Region are nullified if their names wholely match any of these regexes (key names are ignored)",
+    )
+    useless_name_regexes: Dict[str, str] = Field(
+        dict(),
+        description="Region names that will be replaced by the default_name",
+    )
+    region_names: Dict[int, Optional[str]] = Field(
+        dict(),
+        description="Override individual region names, in for dict form `region_num: \"name\"`",
+    )
 
 
 class MapBoundariesSettings(BaseModel):
@@ -41,25 +56,63 @@ class MapBoundariesSettings(BaseModel):
 
 class OverrideSettings(BaseModel):
     '''Common override settings that can be applied to defaults, mods, maps, and individual species'''
-    skip_export: Optional[bool] = False
+    # General settings
+    skip_export: Optional[bool] = Field(
+        False,
+        description='Set to true to leave this data out of the exported data files',
+    )
+    descriptive_name: Optional[str] = Field(
+        None,
+        description="Override the name of this entity",
+    )
 
     # Variants, currently only applying to species
-    add_variants: Dict[str, bool] = dict()
-    remove_variants: Dict[str, bool] = dict()
-    variant_renames: Dict[str, str] = dict()
-    classname_variant_parts: Dict[str, bool] = dict()
-    pathname_variant_parts: Dict[str, bool] = dict()
-    variants_to_skip_export: Dict[str, bool] = dict()
-    variants_to_skip_export_asb: Dict[str, bool] = dict()
-    variants_to_remove_name_parts: Dict[str, str] = dict()
+    add_variants: Dict[str, bool] = Field(
+        dict(),
+        description="Explicitly add variants to this entity, in the dict form `varient: true`",
+    )
+    remove_variants: Dict[str, bool] = Field(
+        dict(),
+        description="Explicitly remove variants from this entity, in for dict form `variant: true`",
+    )
+    variant_renames: Dict[str, str] = Field(
+        dict(),
+        description="Rename these variants, if present, in the dict form `fromname: toname`",
+    )
+    classname_variant_parts: Dict[str, bool] = Field(
+        dict(),
+        description="Parts of a classname that will be added as a variant, matching _Variant or Variant_",
+    )
+    pathname_variant_parts: Dict[str, bool] = Field(
+        dict(),
+        description="Parts of an asset path that will be added as a variant, matching _Variant or Variant_",
+    )
+    variants_to_skip_export: Dict[str, bool] = Field(
+        dict(),
+        description="If these variants are found, the object will not be exported in all cases",
+    )
+    variants_to_skip_export_asb: Dict[str, bool] = Field(
+        dict(),
+        description="If these variants are found, the object will not be exported for ASB",
+    )
+    variants_to_remove_name_parts: Dict[str, str] = Field(
+        dict(),
+        description="If these variants are found, remove the given part of the descriptive name",
+    )
 
     # Species
     color_regions: ColorRegionSettings = ColorRegionSettings()
-    species_remaps: Dict[str, str] = dict()
-    descriptive_name: Optional[str]
+    species_remaps: Dict[str, str] = Field(
+        dict(),
+        description="Mapping from old to new species blueprint paths",
+    )
 
     # Maps
-    svgs: MapBoundariesSettings = MapBoundariesSettings()
+    svgs: MapBoundariesSettings = Field(
+        MapBoundariesSettings(),
+        title="SVGs",
+        description="SVG map genration boundaries",
+    )
 
 
 class OverridesFile(BaseModel):
@@ -176,3 +229,9 @@ def nested_update(d, v):
         else:
             d[key] = deepcopy(v[key])
     return d
+
+
+if __name__ == "__main__":
+    with open('schema/overrides.yaml.json', 'wt') as f:
+        schema = OverridesFile.schema_json(indent='\t')
+        f.write(schema)
