@@ -123,7 +123,7 @@ class OverridesFile(BaseModel):
     maps: Dict[str, OverrideSettings] = dict()
 
     class Config:
-        title = 'Purlova Overrides'
+        title = 'Purlovia Overrides'
 
 
 DEFAULT_COLORREGIONSETTINGS = ColorRegionSettings(
