@@ -1,9 +1,9 @@
 from pathlib import PurePosixPath
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 from pydantic import BaseModel, Field
 
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportModel, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
@@ -53,7 +53,10 @@ class LootCrate(BaseModel):
         None,
         title="Decay timing",
     )
-    randomSetsWithNoReplacement: Optional[bool]
+    randomSetsWithNoReplacement: Optional[bool] = Field(
+        None,
+        description="Unknown meaning",
+    )
     qualityMult: Optional[MinMaxRange] = Field(
         None,
         title="Quality range",
@@ -62,7 +65,17 @@ class LootCrate(BaseModel):
         None,
         title="Quantity range",
     )
-    sets: Optional[List[Any]]
+    sets: List[Any] = Field(
+        [],
+        description="List of item sets that can drop",
+    )
+
+
+class LootCreateExportModel(ExportModel):
+    lootCrates: List[LootCrate] = Field(
+        ...,
+        description="List of loot crates",
+    )
 
 
 class LootCratesStage(JsonHierarchyExportStage):
@@ -80,6 +93,9 @@ class LootCratesStage(JsonHierarchyExportStage):
 
     def get_ue_type(self) -> str:
         return PrimalStructureItemContainer_SupplyCrate.get_ue_type()
+
+    def get_schema_model(self) -> Type[ExportModel]:
+        return LootCreateExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         crate: PrimalStructureItemContainer_SupplyCrate = cast(PrimalStructureItemContainer_SupplyCrate, proxy)
