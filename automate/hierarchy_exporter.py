@@ -44,15 +44,15 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
 
     def get_core_file_path(self) -> PurePosixPath:
         '''Return the relative path of the core output file that should be generated.'''
-        field = self.get_field()
-        return PurePosixPath(f'{field}.json')
+        name = self.get_name()
+        return PurePosixPath(f'{name}.json')
 
     def get_mod_file_path(self, modid: str) -> PurePosixPath:
         '''Return the relative path of the expected mod output file that should be generated.'''
-        field = self.get_field()
+        name = self.get_name()
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        return PurePosixPath(f'{modid}-{mod_data["name"]}/{field}.json')
+        return PurePosixPath(f'{modid}-{mod_data["name"]}/{name}.json')
 
     @abstractmethod
     def extract(self, proxy: UEProxyStructure) -> Any:
