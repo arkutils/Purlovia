@@ -35,7 +35,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return PurePosixPath(f'{modid}-{mod_data["name"]}.json')
 
     def get_format_version(self):
-        return "1.12"
+        return "1.13"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()

@@ -108,6 +108,13 @@ mods:
             Shapeshifter_Small: Small
             Corrupt: Corrupted
 
+        species_remaps:
+            # Valguero Ice Wyvern -> Ragnarok Ice Wyvern
+            '/Game/Mods/Valguero/Assets/Dinos/IceWyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice': '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Wyvern/Ice_Wyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice'
+
+            # Valguero Dire Polar Bear -> Ragnarok Dire Polar Bear
+            '/Game/Mods/Valguero/Assets/Dinos/PolarBear/Polar_Bear.Polar_Bear': '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Polar_Bear/Polar_Bear.Polar_Bear'
+
 
     Ragnarok:
         add_variants:
