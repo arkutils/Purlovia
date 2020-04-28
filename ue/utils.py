@@ -3,6 +3,12 @@ from typing import Optional
 
 from ue.base import UEBase
 
+try:
+    from pydantic import BaseModel
+    have_pydantic = True
+except ImportError:
+    have_pydantic = False
+
 __all__ = [
     'get_leaf_from_assetname',
     'get_clean_namespaced_name',
@@ -73,6 +79,9 @@ def sanitise_output(node):
     format_for_json = getattr(node, 'format_for_json', None)
     if format_for_json:
         return sanitise_output(format_for_json())
+
+    if have_pydantic and isinstance(node, BaseModel):
+        return sanitise_output(node.dict())
 
     skip_level_name = getattr(node, 'skip_level_field', None)
     if skip_level_name:

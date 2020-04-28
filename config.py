@@ -1,7 +1,5 @@
 from typing import Optional
 
-from pydantic import BaseModel
-
 from automate.config.reader import read_config
 from automate.config.sections import ConfigFile
 
@@ -9,9 +7,17 @@ __all__ = [
     'get_global_config',
     'force_reload',
     'ConfigFile',
+    'OVERRIDE_FILENAME',
+    'LOGGING_FILENAME',
+    'HIERARCHY_FILENAME',
+    'ROOT_LOGGER',
 ]
 
-FILENAME = 'config/config.ini'
+CONFIG_FILENAME = 'config/config.ini'
+OVERRIDE_FILENAME = 'config/overrides.yaml'
+LOGGING_FILENAME = 'config/logging.yaml'
+HIERARCHY_FILENAME = 'config/hierarchy.yaml'
+ROOT_LOGGER = ''
 
 config: Optional[ConfigFile] = None
 
@@ -31,4 +37,4 @@ def force_reload():
 def _ensure_loaded():
     global config  # pylint: disable=global-statement
     if not config:
-        config = read_config(FILENAME)
+        config = read_config(CONFIG_FILENAME)

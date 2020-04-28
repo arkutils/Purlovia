@@ -1,9 +1,10 @@
 import hashlib
 import json
 import re
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
+
+from utils.log import get_logger
 
 __all__ = [
     'save_json_if_changed',
@@ -11,8 +12,7 @@ __all__ = [
     'should_save_json',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 def save_json_if_changed(values: Dict[str, Any], fullpath: Path, pretty: bool) -> Optional[str]:

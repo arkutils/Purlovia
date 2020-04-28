@@ -15,9 +15,9 @@ from collections import namedtuple
 from contextlib import ContextDecorator
 from dataclasses import dataclass
 from enum import IntEnum, auto
-from logging import NullHandler, getLogger
 from typing import NamedTuple, Optional, cast
 
+from utils.log import get_logger
 from utils.xlocal import xlocal
 
 __all__ = [
@@ -26,8 +26,7 @@ __all__ = [
     'get_ctx',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 INCLUDE_METADATA = True
 

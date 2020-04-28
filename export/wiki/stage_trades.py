@@ -1,16 +1,17 @@
-from logging import NullHandler, getLogger
 from typing import Any, Dict, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import HexagonTradableOption
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 __all__ = [
     'TradesStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+
+logger = get_logger(__name__)
 
 
 class TradesStage(JsonHierarchyExportStage):
@@ -19,9 +20,6 @@ class TradesStage(JsonHierarchyExportStage):
 
     def get_format_version(self) -> str:
         return "1"
-
-    def get_field(self) -> str:
-        return "trades"
 
     def get_use_pretty(self) -> bool:
         return bool(self.manager.config.export_wiki.PrettyJson)

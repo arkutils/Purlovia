@@ -7,12 +7,12 @@ import json
 import pickle
 import tempfile
 from collections.abc import Hashable
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import *
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+from utils.log import get_logger
+
+logger = get_logger(__name__)
 
 
 def cache_data(key: object, filename: str, generator_fn: Callable[[object], object], force_regenerate=False):

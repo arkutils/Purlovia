@@ -5,7 +5,6 @@ import re
 from abc import ABCMeta, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
 from io import StringIO
-from logging import NullHandler, getLogger
 from operator import itemgetter
 from pathlib import Path, PurePosixPath
 from typing import *
@@ -17,13 +16,13 @@ from ue.gathering import gather_properties
 from ue.hierarchy import find_sub_classes
 from ue.loader import AssetLoader, AssetLoadException
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 from .git import GitManager
 from .manifest import MANIFEST_FILENAME, update_manifest
 from .run_sections import should_run_section
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'ExportStage',

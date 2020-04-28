@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from typing import Iterable, Iterator
 
 import ue.hierarchy
@@ -7,9 +6,9 @@ from config import ConfigFile, get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 from ue.asset import UAsset
 from ue.loader import AssetLoader, AssetLoadException
+from utils.log import get_logger
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 class LevelDiscoverer:

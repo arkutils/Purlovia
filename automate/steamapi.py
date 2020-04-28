@@ -1,10 +1,10 @@
-from logging import NullHandler, getLogger
 from typing import *
 
 import requests
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+from utils.log import get_logger
+
+logger = get_logger(__name__)
 
 
 class SteamApiException(Exception):

@@ -1,6 +1,6 @@
 from typing import *
 
-import pytest  # type: ignore
+import pytest
 
 from ark.gathering import gather_dcsc_properties
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalGameData

@@ -4,7 +4,7 @@ from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
 
-import pytest  # type: ignore
+import pytest
 from pytest_mock import MockFixture  # type: ignore
 
 from .cachefile import cache_data

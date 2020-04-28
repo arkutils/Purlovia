@@ -1,10 +1,11 @@
 import json
 import re
 from dataclasses import dataclass, field
-from logging import NullHandler, getLogger
 from operator import itemgetter
 from pathlib import Path, PurePosixPath
 from typing import *
+
+from utils.log import get_logger
 
 MANIFEST_FILENAME = '_manifest.json'
 SHRINK_MOD_REGEX = r"{\n\s+(.+: .*),\n\s+(.+: .*),\n\s+(.+: .*)\n\s+}"
@@ -14,8 +15,7 @@ __all__ = [
     'MANIFEST_FILENAME',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 
 def update_manifest(path: Path) -> Optional[Dict[str, Any]]:

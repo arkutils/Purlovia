@@ -21,10 +21,17 @@ EXPORT_SECTION_TYPES = {
 }
 
 
-def read_config(filename: str):
+def read_config(filename: Optional[str] = None, config_string: Optional[str] = None):
+    if filename is None and config_string is None:
+        raise ValueError("filename or config string are required")
+
     parser = ConfigParser(inline_comment_prefixes='#;')
     parser.optionxform = lambda v: v  # type: ignore # keep exact case of mod names, please
-    parser.read(filename)
+
+    if filename is not None:
+        parser.read(filename)
+    elif config_string is not None:
+        parser.read_string(config_string)
 
     # Sections that require special handling
     mods = list(parser['mods'].keys())

@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 
@@ -6,6 +5,7 @@ from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
+from utils.log import get_logger
 
 from .items.cooking import convert_cooking_values
 from .items.crafting import convert_crafting_values
@@ -17,8 +17,8 @@ __all__ = [
     'ItemsStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+logger = get_logger(__name__)
 
 
 class ItemsStage(JsonHierarchyExportStage):

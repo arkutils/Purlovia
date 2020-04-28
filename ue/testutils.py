@@ -1,6 +1,6 @@
 import os.path
 
-import pytest  # type: ignore
+import pytest
 
 import ark.asset
 import ark.mod

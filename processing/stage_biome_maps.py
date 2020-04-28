@@ -1,15 +1,14 @@
-from logging import NullHandler, getLogger
 from pathlib import Path
 from typing import List, Optional
 
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries
+from utils.log import get_logger
 
 from .region_maps.svg import generate_svg_map
 from .stage_base import ProcessingStage
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+logger = get_logger(__name__)
 
 __all__ = [
     'ProcessBiomeMapsStage',

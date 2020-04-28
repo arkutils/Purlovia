@@ -1,4 +1,3 @@
-from logging import NullHandler, getLogger
 from pathlib import PurePosixPath
 from typing import *
 from typing import cast
@@ -12,7 +11,9 @@ from ue.asset import UAsset
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
+from utils.log import get_logger
 
+from .flags import gather_flags
 from .species.attacks import gather_attack_data
 from .species.movement import gather_movement_data
 
@@ -20,8 +21,8 @@ __all__ = [
     'SpeciesStage',
 ]
 
-logger = getLogger(__name__)
-logger.addHandler(NullHandler())
+
+logger = get_logger(__name__)
 
 OUTPUT_FLAGS = (
     'bAllowCarryFlyerDinos',
@@ -107,7 +108,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         if variants:
             results['variants'] = tuple(sorted(variants))
 
-        results['flags'] = _gather_flags(species)
+        results['flags'] = gather_flags(species, OUTPUT_FLAGS)
 
         results['falling'] = dict(
             dmgMult=species.FallDamageMultiplier[0],
@@ -118,21 +119,6 @@ class SpeciesStage(JsonHierarchyExportStage):
         results.update(gather_attack_data(species))
 
         return results
-
-
-def _gather_flags(species: PrimalDinoCharacter) -> List[str]:
-    result = [_clean_flag_name(field) for field in OUTPUT_FLAGS if species.get(field, fallback=False)]
-    return result
-
-
-def _clean_flag_name(name: str):
-    if len(name) >= 2 and name[0] == 'b' and name[1] == name[1].upper():
-        return name[1].lower() + name[2:]
-
-    if len(name) >= 1:
-        return name[0].lower() + name[1:]
-
-    raise ValueError("Invalid flag name found")
 
 
 def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettings):

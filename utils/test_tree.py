@@ -1,6 +1,6 @@
 from operator import attrgetter
 
-import pytest  # type: ignore
+import pytest
 
 from .tree import IndexedTree, Node
 

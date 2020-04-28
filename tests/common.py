@@ -1,12 +1,12 @@
 from typing import Callable
 
-import pytest  # type: ignore
+import pytest
 
 import ue.hierarchy
 from ark.discovery import initialise_hierarchy
 from ark.types import *
 from automate.ark import ArkSteamManager
-from config import ConfigFile, get_global_config
+from config import HIERARCHY_FILENAME, ConfigFile, get_global_config
 from ue.asset import ExportTableItem, UAsset
 from ue.context import ParsingContext, get_ctx, ue_parsing_context
 from ue.loader import AssetLoader
@@ -51,7 +51,7 @@ def fixture_hierarchy(arkman: ArkSteamManager, config: ConfigFile):
 @pytest.fixture(name='internal_hierarchy', scope='module')
 def fixture_internal_hierarchy():
     ue.hierarchy.tree.clear()
-    ue.hierarchy.load_internal_hierarchy('config/hierarchy.yaml')
+    ue.hierarchy.load_internal_hierarchy(HIERARCHY_FILENAME)
 
 
 @pytest.fixture(name='dodos', scope='module')
