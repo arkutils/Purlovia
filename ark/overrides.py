@@ -52,6 +52,7 @@ class OverrideSettings(BaseModel):
 
     # Species
     color_regions: ColorRegionSettings = ColorRegionSettings()
+    species_remaps: Dict[str, str] = dict()
     descriptive_name: Optional[str]
 
     # Maps

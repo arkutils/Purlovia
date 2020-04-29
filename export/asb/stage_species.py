@@ -1,6 +1,7 @@
 from pathlib import PurePosixPath
 from typing import Any, Dict, Optional, cast
 
+from ark.overrides import get_overrides_for_mod
 from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.loader import AssetLoadException
@@ -34,12 +35,14 @@ class SpeciesStage(JsonHierarchyExportStage):
         return PurePosixPath(f'{modid}-{mod_data["name"]}.json')
 
     def get_format_version(self):
-        return "1.12"
+        return "1.13"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
+        output = dict()
+
         if modid:
             # Find any colour overrides in the mod's PGD
             mod_data = self.manager.arkman.getModData(modid)
@@ -47,13 +50,20 @@ class SpeciesStage(JsonHierarchyExportStage):
             package = mod_data.get('package', None)
             if package:
                 pgd_asset = self.manager.loader[package]
-                return values_from_pgd(pgd_asset, require_override=True)
+                pgd_output = values_from_pgd(pgd_asset, require_override=True)
+                output.update(pgd_output)
         else:
             # Return the colours from the main PGD
             pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
-            return values_from_pgd(pgd_asset, require_override=False)
+            pgd_output = values_from_pgd(pgd_asset, require_override=False)
+            output.update(pgd_output)
 
-        return None
+        # Add species override data, if any
+        mod_overrides = get_overrides_for_mod(modid)
+        if mod_overrides.species_remaps:
+            output['remaps'] = mod_overrides.species_remaps
+
+        return output
 
     def extract(self, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
         char = cast(PrimalDinoCharacter, proxy)
