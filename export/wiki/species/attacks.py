@@ -1,28 +1,44 @@
-from typing import *
+from typing import List, Optional, cast
 
 from ark.types import PrimalDinoCharacter
 from ue.properties import StructProperty
+from pydantic import BaseModel
+
+
+class AttackInfo(BaseModel):
+    name: str
+    interval: float
+    dmg: float
+    radius: float
+    stamina: float
+    isProjectile: Optional[bool]
+
+
+class AttackData(BaseModel):
+    defaultDmg: Optional[float]
+    defaultSwingRadius: Optional[float]
+    attacks: Optional[List[AttackInfo]]
 
 
 def gather_attack_data(char: PrimalDinoCharacter):
-    result: Dict[str, Any] = dict()
+    result = AttackData()
 
-    result['defaultDmg'] = char.MeleeDamageAmount[0]
-    result['defaultSwingRadius'] = char.MeleeSwingRadius[0]
+    result.defaultDmg = char.MeleeDamageAmount[0]
+    result.defaultSwingRadius = char.MeleeSwingRadius[0]
 
     if 'AttackInfos' in char:
         attacks = [_convert_attack(cast(StructProperty, attack)) for attack in char.AttackInfos[0].values]
         if attacks:
-            result['attacks'] = attacks
+            result.attacks = attacks
 
-    return dict(attack=result)
+    return result
 
 
-def _convert_attack(attack: StructProperty):
+def _convert_attack(attack: StructProperty) -> AttackInfo:
     d: Dict[str, Any] = attack.as_dict()
 
-    v = dict(
-        name=d['AttackName'] or None,
+    v = AttackInfo(
+        name=str(d['AttackName'] or None),
         interval=d['AttackInterval'],
         dmg=d['MeleeDamageAmount'],
         radius=d['MeleeSwingRadius'],
@@ -31,6 +47,6 @@ def _convert_attack(attack: StructProperty):
 
     proj = d['ProjectileClass']
     if proj:
-        v['isProjectile'] = True
+        v.isProjectile = True
 
     return v

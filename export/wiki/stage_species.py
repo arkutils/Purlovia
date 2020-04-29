@@ -12,15 +12,15 @@ from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
 from utils.log import get_logger
+from pydantic import Field, BaseModel
 
 from .flags import gather_flags
-from .species.attacks import gather_attack_data
-from .species.movement import gather_movement_data
+from .species.attacks import gather_attack_data, AttackData
+from .species.movement import gather_movement_data, MovementModes
 
 __all__ = [
     'SpeciesStage',
 ]
-
 
 logger = get_logger(__name__)
 
@@ -57,6 +57,62 @@ OUTPUT_FLAGS = (
 )
 
 
+class FallingData(BaseModel):
+    dmgMult: float
+    maxSpeed: float
+
+
+class Species(BaseModel):
+    bp: str = Field(
+        ...,
+        title="Full blueprint path",
+    )
+    name: Optional[str] = Field(
+        None,
+        title="",
+    )
+
+    dinoNameTag: Optional[str] = Field(
+        None,
+        title="",
+    )
+    customTag: Optional[str] = Field(
+        None,
+        title="",
+    )
+    targetingTeamName: Optional[str] = Field(
+        None,
+        title="",
+    )
+
+    mass: Optional[float] = Field(
+        None,
+        title="",
+    )
+    dragWeight: Optional[float] = Field(
+        None,
+        title="",
+    )
+
+    variants: Optional[Tuple[str]] = Field(
+        None,
+        title="",
+    )
+    flags: Optional[List[str]] = Field(
+        None,
+        title="",
+    )
+
+    falling: Optional[FallingData] = Field(
+        None,
+        title="",
+    )
+
+    movementW: Optional[MovementModes]
+    movementD: Optional[MovementModes]
+    attacks: Optional[AttackData]
+
+
 def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -> bool:
     skip_variants = set(name for name, use in overrides.variants_to_skip_export.items() if use)
     return bool(variants & skip_variants)
@@ -70,7 +126,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "1"
+        return "2"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()
@@ -95,30 +151,31 @@ class SpeciesStage(JsonHierarchyExportStage):
 
             name = adjust_name_from_variants(name, variants, overrides)
 
-        results: Dict[str, Any] = dict(
-            name=name,
-            blueprintPath=asset.default_class.fullname,
-            dinoNameTag=species.DinoNameTag[0],
-            customTag=species.CustomTag[0],
-            targetingTeamName=species.TargetingTeamNameOverride[0],
-            mass=species.CharacterMovement[0].Mass[0],
-            dragWeight=species.DragWeight[0],
-        )
+        out = Species(bp=asset.default_class.fullname)
+        out.name = name
+        out.dinoNameTag = species.DinoNameTag[0]
+        out.customTag = species.CustomTag[0]
+        out.targetingTeamName = species.TargetingTeamNameOverride[0]
+        out.mass = species.CharacterMovement[0].Mass[0]
+        out.dragWeight = species.DragWeight[0]
 
         if variants:
-            results['variants'] = tuple(sorted(variants))
+            out.variants = tuple(sorted(variants))
 
-        results['flags'] = gather_flags(species, OUTPUT_FLAGS)
+        out.flags = gather_flags(species, OUTPUT_FLAGS)
 
-        results['falling'] = dict(
+        out.falling = FallingData(
             dmgMult=species.FallDamageMultiplier[0],
             maxSpeed=species.MaxFallSpeed[0],
         )
 
-        results.update(gather_movement_data(species))
-        results.update(gather_attack_data(species))
+        movement = gather_movement_data(species)
+        out.movementW = movement.movementW
+        out.movementD = movement.movementD
 
-        return results
+        out.attacks = gather_attack_data(species)
+
+        return out
 
 
 def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettings):
