@@ -1,9 +1,7 @@
 from pathlib import PurePosixPath
 from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
-from pydantic import BaseModel, Field
-
-from automate.hierarchy_exporter import ExportModel, JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
@@ -17,7 +15,7 @@ __all__ = [
 logger = get_logger(__name__)
 
 
-class MinMaxRange(BaseModel):
+class MinMaxRange(ExportModel):
     min: float
     max: float
 
@@ -25,7 +23,7 @@ class MinMaxRange(BaseModel):
         super().__init__(min=min, max=max)
 
 
-class MinMaxPowerRange(BaseModel):
+class MinMaxPowerRange(ExportModel):
     min: float
     max: float
     pow: float = Field(..., title="Power", description="Affects the power curve used to select a value in the range")
@@ -34,12 +32,12 @@ class MinMaxPowerRange(BaseModel):
         super().__init__(min=min, max=max, pow=pow)
 
 
-class DecayTime(BaseModel):
+class DecayTime(ExportModel):
     start: float
     interval: float
 
 
-class LootCrate(BaseModel):
+class LootCrate(ExportModel):
     bp: str = Field(
         ...,
         title="Full blueprint path",
@@ -71,7 +69,7 @@ class LootCrate(BaseModel):
     )
 
 
-class LootCreateExportModel(ExportModel):
+class LootCreateExportModel(ExportFileModel):
     lootCrates: List[LootCrate] = Field(
         ...,
         description="List of loot crates",
@@ -94,7 +92,7 @@ class LootCratesStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalStructureItemContainer_SupplyCrate.get_ue_type()
 
-    def get_schema_model(self) -> Type[ExportModel]:
+    def get_schema_model(self) -> Type[ExportFileModel]:
         return LootCreateExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:

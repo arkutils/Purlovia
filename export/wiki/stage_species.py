@@ -2,13 +2,11 @@ from pathlib import PurePosixPath
 from typing import *
 from typing import cast
 
-from pydantic import BaseModel, Field
-
 from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
@@ -58,12 +56,12 @@ OUTPUT_FLAGS = (
 )
 
 
-class FallingData(BaseModel):
+class FallingData(ExportModel):
     dmgMult: float
     maxSpeed: float
 
 
-class Species(BaseModel):
+class Species(ExportModel):
     name: Optional[str] = Field(
         None,
         title="",
@@ -127,7 +125,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "2"
+        return "1"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()

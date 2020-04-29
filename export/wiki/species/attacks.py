@@ -1,11 +1,11 @@
 from typing import List, Optional, cast
 
 from ark.types import PrimalDinoCharacter
+from automate.hierarchy_exporter import ExportModel
 from ue.properties import StructProperty
-from pydantic import BaseModel
 
 
-class AttackInfo(BaseModel):
+class AttackInfo(ExportModel):
     name: str
     interval: float
     dmg: float
@@ -14,8 +14,8 @@ class AttackInfo(BaseModel):
     isProjectile: Optional[bool]
 
 
-class AttackData(BaseModel):
-    defaultDmg: Optional[float]
+class AttackData(ExportModel):
+    defaultDmg: Optional[int]
     defaultSwingRadius: Optional[float]
     attacks: Optional[List[AttackInfo]]
 

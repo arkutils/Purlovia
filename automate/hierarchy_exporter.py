@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, List, Optional, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseConfig, BaseModel, Field
 
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
@@ -15,9 +15,24 @@ from utils.strings import get_valid_filename
 from .exporter import ExportStage
 
 __all__ = [
+    'Field',
     'ExportModel',
+    'ExportFileModel',
     'JsonHierarchyExportStage',
 ]
+
+
+class ModelConfig:
+    extra = 'forbid'
+    allow_population_by_field_name = True
+
+    # there's no need to use arbitrary_types_allowed, apparently
+    # we cannot use validate_assignment here as it casts fields and loses UE-specific data
+
+
+class ExportModel(BaseModel):
+    class Config(ModelConfig):
+        ...
 
 
 class ModInfo(BaseModel):
@@ -36,7 +51,7 @@ class ModInfo(BaseModel):
     )
 
 
-class ExportModel(BaseModel):
+class ExportFileModel(ExportModel):
     version: str = Field(
         ...,
         description="Data version of the format <gamemajor>.<gamemajor>.<specificversion>, e.g. '306.83.4740398'",
@@ -50,6 +65,9 @@ class ExportModel(BaseModel):
         title="Mod info",
         description="Source module information",
     )
+
+    class Config:
+        schema_extra = {'$schema': 'http://json-schema.org/draft-07/schema#'}
 
 
 class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
@@ -89,7 +107,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         assert mod_data
         return PurePosixPath(f'{modid}-{mod_data["name"]}/{name}.json')
 
-    def get_schema_model(self) -> Optional[Type[ExportModel]]:
+    def get_schema_model(self) -> Optional[Type[ExportFileModel]]:
         '''To supply a schema for this export supply a customised Pydantic model type.'''
         return None
 
