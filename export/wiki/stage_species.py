@@ -2,6 +2,8 @@ from pathlib import PurePosixPath
 from typing import *
 from typing import cast
 
+from pydantic import BaseModel, Field
+
 from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
@@ -12,11 +14,10 @@ from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
 from utils.log import get_logger
-from pydantic import Field, BaseModel
 
 from .flags import gather_flags
-from .species.attacks import gather_attack_data, AttackData
-from .species.movement import gather_movement_data, MovementModes
+from .species.attacks import AttackData, gather_attack_data
+from .species.movement import MovementModes, gather_movement_data
 
 __all__ = [
     'SpeciesStage',
@@ -63,13 +64,13 @@ class FallingData(BaseModel):
 
 
 class Species(BaseModel):
-    bp: str = Field(
-        ...,
-        title="Full blueprint path",
-    )
     name: Optional[str] = Field(
         None,
         title="",
+    )
+    blueprintPath: str = Field(
+        ...,
+        title="Full blueprint path",
     )
 
     dinoNameTag: Optional[str] = Field(
@@ -94,7 +95,7 @@ class Species(BaseModel):
         title="",
     )
 
-    variants: Optional[Tuple[str]] = Field(
+    variants: Optional[Tuple[str, ...]] = Field(
         None,
         title="",
     )
@@ -110,7 +111,7 @@ class Species(BaseModel):
 
     movementW: Optional[MovementModes]
     movementD: Optional[MovementModes]
-    attacks: Optional[AttackData]
+    attack: Optional[AttackData]
 
 
 def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -> bool:
@@ -151,7 +152,7 @@ class SpeciesStage(JsonHierarchyExportStage):
 
             name = adjust_name_from_variants(name, variants, overrides)
 
-        out = Species(bp=asset.default_class.fullname)
+        out = Species(blueprintPath=asset.default_class.fullname)
         out.name = name
         out.dinoNameTag = species.DinoNameTag[0]
         out.customTag = species.CustomTag[0]
@@ -173,7 +174,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         out.movementW = movement.movementW
         out.movementD = movement.movementD
 
-        out.attacks = gather_attack_data(species)
+        out.attack = gather_attack_data(species)
 
         return out
 
