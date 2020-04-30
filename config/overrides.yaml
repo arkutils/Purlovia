@@ -21,6 +21,7 @@ defaults:
         Tamed: true
         Base: true
         Rare: true
+        FORTESTING: true
 
     # Parts of an asset path that will be added as a variant, matching _Variant or Variant_
     pathname_variant_parts:
@@ -36,6 +37,7 @@ defaults:
     # If these variants are found, the object will not be exported in all cases
     variants_to_skip_export:
         Base: true
+        FORTESTING: true
 
     # If these variants are found, the object will not be exported for ASB
     variants_to_skip_export_asb:
