@@ -154,8 +154,6 @@ def handle_args(args: Any) -> ConfigFile:
         config.display_sections = True
         return config
 
-    print(len(config.mods))
-
     # Logging can be setup now we know we're not aborting
     setup_logging(path=LOGGING_FILENAME)
 
