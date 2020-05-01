@@ -28,9 +28,6 @@ class ModelConfig:
     validate_assignment = True
     allow_population_by_field_name = True
 
-    # there's no need to use arbitrary_types_allowed, apparently
-    # we cannot use validate_assignment here as it casts fields and loses UE-specific data
-
 
 class ExportModel(BaseModel):
     class Config(ModelConfig):

@@ -9,7 +9,7 @@ from ark.variants import adjust_name_from_variants, get_variants_from_assetname,
 from automate.hierarchy_exporter import ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
-from ue.properties import FloatProperty, StringProperty
+from ue.properties import FloatProperty, StringLikeProperty
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
 from utils.log import get_logger
@@ -58,8 +58,8 @@ OUTPUT_FLAGS = (
 
 
 class FallingData(ExportModel):
-    dmgMult: float
-    maxSpeed: float
+    dmgMult: FloatProperty
+    maxSpeed: FloatProperty
 
 
 class Species(ExportModel):
@@ -72,15 +72,15 @@ class Species(ExportModel):
         title="Full blueprint path",
     )
 
-    dinoNameTag: Optional[StringProperty] = Field(
+    dinoNameTag: Optional[StringLikeProperty] = Field(
         None,
         title="Only known use is saddle compatibility",
     )
-    customTag: Optional[StringProperty] = Field(
+    customTag: Optional[StringLikeProperty] = Field(
         None,
         title="",
     )
-    targetingTeamName: Optional[StringProperty] = Field(
+    targetingTeamName: Optional[StringLikeProperty] = Field(
         None,
         title="",
     )
