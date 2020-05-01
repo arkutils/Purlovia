@@ -244,6 +244,22 @@ class ValueProperty(UEBase, Real, ABC):
     def format_for_json(self):
         return self.value
 
+    @classmethod
+    def __get_validators__(cls):
+        '''...allows the type to be used as a pydantic field'''
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if not isinstance(value, cls):
+            raise TypeError(f"Got {type(value)} when expecting {cls}")
+        return value
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='number')
+
     # Not sure why we have to specifically override these, but we do
     __eq__ = UEBase.__eq__  # type: ignore
     __hash__ = UEBase.__hash__  # type: ignore
@@ -376,6 +392,9 @@ class FloatProperty(ValueProperty):
         return self.raw_data
 
     def format_for_json(self):
+        return self.__float__()
+
+    def __float__(self):
         '''Restrict single-precision float output to 7 significant figures.'''
         return clean_float(self.value)
 
@@ -432,6 +451,11 @@ class IntProperty(ValueProperty):
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readInt32())
 
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='integer')
+
 
 class UInt32Property(IntProperty):
     string_format = '(uint) {value}'
@@ -459,6 +483,11 @@ class BoolProperty(ValueProperty):
 
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readBool8())
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='boolean')
 
 
 class ByteProperty(ValueProperty):  # With optional enum type
@@ -586,6 +615,22 @@ class StringProperty(UEBase):
         if INCLUDE_METADATA:
             # References to this item
             self.users = set()
+
+    @classmethod
+    def __get_validators__(cls):
+        '''...allows the type to be used as a pydantic field'''
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if not isinstance(value, cls):
+            raise TypeError(f"Got {type(value)} when expecting {cls}")
+        return value
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='string')
 
     def register_user(self, user):
         if INCLUDE_METADATA:

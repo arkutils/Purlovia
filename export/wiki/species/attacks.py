@@ -1,22 +1,22 @@
-from typing import List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from ark.types import PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel
-from ue.properties import StructProperty
+from ue.properties import BoolProperty, FloatProperty, IntProperty, StringProperty, StructProperty
 
 
 class AttackInfo(ExportModel):
-    name: str
-    interval: float
-    dmg: float
-    radius: float
-    stamina: float
-    isProjectile: Optional[bool]
+    name: StringProperty
+    interval: FloatProperty
+    dmg: FloatProperty
+    radius: FloatProperty
+    stamina: FloatProperty
+    isProjectile: Optional[BoolProperty]
 
 
 class AttackData(ExportModel):
-    defaultDmg: Optional[int]
-    defaultSwingRadius: Optional[float]
+    defaultDmg: Optional[IntProperty]
+    defaultSwingRadius: Optional[FloatProperty]
     attacks: Optional[List[AttackInfo]]
 
 
@@ -38,15 +38,16 @@ def _convert_attack(attack: StructProperty) -> AttackInfo:
     d: Dict[str, Any] = attack.as_dict()
 
     v = AttackInfo(
-        name=str(d['AttackName'] or None),
+        name=d['AttackName'],
         interval=d['AttackInterval'],
         dmg=d['MeleeDamageAmount'],
         radius=d['MeleeSwingRadius'],
         stamina=d['StaminaCost'],
+        isProjectile=d['ProjectileClass'],
     )
 
-    proj = d['ProjectileClass']
-    if proj:
-        v.isProjectile = True
+    # proj = d['ProjectileClass']
+    # if proj:
+    #     v.isProjectile = True
 
     return v

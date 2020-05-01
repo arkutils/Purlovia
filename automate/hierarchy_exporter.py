@@ -24,6 +24,8 @@ __all__ = [
 
 class ModelConfig:
     extra = 'forbid'
+    validate_all = False
+    validate_assignment = True
     allow_population_by_field_name = True
 
     # there's no need to use arbitrary_types_allowed, apparently
