@@ -1,8 +1,9 @@
 from pathlib import PurePosixPath
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
+from ue.properties import BoolProperty, FloatProperty, IntProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
@@ -16,25 +17,29 @@ logger = get_logger(__name__)
 
 
 class MinMaxRange(ExportModel):
-    min: float
-    max: float
+    min: Union[FloatProperty, IntProperty]
+    max: Union[FloatProperty, IntProperty]
 
     def __init__(self, min, max):
         super().__init__(min=min, max=max)
 
 
 class MinMaxPowerRange(ExportModel):
-    min: float
-    max: float
-    pow: float = Field(..., title="Power", description="Affects the power curve used to select a value in the range")
+    min: Union[FloatProperty, IntProperty]
+    max: Union[FloatProperty, IntProperty]
+    pow: Union[FloatProperty, IntProperty] = Field(
+        ...,
+        title="Power",
+        description="Affects the power curve used to select a value in the range",
+    )
 
     def __init__(self, min, max, pow):
         super().__init__(min=min, max=max, pow=pow)
 
 
 class DecayTime(ExportModel):
-    start: float
-    interval: float
+    start: FloatProperty
+    interval: FloatProperty
 
 
 class LootCrate(ExportModel):
@@ -51,7 +56,7 @@ class LootCrate(ExportModel):
         None,
         title="Decay timing",
     )
-    randomSetsWithNoReplacement: Optional[bool] = Field(
+    randomSetsWithNoReplacement: Optional[BoolProperty] = Field(
         None,
         description="Unknown meaning",
     )
@@ -105,7 +110,7 @@ class LootCratesStage(JsonHierarchyExportStage):
         out = LootCrate(bp=crate.get_source().fullname)
         out.levelReq = MinMaxRange(min=crate.RequiredLevelToAccess[0], max=crate.MaxLevelToAccess[0])
         out.decayTime = DecayTime(start=crate.InitialTimeToLoseHealth[0], interval=crate.IntervalTimeToLoseHealth[0])
-        out.randomSetsWithNoReplacement = bool(crate.bSetsRandomWithoutReplacement[0])
+        out.randomSetsWithNoReplacement = crate.bSetsRandomWithoutReplacement[0]
         out.qualityMult = MinMaxRange(min=crate.MinQualityMultiplier[0], max=crate.MaxQualityMultiplier[0])
         out.setQty = MinMaxPowerRange(min=crate.MinItemSets[0], max=crate.MaxItemSets[0], pow=crate.NumItemSetsPower[0])
         out.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
