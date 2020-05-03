@@ -51,6 +51,9 @@ class Table(UEBase):
             if isinstance(value, UEBase):
                 value.link()
 
+    def format_for_json(self):
+        return self.values
+
     def __getitem__(self, index: int):
         '''Provide access using the index via the table[index] syntax.'''
         if self.values is None:
@@ -189,10 +192,10 @@ class ObjectIndex(UEBase):
         self._newField('value', value)
 
     def format_for_json(self):
-        if not self.value:
-            return None
-
-        return self.value.fullname
+        if self.kind == 'import':
+            return self.value
+        else:
+            return self.value and self.value.fullname
 
     def __bool__(self):
         return self.index != 0

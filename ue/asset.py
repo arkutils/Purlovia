@@ -181,6 +181,24 @@ class UAsset(UEBase):
 
         raise RuntimeError("Could not find None string entry")
 
+    def format_for_json(self):
+        return dict(
+            file=self.assetname + self.file_ext,
+            legacy_ver=self.legacy_ver,
+            ue_ver=self.ue_ver,
+            file_ver=self.file_ver,
+            licensee_ver=self.licensee_ver,
+            custom_versions=self.custom_versions,
+            header_size=self.header_size,
+            package_group=self.package_group,
+            package_flags=self.package_flags,
+            engine_version_saved=self.engine_version_saved,
+            guid=self.guid,
+            names=self.names,
+            exports=self.exports,
+            imports=self.imports,
+        )
+
     # def __eq__(self, other):
     #     return super().__eq__(other)
 
@@ -211,10 +229,6 @@ class ImportTableItem(UEBase):
             # References to this item
             self.users = set()
 
-    @property
-    def fullname(self) -> str:
-        return str(self.namespace.value.name) + '.' + str(self.name)
-
     def register_user(self, user):
         if INCLUDE_METADATA:
             self.users.add(user)
@@ -231,6 +245,15 @@ class ImportTableItem(UEBase):
                     p.text(f'Import({self.name} ({parent}) from {pkg})')
                 else:
                     p.text(f'Import({self.name} ({parent})')
+
+    @property
+    def fullname(self) -> str:
+        if self.namespace:
+            return str(self.namespace.value.name) + '.' + str(self.name)
+        return str(self.name)
+
+    def format_for_json(self):
+        return self.fullname
 
     def __str__(self):
         parent = get_clean_name(self.klass, 'class')
@@ -289,6 +312,22 @@ class ExportTableItem(UEBase):
         stream = MemoryStream(self.stream, self.serial_offset, self.serial_size)
         self._newField('properties', PropertyTable(self, weakref.proxy(stream)))
         self.properties.link()
+
+    def format_for_json(self):
+        return dict(
+            klass=self.klass,
+            super=self.super,
+            namespace=self.namespace,
+            name=self.name,
+            guid=self.guid,
+            object_flags=self.object_flags,
+            package_flags=self.package_flags,
+            force_export=self.force_export,
+            not_for_client=self.not_for_client,
+            not_for_server=self.not_for_server,
+            not_for_editor_game=self.not_for_editor_game,
+            properties=self.properties,
+        )
 
     def __str__(self):
         parent = get_clean_name(self.super)
