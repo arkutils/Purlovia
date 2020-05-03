@@ -119,7 +119,10 @@ COLLAPSE_SINGLE_LINE_ARRAY_REGEX = re.compile(r'\[\s+(.+)\s+\]')
 # Sets of named fields that should be combined onto a single line
 # Only applies if all fields are found
 JOIN_LINE_FIELDS = (
+    'x|y',
     'x|y|z',
+    'a|b',
+    'a|b|c',
     'lat|long?',
     'name|interval|dmg|radius|stamina',
     'base|sprint',
