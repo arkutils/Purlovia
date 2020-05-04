@@ -6,7 +6,7 @@ from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
-from automate.hierarchy_exporter import ExportModel, Field, JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
 from ue.properties import FloatProperty, StringLikeProperty
@@ -58,59 +58,67 @@ OUTPUT_FLAGS = (
 
 
 class FallingData(ExportModel):
-    dmgMult: FloatProperty
-    maxSpeed: FloatProperty
+    dmgMult: FloatProperty = Field(..., title="Damage multiplier")
+    maxSpeed: FloatProperty = Field(..., title="Max speed")
 
 
 class Species(ExportModel):
     name: Optional[str] = Field(
         None,
-        title="Descriptive name",
+        description="Descriptive name",
     )
     blueprintPath: str = Field(
         ...,
+        alias='bp',
         title="Full blueprint path",
     )
 
     dinoNameTag: Optional[StringLikeProperty] = Field(
         None,
-        title="Only known use is saddle compatibility",
+        title="Dino name tag",
+        description="Only known use is saddle compatibility",
     )
     customTag: Optional[StringLikeProperty] = Field(
         None,
-        title="",
+        title="Custom tag",
+        description="",
     )
     targetingTeamName: Optional[StringLikeProperty] = Field(
         None,
-        title="",
+        title="Targeting team name",
+        description="Prevent friendly fire with creatures in the same team",
     )
 
     mass: Optional[FloatProperty] = Field(
         None,
-        title="",
+        description="Physics mass, used as a limit in some immobilisation systems",
     )
     dragWeight: Optional[FloatProperty] = Field(
         None,
-        title="",
+        title="Drag weight",
+        description="Apparent weight for many game systems including carrying and boss arena entry limits",
     )
 
     variants: Optional[Tuple[str, ...]] = Field(
-        None,
-        title="",
+        tuple(),
+        description="List of relevant variant names",
     )
     flags: Optional[List[str]] = Field(
-        None,
-        title="",
+        list(),
+        description="Relevant boolean flags that are True for this species",
     )
 
-    falling: Optional[FallingData] = Field(
-        None,
-        title="",
-    )
-
-    movementW: Optional[MovementModes]
-    movementD: Optional[MovementModes]
+    falling: Optional[FallingData]
+    movementW: Optional[MovementModes] = Field(None, title="Movement (wild)")
+    movementD: Optional[MovementModes] = Field(None, title="Movement (domesticated)")
     attack: Optional[AttackData]
+
+
+class SpeciesExportModel(ExportFileModel):
+    species: List[Species]
+
+    class Config:
+        title = "Species data for the Wiki"
 
 
 def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -> bool:
@@ -130,6 +138,9 @@ class SpeciesStage(JsonHierarchyExportStage):
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()
+
+    def get_schema_model(self):
+        return SpeciesExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         species: PrimalDinoCharacter = cast(PrimalDinoCharacter, proxy)
@@ -172,7 +183,6 @@ class SpeciesStage(JsonHierarchyExportStage):
         movement = gather_movement_data(species)
         out.movementW = movement.movementW
         out.movementD = movement.movementD
-
         out.attack = gather_attack_data(species)
 
         return out

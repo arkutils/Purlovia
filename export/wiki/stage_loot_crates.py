@@ -7,39 +7,14 @@ from ue.properties import BoolProperty, FloatProperty, IntProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
-from .stage_drops import _get_item_sets_override, decode_item_set, get_loot_sets
+from .models import DecayTime, MinMaxPowerRange, MinMaxRange
+from .stage_drops import ItemSet, _get_item_sets_override, decode_item_set, get_loot_sets
 
 __all__ = [
     'LootCratesStage',
 ]
 
 logger = get_logger(__name__)
-
-
-class MinMaxRange(ExportModel):
-    min: Union[FloatProperty, IntProperty]
-    max: Union[FloatProperty, IntProperty]
-
-    def __init__(self, min, max):
-        super().__init__(min=min, max=max)
-
-
-class MinMaxPowerRange(ExportModel):
-    min: Union[FloatProperty, IntProperty]
-    max: Union[FloatProperty, IntProperty]
-    pow: Union[FloatProperty, IntProperty] = Field(
-        ...,
-        title="Power",
-        description="Affects the power curve used to select a value in the range",
-    )
-
-    def __init__(self, min, max, pow):
-        super().__init__(min=min, max=max, pow=pow)
-
-
-class DecayTime(ExportModel):
-    start: FloatProperty
-    interval: FloatProperty
 
 
 class LootCrate(ExportModel):
@@ -68,13 +43,13 @@ class LootCrate(ExportModel):
         None,
         title="Quantity range",
     )
-    sets: List[Any] = Field(
+    sets: List[ItemSet] = Field(
         [],
         description="List of item sets that can drop",
     )
 
 
-class LootCreateExportModel(ExportFileModel):
+class LootCrateExportModel(ExportFileModel):
     lootCrates: List[LootCrate] = Field(
         ...,
         description="List of loot crates",
@@ -98,7 +73,7 @@ class LootCratesStage(JsonHierarchyExportStage):
         return PrimalStructureItemContainer_SupplyCrate.get_ue_type()
 
     def get_schema_model(self) -> Type[ExportFileModel]:
-        return LootCreateExportModel
+        return LootCrateExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         crate: PrimalStructureItemContainer_SupplyCrate = cast(PrimalStructureItemContainer_SupplyCrate, proxy)
@@ -113,6 +88,6 @@ class LootCratesStage(JsonHierarchyExportStage):
         out.randomSetsWithNoReplacement = crate.bSetsRandomWithoutReplacement[0]
         out.qualityMult = MinMaxRange(min=crate.MinQualityMultiplier[0], max=crate.MaxQualityMultiplier[0])
         out.setQty = MinMaxPowerRange(min=crate.MinItemSets[0], max=crate.MaxItemSets[0], pow=crate.NumItemSetsPower[0])
-        out.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
+        out.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]
 
         return out
