@@ -1,9 +1,10 @@
 import re
-from typing import Dict, Iterator, Tuple
+from typing import Dict, Iterator, Tuple, Type
 
 __all__ = [
-    'parse_parse_runlist',
     'should_run_section',
+    'verify_sections',
+    'parse_runlist',
 ]
 
 
@@ -135,3 +136,20 @@ def should_run_section(name: str, states: Dict[str, bool]) -> bool:
             return state
 
     return False
+
+
+def verify_sections(sections: Dict[str, bool], roots: tuple):
+    # Collect valid names
+    valid_values = set()
+    for root_type in roots:
+        root = root_type()
+        root_name = root.get_name()
+        valid_values.add(root_name)
+
+        for stage in root.stages:
+            valid_values.add(f'{root_name}.{stage.get_name()}')
+
+    # Check inputs are all valid
+    for name in sections:
+        if name not in valid_values:
+            raise ValueError("Section name matches nothing: " + name)

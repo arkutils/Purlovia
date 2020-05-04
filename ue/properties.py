@@ -503,6 +503,9 @@ class ByteProperty(ValueProperty):  # With optional enum type
             self._newField('value', '<skipped bytes>')
             self.stream.offset += size
 
+    def format_for_json(self):
+        return self.value
+
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -519,9 +522,6 @@ class ByteProperty(ValueProperty):  # With optional enum type
                 p.text(', ')
                 p.pretty(self.value)
             p.text(')')
-
-    def format_for_json(self):
-        return {"enum": str(self.enum), "value": self.value}
 
 
 class ObjectProperty(UEBase):

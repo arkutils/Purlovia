@@ -18,16 +18,16 @@ from .ark import ArkSteamManager
 from .exporter import ExportManager
 from .git import GitManager
 from .notification import handle_exception
-from .run_sections import parse_runlist, should_run_section
+from .run_sections import parse_runlist, should_run_section, verify_sections
 
 # pylint: enable=invalid-name
 
 logger = get_logger(__name__)
 
-ROOT_TYPES = [
+ROOT_TYPES = (
     ASBRoot,
     WikiRoot,
-]
+)
 
 
 def setup_logging(path=LOGGING_FILENAME, level=logging.INFO):
@@ -90,6 +90,24 @@ class VerifyModsAction(argparse.Action):
         setattr(namespace, self.dest, mods)
 
 
+class VerifySectionsAction(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, roots=None, **kwargs):
+        if not roots:
+            raise ValueError("roots must be set")
+        self.roots = roots
+        super().__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        sections = parse_runlist(values)
+
+        try:
+            verify_sections(sections, self.roots)
+        except ValueError as err:
+            raise argparse.ArgumentError(self, str(err))
+
+        setattr(namespace, self.dest, sections)
+
+
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("automate", description=DESCRIPTION, epilog=EPILOG)
 
@@ -115,9 +133,9 @@ def create_parser() -> argparse.ArgumentParser:
                         help='override which mods to export (comma-separated)')
 
     parser.add_argument('sections',
-                        action='store',
+                        action=VerifySectionsAction,
                         default=parse_runlist('all'),
-                        type=parse_runlist,
+                        roots=ROOT_TYPES,
                         metavar='SECTIONS',
                         nargs='?',
                         help='override extraction sections to be run (format: `all,-root1,-root2.stage1`, default: `all`)')
