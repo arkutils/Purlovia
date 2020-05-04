@@ -910,3 +910,9 @@ species:
                 2: "Belly"
                 4: "Top"
                 5: "Underside"
+
+
+    # Mod-specific overrides
+    /Game/Mods/NoUntameables/Lightbug/Lightbug_Character_BaseBP_Tameable:
+        remove_variants:
+            Base: true
