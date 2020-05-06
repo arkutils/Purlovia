@@ -25,9 +25,7 @@ class UEBase(object):
         self.asset = owner.asset  # type: ignore
         self.field_values: Dict[str, Any] = {}
         self.start_offset: Optional[int] = None
-        self.is_serialising = False
         self.is_serialised = False
-        self.is_linking = False
         self.is_linked = False
         self.is_inside_array = False
         if INCLUDE_METADATA:
@@ -43,33 +41,25 @@ class UEBase(object):
             raise TypeError('Cannot override "deserialise"')
 
     def deserialise(self, *args, **kwargs):
-        if self.is_serialising:
-            return
-
         if self.is_serialised:
-            # return
             raise RuntimeError(f'Deserialise called twice for "{self.__class__.__name__}"')
 
         self.start_offset = self.stream.offset
-        self.is_serialising = True
         self._deserialise(*args, **kwargs)
         if INCLUDE_METADATA:
             self.end_offset = self.stream.offset - 1
-        self.is_serialising = False
         self.is_serialised = True
 
         return self
 
     def link(self):
-        if self.is_linked or self.is_linking:
+        if self.is_linked:
             return
 
         if not get_ctx().link:
             return
 
-        self.is_linking = True
         self._link()
-        self.is_linking = False
         self.is_linked = True
 
         return self

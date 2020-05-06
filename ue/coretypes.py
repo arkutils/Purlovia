@@ -28,14 +28,13 @@ class Table(UEBase):
     values: List[UEBase]
     itemType: Type[UEBase]
 
-    def _deserialise(self, itemType: Type[UEBase], count: int):  # type: ignore
+    def _deserialise(self, itemType: Type[UEBase], count: int):  # type: ignore # pylint: disable=arguments-differ
         assert count is not None
-        assert issubclass(itemType, UEBase), f'Table item type must be UEBase'
+        assert issubclass(itemType, UEBase), 'Table item type must be UEBase'
 
         values = []
-        for i in range(count):
+        for _ in range(count):
             value = itemType(self).deserialise()
-            value.table_index = i
             values.append(value)
 
         self._newField('itemType', itemType)
@@ -46,7 +45,6 @@ class Table(UEBase):
 
     def _link(self):
         '''Override link to link all table entries.'''
-        super()._link()
         for value in self.values:
             if isinstance(value, UEBase):
                 value.link()
