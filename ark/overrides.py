@@ -61,6 +61,7 @@ class OverrideSettings(BaseModel):
         False,
         description='Set to true to leave this data out of the exported data files',
     )
+    include_in_stages: Dict[str, bool] = dict()
     descriptive_name: Optional[str] = Field(
         None,
         description="Override the name of this entity",
