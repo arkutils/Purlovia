@@ -162,7 +162,7 @@ class SpeciesStage(JsonHierarchyExportStage):
 
             name = adjust_name_from_variants(name, variants, overrides)
 
-        out = Species(blueprintPath=asset.default_class.fullname)
+        out = Species(bp=asset.default_class.fullname)
         out.name = name
         out.dinoNameTag = species.DinoNameTag[0]
         out.customTag = species.CustomTag[0]

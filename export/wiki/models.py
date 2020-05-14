@@ -14,9 +14,6 @@ class MinMaxRange(ExportModel):
     min: Union[FloatProperty, IntProperty, float]
     max: Union[FloatProperty, IntProperty, float]
 
-    def __init__(self, min, max):  # pylint: disable=redefined-builtin
-        super().__init__(min=min, max=max)
-
 
 class MinMaxPowerRange(ExportModel):
     min: Union[FloatProperty, IntProperty, float]
@@ -26,9 +23,6 @@ class MinMaxPowerRange(ExportModel):
         title="Power",
         description="Affects the power curve used to select a value in the range",
     )
-
-    def __init__(self, min, max, pow):  # pylint: disable=redefined-builtin
-        super().__init__(min=min, max=max, pow=pow)
 
 
 class DecayTime(ExportModel):

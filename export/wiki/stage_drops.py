@@ -192,9 +192,9 @@ def decode_item_set(item_set) -> ItemSet:
         name=d.get('SetName', None) or None,
         weight=d.get('SetWeight', 1.0),
         qtyScale=MinMaxPowerRange(
-            d.get('MinNumItems', 1.0),
-            d.get('MaxNumItems', 1.0),
-            d.get('NumItemsPower', 1.0),
+            min=d.get('MinNumItems', 1.0),
+            max=d.get('MaxNumItems', 1.0),
+            pow=d.get('NumItemsPower', 1.0),
         ),
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )
