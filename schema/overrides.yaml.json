@@ -1,5 +1,5 @@
 {
-	"title": "Purlova Overrides",
+	"title": "Purlovia Overrides",
 	"description": "Purlovia data overrides file",
 	"type": "object",
 	"properties": {
@@ -23,6 +23,7 @@
 					"useless_name_regexes": {},
 					"region_names": {}
 				},
+				"species_remaps": {},
 				"svgs": {
 					"border_top": 7.2,
 					"border_left": 7.2,
@@ -235,6 +236,15 @@
 							"$ref": "#/definitions/ColorRegionSettings"
 						}
 					]
+				},
+				"species_remaps": {
+					"title": "Species Remaps",
+					"description": "Mapping from old to new species blueprint paths",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
 				},
 				"svgs": {
 					"title": "SVGs",
