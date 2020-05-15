@@ -16,7 +16,7 @@ from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import *
 from .number import *
 from .stream import MemoryStream
-from .utils import clean_float
+from .utils import clean_double, clean_float
 
 if INCLUDE_METADATA:
     try:
@@ -244,6 +244,22 @@ class ValueProperty(UEBase, Real, ABC):
     def format_for_json(self):
         return self.value
 
+    @classmethod
+    def __get_validators__(cls):
+        '''...allows the type to be used as a pydantic field'''
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if not isinstance(value, cls):
+            raise TypeError(f"Got {type(value)} when expecting {cls}")
+        return value
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='number')
+
     # Not sure why we have to specifically override these, but we do
     __eq__ = UEBase.__eq__  # type: ignore
     __hash__ = UEBase.__hash__  # type: ignore
@@ -376,6 +392,9 @@ class FloatProperty(ValueProperty):
         return self.raw_data
 
     def format_for_json(self):
+        return self.__float__()
+
+    def __float__(self):
         '''Restrict single-precision float output to 7 significant figures.'''
         return clean_float(self.value)
 
@@ -410,6 +429,9 @@ class DoubleProperty(ValueProperty):
             text += ' (inexact)'
         self._newField('textual', text)
 
+    def __float__(self):
+        return clean_double(self.value)
+
 
 class IntProperty(ValueProperty):
     string_format = '(int) {value}'
@@ -431,6 +453,11 @@ class IntProperty(ValueProperty):
 
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readInt32())
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='integer')
 
 
 class UInt32Property(IntProperty):
@@ -459,6 +486,11 @@ class BoolProperty(ValueProperty):
 
     def _deserialise(self, size=None):
         self._newField('value', self.stream.readBool8())
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='boolean')
 
 
 class ByteProperty(ValueProperty):  # With optional enum type
@@ -506,6 +538,11 @@ class ByteProperty(ValueProperty):  # With optional enum type
     def format_for_json(self):
         return self.value
 
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='integer')
+
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
@@ -540,7 +577,29 @@ class ObjectProperty(UEBase):
         return bool(self.value)
 
 
-class NameProperty(UEBase):
+class StringLikeProperty(UEBase, ABC):
+    @abstractmethod
+    def _deserialise(self, *args):
+        ...
+
+    @classmethod
+    def __get_validators__(cls):
+        '''...allows the type to be used as a pydantic field'''
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value):
+        if not isinstance(value, cls):
+            raise TypeError(f"Got {type(value)} when expecting {cls}")
+        return value
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        '''...allows the type to be used as a pydantic field'''
+        field_schema.update(type='string')
+
+
+class NameProperty(StringLikeProperty):
     main_field = 'value'
     display_fields = ['value']
 
@@ -553,7 +612,7 @@ class NameProperty(UEBase):
         return str(self)
 
 
-class StringProperty(UEBase):
+class StringProperty(StringLikeProperty):
     main_field = 'value'
 
     size: int
@@ -604,7 +663,7 @@ class StringProperty(UEBase):
     __nonzero__ = __bool__
 
 
-class TextProperty(UEBase):
+class TextProperty(StringLikeProperty):
     main_field = 'source_string'
 
     flags: int
@@ -1146,5 +1205,11 @@ def getPropertyType(typeName: str, throw=True):
 
 
 # Types to export from this module
-__all__ = tuple(set(cls.__name__
-                    for cls in TYPE_MAP.values())) + ('getPropertyType', 'PropertyTable', 'CustomVersion', 'EngineVersion')
+__all_extras__ = (
+    'getPropertyType',
+    'PropertyTable',
+    'CustomVersion',
+    'EngineVersion',
+    'StringLikeProperty',
+)
+__all__ = tuple(set(cls.__name__ for cls in TYPE_MAP.values())) + __all_extras__

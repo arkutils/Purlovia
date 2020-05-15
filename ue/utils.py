@@ -81,7 +81,7 @@ def sanitise_output(node):
         return sanitise_output(format_for_json())
 
     if have_pydantic and isinstance(node, BaseModel):
-        return sanitise_output(node.dict())
+        return sanitise_output(node.dict(exclude_defaults=True, by_alias=True))
 
     skip_level_name = getattr(node, 'skip_level_field', None)
     if skip_level_name:

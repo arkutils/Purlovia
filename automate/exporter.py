@@ -192,6 +192,11 @@ class ExportManager:
         if path.name.lower() == MANIFEST_FILENAME.lower():
             return None
 
+        # Don't report files in dotted directories
+        for dirname in PurePosixPath(filename).parent.parts:
+            if dirname.startswith('.') and len(dirname) > 1:
+                return None
+
         # Look up the relevant root
         root = self._find_matching_root(str(path))
         if not root:

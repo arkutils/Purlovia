@@ -2,12 +2,14 @@ from pathlib import PurePosixPath
 from typing import *
 
 from ark.types import PrimalItem
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportModel, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
-from ue.properties import ArrayProperty
+from ue.properties import ArrayProperty, BoolProperty, FloatProperty, StringLikeProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
+
+from .models import MinMaxPowerRange
 
 __all__ = [
     'DropsStage',
@@ -54,7 +56,7 @@ class DropsStage(JsonHierarchyExportStage):
             return None
 
         v['bp'] = str(proxy.get_source().fullname)
-        v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d['entries']]
+        v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]
 
         if not v['sets']:
             return None
@@ -97,10 +99,19 @@ def decode_item_name(item):
     return str(item.name)
 
 
-def decode_item_entry(entry):
+class ItemSetEntry(ExportModel):
+    name: Optional[StringLikeProperty]
+    weight: FloatProperty
+    qty: MinMaxPowerRange
+    quality: MinMaxPowerRange
+    forceBP: BoolProperty
+    items: List[Optional[str]]
+
+
+def decode_item_entry(entry) -> ItemSetEntry:
     d = entry.as_dict()
-    return dict(
-        name=str(d['ItemEntryName']) or None,
+    return ItemSetEntry(
+        name=d['ItemEntryName'] or None,
         weight=d['EntryWeight'],
         qty=dict(
             min=d['MinQuantity'],
@@ -159,7 +170,14 @@ def _get_item_sets_override(asset_ref):
     return []
 
 
-def decode_item_set(item_set):
+class ItemSet(ExportModel):
+    name: Optional[StringLikeProperty]
+    weight: Union[FloatProperty, float]
+    qtyScale: MinMaxPowerRange
+    entries: List[ItemSetEntry]
+
+
+def decode_item_set(item_set) -> ItemSet:
     if isinstance(item_set, dict):
         d = item_set
         override = None
@@ -170,10 +188,10 @@ def decode_item_set(item_set):
     if override:
         return decode_item_set(_gather_lootitemset_data(override))
 
-    return dict(
+    return ItemSet(
         name=d.get('SetName', None) or None,
         weight=d.get('SetWeight', 1.0),
-        qtyScale=dict(
+        qtyScale=MinMaxPowerRange(
             min=d.get('MinNumItems', 1.0),
             max=d.get('MaxNumItems', 1.0),
             pow=d.get('NumItemsPower', 1.0),

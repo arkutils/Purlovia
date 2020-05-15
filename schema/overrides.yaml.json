@@ -1,0 +1,267 @@
+{
+	"title": "Purlovia Overrides",
+	"description": "Purlovia data overrides file",
+	"type": "object",
+	"properties": {
+		"defaults": {
+			"title": "Defaults",
+			"default": {
+				"skip_export": false,
+				"descriptive_name": null,
+				"add_variants": {},
+				"remove_variants": {},
+				"variant_renames": {},
+				"classname_variant_parts": {},
+				"pathname_variant_parts": {},
+				"variants_to_skip_export": {},
+				"variants_to_skip_export_asb": {},
+				"variants_to_remove_name_parts": {},
+				"color_regions": {
+					"capitalize": null,
+					"default_name": null,
+					"nullify_name_regexes": {},
+					"useless_name_regexes": {},
+					"region_names": {}
+				},
+				"species_remaps": {},
+				"svgs": {
+					"border_top": 7.2,
+					"border_left": 7.2,
+					"border_right": 92.8,
+					"border_bottom": 92.8
+				}
+			},
+			"allOf": [
+				{
+					"$ref": "#/definitions/OverrideSettings"
+				}
+			]
+		},
+		"mods": {
+			"title": "Mods",
+			"default": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/OverrideSettings"
+			}
+		},
+		"species": {
+			"title": "Species",
+			"default": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/OverrideSettings"
+			}
+		},
+		"maps": {
+			"title": "Maps",
+			"default": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/OverrideSettings"
+			}
+		}
+	},
+	"definitions": {
+		"ColorRegionSettings": {
+			"title": "ColorRegionSettings",
+			"description": "Color region settings for species",
+			"type": "object",
+			"properties": {
+				"capitalize": {
+					"title": "Capitalize",
+					"description": "Whether to capitalize the first character of region names",
+					"type": "boolean"
+				},
+				"default_name": {
+					"title": "Default Name",
+					"description": "What to name regions that have no name",
+					"type": "string"
+				},
+				"nullify_name_regexes": {
+					"title": "Nullify Name Regexes",
+					"description": "Region are nullified if their names wholely match any of these regexes (key names are ignored)",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"useless_name_regexes": {
+					"title": "Useless Name Regexes",
+					"description": "Region names that will be replaced by the default_name",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"region_names": {
+					"title": "Region Names",
+					"description": "Override individual region names, in for dict form `region_num: \"name\"`",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"MapBoundariesSettings": {
+			"title": "MapBoundariesSettings",
+			"description": "Boundary settings for maps",
+			"type": "object",
+			"properties": {
+				"border_top": {
+					"title": "Border Top",
+					"default": 7.2,
+					"type": "number"
+				},
+				"border_left": {
+					"title": "Border Left",
+					"default": 7.2,
+					"type": "number"
+				},
+				"border_right": {
+					"title": "Border Right",
+					"default": 92.8,
+					"type": "number"
+				},
+				"border_bottom": {
+					"title": "Border Bottom",
+					"default": 92.8,
+					"type": "number"
+				}
+			}
+		},
+		"OverrideSettings": {
+			"title": "OverrideSettings",
+			"description": "Common override settings that can be applied to defaults, mods, maps, and individual species",
+			"type": "object",
+			"properties": {
+				"skip_export": {
+					"title": "Skip Export",
+					"description": "Set to true to leave this data out of the exported data files",
+					"default": false,
+					"type": "boolean"
+				},
+				"descriptive_name": {
+					"title": "Descriptive Name",
+					"description": "Override the name of this entity",
+					"type": "string"
+				},
+				"add_variants": {
+					"title": "Add Variants",
+					"description": "Explicitly add variants to this entity, in the dict form `varient: true`",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"remove_variants": {
+					"title": "Remove Variants",
+					"description": "Explicitly remove variants from this entity, in for dict form `variant: true`",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"variant_renames": {
+					"title": "Variant Renames",
+					"description": "Rename these variants, if present, in the dict form `fromname: toname`",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"classname_variant_parts": {
+					"title": "Classname Variant Parts",
+					"description": "Parts of a classname that will be added as a variant, matching _Variant or Variant_",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"pathname_variant_parts": {
+					"title": "Pathname Variant Parts",
+					"description": "Parts of an asset path that will be added as a variant, matching _Variant or Variant_",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"variants_to_skip_export": {
+					"title": "Variants To Skip Export",
+					"description": "If these variants are found, the object will not be exported in all cases",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"variants_to_skip_export_asb": {
+					"title": "Variants To Skip Export Asb",
+					"description": "If these variants are found, the object will not be exported for ASB",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"variants_to_remove_name_parts": {
+					"title": "Variants To Remove Name Parts",
+					"description": "If these variants are found, remove the given part of the descriptive name",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"color_regions": {
+					"title": "Color Regions",
+					"default": {
+						"capitalize": null,
+						"default_name": null,
+						"nullify_name_regexes": {},
+						"useless_name_regexes": {},
+						"region_names": {}
+					},
+					"allOf": [
+						{
+							"$ref": "#/definitions/ColorRegionSettings"
+						}
+					]
+				},
+				"species_remaps": {
+					"title": "Species Remaps",
+					"description": "Mapping from old to new species blueprint paths",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"svgs": {
+					"title": "SVGs",
+					"description": "SVG map genration boundaries",
+					"default": {
+						"border_top": 7.2,
+						"border_left": 7.2,
+						"border_right": 92.8,
+						"border_bottom": 92.8
+					},
+					"allOf": [
+						{
+							"$ref": "#/definitions/MapBoundariesSettings"
+						}
+					]
+				}
+			}
+		}
+	}
+}
