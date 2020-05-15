@@ -52,9 +52,21 @@ def setup_logging(path=LOGGING_FILENAME, level=logging.INFO):
     root_logger.log(100, '')
 
 
+def log_versions():
+    sha = os.environ.get('COMMIT_SHA', '')
+    branch = os.environ.get('COMMIT_BRANCH', '<unknown branch>')
+
+    if sha:
+        logger.info("Version: %s (%s)", sha, branch)
+    else:
+        logger.info("Version: local development")
+
+
 def run(config: ConfigFile):
     # Run update then export
     try:
+        log_versions()
+
         # Get mod list
         mods = config.mods
 
