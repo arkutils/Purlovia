@@ -168,7 +168,7 @@ class GitManager:
             if ' -> ' in filename:
                 filename = filename.split(' -> ')[-1].strip()
             line = msg_fn(filename)
-            if not line:
+            if line is None:
                 line = self._generate_info_line_from_file(filename)
             if line:
                 lines.append(f'* {line}')
