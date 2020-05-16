@@ -1,8 +1,8 @@
 from pathlib import PurePosixPath
-from typing import *
+from typing import Any, Dict, List, Mapping, Optional, Union, cast
 
 from ark.types import PrimalItem
-from automate.hierarchy_exporter import ExportModel, JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
 from ue.properties import ArrayProperty, BoolProperty, FloatProperty, StringLikeProperty
@@ -33,6 +33,43 @@ class DinoDropInventoryComponent(
     AdditionalItemSetsOverride: Mapping[int, ArrayProperty]
 
 
+class ItemSetEntry(ExportModel):
+    name: Optional[StringLikeProperty]
+    weight: FloatProperty
+    qty: MinMaxPowerRange
+    quality: MinMaxPowerRange
+    forceBP: BoolProperty
+    items: List[Optional[str]]
+
+
+class ItemSet(ExportModel):
+    name: Optional[StringLikeProperty]
+    weight: Union[FloatProperty, float]
+    qtyScale: MinMaxPowerRange
+    entries: List[ItemSetEntry]
+
+
+class Drop(ExportModel):
+    bp: str = Field(
+        ...,
+        description="Full blueprint path",
+    )
+    sets: Optional[List[ItemSet]] = Field(
+        None,
+        description="Loot sets",
+    )
+
+
+class DropExportModel(ExportFileModel):
+    drops: List[Drop] = Field(
+        ...,
+        description="List of loot crates",
+    )
+
+    class Config:
+        title = "Dino drop loot tables"
+
+
 class DropsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
         return "3"
@@ -46,22 +83,23 @@ class DropsStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return DinoDropInventoryComponent.get_ue_type()
 
+    def get_schema_model(self):
+        return DropExportModel
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         inv: DinoDropInventoryComponent = cast(DinoDropInventoryComponent, proxy)
-
-        v: Dict[str, Any] = dict()
 
         item_sets = get_loot_sets(inv)
         if not item_sets:
             return None
 
-        v['bp'] = str(proxy.get_source().fullname)
-        v['sets'] = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]
+        result: Drop = Drop(bp=proxy.get_source().fullname)
+        result.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]
 
-        if not v['sets']:
+        if not result.sets:
             return None
 
-        return v
+        return result
 
 
 def get_loot_sets(lootinv: Union[DinoDropInventoryComponent, PrimalStructureItemContainer_SupplyCrate]) -> List[Any]:
@@ -97,15 +135,6 @@ def decode_item_name(item):
     item = item.value
     if not item: return None
     return str(item.name)
-
-
-class ItemSetEntry(ExportModel):
-    name: Optional[StringLikeProperty]
-    weight: FloatProperty
-    qty: MinMaxPowerRange
-    quality: MinMaxPowerRange
-    forceBP: BoolProperty
-    items: List[Optional[str]]
 
 
 def decode_item_entry(entry) -> ItemSetEntry:
@@ -168,13 +197,6 @@ def _get_item_sets_override(asset_ref):
             return sets.values
 
     return []
-
-
-class ItemSet(ExportModel):
-    name: Optional[StringLikeProperty]
-    weight: Union[FloatProperty, float]
-    qtyScale: MinMaxPowerRange
-    entries: List[ItemSetEntry]
 
 
 def decode_item_set(item_set) -> ItemSet:
