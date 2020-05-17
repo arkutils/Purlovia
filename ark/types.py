@@ -233,6 +233,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     FallDamageMultiplier = uefloats(165.0)
 
     FlyingRunSpeedModifier = uefloats(1.0)
+    SwimmingRunSpeedModifier = uefloats(1.0)
     RidingSwimmingRunSpeedModifier = uefloats(1.0)
     RunningSpeedModifier = uefloats(1.5)
     TamedRunningSpeedModifier = uefloats(1.0)

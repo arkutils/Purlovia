@@ -106,8 +106,8 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
     if canSwim:
         max_speed = cm.MaxSwimSpeed[0] if not has_free_movement_in_water(species) else cm.MaxFlySpeed[0]
         result.swim = SpeedData(base=mult(max_speed))
-        if canRun and species.bAllowRunningWhileSwimming[0] and species.RidingSwimmingRunSpeedModifier[0] != 1.0:
-            result.swim.sprint = mult(max_speed * species.RidingSwimmingRunSpeedModifier[0])
+        if canRun and species.bAllowRunningWhileSwimming[0] and species.SwimmingRunSpeedModifier[0] != 1.0:
+            result.swim.sprint = mult(max_speed * species.SwimmingRunSpeedModifier[0])
 
     return result
 
