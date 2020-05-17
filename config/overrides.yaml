@@ -74,6 +74,20 @@ defaults:
             not_used: '\**NOT(\*|\s)*USED\**'
 
 
+sanity_checks:
+    min_species:
+        '/Game/PrimalEarth': 244 # 248 at last check
+        '/Game/Aberration': 38 # 40 at last check
+        '/Game/EndGame': 20 # 24 at last check
+        '/Game/Extinction': 38 # 40 at last check
+        '/Game/Genesis': 276 # 280 at last check
+        '/Game/ScorchedEarth': 22 # 26 at last check
+
+        '/Game/Mods/Valguero': 11 # 13 at last check
+        '/Game/Mods/Ragnarok': 13 # 16 at last check
+        '/Game/Mods/111111111': 12 # 14 at last check
+
+
 # Override settings on a per-mod basis
 mods:
     '': # Core-only
@@ -117,7 +131,6 @@ mods:
             # Valguero Dire Polar Bear -> Ragnarok Dire Polar Bear
             '/Game/Mods/Valguero/Assets/Dinos/PolarBear/Polar_Bear.Polar_Bear': '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Polar_Bear/Polar_Bear.Polar_Bear'
 
-
     Ragnarok:
         add_variants:
             Ragnarok: true
@@ -135,7 +148,6 @@ mods:
 
         classname_variant_parts:
             Alpha: true
-
 
     839162288: # Primal Fear
         color_regions:

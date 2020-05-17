@@ -1,16 +1,10 @@
 from __future__ import annotations
 
-import json
-import re
-from abc import ABCMeta, abstractmethod, abstractproperty
-from dataclasses import dataclass, field
-from io import StringIO
-from operator import itemgetter
+from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
-from typing import *
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
 from automate.ark import ArkSteamManager
-from automate.version import createExportVersion
 from config import ConfigFile, get_global_config
 from ue.gathering import gather_properties
 from ue.hierarchy import find_sub_classes
@@ -46,7 +40,7 @@ class ExportRoot(metaclass=ABCMeta):
         return PurePosixPath(f'data/{self.get_name()}')
 
     @abstractmethod
-    def get_commit_header(self) -> str:
+    def get_commit_header(self) -> Optional[str]:
         '''Return the header for commit messages in this root.'''
         ...
 
@@ -190,18 +184,19 @@ class ExportManager:
 
         # Don't report manifest file updates
         if path.name.lower() == MANIFEST_FILENAME.lower():
-            return None
+            # Do not report this file
+            return False  # type: ignore  # no Literal support in Python 3.7
 
         # Don't report files in dotted directories
         for dirname in PurePosixPath(filename).parent.parts:
             if dirname.startswith('.') and len(dirname) > 1:
-                return None
+                # Do not report this file
+                return False  # type: ignore  # no Literal support in Python 3.7
 
         # Look up the relevant root
         root = self._find_matching_root(str(path))
         if not root:
-            # We don't know this file
-            return None
+            return None  # we don't know this file - fall back to default report
 
         relative_path = path.relative_to(root.path)
 
