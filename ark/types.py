@@ -143,7 +143,15 @@ class PrimalDinoStatusComponent(PrimalCharacterStatusComponent, uetype=PDSC_CLS)
     TamingMaxStatAdditions = uefloats(*repeat(0, STAT_COUNT))
     TamingMaxStatMultipliers = uefloats(*repeat(0, STAT_COUNT))
 
+    bWalkingConsumesStamina = uebools(False)
+    bRunningConsumesStamina = uebools(False)
+    RunningStaminaConsumptionRate = uefloats(-5)
+    WalkingStaminaConsumptionRate = uefloats(-0.3)
+    SwimmingOrFlyingConsumptionRate = uefloats(-0.3)
+
     # DevKit Unverified
+    MaxExperiencePoints = uefloats(0.0)
+    LevelExperienceRampType = uebytes(('ELevelExperienceRampType', 'DinoEasy'))
 
 
 class DinoCharacterStatusComponent(PrimalDinoStatusComponent, uetype=DCSC_CLS):
@@ -238,6 +246,23 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     ScaleExtraRunningSpeedModifier = uebools(False)
 
     # DevKit Unverified
+
+    # Experience
+    OverrideDinoMaxExperiencePoints = uefloats(0)
+    DestroyTamesOverLevelClampOffset = ueints(0)
+
+    # Cloning
+    CloneBaseElementCost = uefloats(0)
+    CloneElementCostPerLevel = uefloats(0)
+
+    # Flags
+    bAutoTameable = uebools(False)
+    bIsVehicle = uebools(False)
+    bUniqueDino = uebools(False)
+    bIsRobot = uebools(False)
+    AutoFadeOutAfterTameTime = uefloats(0)
+    bPreventCloning = uebools(False)
+    bPreventUploading = uebools(False)
 
 
 class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):

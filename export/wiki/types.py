@@ -470,3 +470,12 @@ class MissionType_Basketball(
     # DevKit Unverified
 
     Basketball_Dino: Mapping[int, StructProperty]
+
+
+class TekCloningChamber(UEProxyStructure, uetype='/Game/PrimalEarth/Structures/TekTier/TekCloningChamber.TekCloningChamber_C'):
+    # DevKit Verified
+    CloneBaseElementCostGlobalMultiplier = uefloats(2500.0)
+    CloneElementCostPerLevelGlobalMultiplier = uefloats(5500.0)
+    CloningTimePerElementShard = uefloats(7.0)
+
+    # DevKit Unverified
