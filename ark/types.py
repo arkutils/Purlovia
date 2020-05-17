@@ -245,7 +245,11 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
     ScaleExtraRunningSpeedModifier = uebools(False)
 
+    DefaultLandMovementMode = uebytes(('EMovementMode', 'MOVE_Walking'))
+    SubmergedWaterMovementMode = uebytes(('EMovementMode', 'MOVE_Swimming'))
+
     # DevKit Unverified
+    WaterSubmergedDepthThreshold = uefloats(0.5)
 
     # Experience
     OverrideDinoMaxExperiencePoints = uefloats(0)

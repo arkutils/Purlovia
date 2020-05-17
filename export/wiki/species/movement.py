@@ -31,6 +31,30 @@ class MovementIntermediate(BaseModel):
     staminaRates: Optional[StaminaRates]
 
 
+def can_walk(species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
+    return nav_props.get('bCanWalk', True)
+
+
+def has_free_movement_in_water(species: PrimalDinoCharacter) -> bool:
+    '''Returns True if dino flies when submerged, granting full movement freedom.'''
+    return species.SubmergedWaterMovementMode[0].get_enum_value_name() == 'MOVE_Flying'
+
+
+def can_swim(species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
+    '''Returns True if dino can submerge and swims by default when that happens.'''
+    if nav_props.get('bCanSwim', False):
+        return True
+
+    if bool(species.bPreventEnteringWater[0]) or species.WaterSubmergedDepthThreshold[0] > 1.0:
+        return False
+
+    submerged_mode = species.SubmergedWaterMovementMode[0].get_enum_value_name()
+    if submerged_mode in ('MOVE_Swimming', 'MOVE_Flying'):
+        return True
+
+    return False
+
+
 def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> MovementIntermediate:
     result = MovementIntermediate()
 
@@ -61,11 +85,10 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
     nav_props_struct = cm.get('NavAgentProps', fallback=None)
     nav_props = nav_props_struct.as_dict() if nav_props_struct else {}
 
-    isWaterDino = bool(species.bIsWaterDino[0])
-    canWalk = nav_props.get('bCanWalk', True) and not isWaterDino
+    canRun = species.bCanRun[0]
+    canWalk = nav_props.get('bCanWalk', True)
     canCrouch = nav_props.get('bCanCrouch', False) and canWalk
-    canRun = canWalk and species.bCanRun[0]
-    canSwim = (nav_props.get('bCanSwim', True) or isWaterDino) and not species.bPreventEnteringWater[0]
+    canSwim = can_swim(species, nav_props)
     canFly = nav_props.get('bCanFly', False) or species.bIsFlyerDino[0]
 
     if canWalk:
@@ -81,9 +104,10 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
             result.fly.sprint = mult(cm.MaxFlySpeed[0] * species.FlyingRunSpeedModifier[0])
 
     if canSwim:
-        result.swim = SpeedData(base=mult(cm.MaxSwimSpeed[0]))
+        max_speed = cm.MaxSwimSpeed[0] if not has_free_movement_in_water(species) else cm.MaxFlySpeed[0]
+        result.swim = SpeedData(base=mult(max_speed))
         if canRun and species.bAllowRunningWhileSwimming[0] and species.RidingSwimmingRunSpeedModifier[0] != 1.0:
-            result.swim.sprint = mult(cm.MaxSwimSpeed[0] * species.RidingSwimmingRunSpeedModifier[0])
+            result.swim.sprint = mult(max_speed * species.RidingSwimmingRunSpeedModifier[0])
 
     return result
 
