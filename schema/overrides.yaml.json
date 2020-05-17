@@ -60,6 +60,17 @@
 			"additionalProperties": {
 				"$ref": "#/definitions/OverrideSettings"
 			}
+		},
+		"sanity_checks": {
+			"title": "Sanity Checks",
+			"default": {
+				"min_species": {}
+			},
+			"allOf": [
+				{
+					"$ref": "#/definitions/SanityCheckSettings"
+				}
+			]
 		}
 	},
 	"definitions": {
@@ -260,6 +271,20 @@
 							"$ref": "#/definitions/MapBoundariesSettings"
 						}
 					]
+				}
+			}
+		},
+		"SanityCheckSettings": {
+			"title": "SanityCheckSettings",
+			"type": "object",
+			"properties": {
+				"min_species": {
+					"title": "Min Species",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "integer"
+					}
 				}
 			}
 		}

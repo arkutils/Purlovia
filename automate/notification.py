@@ -25,7 +25,7 @@ def get_log_tail(filename: str, lines: int = 3) -> List[str]:
     return buffer
 
 
-def send_to_discord(log: List[str], exception: List[str], header: str):
+def send_to_discord(log: List[str], exception: List[str] = None, header: str = ''):
     header = header or 'Purlovia ran into an error:'
     if not header.endswith('\n'):
         header = header + '\n'
@@ -41,14 +41,17 @@ def send_to_discord(log: List[str], exception: List[str], header: str):
 
     base_path = os.path.abspath('.') + os.path.sep
 
-    for n in range(len(exception) - 1):
-        lines = [header, '```log\n', *log, '```\n' '```py\n', *exception[n:], '```\n']
-        content = ''.join(lines)
-        content = content.replace(base_path, '')
-        if len(content) < 1990:
-            break
+    if not exception:
+        content = ''.join([header, '```log\n', *log, '```\n'])
     else:
-        content = header + '\n...which could not fit into a Discord message :('
+        for n in range(len(exception) - 1):
+            lines = [header, '```log\n', *log, '```\n' '```py\n', *exception[n:], '```\n']
+            content = ''.join(lines)
+            content = content.replace(base_path, '')
+            if len(content) < 1990:
+                break
+        else:
+            content = header + '\n...which could not fit into a Discord message :('
 
     try:
         requests.post(url=hook_url, data=dict(content=content))

@@ -9,6 +9,7 @@ import yaml
 import ark.discovery
 from config import LOGGING_FILENAME, ConfigFile
 from export.asb.root import ASBRoot
+from export.sanity.root import SanityRoot
 from export.wiki.root import WikiRoot
 from utils.log import get_logger
 
@@ -28,6 +29,7 @@ __all__ = (
 logger = get_logger(__name__)
 
 ROOT_TYPES = (
+    SanityRoot,
     ASBRoot,
     WikiRoot,
 )

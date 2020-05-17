@@ -40,7 +40,7 @@ class ExportRoot(metaclass=ABCMeta):
         return PurePosixPath(f'data/{self.get_name()}')
 
     @abstractmethod
-    def get_commit_header(self) -> str:
+    def get_commit_header(self) -> Optional[str]:
         '''Return the header for commit messages in this root.'''
         ...
 
