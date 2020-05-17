@@ -1,27 +1,37 @@
 from typing import *
 
-from ark.types import PrimalDinoCharacter, ShooterCharacterMovement
 from pydantic import BaseModel
 
+from ark.types import DinoCharacterStatusComponent, PrimalDinoCharacter, ShooterCharacterMovement
+from automate.hierarchy_exporter import ExportModel
+from ue.properties import FloatProperty
 
-class SpeedData(BaseModel):
+
+class SpeedData(ExportModel):
     base: float
     crouch: Optional[float]
     sprint: Optional[float]
 
 
-class MovementModes(BaseModel):
+class MovementModes(ExportModel):
     walk: Optional[SpeedData]
     fly: Optional[SpeedData]
     swim: Optional[SpeedData]
 
 
+class StaminaRates(ExportModel):
+    walk: Optional[FloatProperty]
+    sprint: Optional[FloatProperty]
+    swimOrFly: Optional[FloatProperty]
+
+
 class MovementIntermediate(BaseModel):
     movementW: Optional[MovementModes]
     movementD: Optional[MovementModes]
+    staminaRates: Optional[StaminaRates]
 
 
-def gather_movement_data(species: PrimalDinoCharacter) -> MovementIntermediate:
+def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> MovementIntermediate:
     result = MovementIntermediate()
 
     untamedMult = species.UntamedRunningSpeedModifier[0] * species.ExtraUnTamedSpeedMultiplier[0]
@@ -29,6 +39,8 @@ def gather_movement_data(species: PrimalDinoCharacter) -> MovementIntermediate:
 
     tamedMult = species.TamedRunningSpeedModifier[0] * species.ExtraTamedSpeedMultiplier[0]
     result.movementD = _gather_speeds(species, tamedMult)
+
+    result.staminaRates = _gather_stamina(dcsc, result.movementW)
 
     return result
 
@@ -72,5 +84,22 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
         result.swim = SpeedData(base=mult(cm.MaxSwimSpeed[0]))
         if canRun and species.bAllowRunningWhileSwimming[0] and species.RidingSwimmingRunSpeedModifier[0] != 1.0:
             result.swim.sprint = mult(cm.MaxSwimSpeed[0] * species.RidingSwimmingRunSpeedModifier[0])
+
+    return result
+
+
+def _gather_stamina(dcsc: DinoCharacterStatusComponent, movementW: MovementModes) -> StaminaRates:
+    result = StaminaRates()
+
+    if movementW.walk:
+        if dcsc.bWalkingConsumesStamina[0]:
+            result.walk = dcsc.WalkingStaminaConsumptionRate[0]
+        if movementW.walk.sprint and dcsc.bRunningConsumesStamina[0]:
+            result.sprint = dcsc.RunningStaminaConsumptionRate[0]
+    if movementW.fly or movementW.swim:
+        #if dcsc.bWalkingConsumesStamina[0]:
+        result.swimOrFly = dcsc.SwimmingOrFlyingConsumptionRate[0]
+        #if (movementW.swim.sprint or movementW.swim.walk) and dcsc.bRunningConsumesStamina[0]:
+        #    result.sprint = dcsc.SwimmingOrFlyingConsumptionRate[0]
 
     return result
