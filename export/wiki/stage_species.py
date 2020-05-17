@@ -2,13 +2,17 @@ from pathlib import PurePosixPath
 from typing import *
 from typing import cast
 
+from pydantic import BaseModel
+
 from ark.asset import find_dcsc
+from ark.gathering import gather_dcsc_properties
 from ark.overrides import OverrideSettings, get_overrides_for_species
-from ark.types import PrimalDinoCharacter
+from ark.types import DinoCharacterStatusComponent, PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.gathering import gather_properties
+from ue.loader import AssetLoadException
 from ue.properties import FloatProperty, StringLikeProperty
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
@@ -16,7 +20,9 @@ from utils.log import get_logger
 
 from .flags import gather_flags
 from .species.attacks import AttackData, gather_attack_data
-from .species.movement import MovementModes, gather_movement_data
+from .species.cloning import CloningData, gather_cloning_data
+from .species.movement import MovementModes, StaminaRates, gather_movement_data
+from .species.xp import LevelData, convert_level_data
 
 __all__ = [
     'SpeciesStage',
@@ -67,7 +73,7 @@ class Species(ExportModel):
         None,
         description="Descriptive name",
     )
-    blueprintPath: str = Field(
+    bp: str = Field(
         ...,
         title="Full blueprint path",
     )
@@ -75,7 +81,7 @@ class Species(ExportModel):
     dinoNameTag: Optional[StringLikeProperty] = Field(
         None,
         title="Dino name tag",
-        description="Only known use is saddle compatibility",
+        description="Only known use is saddle compatibility and server configuration",
     )
     customTag: Optional[StringLikeProperty] = Field(
         None,
@@ -107,9 +113,13 @@ class Species(ExportModel):
         description="Relevant boolean flags that are True for this species",
     )
 
+    levelCaps: Optional[LevelData]
+    cloning: Optional[CloningData]
+
     falling: Optional[FallingData]
     movementW: Optional[MovementModes] = Field(None, title="Movement (wild)")
     movementD: Optional[MovementModes] = Field(None, title="Movement (domesticated)")
+    staminaRates: Optional[StaminaRates]
     attack: Optional[AttackData]
 
 
@@ -133,7 +143,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "1"
+        return "2"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()
@@ -152,6 +162,12 @@ class SpeciesStage(JsonHierarchyExportStage):
         if _should_skip_species(species, overrides):
             return None
 
+        try:
+            dcsc = gather_dcsc_properties(species.get_source())
+        except AssetLoadException as ex:
+            logger.warning(f'Gathering properties failed for {asset.assetname}: %s', str(ex))
+            return None
+
         name = str(species.DescriptiveName[0])
 
         variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(species)
@@ -161,7 +177,7 @@ class SpeciesStage(JsonHierarchyExportStage):
 
             name = adjust_name_from_variants(name, variants, overrides)
 
-        out = Species(blueprintPath=asset.default_class.fullname)
+        out = Species(bp=asset.default_class.fullname)
         out.name = name
         out.dinoNameTag = species.DinoNameTag[0]
         out.customTag = species.CustomTag[0]
@@ -174,14 +190,18 @@ class SpeciesStage(JsonHierarchyExportStage):
 
         out.flags = gather_flags(species, OUTPUT_FLAGS)
 
+        out.levelCaps = convert_level_data(species, dcsc)
+        out.cloning = gather_cloning_data(species)
+
         out.falling = FallingData(
             dmgMult=species.FallDamageMultiplier[0],
             maxSpeed=species.MaxFallSpeed[0],
         )
 
-        movement = gather_movement_data(species)
+        movement = gather_movement_data(species, dcsc)
         out.movementW = movement.movementW
         out.movementD = movement.movementD
+        out.staminaRates = movement.staminaRates
         out.attack = gather_attack_data(species)
 
         return out
