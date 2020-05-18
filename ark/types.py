@@ -147,7 +147,7 @@ class PrimalDinoStatusComponent(PrimalCharacterStatusComponent, uetype=PDSC_CLS)
     bRunningConsumesStamina = uebools(False)
     RunningStaminaConsumptionRate = uefloats(-5)
     WalkingStaminaConsumptionRate = uefloats(-0.3)
-    SwimmingOrFlyingConsumptionRate = uefloats(-0.3)
+    SwimmingOrFlyingStaminaConsumptionRate = uefloats(-0.3)
 
     # DevKit Unverified
     MaxExperiencePoints = uefloats(0.0)
