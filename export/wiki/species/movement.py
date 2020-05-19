@@ -20,7 +20,6 @@ class MovementModes(ExportModel):
 
 
 class StaminaRates(ExportModel):
-    walk: Optional[FloatProperty]
     sprint: Optional[FloatProperty]
     swimOrFly: Optional[FloatProperty]
 
@@ -115,12 +114,9 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
 def _gather_stamina(dcsc: DinoCharacterStatusComponent, movementW: MovementModes) -> StaminaRates:
     result = StaminaRates()
 
-    if movementW.walk and dcsc.bWalkingConsumesStamina[0]:
-        result.walk = dcsc.WalkingStaminaConsumptionRate[0]
-        if movementW.walk.sprint:
-            result.sprint = dcsc.RunningStaminaConsumptionRate[0]
+    if movementW.walk and movementW.walk.sprint:
+        result.sprint = dcsc.RunningStaminaConsumptionRate[0]
     if movementW.fly or movementW.swim:
-        #if dcsc.bWalkingConsumesStamina[0]:
         result.swimOrFly = dcsc.SwimmingOrFlyingStaminaConsumptionRate[0]
         #if (movementW.swim.sprint or movementW.swim.walk) and dcsc.bRunningConsumesStamina[0]:
         #    result.sprint = dcsc.SwimmingOrFlyingConsumptionRate[0]
