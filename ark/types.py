@@ -90,6 +90,8 @@ class PrimalCharacterStatusComponent(UEProxyStructure, uetype=PCSC_CLS):
     TheMaxTorporIncreasePerBaseLevel = uefloats((0.06000000, '8fc2753d'))
     WakingTameFoodConsumptionRateMultiplier = uefloats((2.00000000, '00000040'))
     WalkingStaminaConsumptionRate = uefloats((-0.30000001, '9a9999be'))
+    RunningStaminaConsumptionRate = uefloats(-5)
+    SwimmingOrFlyingConsumptionRate = uefloats(-0.3)
 
 
 class Blueprint(UEProxyStructure, uetype=BLUEPRINT_CLS):
@@ -143,15 +145,8 @@ class PrimalDinoStatusComponent(PrimalCharacterStatusComponent, uetype=PDSC_CLS)
     TamingMaxStatAdditions = uefloats(*repeat(0, STAT_COUNT))
     TamingMaxStatMultipliers = uefloats(*repeat(0, STAT_COUNT))
 
-    bWalkingConsumesStamina = uebools(False)
-    bRunningConsumesStamina = uebools(False)
-    RunningStaminaConsumptionRate = uefloats(-5)
-    WalkingStaminaConsumptionRate = uefloats(-0.3)
-    SwimmingOrFlyingStaminaConsumptionRate = uefloats(-0.3)
-
-    # DevKit Unverified
-    MaxExperiencePoints = uefloats(0.0)
-    LevelExperienceRampType = uebytes(('ELevelExperienceRampType', 'DinoEasy'))
+    MaxExperiencePoints = uefloats(100000.0)
+    LevelExperienceRampType = uebytes(('ELevelExperienceRampType', 'Player'))
 
 
 class DinoCharacterStatusComponent(PrimalDinoStatusComponent, uetype=DCSC_CLS):
@@ -250,7 +245,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     SubmergedWaterMovementMode = uebytes(('EMovementMode', 'MOVE_Swimming'))
 
     # DevKit Unverified
-    WaterSubmergedDepthThreshold = uefloats(0.5)
+    WaterSubmergedDepthThreshold = uefloats(0.7)
 
     # Experience
     OverrideDinoMaxExperiencePoints = uefloats(0)
