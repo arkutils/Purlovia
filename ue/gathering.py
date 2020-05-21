@@ -1,6 +1,6 @@
 from typing import Set, TypeVar, Union, cast
 
-from .asset import ExportTableItem
+from .asset import ExportTableItem, UAsset
 from .consts import BLUEPRINT_GENERATED_CLASS_CLS
 from .hierarchy import find_parent_classes
 from .loader import AssetLoader
@@ -16,10 +16,15 @@ __all__ = [
 Tproxy = TypeVar('Tproxy', bound=UEProxyStructure)
 
 
-def gather_properties(export: Union[ExportTableItem, ObjectProperty]) -> Tproxy:
+def gather_properties(export: Union[ExportTableItem, ObjectProperty, UAsset]) -> Tproxy:
     '''Collect properties from an export, respecting the inheritance tree.'''
     if isinstance(export, ObjectProperty):
         return gather_properties(cast(ExportTableItem, export.value))
+
+    if isinstance(export, UAsset):
+        export = getattr(export, 'default_export', None)
+        if export is None:
+            raise ValueError("UAsset must have a default_export")
 
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
