@@ -100,14 +100,14 @@ def test_scheme_output(field_name, schema_type):
 def test_props_in_plain_fields():
     v = FloatProperty.create(1.0000001)
 
-    # put it in the non-property field
-    with pytest.raises(ValidationError):
-        model = UETypedModel()
-        model.float_field = v
+    # put it in the non-property field and check it is formatted
+    model = UETypedModel()
+    model.float_field = v
+    assert model.float_field == clean_float(v)
 
     # put it in the constructor
-    with pytest.raises(ValidationError):
-        model = UETypedModel(float_field = v)
+    model = UETypedModel(float_field=v)
+    assert model.float_field == clean_float(v)
 
 
 def test_plain_values_in_prop_fields():
@@ -120,4 +120,4 @@ def test_plain_values_in_prop_fields():
 
     # put it in the constructor
     with pytest.raises(ValidationError):
-        model = UETypedModel(float_prop_field = v)
+        model = UETypedModel(float_prop_field=v)
