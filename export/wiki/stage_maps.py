@@ -7,11 +7,11 @@ from automate.exporter import ExportManager, ExportRoot, ExportStage
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
 from ue.gathering import gather_properties
-from ue.utils import get_assetpath_from_assetname, get_leaf_from_assetname, sanitise_output
+from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.log import get_logger
 
 from .maps.data_container import MapInfo
-from .maps.discovery import LevelDiscoverer
+from .maps.discovery import LevelDiscoverer, group_levels_by_directory
 from .maps.gathering import EXPORTS, find_gatherer_by_category_name, find_gatherer_for_export
 from .maps.geo import GeoCoordCalculator
 
@@ -44,7 +44,7 @@ class MapStage(ExportStage):
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
         # Extract every core map
-        maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
+        maps = group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
@@ -120,20 +120,6 @@ class MapStage(ExportStage):
         if pretty_json is None:
             pretty_json = True
         save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
-
-    def _group_levels_by_directory(self, assetnames: Iterable[str]) -> Dict[str, List[str]]:
-        '''
-        Takes an unsorted list of levels and groups them by directory.
-        '''
-        levels: Dict[str, Set[str]] = dict()
-
-        for assetname in assetnames:
-            map_ = get_assetpath_from_assetname(assetname)
-            if map_ not in levels:
-                levels[map_] = set()
-            levels[map_].add(assetname)
-
-        return {path: list(sorted(names)) for path, names in levels.items()}
 
     def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> MapInfo:
         '''
