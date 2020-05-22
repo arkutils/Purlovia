@@ -143,6 +143,12 @@ class IndexedTree(Generic[T]):
     def __contains__(self, key: str) -> bool:
         return key in self._lookup
 
+    def __len__(self) -> int:
+        return len(self._lookup)
+
+    def __bool__(self) -> bool:
+        return bool(self._lookup)
+
     def get(self, key: str, fallback=MISSING) -> Node[T]:
         if fallback is MISSING:
             return self._lookup[key]
