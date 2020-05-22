@@ -15,38 +15,39 @@ from utils.tree import IndexedTree
 from .types import PrimalDinoCharacter, PrimalDinoSettings, PrimalItem
 
 __all__ = [
-    'TamingFoodHandler',
+    'gather_items',
+    'apply_overrides',
+    'collect_species_data',
 ]
 
 
-class TamingFoodHandler:
-    def __init__(self, loader: AssetLoader):
-        self.loader = loader
-
-
-@dataclass(init=False)
+@dataclass
 class ItemStatEffect:
-    base: float
-    speed: Optional[float] = None
+    base: float = field(default=0)
+    speed: float = field(default=0)
+
+    def __str__(self):
+        speed = f" @ {self.speed}" if self.speed else ''
+        return f"{self.base:6.3f}{speed}"
 
 
-@dataclass(init=False)
+@dataclass()
 class ItemOverride:
     bp: str
-    priority: float
-    food_mult: float
-    torpor_mult: float
-    affinity_mult: float
-    affinity_override: float
+    priority: float = field(default=0, init=False)
+    food_mult: float = field(default=0, init=False)
+    torpor_mult: float = field(default=0, init=False)
+    affinity_mult: float = field(default=0, init=False)
+    affinity_override: float = field(default=0, init=False)
 
 
 @dataclass
 class Item:
     bp: str
-    name: Optional[str] = field(default=None, init=False)
-    food: Optional[ItemStatEffect] = field(default=None, init=False)
-    torpor: Optional[ItemStatEffect] = field(default=None, init=False)
-    affinity: Optional[ItemStatEffect] = field(default=None, init=False)
+    name: str = field(default='')
+    food: ItemStatEffect = field(default_factory=ItemStatEffect, init=False)
+    torpor: ItemStatEffect = field(default_factory=ItemStatEffect, init=False)
+    affinity: ItemStatEffect = field(default_factory=ItemStatEffect, init=False)
 
 
 items: IndexedTree[Item] = IndexedTree(
@@ -55,7 +56,11 @@ items: IndexedTree[Item] = IndexedTree(
 )
 
 
-def _gather_items(loader: AssetLoader):
+def gather_items(loader: AssetLoader):
+    '''
+    Scan all items and collect their stat effects.
+    Results are kept in the tree `ark.taming.items`.
+    '''
     items.clear()
 
     for cls_name in find_sub_classes(PrimalItem.get_ue_type()):
@@ -73,7 +78,10 @@ def _gather_items(loader: AssetLoader):
         _collect_item_effects(item, proxy)
 
 
-def _collect_species_data(cls_name: str, loader: AssetLoader) -> List[ItemOverride]:
+def collect_species_data(cls_name: str, loader: AssetLoader) -> List[ItemOverride]:
+    '''
+    Get food overrides for a species.
+    '''
     settings_cls = _get_species_settings_cls(cls_name, loader)
     if not settings_cls:
         return []
@@ -82,6 +90,9 @@ def _collect_species_data(cls_name: str, loader: AssetLoader) -> List[ItemOverri
 
 
 def _get_species_settings_cls(cls_name: str, loader: AssetLoader) -> Optional[str]:
+    '''
+    Get the DinoSettings class for a species.
+    '''
     asset = loader[cls_name]
     proxy: PrimalDinoCharacter = gather_properties(asset)
     settings = proxy.get('DinoSettingsClass', 0, fallback=None)
@@ -90,8 +101,12 @@ def _get_species_settings_cls(cls_name: str, loader: AssetLoader) -> Optional[st
     return settings.value.value.fullname
 
 
-@lru_cache(maxsize=100)
+# @lru_cache(maxsize=100) # TODO: Enable cache!
 def _collect_settings_foods(cls_name: str, loader: AssetLoader) -> List[ItemOverride]:
+    '''
+    Get food overrides from a DinoSettings asset.
+    Cached, as these are re-used by multiple species.
+    '''
     asset = loader[cls_name]
     proxy: PrimalDinoSettings = gather_properties(asset)
 
@@ -120,8 +135,7 @@ def _collect_settings_foods(cls_name: str, loader: AssetLoader) -> List[ItemOver
 
 def _collect_settings_effect(food: StructProperty) -> ItemOverride:
     v = food.as_dict()
-    o = ItemOverride()
-    o.bp = v['FoodItemParent'].value.value.fullname
+    o = ItemOverride(bp=v['FoodItemParent'].value.value.fullname)
     o.priority = float(v['UntamedFoodConsumptionPriority'])
     o.food_mult = float(v['FoodEffectivenessMultiplier'])
     o.torpor_mult = float(v['TorpidityEffectivenessMultiplier'])
@@ -131,6 +145,9 @@ def _collect_settings_effect(food: StructProperty) -> ItemOverride:
 
 
 def _get_parent(cls_name: str) -> str:
+    '''
+    Get the immediate parent of a given class.
+    '''
     parent = next(find_parent_classes(cls_name, include_self=False))
     return parent
 
@@ -152,15 +169,11 @@ def _collect_status_effects(effect: StructProperty) -> ItemStatEffect:
     v = effect.as_dict()
     o = ItemStatEffect()
     o.base = int(v['BaseAmountToAdd'])
-    if v['bAddOverTime'] and v['AddOverTimeSpeed'] != 0:
-        o.speed = float(v['AddOverTimeSpeed'])
-    else:
-        o.speed = None
+    o.speed = float(v['AddOverTimeSpeed']) if v['bAddOverTime'] else 0
     return o
 
 
-def print_species_effects(cls_name: str, loader: AssetLoader):
-    foods = _collect_species_data(cls_name, loader)
+def print_species_overrides(foods: List[ItemOverride], sort=True):
     data: List[Dict[str, Any]] = [vars(food) for food in foods]
     for food in data:
         bp = food['bp']
@@ -170,12 +183,44 @@ def print_species_effects(cls_name: str, loader: AssetLoader):
         food['bp'] = bp
 
     headers = ('classname', 'pri', 'food*', 'torp*', 'aff*', 'aff=')
-
-    def affinity_calc(food: Dict[str, Any]):
-        return food['affinity_override']  # * food['affinity_mult']
-
-    values = [food.values() for food in sorted(data, reverse=True, key=affinity_calc)]
+    if sort:
+        data = sorted(data, reverse=True, key=itemgetter('affinity_override'))
+    values = [food.values() for food in data]
 
     from tabulate import tabulate
     table = tabulate([headers, *values], headers='firstrow')
     print(table)
+
+
+def print_item_effects(item: Item):
+    print(f"{item.name}:")
+    print(f"      Food: {item.food if item.food else '-'}")
+    print(f"    Torpor: {item.torpor if item.torpor else '-'}")
+    print(f"  Affinity: {item.affinity if item.affinity else '-'}")
+
+
+def apply_overrides(item: Item, overrides: List[ItemOverride]):
+    # Don't actually know anything about how this works... so we guess!
+
+    # Try to match the item to all of the overrides in a most-specific-first manner.
+    for cls_name in find_parent_classes(item.bp, include_self=True):
+        for food in overrides:
+            if food.bp == cls_name:
+                return _apply_override(item, food)
+
+    return item
+
+
+def _apply_override(item: Item, override: ItemOverride):
+    out = Item(bp=item.bp, name=item.name)
+
+    def combine_stat(a: ItemStatEffect, b: float) -> ItemStatEffect:
+        return ItemStatEffect(base=a.base * b, speed=a.speed)
+
+    out.food = combine_stat(item.food, override.food_mult)
+    out.torpor = combine_stat(item.torpor, override.torpor_mult)
+
+    out.affinity = ItemStatEffect(base=override.affinity_override)
+    # TODO: is there any use for affinity_mult?
+
+    return out

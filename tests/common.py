@@ -18,11 +18,25 @@ TEST_PGD_CLS = TEST_PGD_PKG + '.PrimalGameData_BP_PurloviaTEST_C'
 TROODON_CHR = '/Game/PrimalEarth/Dinos/Troodon/Troodon_Character_BP.Troodon_Character_BP_C'
 DODO_CHR = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP.Dodo_Character_BP_C'
 DODO_AB_CHR = '/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP_Aberrant.Dodo_Character_BP_Aberrant_C'
+BARY_CHR = '/Game/PrimalEarth/Dinos/Baryonyx/Baryonyx_Character_BP.Baryonyx_Character_BP_C'
 DEINO_CHR = '/Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP.Deinonychus_Character_BP_C'
 X_DRAGON_CHR = '/Game/Genesis/Dinos/BiomeVariants/Volcano_Dragon/Volcanic_Dragon_Character_BP.Volcanic_Dragon_Character_BP_C'
 DRAGON_BOSS_CHR = '/Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss.Dragon_Character_BP_Boss_C'
 
 PTM_DCSC_CONFLICT_CHR = '/Game/Mods/1821554891/Dinos/PTM_DCSC_Conflict.PTM_DCSC_Conflict_C'
+
+BERRYAMAR_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Berry_Amarberry.PrimalItemConsumable_Berry_Amarberry_C'
+BERRYNARC_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Berry_Narcoberry.PrimalItemConsumable_Berry_Narcoberry_C'
+
+MEATRAW_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawMeat.PrimalItemConsumable_RawMeat_C'
+MEATRAWPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawPrimeMeat.PrimalItemConsumable_RawPrimeMeat_C'
+MEATCOOKED_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat.PrimalItemConsumable_CookedMeat_C'
+MEATCOOKEDPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedPrimeMeat.PrimalItemConsumable_CookedPrimeMeat_C'
+
+FISHRAW_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawMeat_Fish.PrimalItemConsumable_RawMeat_Fish_C'
+FISHRAWPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawPrimeMeat_Fish.PrimalItemConsumable_RawPrimeMeat_Fish_C'
+FISHCOOKED_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat_Fish.PrimalItemConsumable_CookedMeat_Fish_C'
+FISHCOOKEDPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedPrimeMeat_Fish.PrimalItemConsumable_CookedPrimeMeat_Fish_C'
 
 
 @pytest.fixture(name='tempdir', scope='function')
@@ -68,14 +82,22 @@ def fixture_internal_hierarchy():
 
 @pytest.fixture(name='dodos', scope='module')
 def fixture_dodos(loader: AssetLoader, internal_hierarchy):  # pylint: disable=unused-argument
-    # Scan the Dodo directory
     ue.hierarchy.explore_path('/Game/PrimalEarth/Dinos/Dodo', loader, set())
+
+
+@pytest.fixture(name='baryonyx', scope='module')
+def fixture_baryonyx(loader: AssetLoader, internal_hierarchy):  # pylint: disable=unused-argument
+    ue.hierarchy.explore_path('/Game/PrimalEarth/Dinos/Baryonyx', loader, set())
 
 
 @pytest.fixture(name='troodon', scope='module')
 def fixture_troodon(loader: AssetLoader, internal_hierarchy):  # pylint: disable=unused-argument
-    # Scan the Troondon asset
     ue.hierarchy.explore_asset(TROODON_CHR, loader)
+
+
+@pytest.fixture(name='consumables', scope='module')
+def fixture_consumables(loader: AssetLoader, internal_hierarchy):  # pylint: disable=unused-argument
+    ue.hierarchy.explore_path('/Game/PrimalEarth/CoreBlueprints/Items/Consumables', loader, set())
 
 
 @pytest.fixture(name='test_hierarchy', scope='module')
