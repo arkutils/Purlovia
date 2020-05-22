@@ -23,10 +23,22 @@ CLONING_CHAMBER_C = '/Game/PrimalEarth/Structures/TekTier/TekCloningChamber.TekC
 
 
 class CloningData(ExportModel):
-    costBase: float
-    costLevel: float
-    timeBase: float
-    timeLevel: float
+    costBase: float = Field(
+        None,
+        title="Base Cost to Clone",
+    )
+    costLevel: float = Field(
+        None,
+        title="Cost per Level",
+    )
+    timeBase: float = Field(
+        None,
+        title="Base Time to Clone",
+    )
+    timeLevel: float = Field(
+        None,
+        title="Time per Level",
+    )
 
 
 FLAGS_PREVENT_CLONE = [
@@ -40,19 +52,20 @@ FLAGS_PREVENT_CLONE = [
 
 
 def can_be_cloned(species: PrimalDinoCharacter) -> bool:
-    """Requirements for cloning are:
-- Can be uploaded
-- not DCSC->FreezeStatusValues
-- does not have a rider
-- clone base element cost higher or equal to 0"""
+    """
+    Requirements for cloning are:
+    - FLAGS_PREVENT_CLONE are all false
+    - not DCSC->FreezeStatusValues
+    - does not have a rider
+    - clone base element cost higher or equal to 0"""
     for flag in FLAGS_PREVENT_CLONE:
         if bool(species.get(flag)):
             return False
-    return True
+    return species.CloneBaseElementCost[0] >= 0 and species.AutoFadeOutAfterTameTime[0] == 0
 
 
 def gather_cloning_data(species: PrimalDinoCharacter) -> Optional[CloningData]:
-    if not can_be_cloned(species) or species.CloneBaseElementCost[0] < 0:
+    if not can_be_cloned(species):
         return None
 
     loader = species.get_source().asset.loader
@@ -66,6 +79,10 @@ def gather_cloning_data(species: PrimalDinoCharacter) -> Optional[CloningData]:
 
     time_base = chamber.CloningTimePerElementShard[0] * cost_base  # skipped: BabyMatureSpeedMultiplier
     time_level = chamber.CloningTimePerElementShard[0] * cost_level  # skipped: BabyMatureSpeedMultiplier, CharacterLevel
+
+    if cost_base == 0:
+        # Free cloning, skip for sanity, it probably can't be obtained naturally.
+        return None
 
     return CloningData(
         costBase=cost_base,
