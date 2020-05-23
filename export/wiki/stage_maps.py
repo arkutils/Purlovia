@@ -68,7 +68,7 @@ class MapStage(ExportStage):
 
         # Extract the map
         path = (path / f'{modid}-{mod_data["name"]}')
-        maps = self._group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
+        maps = self.group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
