@@ -137,6 +137,17 @@ class IndexedTree(Generic[T]):
     def keys(self) -> Iterable[str]:
         yield from self._lookup.keys()
 
+    def values(self) -> Iterable[T]:
+        for node in self._lookup.values():
+            yield node.data
+
+    def items(self) -> Iterable[Tuple[str, T]]:
+        for key, node in self._lookup.items():
+            yield (key, node.data)
+
+    def __iter__(self):
+        yield from self._lookup
+
     def __getitem__(self, key: str) -> Node[T]:
         return self._lookup[key]
 
