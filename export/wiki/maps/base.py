@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable, Optional, Set, Union
 
+from automate.hierarchy_exporter import ExportModel
 from ue.asset import ExportTableItem
 from ue.base import UEBase
 from ue.proxy import UEProxyStructure
@@ -13,7 +14,7 @@ __all__ = [
     'MapGathererBase',
 ]
 
-GatheredData = Union[UEBase, Dict[str, Any]]
+GatheredData = Union[UEBase, ExportModel]
 GatheringResult = Optional[Union[GatheredData, Iterable[GatheredData]]]
 
 

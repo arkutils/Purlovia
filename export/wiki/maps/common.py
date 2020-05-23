@@ -8,6 +8,7 @@ from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
+from .models import Location
 
 __all__ = [
     'convert_box_bounds_for_export',
@@ -30,6 +31,15 @@ def get_actor_location_vector(actor) -> Vector:
     actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
 
     return actor_location
+
+
+def get_actor_location_vector_m(actor) -> Location:
+    vector = get_actor_location_vector(actor)
+    return Location(
+        x=vector.x,
+        y=vector.y,
+        z=vector.z,
+    )
 
 
 def get_volume_brush_setup(volume) -> Tuple[ExportTableItem, ExportTableItem]:

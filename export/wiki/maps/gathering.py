@@ -10,11 +10,14 @@ from ue.hierarchy import MissingParent, find_parent_classes
 from ue.loader import AssetLoadException
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
+from ue.utils import get_leaf_from_assetname
+from utils.name_convert import uelike_prettify
 
 from .base import GatheredData, GatheringResult, MapGathererBase
 from .common import BIOME_REMOVE_WIND_INFO, convert_box_bounds_for_export, \
-    get_actor_location_vector, get_volume_bounds, get_volume_box_count
+    get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_box_count
 from .data_container import MapInfo
+from .models import Actor, InGameMapTextureSet, WorldSettings
 
 __all__ = [
     'EXPORTS',
@@ -37,19 +40,13 @@ class GenericActorExport(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        data = dict(
-            hidden=not proxy.get('bIsVisible', fallback=True),
-            **get_actor_location_vector(proxy).format_for_json(),
-        )
-        # Remove the "hidden" mark if not hidden
-        if not data['hidden']:
-            del data['hidden']
-        return data
+        location = get_actor_location_vector(proxy)
+        return Actor(hidden=not proxy.get('bIsVisible', fallback=True), x=location.x, y=location.y, z=location.z)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.long.from_units(data['x'])
+        data.lat = map_info.lat.from_units(data['y'])
+        data.long = map_info.long.from_units(data['x'])
 
 
 class GenericActorListExport(MapGathererBase):
@@ -81,7 +78,7 @@ class GenericActorListExport(MapGathererBase):
 
     @classmethod
     def extract_single(cls, export: ExportTableItem) -> GatheredData:
-        return get_actor_location_vector(export)
+        return get_actor_location_vector_m(export)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -111,50 +108,44 @@ class WorldSettingsExport(MapGathererBase):
         if settings.has_override('Title'):
             display_name = settings.Title[0]
         else:
-            display_name = source.asset.assetname.rsplit('/', 1)[1]
+            display_name = get_leaf_from_assetname(source.asset.assetname)
             display_name = display_name.rstrip('_P')
-            # Insert spaces before capital letters
-            display_name = re.sub(r'\B([A-Z])', r' \1', display_name)
+            display_name = uelike_prettify(display_name)
 
-        data = dict(
+        return WorldSettings(
             source=source.asset.assetname,
             name=display_name,
+
             # Geo
             latOrigin=settings.LatitudeOrigin[0],
             longOrigin=settings.LongitudeOrigin[0],
             latScale=settings.LatitudeScale[0],
             longScale=settings.LongitudeScale[0],
-            # These fields will be filled out during data conversion
-            latMulti=0,
-            longMulti=0,
-            latShift=0,
-            longShift=0,
-            # Extra data
+
+            # Gameplay Settings
             maxDifficulty=settings.OverrideDifficultyMax[0],
-            mapTextures=dict(
+            mapTextures=InGameMapTextureSet(
                 held=settings.get('OverrideWeaponMapTextureFilled', 0, None),
                 emptyHeld=settings.get('OverrideWeaponMapTextureEmpty', 0, None),
                 empty=settings.get('OverrideUIMapTextureEmpty', 0, None),
                 big=settings.get('OverrideUIMapTextureFilled', 0, None),
                 small=settings.get('OverrideUIMapTextureSmall', 0, None),
             ),
+            ## Spawns
+            onlyEventGlobalSwaps=bool(settings.bPreventGlobalNonEventSpawnOverrides[0]),
             randomNPCClassWeights=[
                 convert_single_class_swap(struct.as_dict()) for struct in settings.NPCRandomSpawnClassWeights[0].values
             ] if 'NPCRandomSpawnClassWeights' in proxy else [],
+            ## Uploads
             allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
         )
 
-        if settings.bPreventGlobalNonEventSpawnOverrides[0]:
-            data['onlyEventGlobalSwaps'] = True
-
-        return data
-
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['latMulti'] = map_info.lat.multiplier
-        data['longMulti'] = map_info.long.multiplier
-        data['latShift'] = map_info.lat.shift
-        data['longShift'] = map_info.long.shift
+        data.latMulti = map_info.lat.multiplier
+        data.longMulti = map_info.long.multiplier
+        data.latShift = map_info.lat.shift
+        data.longShift = map_info.long.shift
 
 
 class TradeListExport(MapGathererBase):
