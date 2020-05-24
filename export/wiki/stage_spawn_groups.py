@@ -5,7 +5,9 @@ from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_double as cd
+from ue.utils import sanitise_output
 
+from .maps.models import WeighedClassSwap
 from .types import NPCSpawnEntriesContainer
 
 __all__ = [
@@ -115,6 +117,19 @@ def convert_single_class_swap(d):
         v['during'] = d['ActiveEvent']
 
     return v
+
+
+def convert_single_class_swap_m(d):
+    result = WeighedClassSwap(from_=sanitise_output(d['FromClass']),
+                              exact=d['bExactMatch'],
+                              to=sanitise_output(d['ToClasses']),
+                              weights=d['Weights'].values)
+
+    if d['ActiveEvent'] and d['ActiveEvent'].value and d[
+            'ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
+        result.during = str(d['ActiveEvent'])
+
+    return result
 
 
 def convert_class_swaps(pgd: UAsset):

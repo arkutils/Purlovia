@@ -1,5 +1,6 @@
 import re
-from typing import Dict, Tuple
+from collections import namedtuple
+from typing import Any, Dict, Tuple
 
 from export.wiki.consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
@@ -35,11 +36,7 @@ def get_actor_location_vector(actor) -> Vector:
 
 def get_actor_location_vector_m(actor) -> Location:
     vector = get_actor_location_vector(actor)
-    return Location(
-        x=vector.x,
-        y=vector.y,
-        z=vector.z,
-    )
+    return Location(x=vector.x, y=vector.y, z=vector.z)
 
 
 def get_volume_brush_setup(volume) -> Tuple[ExportTableItem, ExportTableItem]:
@@ -96,7 +93,12 @@ def get_volume_bounds_m(volume, convex_index=0) -> Box:
     return Box(start=start, center=center, end=end)
 
 
-def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
+def convert_location_for_export(map_info: MapInfo, data: Dict[str, Any]):
+    data['lat'] = map_info.lat.from_units(data['y'])
+    data['long'] = map_info.long.from_units(data['x'])
+
+
+def convert_box_bounds_for_export(map_info: MapInfo, box_data: Dict[str, Any]):
     # Start
     box_data['start']['lat'] = map_info.lat.from_units(box_data['start']['y'])
     box_data['start']['long'] = map_info.long.from_units(box_data['start']['x'])

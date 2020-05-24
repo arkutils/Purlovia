@@ -20,7 +20,7 @@ __all__ = [
     'Biome',
     'SupplyCrateSpawn',
     'PainVolume',
-    'PlayerStart',
+    'PlayerSpawn',
     'MissionDispatcher',
     'ExplorerNote',
     'Glitch'
@@ -32,9 +32,9 @@ ObjectPath = Optional[str]
 
 
 class Location(ExportModel):
-    x: FloatProperty
-    y: FloatProperty
-    z: FloatProperty
+    x: Union[float, FloatProperty]
+    y: Union[float, FloatProperty]
+    z: Union[float, FloatProperty]
     lat: Optional[float]
     long: Optional[float]
 
@@ -55,10 +55,10 @@ class WeighedBox(ExportModel):
 class WeighedClassSwap(ExportModel):
     # TODO: Possibly move into export.wiki.models after spawn_groups are moved
     from_: ObjectPath = Field(alias='from')
-    exact: bool
+    exact: BoolProperty
     to: List[Optional[ObjectPath]]
     weights: List[FloatProperty]
-    during: Optional[NameProperty]
+    during: str = 'None'
 
 
 ## Export Models
@@ -115,8 +115,8 @@ class NPCManager(ExportModel):
 
     # Zones
     locations: List[Box] = []
-    spawnLocations: List[Box] = []
-    spawnPoints: List[Box] = []
+    spawnLocations: List[WeighedBox] = []
+    spawnPoints: List[Location] = []
 
 
 class BiomeTempWindSettings(ExportModel):
@@ -147,7 +147,7 @@ class Biome(ExportModel):
     preventCrops: BoolProperty
     temperature: Optional[BiomeTempWindSettings] = None
     wind: Optional[BiomeTempWindSettings] = None
-    boxes: List[Box]
+    boxes: List[Box] = []
 
 
 class SupplyCrateSpawn(ExportModel):
@@ -155,6 +155,7 @@ class SupplyCrateSpawn(ExportModel):
     crateClasses: List[ObjectPath]
     crateLocations: List[Location]
     minTimeBetweenSpawnsAtSamePoint: FloatProperty
+    delayBeforeFirst: MinMaxRange
     intervalBetweenSpawns: MinMaxRange
     intervalBetweenMaxedSpawns: MinMaxRange
     intervalBetweenSpawnsSP: Optional[MinMaxRange] = None

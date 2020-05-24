@@ -3,7 +3,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
-from export.wiki.stage_spawn_groups import convert_single_class_swap
+from export.wiki.stage_spawn_groups import convert_single_class_swap_m
 from export.wiki.types import *
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
@@ -16,8 +16,8 @@ from utils.name_convert import uelike_prettify
 
 from . import models
 from .base import GatheredData, GatheringResult, MapGathererBase
-from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, get_actor_location_vector, \
-    get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
+from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, convert_location_for_export, \
+    get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
 from .data_container import MapInfo
 
 __all__ = [
@@ -46,8 +46,7 @@ class GenericActorExport(MapGathererBase):
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data.lat = map_info.lat.from_units(data['y'])
-        data.long = map_info.long.from_units(data['x'])
+        convert_location_for_export(map_info, data)
 
 
 class GenericActorListExport(MapGathererBase):
@@ -83,8 +82,7 @@ class GenericActorListExport(MapGathererBase):
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.long.from_units(data['x'])
+        convert_location_for_export(map_info, data)
 
 
 class WorldSettingsExport(MapGathererBase):
@@ -113,7 +111,7 @@ class WorldSettingsExport(MapGathererBase):
             display_name = display_name.rstrip('_P')
             display_name = uelike_prettify(display_name)
 
-        return WorldSettings(
+        return models.WorldSettings(
             source=source.asset.assetname,
             name=display_name,
 
@@ -125,28 +123,34 @@ class WorldSettingsExport(MapGathererBase):
 
             # Gameplay Settings
             maxDifficulty=settings.OverrideDifficultyMax[0],
-            mapTextures=InGameMapTextureSet(
-                held=settings.get('OverrideWeaponMapTextureFilled', 0, None),
-                emptyHeld=settings.get('OverrideWeaponMapTextureEmpty', 0, None),
-                empty=settings.get('OverrideUIMapTextureEmpty', 0, None),
-                big=settings.get('OverrideUIMapTextureFilled', 0, None),
-                small=settings.get('OverrideUIMapTextureSmall', 0, None),
+            mapTextures=models.InGameMapTextureSet(
+                held=sanitise_output(settings.get('OverrideWeaponMapTextureFilled', 0, None)),
+                emptyHeld=sanitise_output(settings.get('OverrideWeaponMapTextureEmpty', 0, None)),
+                empty=sanitise_output(settings.get('OverrideUIMapTextureEmpty', 0, None)),
+                big=sanitise_output(settings.get('OverrideUIMapTextureFilled', 0, None)),
+                small=sanitise_output(settings.get('OverrideUIMapTextureSmall', 0, None)),
             ),
             ## Spawns
             onlyEventGlobalSwaps=bool(settings.bPreventGlobalNonEventSpawnOverrides[0]),
-            randomNPCClassWeights=[
-                convert_single_class_swap(struct.as_dict()) for struct in settings.NPCRandomSpawnClassWeights[0].values
-            ] if 'NPCRandomSpawnClassWeights' in proxy else [],
+            randomNPCClassWeights=list(cls._convert_class_swaps(settings)),
             ## Uploads
             allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
         )
 
     @classmethod
+    def _convert_class_swaps(cls, settings: PrimalWorldSettings) -> Iterable[models.WeighedClassSwap]:
+        if 'NPCRandomSpawnClassWeights' not in settings:
+            return []
+
+        for struct in settings.NPCRandomSpawnClassWeights[0].values:
+            yield convert_single_class_swap_m(struct.as_dict())
+
+    @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data.latMulti = map_info.lat.multiplier
-        data.longMulti = map_info.long.multiplier
-        data.latShift = map_info.lat.shift
-        data.longShift = map_info.long.shift
+        data['latMulti'] = map_info.lat.multiplier
+        data['longMulti'] = map_info.long.multiplier
+        data['latShift'] = map_info.lat.shift
+        data['longShift'] = map_info.long.shift
 
 
 class TradeListExport(MapGathererBase):
@@ -250,15 +254,16 @@ class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         # Counting regions
-        for location in data.locations:
+        for location in data['locations']:
             convert_box_bounds_for_export(map_info, location)
         # Spawn regions
-        for location in data.spawnLocations:
-            convert_box_bounds_for_export(map_info, location)
+        if 'spawnLocations' in data:
+            for location in data['spawnLocations']:
+                convert_box_bounds_for_export(map_info, location)
         # Spawn points
-        for point in data.spawnPoints:
-            point.lat = map_info.lat.from_units(point.y)
-            point.long = map_info.long.from_units(point.x)
+        if 'spawnPoints' in data:
+            for point in data['spawnPoints']:
+                convert_location_for_export(map_info, point)
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -324,7 +329,7 @@ class BiomeZoneExport(MapGathererBase):
         if any_overriden(biome, ('FinalTemperatureMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
             result.final = (None, biome.FinalTemperatureMultiplier[0], biome.FinalTemperatureExponent[0],
                             biome.FinalTemperatureAddition[0])
-        return biome
+        return result
 
     @classmethod
     def _extract_wind_data(cls, biome: BiomeZoneVolume):
@@ -347,7 +352,7 @@ class BiomeZoneExport(MapGathererBase):
         # Final
         if any_overriden(biome, ('FinalWindMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
             result.final = (None, biome.FinalWindMultiplier[0], biome.FinalWindExponent[0], biome.FinalWindAddition[0])
-        return biome
+        return result
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -384,20 +389,21 @@ class LootCrateSpawnExport(MapGathererBase):
             crateClasses=sorted(cls._convert_crate_classes(class_entries)),
             crateLocations=list(cls._extract_spawn_points(spawn_points)),
             minTimeBetweenSpawnsAtSamePoint=spawner.MinTimeBetweenCrateSpawnsAtSamePoint[0],
-            delayBeforeFirst=MinMaxRange(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
-            intervalBetweenSpawns=MinMaxRange(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
-            intervalBetweenMaxedSpawns=MinMaxRange(spawner.IntervalBetweenMaxedCrateSpawns[0],
-                                                   spawner.MaxIntervalBetweenMaxedCrateSpawns[0]),
+            delayBeforeFirst=MinMaxRange(min=spawner.DelayBeforeFirstCrate[0], max=spawner.MaxDelayBeforeFirstCrate[0]),
+            intervalBetweenSpawns=MinMaxRange(min=spawner.IntervalBetweenCrateSpawns[0],
+                                              max=spawner.MaxIntervalBetweenCrateSpawns[0]),
+            intervalBetweenMaxedSpawns=MinMaxRange(min=spawner.IntervalBetweenMaxedCrateSpawns[0],
+                                                   max=spawner.MaxIntervalBetweenMaxedCrateSpawns[0]),
         )
 
         # Single-player overrides. Export only if changed.
         if spawner.has_override('SP_IntervalBetweenCrateSpawns') or spawner.has_override('SP_MaxIntervalBetweenCrateSpawns'):
-            result.intervalBetweenSpawnsSP = MinMaxRange(spawner.SP_IntervalBetweenCrateSpawns[0],
-                                                         spawner.SP_MaxIntervalBetweenCrateSpawns[0])
+            result.intervalBetweenSpawnsSP = MinMaxRange(min=spawner.SP_IntervalBetweenCrateSpawns[0],
+                                                         max=spawner.SP_MaxIntervalBetweenCrateSpawns[0])
         if spawner.has_override('SP_IntervalBetweenMaxedCrateSpawns') or spawner.has_override(
                 'SP_MaxIntervalBetweenMaxedCrateSpawns'):
-            result.intervalBetweenMaxedSpawnsSP = MinMaxRange(spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
-                                                              spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
+            result.intervalBetweenMaxedSpawnsSP = MinMaxRange(min=spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
+                                                              max=spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
 
         return result
 
@@ -418,8 +424,7 @@ class LootCrateSpawnExport(MapGathererBase):
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         for location in data['crateLocations']:
-            location.lat = map_info.lat.from_units(location.y)
-            location.long = map_info.long.from_units(location.x)
+            convert_location_for_export(map_info, location)
 
 
 class RadiationZoneExport(MapGathererBase):
@@ -479,7 +484,7 @@ class MissionDispatcher(MapGathererBase):
         return {MissionDispatcher_MultiUsePylon.get_ue_type()}
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         dispatcher: MissionDispatcher_MultiUsePylon = cast(MissionDispatcher_MultiUsePylon, proxy)
         type_id = dispatcher.MissionTypeIndex[0].value
         location = get_actor_location_vector(dispatcher)
@@ -492,8 +497,7 @@ class MissionDispatcher(MapGathererBase):
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data.lat = map_info.lat.from_units(data.y)
-        data.long = map_info.long.from_units(data.x)
+        convert_location_for_export(map_info, data)
 
 
 class ExplorerNoteExport(MapGathererBase):
@@ -518,8 +522,7 @@ class ExplorerNoteExport(MapGathererBase):
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data.lat = map_info.lat.from_units(data.y)
-        data.long = map_info.long.from_units(data.x)
+        convert_location_for_export(map_info, data)
 
 
 class HLNAGlitchExport(GenericActorListExport):
