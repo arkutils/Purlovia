@@ -1,11 +1,29 @@
 from typing import List, Optional, Tuple, Union
 
-from automate.hierarchy_exporter import ExportModel, Field
+from automate.hierarchy_exporter import ExportModel, Field, ModelConfig
 from export.wiki.models import MinMaxRange
 from ue.properties import BoolProperty, FloatProperty, IntProperty, NameProperty, ObjectProperty, StringProperty
 
 __all__ = [
+    # Common
+    'ObjectPath',
     'Location',
+    'Box',
+    'WeighedBox',
+    'WeighedClassSwap',
+    # Export Models
+    'Actor',
+    'InGameMapTextureSet',
+    'WorldSettings',
+    'NPCManager',
+    'BiomeTempWindSettings',
+    'Biome',
+    'SupplyCrateSpawn',
+    'PainVolume',
+    'PlayerStart',
+    'MissionDispatcher',
+    'ExplorerNote',
+    'Glitch'
 ]
 
 ## Common Structure Models
@@ -118,12 +136,74 @@ class BiomeTempWindSettings(ExportModel):
         description=
         "Applied after all other calculations. No threshold, only multiplier, exponent, and addition (order of fields).")
 
+    class Config(ModelConfig):
+        arbitrary_types_allowed = True
+
 
 class Biome(ExportModel):
     name: str
     priority: IntProperty
     isOutside: BoolProperty
     preventCrops: BoolProperty
-    temperature: Optional[BiomeTemperatureSettings] = None
-    wind: Optional[BiomeWindSettings] = None
+    temperature: Optional[BiomeTempWindSettings] = None
+    wind: Optional[BiomeTempWindSettings] = None
     boxes: List[Box]
+
+
+class SupplyCrateSpawn(ExportModel):
+    maxCrateNumber: IntProperty
+    crateClasses: List[ObjectPath]
+    crateLocations: List[Location]
+    minTimeBetweenSpawnsAtSamePoint: FloatProperty
+    intervalBetweenSpawns: MinMaxRange
+    intervalBetweenMaxedSpawns: MinMaxRange
+    intervalBetweenSpawnsSP: Optional[MinMaxRange] = None
+    intervalBetweenMaxedSpawnsSP: Optional[MinMaxRange] = None
+
+
+class PainVolume(Box):
+    immune: List[ObjectPath]
+
+
+class PlayerSpawn(ExportModel):
+    regionId: IntProperty
+
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+    lat: Optional[float]
+    long: Optional[float]
+
+
+class MissionDispatcher(ExportModel):
+    type_: str = Field(alias="type")
+    missions: List[ObjectPath]
+
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+    lat: Optional[float]
+    long: Optional[float]
+
+
+class ExplorerNote(ExportModel):
+    noteIndex: IntProperty
+    hidden: bool = False
+
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+    lat: Optional[float]
+    long: Optional[float]
+
+
+class Glitch(ExportModel):
+    noteId: Optional[IntProperty]
+    hidden: bool = False
+    hexagons: IntProperty
+
+    x: FloatProperty
+    y: FloatProperty
+    z: FloatProperty
+    lat: Optional[float]
+    long: Optional[float]

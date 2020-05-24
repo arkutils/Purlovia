@@ -11,15 +11,14 @@ from ue.hierarchy import MissingParent, find_parent_classes
 from ue.loader import AssetLoadException
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
-from ue.utils import get_leaf_from_assetname
+from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.name_convert import uelike_prettify
 
+from . import models
 from .base import GatheredData, GatheringResult, MapGathererBase
 from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, get_actor_location_vector, \
     get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
 from .data_container import MapInfo
-from .models import Actor, Biome, BiomeTempWindSettings, Box, \
-    InGameMapTextureSet, Location, NPCManager, WeighedBox, WorldSettings
 
 __all__ = [
     'EXPORTS',
@@ -43,7 +42,7 @@ class GenericActorExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         location = get_actor_location_vector(proxy)
-        return Actor(hidden=not proxy.get('bIsVisible', fallback=True), x=location.x, y=location.y, z=location.z)
+        return models.Actor(hidden=not proxy.get('bIsVisible', fallback=True), x=location.x, y=location.y, z=location.z)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -197,9 +196,9 @@ class NPCZoneManagerExport(MapGathererBase):
             return None
 
         # Export properties
-        result = NPCManager(
+        result = models.NPCManager(
             disabled=not manager.bEnabled[0],
-            spawnGroup=spawn_group,
+            spawnGroup=sanitise_output(spawn_group),
             minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
             neverSpawnInWater=manager.bNeverSpawnInWater[0],
             forceUntameable=manager.bForceUntameable[0],
@@ -225,28 +224,28 @@ class NPCZoneManagerExport(MapGathererBase):
         return result
 
     @classmethod
-    def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[Box]:
+    def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[models.Box]:
         for zone_volume in volumes.values:
             zone_volume = zone_volume.value.value
             if zone_volume:
                 yield get_volume_bounds_m(zone_volume)
 
     @classmethod
-    def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Location]:
+    def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[models.Location]:
         for marker in markers.values:
             marker = marker.value.value
             if marker:
                 yield get_actor_location_vector_m(marker)
 
     @classmethod
-    def _extract_spawn_volumes(cls, entries: ArrayProperty) -> Iterable[Dict[str, Any]]:
+    def _extract_spawn_volumes(cls, entries: ArrayProperty) -> Iterable[models.WeighedBox]:
         for entry in entries.values:
             d = entry.as_dict()
             volume = d["LinkedZoneSpawnVolume"].value.value
 
             if volume:
                 start, center, end = get_volume_bounds(volume)
-                yield WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
+                yield models.WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
@@ -258,8 +257,8 @@ class NPCZoneManagerExport(MapGathererBase):
             convert_box_bounds_for_export(map_info, location)
         # Spawn points
         for point in data.spawnPoints:
-            point.lat = map_info.lat.from_units(point['y'])
-            point.long = map_info.long.from_units(point['x'])
+            point.lat = map_info.lat.from_units(point.y)
+            point.long = map_info.long.from_units(point.x)
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -278,7 +277,7 @@ class BiomeZoneExport(MapGathererBase):
         biome_name = re.sub(BIOME_REMOVE_WIND_INFO, '', biome_name)
         biome_name = biome_name.strip()
 
-        result = Biome(
+        result = models.Biome(
             name=biome_name,
             priority=biome.BiomeZonePriority[0],
             isOutside=biome.bIsOutside[0],
@@ -292,13 +291,13 @@ class BiomeZoneExport(MapGathererBase):
         # Extract bounds
         box_count = get_volume_box_count(biome)
         for box_index in range(box_count):
-            volume_bounds = get_volume_bounds(biome, box_index)
-            result.boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
+            volume_bounds = get_volume_bounds_m(biome, box_index)
+            result.boxes.append(volume_bounds)
         return result
 
     @classmethod
     def _extract_temperature_data(cls, biome: BiomeZoneVolume):
-        result = BiomeTempWindSettings()
+        result = models.BiomeTempWindSettings()
         # Absolute
         if biome.has_override('AbsoluteTemperatureOverride'):
             result.override = biome.AbsoluteTemperatureOverride[0]
@@ -329,7 +328,7 @@ class BiomeZoneExport(MapGathererBase):
 
     @classmethod
     def _extract_wind_data(cls, biome: BiomeZoneVolume):
-        result = BiomeTempWindSettings()
+        result = models.BiomeTempWindSettings()
         # Absolute
         if biome.has_override('AbsoluteWindOverride'):
             result.override = biome.AbsoluteWindOverride[0]
@@ -379,57 +378,48 @@ class LootCrateSpawnExport(MapGathererBase):
         if not class_entries or not spawn_points:
             return None
 
-        # Make range tuples of numerical properties.
-        ranges = dict(
-            delayBeforeFirst=(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
-            intervalBetweenSpawns=(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
-            intervalBetweenMaxedSpawns=(spawner.IntervalBetweenMaxedCrateSpawns[0],
-                                        spawner.MaxIntervalBetweenMaxedCrateSpawns[0]),
-        )
-
-        # Single-player overrides. Export only if changed.
-        if spawner.has_override('SP_IntervalBetweenCrateSpawns') or spawner.has_override('SP_MaxIntervalBetweenCrateSpawns'):
-            ranges['intervalBetweenSpawnsSP'] = (
-                spawner.SP_IntervalBetweenCrateSpawns[0],
-                spawner.SP_MaxIntervalBetweenCrateSpawns[0],
-            )
-        if spawner.has_override('SP_IntervalBetweenMaxedCrateSpawns') or spawner.has_override(
-                'SP_MaxIntervalBetweenMaxedCrateSpawns'):
-            ranges['intervalBetweenMaxedSpawnsSP'] = (
-                spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
-                spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0],
-            )
-
-        # Combine all properties into a single dict
-        return dict(
+        # Construct model with data.
+        result = models.SupplyCrateSpawn(
             maxCrateNumber=spawner.MaxNumCrates[0],
             crateClasses=sorted(cls._convert_crate_classes(class_entries)),
             crateLocations=list(cls._extract_spawn_points(spawn_points)),
             minTimeBetweenSpawnsAtSamePoint=spawner.MinTimeBetweenCrateSpawnsAtSamePoint[0],
-            **ranges,
+            delayBeforeFirst=MinMaxRange(spawner.DelayBeforeFirstCrate[0], spawner.MaxDelayBeforeFirstCrate[0]),
+            intervalBetweenSpawns=MinMaxRange(spawner.IntervalBetweenCrateSpawns[0], spawner.MaxIntervalBetweenCrateSpawns[0]),
+            intervalBetweenMaxedSpawns=MinMaxRange(spawner.IntervalBetweenMaxedCrateSpawns[0],
+                                                   spawner.MaxIntervalBetweenMaxedCrateSpawns[0]),
         )
 
-    @classmethod
-    def _convert_crate_classes(cls, entries):
-        for entry in entries.values:
-            klass = entry.as_dict()['CrateTemplate']
-            if not klass or not klass.value.value:
-                continue
-            yield str(klass.value.value.fullname)
+        # Single-player overrides. Export only if changed.
+        if spawner.has_override('SP_IntervalBetweenCrateSpawns') or spawner.has_override('SP_MaxIntervalBetweenCrateSpawns'):
+            result.intervalBetweenSpawnsSP = MinMaxRange(spawner.SP_IntervalBetweenCrateSpawns[0],
+                                                         spawner.SP_MaxIntervalBetweenCrateSpawns[0])
+        if spawner.has_override('SP_IntervalBetweenMaxedCrateSpawns') or spawner.has_override(
+                'SP_MaxIntervalBetweenMaxedCrateSpawns'):
+            result.intervalBetweenMaxedSpawnsSP = MinMaxRange(spawner.SP_IntervalBetweenMaxedCrateSpawns[0],
+                                                              spawner.SP_MaxIntervalBetweenMaxedCrateSpawns[0])
+
+        return result
 
     @classmethod
-    def _extract_spawn_points(cls, entries):
+    def _convert_crate_classes(cls, entries) -> Iterable[models.ObjectPath]:
+        for entry in entries.values:
+            klass = entry.as_dict()['CrateTemplate']
+            if klass:
+                yield sanitise_output(klass)
+
+    @classmethod
+    def _extract_spawn_points(cls, entries) -> Iterable[models.Location]:
         for entry in entries.values:
             marker = entry.as_dict()['LinkedSpawnPoint'].value.value
-            if not marker:
-                continue
-            yield get_actor_location_vector(marker)
+            if marker:
+                yield get_actor_location_vector_m(marker)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         for location in data['crateLocations']:
-            location['lat'] = map_info.lat.from_units(location['y'])
-            location['long'] = map_info.long.from_units(location['x'])
+            location.lat = map_info.lat.from_units(location.y)
+            location.long = map_info.long.from_units(location.x)
 
 
 class RadiationZoneExport(MapGathererBase):
@@ -454,11 +444,11 @@ class RadiationZoneExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         volume: TogglePainVolume = cast(TogglePainVolume, proxy)
-        volume_bounds = get_volume_bounds(volume)
-        return dict(
-            start=volume_bounds[0],
-            center=volume_bounds[1],
-            end=volume_bounds[2],
+        start, center, end = get_volume_bounds(volume)
+        return models.PainVolume(
+            start=start,
+            center=center,
+            end=end,
             immune=volume.ActorClassesToExclude[0],
         )
 
@@ -491,20 +481,19 @@ class MissionDispatcher(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> Iterable[Dict[str, Any]]:
         dispatcher: MissionDispatcher_MultiUsePylon = cast(MissionDispatcher_MultiUsePylon, proxy)
-
         type_id = dispatcher.MissionTypeIndex[0].value
         location = get_actor_location_vector(dispatcher)
 
-        return dict(
-            type=cls.MISSION_TYPE_MAP.get(type_id, type_id),
-            missions=[ref for ref in dispatcher.MissionTypes[0].values],
-            **location.format_for_json(),
-        )
+        return models.MissionDispatcher(type_=cls.MISSION_TYPE_MAP.get(type_id, type_id),
+                                        missions=dispatcher.MissionTypes[0].values,
+                                        x=location.x,
+                                        y=location.y,
+                                        z=location.z)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.long.from_units(data['x'])
+        data.lat = map_info.lat.from_units(data.y)
+        data.long = map_info.long.from_units(data.x)
 
 
 class ExplorerNoteExport(MapGathererBase):
@@ -519,20 +508,18 @@ class ExplorerNoteExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         note: ExplorerNote = cast(ExplorerNote, proxy)
-        data = dict(
-            noteIndex=note.ExplorerNoteIndex[0],
-            hidden=not note.bIsVisible[0],
-            **get_actor_location_vector(proxy).format_for_json(),
-        )
-        # Remove the "hidden" mark if not hidden
-        if not data['hidden']:
-            del data['hidden']
-        return data
+        location = get_actor_location_vector(proxy)
+
+        return models.ExplorerNote(noteIndex=note.ExplorerNoteIndex[0],
+                                   hidden=not note.bIsVisible[0],
+                                   x=location.x,
+                                   y=location.y,
+                                   z=location.z)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['lat'] = map_info.lat.from_units(data['y'])
-        data['long'] = map_info.long.from_units(data['x'])
+        data.lat = map_info.lat.from_units(data.y)
+        data.long = map_info.long.from_units(data.x)
 
 
 class HLNAGlitchExport(GenericActorListExport):
@@ -551,20 +538,23 @@ class HLNAGlitchExport(GenericActorListExport):
     @classmethod
     def extract_single(cls, export: ExportTableItem) -> GatheredData:
         poi: PointOfInterestBP = gather_properties(export)
+        location = get_actor_location_vector(poi)
 
-        d: Dict[str, Any] = dict()
+        result = models.Glitch(hexagons=poi.number_of_hexagons_to_reward_upon_fixing[0],
+                               x=location.x,
+                               y=location.y,
+                               z=location.z)
+
         noteid = poi.get('Specific_Unlocked_Explorer_Note_Index', fallback=-1)
         if noteid != -1:
-            d['noteId'] = noteid
+            result.noteId = noteid
 
         #poi_info = poi.get('MyPointOfInterestData', fallback=None)
         #if poi_info:
         #    tag = poi_info.as_dict().get('PointTag', None)
         #    d['poiTag'] = tag
 
-        d['hexagons'] = poi.get('number_of_hexagons_to_reward_upon_fixing', fallback=1000)
-        d.update(get_actor_location_vector(export).format_for_json())
-        return d
+        return result
 
 
 class PlayerSpawnPointExport(GenericActorExport):
@@ -574,9 +564,13 @@ class PlayerSpawnPointExport(GenericActorExport):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         point: PlayerStart = cast(PlayerStart, proxy)
-        return dict(
+        location = get_actor_location_vector(point)
+
+        return models.PlayerSpawn(
             regionId=point.SpawnPointRegion[0],
-            **get_actor_location_vector(proxy).format_for_json(),
+            x=location.x,
+            y=location.y,
+            z=location.z,
         )
 
 
