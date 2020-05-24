@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
+from export.wiki.models import MinMaxRange
 from export.wiki.stage_spawn_groups import convert_single_class_swap
 from export.wiki.types import *
 from ue.asset import ExportTableItem
@@ -14,10 +15,11 @@ from ue.utils import get_leaf_from_assetname
 from utils.name_convert import uelike_prettify
 
 from .base import GatheredData, GatheringResult, MapGathererBase
-from .common import BIOME_REMOVE_WIND_INFO, convert_box_bounds_for_export, \
-    get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_box_count
+from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, get_actor_location_vector, \
+    get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
 from .data_container import MapInfo
-from .models import Actor, InGameMapTextureSet, WorldSettings
+from .models import Actor, Biome, BiomeTempWindSettings, Box, \
+    InGameMapTextureSet, Location, NPCManager, WeighedBox, WorldSettings
 
 __all__ = [
     'EXPORTS',
@@ -195,79 +197,69 @@ class NPCZoneManagerExport(MapGathererBase):
             return None
 
         # Export properties
-        data: Dict[str, Any] = dict(
+        result = NPCManager(
             disabled=not manager.bEnabled[0],
             spawnGroup=spawn_group,
             minDesiredNumberOfNPC=manager.MinDesiredNumberOfNPC[0],
             neverSpawnInWater=manager.bNeverSpawnInWater[0],
             forceUntameable=manager.bForceUntameable[0],
         )
-        # Remove "disabled" entirely if enabled
-        if not data['disabled']:
-            del data['disabled']
 
         # Export dino counting regions
-        data['locations'] = list(cls._extract_counting_volumes(count_volumes))
+        result.locations = list(cls._extract_counting_volumes(count_volumes))
         # Export spawn points if present
         spawn_points = manager.get('SpawnPointOverrides', 0, None)
         spawn_volumes = manager.get('LinkedZoneSpawnVolumeEntries', 0, None)
         if spawn_points:
-            data['spawnPoints'] = list(cls._extract_spawn_points(spawn_points))
+            result.spawnPoints = list(cls._extract_spawn_points(spawn_points))
         # Export spawn regions if present
         # Behaviour verified in DevKit. Dinos don't spawn in spawning volumes if
         # points were manually specified.
         elif spawn_volumes:
-            data['spawnLocations'] = list(cls._extract_spawn_volumes(spawn_volumes))
+            result.spawnLocations = list(cls._extract_spawn_volumes(spawn_volumes))
 
         # Check if we extracted any spawn data at all, otherwise we can skip it.
-        if not data.get('spawnPoints', None) and not data.get('spawnLocations', None):
+        if not result.spawnPoints and not result.spawnLocations:
             return None
 
-        return data
+        return result
 
     @classmethod
-    def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[Dict[str, Dict[str, float]]]:
+    def _extract_counting_volumes(cls, volumes: ArrayProperty) -> Iterable[Box]:
         for zone_volume in volumes.values:
             zone_volume = zone_volume.value.value
-            if not zone_volume:
-                continue
-            bounds = get_volume_bounds(zone_volume)
-            yield dict(start=bounds[0], center=bounds[1], end=bounds[2])
+            if zone_volume:
+                yield get_volume_bounds_m(zone_volume)
 
     @classmethod
-    def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Vector]:
+    def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[Location]:
         for marker in markers.values:
             marker = marker.value.value
-            if not marker:
-                continue
-            yield get_actor_location_vector(marker)
+            if marker:
+                yield get_actor_location_vector_m(marker)
 
     @classmethod
     def _extract_spawn_volumes(cls, entries: ArrayProperty) -> Iterable[Dict[str, Any]]:
         for entry in entries.values:
-            entry_data = entry.as_dict()
-            entry_weight = entry_data['EntryWeight']
-            spawn_volume = entry_data["LinkedZoneSpawnVolume"].value.value
+            d = entry.as_dict()
+            volume = d["LinkedZoneSpawnVolume"].value.value
 
-            if not spawn_volume:
-                continue
-            bounds = get_volume_bounds(spawn_volume)
-            yield dict(weight=entry_weight, start=bounds[0], center=bounds[1], end=bounds[2])
+            if volume:
+                start, center, end = get_volume_bounds(volume)
+                yield WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
         # Counting regions
-        for location in data['locations']:
+        for location in data.locations:
             convert_box_bounds_for_export(map_info, location)
         # Spawn regions
-        if 'spawnLocations' in data:
-            for location in data['spawnLocations']:
-                convert_box_bounds_for_export(map_info, location)
+        for location in data.spawnLocations:
+            convert_box_bounds_for_export(map_info, location)
         # Spawn points
-        if 'spawnPoints' in data:
-            for point in data['spawnPoints']:
-                point['lat'] = map_info.lat.from_units(point['y'])
-                point['long'] = map_info.long.from_units(point['x'])
+        for point in data.spawnPoints:
+            point.lat = map_info.lat.from_units(point['y'])
+            point.long = map_info.long.from_units(point['x'])
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -282,116 +274,81 @@ class BiomeZoneExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         biome: BiomeZoneVolume = cast(BiomeZoneVolume, proxy)
-        volume_bounds = get_volume_bounds(biome)
-
         biome_name = str(biome.BiomeZoneName[0])
         biome_name = re.sub(BIOME_REMOVE_WIND_INFO, '', biome_name)
         biome_name = biome_name.strip()
-        data: Dict[str, Any] = dict(
+
+        result = Biome(
             name=biome_name,
             priority=biome.BiomeZonePriority[0],
             isOutside=biome.bIsOutside[0],
             preventCrops=biome.bPreventCrops[0],
-            temperature=dict(),
-            wind=dict(),
         )
 
         # Add overriden temperature and wind data
-        cls._extract_temperature_data(biome, data)
-        cls._extract_wind_data(biome, data)
-
-        # Remove extra dicts in case they haven't been filled
-        if not data['temperature']:
-            del data['temperature']
-        if not data['wind']:
-            del data['wind']
+        result.temperature = cls._extract_temperature_data(biome)
+        result.wind = cls._extract_wind_data(biome)
 
         # Extract bounds
         box_count = get_volume_box_count(biome)
-        boxes = list()
         for box_index in range(box_count):
             volume_bounds = get_volume_bounds(biome, box_index)
-            boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
-        data['boxes'] = boxes
-        return data
+            result.boxes.append(dict(start=volume_bounds[0], center=volume_bounds[1], end=volume_bounds[2]))
+        return result
 
     @classmethod
-    def _extract_temperature_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
+    def _extract_temperature_data(cls, biome: BiomeZoneVolume):
+        result = BiomeTempWindSettings()
         # Absolute
-        if proxy.has_override('AbsoluteTemperatureOverride'):
-            data['temperature']['override'] = proxy.AbsoluteTemperatureOverride[0]
-        if proxy.has_override('AbsoluteMaxTemperature') or proxy.has_override('AbsoluteMinTemperature'):
-            data['temperature']['range'] = (proxy.AbsoluteMinTemperature[0], proxy.AbsoluteMaxTemperature[0])
+        if biome.has_override('AbsoluteTemperatureOverride'):
+            result.override = biome.AbsoluteTemperatureOverride[0]
+        if biome.has_override('AbsoluteMaxTemperature') or biome.has_override('AbsoluteMinTemperature'):
+            result.range = MinMaxRange(biome.AbsoluteMinTemperature[0], biome.AbsoluteMaxTemperature[0])
         # Pre-offset
-        if proxy.has_override('PreOffsetTemperatureMultiplier') or proxy.has_override(
-                'PreOffsetTemperatureExponent') or proxy.has_override('PreOffsetTemperatureAddition'):
-            data['temperature']['preOffset'] = (None, proxy.PreOffsetTemperatureMultiplier[0],
-                                                proxy.PreOffsetTemperatureExponent[0], proxy.PreOffsetTemperatureAddition[0])
+        if any_overriden(biome,
+                         ('PreOffsetTemperatureMultiplier', 'PreOffsetTemperatureExponent', 'PreOffsetTemperatureAddition')):
+            result.preOffset = (None, biome.PreOffsetTemperatureMultiplier[0], biome.PreOffsetTemperatureExponent[0],
+                                biome.PreOffsetTemperatureAddition[0])
         # Above offset
-        if proxy.has_override('AboveTemperatureOffsetThreshold') or proxy.has_override(
-                'AboveTemperatureOffsetMultiplier') or proxy.has_override('AboveTemperatureOffsetExponent'):
-            data['temperature']['aboveOffset'] = (
-                proxy.AboveTemperatureOffsetThreshold[0],
-                proxy.AboveTemperatureOffsetMultiplier[0],
-                proxy.AboveTemperatureOffsetExponent[0],
-                None,
-            )
+        if any_overriden(
+                biome,
+            ('AboveTemperatureOffsetThreshold', 'AboveTemperatureOffsetMultiplier', 'AboveTemperatureOffsetExponent')):
+            result.aboveOffset = (biome.AboveTemperatureOffsetThreshold[0], biome.AboveTemperatureOffsetMultiplier[0],
+                                  biome.AboveTemperatureOffsetExponent[0], None)
         # Below offset
-        if proxy.has_override('BelowTemperatureOffsetThreshold') or proxy.has_override(
-                'BelowTemperatureOffsetMultiplier') or proxy.has_override('BelowTemperatureOffsetExponent'):
-            data['temperature']['belowOffset'] = (
-                proxy.BelowTemperatureOffsetThreshold[0],
-                proxy.BelowTemperatureOffsetMultiplier[0],
-                proxy.BelowTemperatureOffsetExponent[0],
-                None,
-            )
+        if any_overriden(
+                biome,
+            ('BelowTemperatureOffsetThreshold', 'BelowTemperatureOffsetMultiplier', 'BelowTemperatureOffsetExponent')):
+            result.belowOffset = (biome.BelowTemperatureOffsetThreshold[0], biome.BelowTemperatureOffsetMultiplier[0],
+                                  biome.BelowTemperatureOffsetExponent[0], None)
         # Final
-        if proxy.has_override('FinalTemperatureMultiplier') or proxy.has_override(
-                'FinalTemperatureExponent') or proxy.has_override('FinalTemperatureAddition'):
-            data['temperature']['final'] = (None, proxy.FinalTemperatureMultiplier[0], proxy.FinalTemperatureExponent[0],
-                                            proxy.FinalTemperatureAddition[0])
+        if any_overriden(biome, ('FinalTemperatureMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
+            result.final = (None, biome.FinalTemperatureMultiplier[0], biome.FinalTemperatureExponent[0],
+                            biome.FinalTemperatureAddition[0])
+        return biome
 
     @classmethod
-    def _extract_wind_data(cls, proxy: BiomeZoneVolume, data: Dict[str, Any]):
+    def _extract_wind_data(cls, biome: BiomeZoneVolume):
+        result = BiomeTempWindSettings()
         # Absolute
-        if proxy.has_override('AbsoluteWindOverride'):
-            data['wind']['override'] = proxy.AbsoluteWindOverride[0]
+        if biome.has_override('AbsoluteWindOverride'):
+            result.override = biome.AbsoluteWindOverride[0]
         # Pre-offset
-        if proxy.has_override('PreOffsetWindMultiplier') or proxy.has_override('PreOffsetWindExponent') or proxy.has_override(
-                'PreOffsetWindAddition'):
-            data['wind']['preOffset'] = (
-                None,
-                proxy.PreOffsetWindMultiplier[0],
-                proxy.PreOffsetWindExponent[0],
-                proxy.PreOffsetWindAddition[0],
-            )
+        if any_overriden(biome, ('PreOffsetWindMultiplier', 'PreOffsetWindExponent', 'PreOffsetWindAddition')):
+            result.preOffset = (None, biome.PreOffsetWindMultiplier[0], biome.PreOffsetWindExponent[0],
+                                biome.PreOffsetWindAddition[0])
         # Above offset
-        if proxy.has_override('AboveWindOffsetThreshold') or proxy.has_override(
-                'AboveWindOffsetMultiplier') or proxy.has_override('AboveWindOffsetExponent'):
-            data['wind']['aboveOffset'] = (
-                proxy.AboveWindOffsetThreshold[0],
-                proxy.AboveWindOffsetMultiplier[0],
-                proxy.AboveWindOffsetExponent[0],
-                None,
-            )
+        if any_overriden(biome, ('AboveWindOffsetThreshold', 'AboveWindOffsetMultiplier', 'AboveWindOffsetExponent')):
+            result.aboveOffset = (biome.AboveWindOffsetThreshold[0], biome.AboveWindOffsetMultiplier[0],
+                                  biome.AboveWindOffsetExponent[0], None)
         # Below offset
-        if proxy.has_override('BelowWindOffsetThreshold') or proxy.has_override(
-                'BelowWindOffsetMultiplier') or proxy.has_override('BelowWindOffsetExponent'):
-            data['wind']['belowOffset'] = (
-                proxy.BelowWindOffsetThreshold[0],
-                proxy.BelowWindOffsetMultiplier[0],
-                proxy.BelowWindOffsetExponent[0],
-                None,
-            )
+        if any_overriden(biome, ('BelowWindOffsetThreshold', 'BelowWindOffsetMultiplier', 'BelowWindOffsetExponent')):
+            result.belowOffset = (biome.BelowWindOffsetThreshold[0], biome.BelowWindOffsetMultiplier[0],
+                                  biome.BelowWindOffsetExponent[0], None)
         # Final
-        if proxy.has_override('FinalWindMultiplier') or proxy.has_override('FinalWindExponent') or proxy.has_override(
-                'FinalWindAddition'):
-            data['wind']['final'] = (
-                None,
-                proxy.FinalWindMultiplier[0],
-                proxy.FinalWindExponent[0],
-                proxy.FinalWindAddition[0],
-            )
+        if any_overriden(biome, ('FinalWindMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
+            result.final = (None, biome.FinalWindMultiplier[0], biome.FinalWindExponent[0], biome.FinalWindAddition[0])
+        return biome
 
     @classmethod
     def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):

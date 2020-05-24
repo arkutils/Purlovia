@@ -8,7 +8,7 @@ from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 
 from .data_container import MapInfo
-from .models import Location
+from .models import Box, Location
 
 __all__ = [
     'convert_box_bounds_for_export',
@@ -91,6 +91,11 @@ def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[st
     return (start, center, end)
 
 
+def get_volume_bounds_m(volume, convex_index=0) -> Box:
+    start, center, end = get_volume_bounds(volume, convex_index)
+    return Box(start=start, center=center, end=end)
+
+
 def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
     # Start
     box_data['start']['lat'] = map_info.lat.from_units(box_data['start']['y'])
@@ -101,3 +106,7 @@ def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
     # End
     box_data['end']['lat'] = map_info.lat.from_units(box_data['end']['y'])
     box_data['end']['long'] = map_info.long.from_units(box_data['end']['x'])
+
+
+def any_overriden(proxy: UEProxyStructure, props: Tuple[str, ...]) -> bool:
+    return any(proxy.has_override(x) for x in props)
