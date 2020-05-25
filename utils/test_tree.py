@@ -1,8 +1,29 @@
 from operator import attrgetter
+from typing import Optional
 
 import pytest
 
 from .tree import IndexedTree, Node
+
+
+class MyDataType:
+    __slots__ = ('name', )
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.name!r})'
+
+
+class TranslatedDataType:
+    __slots__ = ('title', )
+
+    def __init__(self, title: str):
+        self.title = title
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.title!r})'
 
 
 @pytest.fixture(name='basic_tree')
@@ -13,6 +34,28 @@ def fixture_basic_tree() -> Node[str]:
     t.nodes[0].add('a1')
     t.nodes[1].add('b1')
     t.nodes[1].add('b2')
+    return t
+
+
+@pytest.fixture(name='indexed_string_tree')
+def fixture_indexed_string_tree():
+    t = IndexedTree[str]('root', lambda data: data)
+    t.add('root', 'a')
+    t.add('root', 'b')
+    t.add('a', 'a1')
+    t.add('b', 'b1')
+    t.add('b', 'b2')
+    return t
+
+
+@pytest.fixture(name='indexed_typed_tree')
+def fixture_indexed_typed_tree():
+    t = IndexedTree[MyDataType](MyDataType('root'), attrgetter('name'))
+    t.add('root', MyDataType('a'))
+    t.add('root', MyDataType('b'))
+    t.add('a', MyDataType('a1'))
+    t.add('b', MyDataType('b1'))
+    t.add('b', MyDataType('b2'))
     return t
 
 
@@ -151,3 +194,88 @@ def test_insert_segment():
     # Ensure parent chain extends into segment completely
     assert t['naa'].parent is t['na']
     assert t['segment'].parent is t['b']
+
+
+def test_translate(basic_tree: Node[str]):
+    def make_new(data: str):
+        return "+" + data
+
+    out: Optional[Node[str]] = basic_tree.translate(make_new)
+    assert out is not None
+
+    # Verify contents were translated
+    found = [n.data for n in out.walk_iterator(skip_self=False)]
+    assert repr(found) == "['+root', '+a', '+a1', '+b', '+b1', '+b2']"
+
+
+def test_translate_filtered(basic_tree: Node[str]):
+    def make_new_filtered(data: str):
+        if data == 'b': return None
+        return "+" + data
+
+    out: Optional[Node[str]] = basic_tree.translate(make_new_filtered)
+    assert out is not None
+
+    # Verify contents were translated
+    found = [n.data for n in out.walk_iterator(skip_self=False)]
+    assert repr(found) == "['+root', '+a', '+a1']"
+
+
+def test_translate_indexed_simple_string(indexed_string_tree: IndexedTree[str]):
+    def make_new(data: str):
+        return "+" + data
+
+    out: IndexedTree[str] = indexed_string_tree.translate(make_new)
+
+    # Verify contents were translated
+    found = [n.data for n in out.root.walk_iterator(skip_self=False)]
+    assert repr(found) == "['+root', '+a', '+a1', '+b', '+b1', '+b2']"
+
+    # Verify index matches content
+    assert out['+root'] == out.root
+    assert out['+a'] == out.root.nodes[0]
+    assert out['+a1'] == out.root.nodes[0].nodes[0]
+    assert out['+b'] == out.root.nodes[1]
+    assert out['+b1'] == out.root.nodes[1].nodes[0]
+    assert out['+b2'] == out.root.nodes[1].nodes[1]
+
+
+def test_translate_indexed_typed(indexed_typed_tree: IndexedTree[MyDataType]):
+    def make_new(data: MyDataType) -> TranslatedDataType:
+        return TranslatedDataType(title='+' + data.name)
+
+    out: IndexedTree[TranslatedDataType] = indexed_typed_tree.translate(make_new, attrgetter('title'))
+
+    # Verify contents were translated
+    found = [n.data for n in out.root.walk_iterator(skip_self=False)]
+    assert repr(found) == "\
+[TranslatedDataType('+root'), TranslatedDataType('+a'), TranslatedDataType('+a1'), \
+TranslatedDataType('+b'), TranslatedDataType('+b1'), TranslatedDataType('+b2')]"
+
+    # Verify index matches content
+    assert out['+root'] == out.root
+    assert out['+a'] == out.root.nodes[0]
+    assert out['+a1'] == out.root.nodes[0].nodes[0]
+    assert out['+b'] == out.root.nodes[1]
+    assert out['+b1'] == out.root.nodes[1].nodes[0]
+    assert out['+b2'] == out.root.nodes[1].nodes[1]
+
+
+def test_translate_indexed_typed_filtered(indexed_typed_tree: IndexedTree[MyDataType]):
+    def make_new_filtered(data: MyDataType) -> Optional[TranslatedDataType]:
+        if data.name == 'b': return None
+        return TranslatedDataType(title='+' + data.name)
+
+    out: IndexedTree[TranslatedDataType] = indexed_typed_tree.translate(make_new_filtered, attrgetter('title'))
+
+    # Verify contents were translated
+    found = [n.data for n in out.root.walk_iterator(skip_self=False)]
+    assert repr(found) == "[TranslatedDataType('+root'), TranslatedDataType('+a'), TranslatedDataType('+a1')]"
+
+    # Verify index matches content
+    assert out['+root'] == out.root
+    assert out['+a'] == out.root.nodes[0]
+    assert out['+a1'] == out.root.nodes[0].nodes[0]
+    assert '+b' not in out
+    assert '+b1' not in out
+    assert '+b2' not in out
