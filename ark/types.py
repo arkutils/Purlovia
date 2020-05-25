@@ -1,7 +1,7 @@
 from itertools import repeat
 from typing import Mapping
 
-from ue.properties import ArrayProperty, ByteProperty, LinearColor, ObjectProperty
+from ue.properties import ArrayProperty, LinearColor, ObjectProperty
 from ue.proxy import *
 
 STAT_COUNT = 12

@@ -57,7 +57,8 @@ def can_be_cloned(species: PrimalDinoCharacter) -> bool:
     - FLAGS_PREVENT_CLONE are all false
     - not DCSC->FreezeStatusValues
     - does not have a rider
-    - clone base element cost higher or equal to 0"""
+    - clone base element cost higher or equal to 0
+    """
     for flag in FLAGS_PREVENT_CLONE:
         if bool(species.get(flag)):
             return False

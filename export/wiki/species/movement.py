@@ -1,4 +1,4 @@
-from typing import *
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -30,7 +30,7 @@ class MovementIntermediate(BaseModel):
     staminaRates: Optional[StaminaRates]
 
 
-def can_walk(species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
+def can_walk(_species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
     return nav_props.get('bCanWalk', True)
 
 
@@ -118,7 +118,5 @@ def _gather_stamina(dcsc: DinoCharacterStatusComponent, movementW: MovementModes
         result.sprint = dcsc.RunningStaminaConsumptionRate[0]
     if movementW.fly or movementW.swim:
         result.swimOrFly = dcsc.SwimmingOrFlyingStaminaConsumptionRate[0]
-        #if (movementW.swim.sprint or movementW.swim.walk) and dcsc.bRunningConsumesStamina[0]:
-        #    result.sprint = dcsc.SwimmingOrFlyingConsumptionRate[0]
 
     return result

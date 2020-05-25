@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, cast
 
 from ark.types import PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel
-from ue.properties import BoolProperty, FloatProperty, IntProperty, StringLikeProperty, StructProperty
+from ue.properties import FloatProperty, IntProperty, StringLikeProperty, StructProperty
 
 
 class AttackInfo(ExportModel):

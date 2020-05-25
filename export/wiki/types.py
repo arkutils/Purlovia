@@ -1,6 +1,5 @@
 from typing import Mapping
 
-from ark.types import PrimalItem
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
