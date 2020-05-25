@@ -6,9 +6,6 @@ from export.wiki.models import MinMaxRange
 from export.wiki.stage_spawn_groups import convert_single_class_swap_m
 from export.wiki.types import *
 from ue.asset import ExportTableItem
-from ue.gathering import gather_properties
-from ue.hierarchy import MissingParent, find_parent_classes
-from ue.loader import AssetLoadException
 from ue.properties import ArrayProperty, StringProperty, Vector
 from ue.proxy import UEProxyStructure
 from ue.utils import get_leaf_from_assetname, sanitise_output
@@ -21,8 +18,6 @@ from .data_container import World
 from .gathering_base import GatheredData, GatheringResult, MapGathererBase
 
 __all__ = [
-    'find_gatherer_for_export',
-    'find_gatherer_by_category_name',
     # TODO: update
 ]
 
@@ -462,39 +457,16 @@ class ExplorerNoteExport(MapGathererBase):
         convert_location_for_export(world, data)
 
 
-ALL_GATHERERS = [
+GATHERERS = [
     # Core
     WorldSettingsExport,
     ExplorerNoteExport,
     NPCZoneManagerExport,
     BiomeZoneExport,
     LootCrateSpawnExport,
+    # Aberration
     RadiationZoneExport,
     # Genesis
     TradeListExport,
     MissionDispatcher,
 ]
-
-
-def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
-    try:
-        parents = set(find_parent_classes(export, include_self=True))
-    except (AssetLoadException, MissingParent):
-        return None
-
-    for _, helpers in EXPORTS.items():
-        for helper in helpers:
-            if parents & helper.get_ue_types():
-                if helper.do_early_checks(export):
-                    return helper
-
-    return None
-
-
-def find_gatherer_by_category_name(category: str) -> Optional[Type[MapGathererBase]]:
-    for _, helpers in EXPORTS.items():
-        for helper in helpers:
-            if helper.get_export_name() == category:
-                return helper
-
-    return None

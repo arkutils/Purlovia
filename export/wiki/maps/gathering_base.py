@@ -35,21 +35,11 @@ class MapGathererBase(Generic[T], ABC):
         return True
 
     @classmethod
-    def has_custom_data_bindings(cls) -> bool:
-        '''
-        '''
-        return False
-
-    @classmethod
     @abstractmethod
     def extract(cls, proxy: UEProxyStructure) -> Optional[Union[T, Iterable[T]]]:
         '''
         Collect data from a proxy object and return it as a dict.
         '''
-        ...
-
-    @classmethod
-    def bind_to_output(cls) -> bool:
         ...
 
     @classmethod

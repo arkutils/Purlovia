@@ -1,4 +1,4 @@
-from typing import Any, Dict, Set, cast
+from typing import Any, Dict, Generic, Set, TypeVar, cast
 
 from export.wiki.types import *
 from ue.asset import ExportTableItem
@@ -9,8 +9,12 @@ from .common import convert_location_for_export, get_actor_location_vector, get_
 from .data_container import World
 from .gathering_base import GatheredData, GatheringResult, MapGathererBase
 
+## Bases
 
-class GenericActorExport(MapGathererBase[models.Actor]):
+T = TypeVar('T', bound=models.Actor)
+
+
+class GenericActorExport(Generic[T], MapGathererBase[T]):
     CLASSES: Set[str]
     CATEGORY: str
 
@@ -32,7 +36,7 @@ class GenericActorExport(MapGathererBase[models.Actor]):
         convert_location_for_export(world, data)
 
 
-class GenericActorListExport(MapGathererBase):
+class GenericActorListExport(Generic[T], MapGathererBase[T]):
     TAGS: Set[str]
     CATEGORY: str
 
@@ -68,7 +72,10 @@ class GenericActorListExport(MapGathererBase):
         convert_location_for_export(world, data)
 
 
-class HLNAGlitchExport(GenericActorListExport):
+## Actors
+
+
+class GlitchExport(GenericActorListExport[models.Glitch]):
     @classmethod
     def get_export_name(cls) -> str:
         return 'glitches'
@@ -103,9 +110,8 @@ class HLNAGlitchExport(GenericActorListExport):
         return result
 
 
-class PlayerSpawnPointExport(GenericActorExport):
+class PlayerSpawnPointExport(GenericActorExport[models.PlayerSpawn]):
     CLASSES = {PlayerStart.get_ue_type()}
-    CATEGORY = 'playerSpawns'
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
@@ -120,67 +126,64 @@ class PlayerSpawnPointExport(GenericActorExport):
         )
 
 
-class OilVeinExport(GenericActorExport):
+class OilVeinExport(GenericActorExport[models.OilVein]):
     CLASSES = {OilVein.get_ue_type()}
-    CATEGORY = 'oilVeins'
 
 
-class WaterVeinExport(GenericActorExport):
+class WaterVeinExport(GenericActorExport[models.WaterVein]):
     CLASSES = {WaterVein.get_ue_type()}
-    CATEGORY = 'waterVeins'
 
 
-class LunarOxygenVentExport(GenericActorExport):
+class LunarOxygenVentExport(GenericActorExport[models.LunarOxygenVent]):
     CLASSES = {LunarOxygenVentGen1.get_ue_type()}
-    CATEGORY = 'lunarOxygenVents'
 
 
-class OilVentExport(GenericActorExport):
+class OilVentExport(GenericActorExport[models.OilVent]):
     CLASSES = {OilVentGen1.get_ue_type()}
     CATEGORY = 'oilVents'
 
 
-class GasVeinExport(GenericActorExport):
+class GasVeinExport(GenericActorExport[models.GasVein]):
     CLASSES = {GasVein.get_ue_type(), GasVeinGen1.get_ue_type()}
     CATEGORY = 'gasVeins'
 
 
-class ChargeNodeExport(GenericActorExport):
+class ChargeNodeExport(GenericActorExport[models.ChargeNode]):
     CLASSES = {PrimalStructurePowerNode.get_ue_type()}
     CATEGORY = 'chargeNodes'
 
 
-class WildPlantSpeciesZExport(GenericActorExport):
+class WildPlantSpeciesZExport(GenericActorExport[models.PlantSpeciesZWild]):
     CLASSES = {WildPlantSpeciesZ.get_ue_type()}
     CATEGORY = 'plantZNodes'
 
 
-class WyvernNests(GenericActorListExport):
+class WyvernNests(GenericActorListExport[models.WyvernNest]):
     TAGS = {'DragonNestSpawns'}
     CATEGORY = 'wyvernNests'
 
 
-class IceWyvernNests(GenericActorListExport):
+class IceWyvernNests(GenericActorListExport[models.IceWyvernNest]):
     TAGS = {'IceNestSpawns'}
     CATEGORY = 'iceWyvernNests'
 
 
-class RockDrakeNests(GenericActorListExport):
+class RockDrakeNests(GenericActorListExport[models.DrakeNest]):
     TAGS = {'DrakeNestSpawns'}
     CATEGORY = 'drakeNests'
 
 
-class DeinonychusNests(GenericActorListExport):
+class DeinonychusNests(GenericActorListExport[models.DeinonychusNest]):
     TAGS = {'DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns'}
     CATEGORY = 'deinonychusNests'
 
 
-class MagmasaurNests(GenericActorListExport):
+class MagmasaurNests(GenericActorListExport[models.MagmasaurNest]):
     TAGS = {'MagmasaurNestSpawns'}
     CATEGORY = 'magmasaurNests'
 
 
-ALL_GATHERERS = [
+GATHERERS = [
     # Core
     PlayerSpawnPointExport,
     # Scorched Earth
@@ -197,7 +200,7 @@ ALL_GATHERERS = [
     # Valguero
     DeinonychusNests,
     # Genesis Part 1
-    HLNAGlitchExport,
+    GlitchExport,
     OilVentExport,
     LunarOxygenVentExport,
     MagmasaurNests,

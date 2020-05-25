@@ -20,38 +20,26 @@ class Actors(ExportFileModel):
     # Core
     notes: List[models.ExplorerNote] = []
     # Scorched Earth
-    oilVeins: List[models.Actor] = []
-    waterVeins: List[models.Actor] = []
-    wyvernNests: List[models.Actor] = []
+    oilVeins: List[models.OilVein] = []
+    waterVeins: List[models.WaterVein] = []
+    wyvernNests: List[models.WyvernNest] = []
     # Ragnarok
-    iceWyvernNests: List[models.Actor] = []
+    iceWyvernNests: List[models.IceWyvernNest] = []
     # Aberration
-    chargeNodes: List[models.Actor] = []
-    plantZNodes: List[models.Actor] = []
-    drakeNests: List[models.Actor] = []
+    chargeNodes: List[models.ChargeNode] = []
+    plantZNodes: List[models.PlantSpeciesZWild] = []
+    drakeNests: List[models.DrakeNest] = []
     # Aberration and Genesis
-    gasVeins: List[models.Actor] = []
+    gasVeins: List[models.GasVein] = []
     # Valguero
-    deinonychusNests: List[models.Actor] = []
+    deinonychusNests: List[models.DeinonychusNest] = []
     # Genesis Part 1
-    oilVents: List[models.Actor] = []
+    oilVents: List[models.OilVent] = []
     glitches: List[models.Glitch] = []
-    magmasaurNests: List[models.Actor] = []
+    magmasaurNests: List[models.MagmasaurNest] = []
 
 
-EXPORTS: Dict[Tuple[str, Type[ExportFileModel]], Dict[str, gathering.MapGathererBase]] = {
-    ('world_settings', WorldSettings): {},
-    ('actors', Actors): {
-        'oilVeins': gathering.OilVeinExport,
-        'waterVeins': gathering.WaterVeinExport,
-        'wyvernNests': gathering.WyvernNests,
-        'iceWyvernNests': gathering.IceWyvernNests,
-        'chargeNodes': gathering.ChargeNodeExport,
-        'plantZNodes': gathering.WildPlantSpeciesZExport,
-        'drakeNests': gathering.RockDrakeNests,
-        'gasVeins': gathering.GasVeinExport,
-        'deinonychusNests': gathering.DeinonychusNests,
-        'oilVents': gathering.OilVentExport,
-        'magmasaurNests': gathering.MagmasaurNests,
-    }
+EXPORTS: Dict[str, Type[ExportFileModel]] = {
+    'world_settings': WorldSettings,
+    'actors': Actors,
 }

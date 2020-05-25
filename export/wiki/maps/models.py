@@ -209,3 +209,52 @@ class Glitch(ExportModel):
     z: FloatProperty
     lat: Optional[float]
     long: Optional[float]
+
+
+## Actor-based Models
+class OilVein(Actor):
+    ...
+
+
+class WaterVein(Actor):
+    ...
+
+
+class WyvernNest(Actor):
+    ...
+
+
+class ChargeNode(Actor):
+    ...
+
+
+class GasVein(Actor):
+    ...
+
+
+class DrakeNest(Actor):
+    ...
+
+
+class PlantSpeciesZWild(Actor):
+    ...
+
+
+class IceWyvernNest(Actor):
+    ...
+
+
+class DeinonychusNest(Actor):
+    ...
+
+
+class OilVent(Actor):
+    ...
+
+
+class LunarOxygenVent(Actor):
+    ...
+
+
+class MagmasaurNest(Actor):
+    ...

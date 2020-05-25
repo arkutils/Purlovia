@@ -65,4 +65,25 @@ class World:
         loader.cache.remove(assetname)
 
 
-WorldInfo = World  # TODO: fix all refs
+def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
+    try:
+        parents = set(find_parent_classes(export, include_self=True))
+    except (AssetLoadException, MissingParent):
+        return None
+
+    for _, helpers in EXPORTS.items():
+        for helper in helpers:
+            if parents & helper.get_ue_types():
+                if helper.do_early_checks(export):
+                    return helper
+
+    return None
+
+
+def find_gatherer_by_category_name(category: str) -> Optional[Type[MapGathererBase]]:
+    for _, helpers in EXPORTS.items():
+        for helper in helpers:
+            if helper.get_export_name() == category:
+                return helper
+
+    return None
