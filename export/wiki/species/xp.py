@@ -20,9 +20,9 @@ class LevelExperienceRampType(Enum):
 
 
 class LevelData(ExportModel):
-    ramp: Optional[str] = Field(
-        None,
-        description="Name of ramp that describes amount of experience needed to progress. If missing, it's DinoEasy.",
+    ramp: str = Field(
+        'DinoEasy',
+        description="Name of ramp that describes amount of experience needed to progress.",
     )
     maxExperience: Optional[FloatProperty]
     maxLevels: Optional[int] = Field(
@@ -30,7 +30,7 @@ class LevelData(ExportModel):
         title="Max Level Ups",
         description="Max amount of level ups this species can have at default server settings.",
     )
-    capOffset: Optional[Union[int, IntProperty]] = Field(
+    capOffset: Optional[IntProperty] = Field(
         None,
         title="Tame Level Cap Offset",
         description=
