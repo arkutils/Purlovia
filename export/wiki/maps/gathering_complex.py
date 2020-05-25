@@ -15,74 +15,16 @@ from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.name_convert import uelike_prettify
 
 from . import models
-from .base import GatheredData, GatheringResult, MapGathererBase
 from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, convert_location_for_export, \
     get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
-from .data_container import MapInfo
+from .data_container import World
+from .gathering_base import GatheredData, GatheringResult, MapGathererBase
 
 __all__ = [
-    'EXPORTS',
     'find_gatherer_for_export',
     'find_gatherer_by_category_name',
+    # TODO: update
 ]
-
-
-class GenericActorExport(MapGathererBase):
-    CLASSES: Set[str]
-    CATEGORY: str
-
-    @classmethod
-    def get_export_name(cls) -> str:
-        return cls.CATEGORY
-
-    @classmethod
-    def get_ue_types(cls) -> Set[str]:
-        return cls.CLASSES
-
-    @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        location = get_actor_location_vector(proxy)
-        return models.Actor(hidden=not proxy.get('bIsVisible', fallback=True), x=location.x, y=location.y, z=location.z)
-
-    @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_location_for_export(map_info, data)
-
-
-class GenericActorListExport(MapGathererBase):
-    TAGS: Set[str]
-    CATEGORY: str
-
-    @classmethod
-    def get_export_name(cls) -> str:
-        return cls.CATEGORY
-
-    @classmethod
-    def get_ue_types(cls) -> Set[str]:
-        return {CustomActorList.get_ue_type()}
-
-    @classmethod
-    def do_early_checks(cls, export: ExportTableItem) -> bool:
-        # Check the tag
-        tag = export.properties.get_property('CustomTag', fallback='')
-        return str(tag) in cls.TAGS
-
-    @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        actors: CustomActorList = cast(CustomActorList, proxy)
-        for entry in actors.ActorList[0].values:
-            if not entry.value.value:
-                continue
-
-            yield cls.extract_single(entry.value.value)
-
-    @classmethod
-    def extract_single(cls, export: ExportTableItem) -> GatheredData:
-        return get_actor_location_vector_m(export)
-
-    @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_location_for_export(map_info, data)
 
 
 class WorldSettingsExport(MapGathererBase):
@@ -111,7 +53,7 @@ class WorldSettingsExport(MapGathererBase):
             display_name = display_name.rstrip('_P')
             display_name = uelike_prettify(display_name)
 
-        return models.WorldSettings(
+        result = models.WorldSettings(
             source=source.asset.assetname,
             name=display_name,
 
@@ -137,20 +79,19 @@ class WorldSettingsExport(MapGathererBase):
             allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
         )
 
+        # Calculate remaining geo fields
+        result.latMulti = result.latScale * 10
+        result.latShift = -result.latOrigin / result.latMulti
+        result.longMulti = result.longMulti * 10
+        result.longShift = -result.longOrigin / result.longMulti
+
+        return result
+
     @classmethod
     def _convert_class_swaps(cls, settings: PrimalWorldSettings) -> Iterable[models.WeighedClassSwap]:
-        if 'NPCRandomSpawnClassWeights' not in settings:
-            return []
-
-        for struct in settings.NPCRandomSpawnClassWeights[0].values:
-            yield convert_single_class_swap_m(struct.as_dict())
-
-    @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        data['latMulti'] = map_info.lat.multiplier
-        data['longMulti'] = map_info.long.multiplier
-        data['latShift'] = map_info.lat.shift
-        data['longShift'] = map_info.long.shift
+        if 'NPCRandomSpawnClassWeights' in settings:
+            for struct in settings.NPCRandomSpawnClassWeights[0].values:
+                yield convert_single_class_swap_m(struct.as_dict())
 
 
 class TradeListExport(MapGathererBase):
@@ -174,10 +115,6 @@ class TradeListExport(MapGathererBase):
             for option in option_list.values:
                 if option:
                     yield option
-
-    @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        ...
 
 
 class NPCZoneManagerExport(MapGathererBase):
@@ -252,18 +189,18 @@ class NPCZoneManagerExport(MapGathererBase):
                 yield models.WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+    def before_saving(cls, world: World, data: Dict[str, Any]):
         # Counting regions
         for location in data['locations']:
-            convert_box_bounds_for_export(map_info, location)
+            convert_box_bounds_for_export(world, location)
         # Spawn regions
         if 'spawnLocations' in data:
             for location in data['spawnLocations']:
-                convert_box_bounds_for_export(map_info, location)
+                convert_box_bounds_for_export(world, location)
         # Spawn points
         if 'spawnPoints' in data:
             for point in data['spawnPoints']:
-                convert_location_for_export(map_info, point)
+                convert_location_for_export(world, point)
 
 
 class BiomeZoneExport(MapGathererBase):
@@ -355,9 +292,9 @@ class BiomeZoneExport(MapGathererBase):
         return result
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+    def before_saving(cls, world: World, data: Dict[str, Any]):
         for box in data['boxes']:
-            convert_box_bounds_for_export(map_info, box)
+            convert_box_bounds_for_export(world, box)
 
 
 class LootCrateSpawnExport(MapGathererBase):
@@ -422,9 +359,9 @@ class LootCrateSpawnExport(MapGathererBase):
                 yield get_actor_location_vector_m(marker)
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+    def before_saving(cls, world: World, data: Dict[str, Any]):
         for location in data['crateLocations']:
-            convert_location_for_export(map_info, location)
+            convert_location_for_export(world, location)
 
 
 class RadiationZoneExport(MapGathererBase):
@@ -458,8 +395,8 @@ class RadiationZoneExport(MapGathererBase):
         )
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_box_bounds_for_export(map_info, data)
+    def before_saving(cls, world: World, data: Dict[str, Any]):
+        convert_box_bounds_for_export(world, data)
 
 
 class MissionDispatcher(MapGathererBase):
@@ -496,8 +433,8 @@ class MissionDispatcher(MapGathererBase):
                                         z=location.z)
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_location_for_export(map_info, data)
+    def before_saving(cls, world: World, data: Dict[str, Any]):
+        convert_location_for_export(world, data)
 
 
 class ExplorerNoteExport(MapGathererBase):
@@ -521,174 +458,22 @@ class ExplorerNoteExport(MapGathererBase):
                                    z=location.z)
 
     @classmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
-        convert_location_for_export(map_info, data)
+    def before_saving(cls, world: World, data: Dict[str, Any]):
+        convert_location_for_export(world, data)
 
 
-class HLNAGlitchExport(GenericActorListExport):
-    @classmethod
-    def get_export_name(cls) -> str:
-        return 'glitches'
-
-    @classmethod
-    def get_ue_types(cls) -> Set[str]:
-        return {PointOfInterestListGen1.get_ue_type()}
-
-    @classmethod
-    def do_early_checks(cls, _: ExportTableItem) -> bool:
-        return True
-
-    @classmethod
-    def extract_single(cls, export: ExportTableItem) -> GatheredData:
-        poi: PointOfInterestBP = gather_properties(export)
-        location = get_actor_location_vector(poi)
-
-        result = models.Glitch(hexagons=poi.number_of_hexagons_to_reward_upon_fixing[0],
-                               x=location.x,
-                               y=location.y,
-                               z=location.z)
-
-        noteid = poi.get('Specific_Unlocked_Explorer_Note_Index', fallback=-1)
-        if noteid != -1:
-            result.noteId = noteid
-
-        #poi_info = poi.get('MyPointOfInterestData', fallback=None)
-        #if poi_info:
-        #    tag = poi_info.as_dict().get('PointTag', None)
-        #    d['poiTag'] = tag
-
-        return result
-
-
-class PlayerSpawnPointExport(GenericActorExport):
-    CLASSES = {PlayerStart.get_ue_type()}
-    CATEGORY = 'playerSpawns'
-
-    @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        point: PlayerStart = cast(PlayerStart, proxy)
-        location = get_actor_location_vector(point)
-
-        return models.PlayerSpawn(
-            regionId=point.SpawnPointRegion[0],
-            x=location.x,
-            y=location.y,
-            z=location.z,
-        )
-
-
-class OilVeinExport(GenericActorExport):
-    CLASSES = {OilVein.get_ue_type()}
-    CATEGORY = 'oilVeins'
-
-
-class WaterVeinExport(GenericActorExport):
-    CLASSES = {WaterVein.get_ue_type()}
-    CATEGORY = 'waterVeins'
-
-
-class LunarOxygenVentExport(GenericActorExport):
-    CLASSES = {LunarOxygenVentGen1.get_ue_type()}
-    CATEGORY = 'lunarOxygenVents'
-
-
-class OilVentExport(GenericActorExport):
-    CLASSES = {OilVentGen1.get_ue_type()}
-    CATEGORY = 'oilVents'
-
-
-class GasVeinExport(GenericActorExport):
-    CLASSES = {GasVein.get_ue_type(), GasVeinGen1.get_ue_type()}
-    CATEGORY = 'gasVeins'
-
-
-class ChargeNodeExport(GenericActorExport):
-    CLASSES = {PrimalStructurePowerNode.get_ue_type()}
-    CATEGORY = 'chargeNodes'
-
-
-class WildPlantSpeciesZExport(GenericActorExport):
-    CLASSES = {WildPlantSpeciesZ.get_ue_type()}
-    CATEGORY = 'plantZNodes'
-
-
-class WyvernNests(GenericActorListExport):
-    TAGS = {'DragonNestSpawns'}
-    CATEGORY = 'wyvernNests'
-
-
-class IceWyvernNests(GenericActorListExport):
-    TAGS = {'IceNestSpawns'}
-    CATEGORY = 'iceWyvernNests'
-
-
-class RockDrakeNests(GenericActorListExport):
-    TAGS = {'DrakeNestSpawns'}
-    CATEGORY = 'drakeNests'
-
-
-class DeinonychusNests(GenericActorListExport):
-    TAGS = {'DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns'}
-    CATEGORY = 'deinonychusNests'
-
-
-class MagmasaurNests(GenericActorListExport):
-    TAGS = {'MagmasaurNestSpawns'}
-    CATEGORY = 'magmasaurNests'
-
-
-EXPORTS: Dict[str, List[Type[MapGathererBase]]] = {
-    'world_settings': [
-        # Core
-        WorldSettingsExport,
-        PlayerSpawnPointExport,
-        # Genesis
-        TradeListExport,
-    ],
-    'radiation_zones': [
-        # Core
-        RadiationZoneExport,
-    ],
-    'npc_spawns': [
-        # Core
-        NPCZoneManagerExport,
-    ],
-    'biomes': [
-        # Core
-        BiomeZoneExport,
-    ],
-    'loot_crates': [
-        # Core
-        LootCrateSpawnExport,
-    ],
-    'actors': [
-        # Core
-        ExplorerNoteExport,
-        # Scorched Earth
-        OilVeinExport,
-        WaterVeinExport,
-        WyvernNests,
-        # Ragnarok
-        IceWyvernNests,
-        # Genesis and Aberration
-        OilVentExport,
-        LunarOxygenVentExport,
-        GasVeinExport,
-        # Aberration
-        ChargeNodeExport,
-        WildPlantSpeciesZExport,
-        RockDrakeNests,
-        # Valguero
-        DeinonychusNests,
-        # Genesis
-        HLNAGlitchExport,
-        MagmasaurNests,
-    ],
-    'missions': [
-        # Genesis
-        MissionDispatcher,
-    ],
-}
+ALL_GATHERERS = [
+    # Core
+    WorldSettingsExport,
+    ExplorerNoteExport,
+    NPCZoneManagerExport,
+    BiomeZoneExport,
+    LootCrateSpawnExport,
+    RadiationZoneExport,
+    # Genesis
+    TradeListExport,
+    MissionDispatcher,
+]
 
 
 def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:

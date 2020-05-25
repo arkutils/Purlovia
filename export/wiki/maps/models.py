@@ -29,12 +29,13 @@ __all__ = [
 ## Common Structure Models
 
 ObjectPath = Optional[str]
+FloatLike = Union[FloatProperty, float]
 
 
 class Location(ExportModel):
-    x: Union[float, FloatProperty]
-    y: Union[float, FloatProperty]
-    z: Union[float, FloatProperty]
+    x: FloatLike
+    y: FloatLike
+    z: FloatLike
     lat: Optional[float]
     long: Optional[float]
 

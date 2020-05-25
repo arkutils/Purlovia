@@ -1,15 +1,15 @@
 import re
-from collections import namedtuple
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
 from export.wiki.consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
     GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from ue.asset import ExportTableItem
-from ue.properties import Vector
+from ue.properties import FloatProperty, Vector
 from ue.proxy import UEProxyStructure
+from ue.utils import clean_float
 
-from .data_container import MapInfo
-from .models import Box, Location
+from .data_container import WorldInfo
+from .models import Box, FloatLike, Location
 
 __all__ = [
     'convert_box_bounds_for_export',
@@ -20,6 +20,12 @@ __all__ = [
 ]
 
 BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
+
+
+def get_latlong_from_location(world: WorldInfo, x: FloatLike, y: FloatLike) -> Tuple[float, float]:
+    return (
+        y / world.settings['latMulti'] + world.settings['latShift'],  # lat
+        x / world.settings['longMulti'] + world.settings['longShift'])  # long
 
 
 def get_actor_location_vector(actor) -> Vector:
@@ -93,21 +99,25 @@ def get_volume_bounds_m(volume, convex_index=0) -> Box:
     return Box(start=start, center=center, end=end)
 
 
-def convert_location_for_export(map_info: MapInfo, data: Dict[str, Any]):
-    data['lat'] = map_info.lat.from_units(data['y'])
-    data['long'] = map_info.long.from_units(data['x'])
+def convert_location_for_export(world: WorldInfo, data: Dict[str, Any]):
+    lat, long = get_latlong_from_location(world, data['x'], data['y'])
+    data['lat'] = clean_float(lat)
+    data['long'] = clean_float(long)
 
 
-def convert_box_bounds_for_export(map_info: MapInfo, box_data: Dict[str, Any]):
+def convert_box_bounds_for_export(world: WorldInfo, box_data: Dict[str, Any]):
     # Start
-    box_data['start']['lat'] = map_info.lat.from_units(box_data['start']['y'])
-    box_data['start']['long'] = map_info.long.from_units(box_data['start']['x'])
+    lat, long = get_latlong_from_location(world, box_data['start']['x'], box_data['start']['y'])
+    box_data['start']['lat'] = clean_float(lat)
+    box_data['start']['long'] = clean_float(long)
     # Center
-    box_data['center']['lat'] = map_info.lat.from_units(box_data['center']['y'])
-    box_data['center']['long'] = map_info.long.from_units(box_data['center']['x'])
+    lat, long = get_latlong_from_location(world, box_data['center']['x'], box_data['center']['y'])
+    box_data['center']['lat'] = clean_float(lat)
+    box_data['center']['long'] = clean_float(long)
     # End
-    box_data['end']['lat'] = map_info.lat.from_units(box_data['end']['y'])
-    box_data['end']['long'] = map_info.long.from_units(box_data['end']['x'])
+    lat, long = get_latlong_from_location(world, box_data['end']['x'], box_data['end']['y'])
+    box_data['end']['lat'] = clean_float(lat)
+    box_data['end']['long'] = clean_float(long)
 
 
 def any_overriden(proxy: UEProxyStructure, props: Tuple[str, ...]) -> bool:

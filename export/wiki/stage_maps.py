@@ -10,10 +10,9 @@ from ue.gathering import gather_properties
 from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.log import get_logger
 
-from .maps.data_container import MapInfo
+from .maps.data_container import WorldInfo
 from .maps.discovery import LevelDiscoverer, group_levels_by_directory
-from .maps.gathering import EXPORTS, find_gatherer_by_category_name, find_gatherer_for_export
-from .maps.geo import GeoCoordCalculator
+from .maps.gathering import find_gatherer_by_category_name, find_gatherer_for_export
 
 logger = get_logger(__name__)
 
@@ -97,7 +96,7 @@ class MapStage(ExportStage):
         for file_name in EXPORTS:
             self._save_section(version, output_path, file_name, intermediate)
 
-    def _save_section(self, version: str, base_path: Path, file_name: str, intermediate: MapInfo):
+    def _save_section(self, version: str, base_path: Path, file_name: str, intermediate: WorldInfo):
         # Setup the output structure
         results: Dict[str, Any] = dict()
         format_version = self.get_format_version()
@@ -121,76 +120,34 @@ class MapStage(ExportStage):
             pretty_json = True
         save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
 
-    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> MapInfo:
+    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> WorldInfo:
         '''
         Goes through each sublevel, gathering data and looking for the persistent level.
         '''
-        map_info = MapInfo(data=dict())
+        world = WorldInfo(data=dict())
         for assetname in levels:
             asset = self.manager.loader[assetname]
 
-            # Check if asset is a persistent level and mark it as such in map info object
-            if not getattr(asset, 'tile_info', None) and (not known_persistent or known_persistent == assetname):
-                if getattr(map_info, 'persistent_level', None):
-                    logger.warning(
-                        f'Found another persistent level ({assetname}), but {map_info.persistent_level} was located earlier: skipping.'
-                    )
-                    continue
-                map_info.persistent_level = assetname
+        return world
 
-            # Go through each export and, if valuable, gather data from it.
-            for export in asset.exports:
-                helper = find_gatherer_for_export(export)
-                if helper:
-                    category_name = helper.get_export_name()
-
-                    # Extract data using helper class.
-                    try:
-                        data = helper.extract(proxy=gather_properties(export))
-                    except Exception:  # pylint: disable=base-except
-                        logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
-                        continue
-                    if not data:
-                        continue
-
-                    # Make sure the data list is initialized.
-                    if category_name not in map_info.data:
-                        map_info.data[category_name] = list()
-
-                    if isinstance(data, GeneratorType):
-                        data_fragments: list = sanitise_output(list(data))
-                        for fragment in data_fragments:
-                            if fragment:
-                                map_info.data[category_name].append(fragment)
-                    else:
-                        fragment = sanitise_output(data)
-                        map_info.data[category_name].append(fragment)
-
-            # Preemptively remove the level from linker cache.
-            self.manager.loader.cache.remove(assetname)
-
-        return map_info
-
-    def _convert_data_for_export(self, map_info: MapInfo):
+    def _convert_data_for_export(self, world: WorldInfo):
         '''
         Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
         '''
-        # Create longitude and latitude calculators
-        for candidate in map_info.data['worldSettings']:
-            if candidate['source'] == map_info.persistent_level:
-                world_settings = candidate
-                del world_settings['source']
+        # Find primary world settings
+        for candidate in world.data['worldSettings']:
+            if candidate['source'] == world.persistent_level:
+                world.settings = candidate
+                del world.settings['source']
                 break
-        map_info.lat = GeoCoordCalculator(world_settings['latOrigin'], world_settings['latScale'])
-        map_info.long = GeoCoordCalculator(world_settings['longOrigin'], world_settings['longScale'])
 
         # Run data-specific conversions
-        for key, values in map_info.data.items():
+        for key, values in world.data.items():
             # Helper class exists if data has been exported from it.
             helper = find_gatherer_by_category_name(key)
             # Add lat and long keys as world settings have been found.
             for data in values:
-                helper.before_saving(map_info, data)  # type:ignore
+                helper.before_saving(world, data)  # type:ignore
 
         # Move the world settings out of the single element list
-        map_info.data['worldSettings'] = world_settings
+        world.data['worldSettings'] = world.settings

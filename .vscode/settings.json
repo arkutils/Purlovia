@@ -73,7 +73,7 @@
 
     "coverage-gutters.xmlname": "coverage.xml",
     "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
-    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.pythonPath": "/home/alex/.local/share/virtualenvs/Purlovia-Ee6LevuF/bin/python",
 
     "yaml.schemas": {
         "./schema/overrides.yaml.json": ["/config/overrides.yaml"],
