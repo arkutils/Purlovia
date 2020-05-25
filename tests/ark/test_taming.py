@@ -23,6 +23,21 @@ from ..common import *
 # pylint: disable=unidiomatic-typecheck
 # pylint: disable=unused-argument
 
+TEST_ITEMS = (
+    BERRY_ITEM,
+    BERRYAMAR_ITEM,
+    BERRYMEJO_ITEM,
+    BERRYNARC_ITEM,
+    MEATRAW_ITEM,
+    MEATRAWPRIME_ITEM,
+    MEATCOOKED_ITEM,
+    MEATCOOKEDPRIME_ITEM,
+    FISHRAW_ITEM,
+    FISHRAWPRIME_ITEM,
+    FISHCOOKED_ITEM,
+    FISHCOOKEDPRIME_ITEM,
+)
+
 
 @pytest.fixture(name='items', scope='module')
 def fixture_items(consumables, loader: AssetLoader):
@@ -109,7 +124,7 @@ DODO_FOOD_EFFECTS = (
 @pytest.mark.requires_game
 @pytest.mark.parametrize('food, torpor, affinity, item_cls', DODO_FOOD_EFFECTS)
 def test_apply_dodo_items(dodo_foods, items, item_cls, food, torpor, affinity):
-    effect = ark.taming_food.apply_overrides(ark.taming_food.items[item_cls].data, dodo_foods)
+    effect = ark.taming_food.apply_species_overrides_to_item(ark.taming_food.items[item_cls].data, dodo_foods)
     assert effect.food.base == pytest.approx(food)
     assert effect.torpor.base == pytest.approx(torpor)
     assert effect.affinity.base == pytest.approx(affinity)
@@ -127,7 +142,7 @@ BARY_FOOD_EFFECTS = (
 @pytest.mark.requires_game
 @pytest.mark.parametrize('food, torpor, affinity, item_cls', BARY_FOOD_EFFECTS)
 def test_apply_bary_items(bary_foods, items, item_cls, food, torpor, affinity):
-    effect = ark.taming_food.apply_overrides(ark.taming_food.items[item_cls].data, bary_foods)
+    effect = ark.taming_food.apply_species_overrides_to_item(ark.taming_food.items[item_cls].data, bary_foods)
     assert effect.food.base == pytest.approx(food)
     assert effect.torpor.base == pytest.approx(torpor)
     assert effect.affinity.base == pytest.approx(affinity)
