@@ -107,7 +107,11 @@ class Species(ExportModel):
     )
 
     levelCaps: Optional[LevelData]
-    cloning: Optional[CloningData]
+    cloning: Optional[CloningData] = Field(
+        None,
+        description=
+        "Full cost is determined by Ceil(costBase + costLevel x CharacterLevel). Cloning time is determined by (timeBase + timeLevel x CharacterLevel) / BabyMatureSpeedMulti."
+    )
 
     falling: Optional[FallingData]
     movementW: Optional[MovementModes] = Field(None, title="Movement (wild)")

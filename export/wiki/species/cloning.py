@@ -23,11 +23,6 @@ CLONING_CHAMBER_C = '/Game/PrimalEarth/Structures/TekTier/TekCloningChamber.TekC
 
 
 class CloningData(ExportModel):
-    '''
-    Full cost is determined by Ceil(costBase + costLevel x CharacterLevel).
-    Cloning time is determined by (timeBase + timeLevel x CharacterLevel) / BabyMatureSpeedMulti.
-    '''
-
     costBase: float = Field(
         None,
         title="Base Cost to Clone",
