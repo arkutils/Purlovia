@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import *
 
 import ue.hierarchy
+from ark.mod import get_managed_mods, get_official_mods
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
 from ue.context import ue_parsing_context
@@ -48,14 +49,12 @@ def _generate_hierarchy(loader: AssetLoader):
     # Scan /Game, excluding /Game/Mods and any excludes from config
     ue.hierarchy.explore_path('/Game', loader, core_excludes, disable_debug=True)
 
-    # Scan /Game/Mods/<modid> for each of the official mods, skipping ones in SeparateOfficialMods
-    official_modids = set(config.official_mods.ids())
-    official_modids -= set(config.settings.SeparateOfficialMods)
-    for modid in official_modids:
+    # Scan /Game/Mods/<modid> for each of the 'core' (build-in) mods
+    for modid in get_official_mods():
         ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
-    # Scan /Game/Mods/<modid> for each configured mod
-    for modid in config.mods:
+    # Scan /Game/Mods/<modid> for each installed mod
+    for modid in get_managed_mods():
         ue.hierarchy.explore_path(f'/Game/Mods/{modid}/', loader, mod_excludes, disable_debug=True)
 
     return ue.hierarchy.tree

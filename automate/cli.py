@@ -22,8 +22,6 @@ def modlist(value: str) -> Tuple[str, ...]:
     value = value.strip()
     inputs = [v.strip() for v in value.split(',')]
     mods = tuple(v for v in inputs if v)
-    for modid in mods:
-        as_int = int(modid)  # pylint: disable=unused-variable  # noqa: F841  # For type-checking only
     return mods
 
 
@@ -200,8 +198,8 @@ def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[st
     '''
     user_set = set(user)
     existing_set = set(existing)
-    has_negatives = any(int(modid) < 0 for modid in user)
-    all_negatives = not any(int(modid) >= 0 for modid in user)
+    has_negatives = any(modid.startswith('-') for modid in user)
+    all_negatives = not any(not modid.startswith('-') for modid in user)
 
     # No negatives? Just verify all listed mods are present in config
     if not has_negatives:
@@ -215,7 +213,7 @@ def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[st
         raise ValueError("Cannot mix selected and deselected mods")
 
     # Work out which mods to include
-    cleaned = set(str(-int(modid)) for modid in user)
+    cleaned = set(modid.lstrip('-') for modid in user)
 
     # Check none were mis-typed
     excess = cleaned - existing_set

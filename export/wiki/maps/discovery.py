@@ -1,6 +1,7 @@
 from typing import Dict, Iterable, Iterator, List, Set
 
 import ue.hierarchy
+from ark.mod import get_core_mods
 from ark.overrides import get_overrides_for_map
 from config import ConfigFile, get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
@@ -36,10 +37,7 @@ class LevelDiscoverer:
         self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
 
     def discover_vanilla_levels(self) -> Iterator[str]:
-        config = get_global_config()
-        official_modids = set(config.official_mods.ids())
-        official_modids -= set(config.settings.SeparateOfficialMods)
-        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
+        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in get_core_mods())
 
         all_cls_names = list(ue.hierarchy.find_sub_classes(WORLD_CLS))
         all_cls_names += ue.hierarchy.find_sub_classes(LEVEL_SCRIPT_ACTOR_CLS)
