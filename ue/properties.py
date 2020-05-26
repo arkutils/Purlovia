@@ -392,11 +392,11 @@ class FloatProperty(ValueProperty):
         return self.raw_data
 
     def format_for_json(self):
-        return self.__float__()
+        return clean_float(self.value)
 
     def __float__(self):
         '''Restrict single-precision float output to 7 significant figures.'''
-        return clean_float(self.value)
+        return float(clean_float(self.value))
 
 
 class DoubleProperty(ValueProperty):
