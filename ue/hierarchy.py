@@ -19,6 +19,7 @@ __all__ = [
     'UnexpectedClass',
     'MissingParent',
     'inherits_from',
+    'get_parent_class',
     'find_sub_classes',
     'find_parent_classes',
     'get_parent_class',
