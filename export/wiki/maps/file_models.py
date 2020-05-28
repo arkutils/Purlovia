@@ -2,21 +2,38 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 from automate.hierarchy_exporter import ExportFileModel, Field
 
-from . import gathering, models
+from . import models
 
 __all__ = ['EXPORTS']
 
 
-class WorldSettings(ExportFileModel):
+class MapExportFileModel(ExportFileModel):
+    persistentLevel: str
+
+
+class WorldSettings(MapExportFileModel):
     # Core
     worldSettings: Optional[models.WorldSettings] = None
     playerSpawns: List[models.PlayerSpawn] = []
-    notes: List[models.ExplorerNote] = []
-    # Genesis Part 1
-    trades: List[models.ObjectPath] = []
 
 
-class Actors(ExportFileModel):
+class RadiationZones(MapExportFileModel):
+    radiationVolumes: List[models.PainVolume]
+
+
+class NPCSpawns(MapExportFileModel):
+    spawns: List[models.NPCManager]
+
+
+class Biomes(MapExportFileModel):
+    biomes: List[models.Biome]
+
+
+class LootCrates(MapExportFileModel):
+    lootCrates: List[models.SupplyCrateSpawn]
+
+
+class Actors(MapExportFileModel):
     # Core
     notes: List[models.ExplorerNote] = []
     # Scorched Earth
@@ -39,7 +56,17 @@ class Actors(ExportFileModel):
     magmasaurNests: List[models.MagmasaurNest] = []
 
 
-EXPORTS: Dict[str, Type[ExportFileModel]] = {
-    'world_settings': WorldSettings,
-    'actors': Actors,
+class Missions(MapExportFileModel):
+    dispatchers: List[models.MissionDispatcher]
+
+
+EXPORTS: Dict[str, Tuple[Type[ExportFileModel], str]] = {
+    # File name -> ExportFileModel, FormatVersion
+    'world_settings': (WorldSettings, '1'),
+    'radiation_zones': (RadiationZones, '1'),
+    'npc_spawns': (NPCSpawns, '1'),
+    'biomes': (Biomes, '1'),
+    'loot_crates': (LootCrates, '1'),
+    'actors': (Actors, '1'),
+    'missions': (Missions, '1'),
 }

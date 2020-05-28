@@ -1,6 +1,7 @@
 import re
 from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
+from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.stage_spawn_groups import convert_single_class_swap_m
@@ -14,18 +15,19 @@ from utils.name_convert import uelike_prettify
 from . import models
 from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, convert_location_for_export, \
     get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
-from .data_container import World
-from .gathering_base import GatheredData, GatheringResult, MapGathererBase
+from .gathering_base import GatheringResult, MapGathererBase, PersistentLevel
 
-__all__ = [
-    # TODO: update
-]
+__all__ = ['COMPLEX_GATHERERS', 'WorldSettingsExport']
 
 
 class WorldSettingsExport(MapGathererBase):
     @classmethod
     def get_export_name(cls) -> str:
         return 'worldSettings'
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.WorldSettings
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
@@ -36,7 +38,7 @@ class WorldSettingsExport(MapGathererBase):
         return not getattr(export.asset, 'tile_info', None)
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+    def extract(cls, proxy: UEProxyStructure) -> models.WorldSettings:
         settings: PrimalWorldSettings = cast(PrimalWorldSettings, proxy)
         source: ExportTableItem = cast(ExportTableItem, proxy.get_source())
 
@@ -77,7 +79,7 @@ class WorldSettingsExport(MapGathererBase):
         # Calculate remaining geo fields
         result.latMulti = result.latScale * 10
         result.latShift = -result.latOrigin / result.latMulti
-        result.longMulti = result.longMulti * 10
+        result.longMulti = result.longScale * 10
         result.longShift = -result.longOrigin / result.longMulti
 
         return result
@@ -91,8 +93,8 @@ class WorldSettingsExport(MapGathererBase):
 
 class TradeListExport(MapGathererBase):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'trades'
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return None
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
@@ -111,11 +113,19 @@ class TradeListExport(MapGathererBase):
                 if option:
                     yield option
 
+    @classmethod
+    def before_saving(cls, world: PersistentLevel, data: Any):
+        world.settings['availableTrades'] = data
+
 
 class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def get_export_name(cls) -> str:
         return 'spawns'
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.NPCManager
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
@@ -184,7 +194,7 @@ class NPCZoneManagerExport(MapGathererBase):
                 yield models.WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         # Counting regions
         for location in data['locations']:
             convert_box_bounds_for_export(world, location)
@@ -200,12 +210,12 @@ class NPCZoneManagerExport(MapGathererBase):
 
 class BiomeZoneExport(MapGathererBase):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'biomes'
-
-    @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {BiomeZoneVolume.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.Biome
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
@@ -287,19 +297,19 @@ class BiomeZoneExport(MapGathererBase):
         return result
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         for box in data['boxes']:
             convert_box_bounds_for_export(world, box)
 
 
 class LootCrateSpawnExport(MapGathererBase):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'lootCrates'
-
-    @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {SupplyCrateSpawningVolume.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.SupplyCrateSpawn
 
     @classmethod
     def do_early_checks(cls, export: ExportTableItem) -> bool:
@@ -354,19 +364,19 @@ class LootCrateSpawnExport(MapGathererBase):
                 yield get_actor_location_vector_m(marker)
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         for location in data['crateLocations']:
             convert_location_for_export(world, location)
 
 
 class RadiationZoneExport(MapGathererBase):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'radiationVolumes'
-
-    @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {TogglePainVolume.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.PainVolume
 
     @classmethod
     def do_early_checks(cls, export: ExportTableItem) -> bool:
@@ -390,7 +400,7 @@ class RadiationZoneExport(MapGathererBase):
         )
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         convert_box_bounds_for_export(world, data)
 
 
@@ -408,12 +418,12 @@ class MissionDispatcher(MapGathererBase):
     }
 
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'dispatchers'
-
-    @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {MissionDispatcher_MultiUsePylon.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.MissionDispatcher
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
@@ -428,18 +438,18 @@ class MissionDispatcher(MapGathererBase):
                                         z=location.z)
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         convert_location_for_export(world, data)
 
 
 class ExplorerNoteExport(MapGathererBase):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'notes'
-
-    @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {ExplorerNote.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.ExplorerNote
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
@@ -453,11 +463,11 @@ class ExplorerNoteExport(MapGathererBase):
                                    z=location.z)
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         convert_location_for_export(world, data)
 
 
-GATHERERS = [
+COMPLEX_GATHERERS = [
     # Core
     WorldSettingsExport,
     ExplorerNoteExport,

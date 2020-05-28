@@ -10,9 +10,8 @@ from ue.gathering import gather_properties
 from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.log import get_logger
 
-from .maps.data_container import WorldInfo
+from .maps.data_container import World
 from .maps.discovery import LevelDiscoverer, group_levels_by_directory
-from .maps.gathering import find_gatherer_by_category_name, find_gatherer_for_export
 
 logger = get_logger(__name__)
 
@@ -27,9 +26,6 @@ class MapStage(ExportStage):
     def initialise(self, manager: ExportManager, root: ExportRoot):
         super().initialise(manager, root)
         self.discoverer = LevelDiscoverer(self.manager.loader)
-
-    def get_format_version(self) -> str:
-        return '1'
 
     def get_name(self) -> str:
         return 'maps'
@@ -85,69 +81,37 @@ class MapStage(ExportStage):
         # Work out the output path
         output_path = Path(base_path / relative_path)
 
-        # Do the actual export
-        intermediate = self._gather_data_from_levels(levels, known_persistent=known_persistent)
-        if not intermediate.data['worldSettings']:
-            logger.error(f'World settings were not extracted from {relative_path} - data will not be emitted.')
+        # Do the actual extraction
+        world = World(known_persistent)
+        for assetname in levels:
+            asset = self.manager.loader[assetname]
+            world.ingest_level(asset)
+
+        if not world.bind_settings():
+            logger.error(f'No world settings could have been found for {relative_path} - data will not be emitted.')
+            return None
+
+        # Export
+        world.convert_for_export()
+        for section_name, section_data in world.construct_export_files():
+            self._save_section(version, output_path, section_name, section_data)
+
+    def _save_section(self, version: str, base_path: Path, file_name: str, data: Dict[str, Any]):
+        output_path = (base_path / file_name).with_suffix('.json')
+        
+        if not data:
+            # No data for this file. Remove an existing one if it exists
+            if output_path.is_file():
+                output_path.unlink()
             return
-        self._convert_data_for_export(intermediate)
 
-        # Save all files if the data changed
-        for file_name in EXPORTS:
-            self._save_section(version, output_path, file_name, intermediate)
-
-    def _save_section(self, version: str, base_path: Path, file_name: str, intermediate: WorldInfo):
         # Setup the output structure
-        results: Dict[str, Any] = dict()
-        format_version = self.get_format_version()
-        output: Dict[str, Any] = dict(version=version, format=format_version)
-        output['persistentLevel'] = intermediate.persistent_level
+        output: Dict[str, Any] = dict(version=version)
+        output.update(data)
 
-        # Add exported data to the output
-        for helper in EXPORTS[file_name]:
-            output_key = helper.get_export_name()
-            if output_key in intermediate.data:
-                results[output_key] = intermediate.data[output_key]
-
-        # Stop if no data has been extracted from this section
-        if not results:
-            return
-        output.update(results)
-
-        # Save if the data changed
         pretty_json = self.manager.config.export_wiki.PrettyJson
         if pretty_json is None:
             pretty_json = True
-        save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
 
-    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> WorldInfo:
-        '''
-        Goes through each sublevel, gathering data and looking for the persistent level.
-        '''
-        world = WorldInfo(data=dict())
-        for assetname in levels:
-            asset = self.manager.loader[assetname]
-
-        return world
-
-    def _convert_data_for_export(self, world: WorldInfo):
-        '''
-        Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
-        '''
-        # Find primary world settings
-        for candidate in world.data['worldSettings']:
-            if candidate['source'] == world.persistent_level:
-                world.settings = candidate
-                del world.settings['source']
-                break
-
-        # Run data-specific conversions
-        for key, values in world.data.items():
-            # Helper class exists if data has been exported from it.
-            helper = find_gatherer_by_category_name(key)
-            # Add lat and long keys as world settings have been found.
-            for data in values:
-                helper.before_saving(world, data)  # type:ignore
-
-        # Move the world settings out of the single element list
-        world.data['worldSettings'] = world.settings
+        # Save if the data changed
+        save_json_if_changed(output, output_path, pretty_json)

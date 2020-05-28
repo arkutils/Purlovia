@@ -1,52 +1,58 @@
-from typing import Any, Dict, Generic, Set, TypeVar, cast
+from typing import Any, Dict, Optional, Set, Type, cast
 
+from automate.hierarchy_exporter import ExportModel
 from export.wiki.types import *
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
+from ue.proxy import UEProxyStructure
 
 from . import models
 from .common import convert_location_for_export, get_actor_location_vector, get_actor_location_vector_m
-from .data_container import World
-from .gathering_base import GatheredData, GatheringResult, MapGathererBase
+from .gathering_base import GatheringResult, MapGathererBase, PersistentLevel
+
+__all__ = ['BASIC_GATHERERS']
 
 ## Bases
 
-T = TypeVar('T', bound=models.Actor)
 
-
-class GenericActorExport(Generic[T], MapGathererBase[T]):
+class BaseActorExport(MapGathererBase):
     CLASSES: Set[str]
-    CATEGORY: str
-
-    @classmethod
-    def get_export_name(cls) -> str:
-        return cls.CATEGORY
+    MODEL: Type[ExportModel]
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
         return cls.CLASSES
 
     @classmethod
-    def extract(cls, proxy: UEProxyStructure) -> models.Actor:
-        location = get_actor_location_vector(proxy)
-        return models.Actor(hidden=not proxy.get('bIsVisible', fallback=True), x=location.x, y=location.y, z=location.z)
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return cls.MODEL
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        location = get_actor_location_vector(proxy)
+        return models.Actor(
+            hidden=not proxy.get('bIsVisible', fallback=True),
+            x=location.x,
+            y=location.y,
+            z=location.z,
+        )
+
+    @classmethod
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         convert_location_for_export(world, data)
 
 
-class GenericActorListExport(Generic[T], MapGathererBase[T]):
+class BaseActorListExport(MapGathererBase):
     TAGS: Set[str]
-    CATEGORY: str
-
-    @classmethod
-    def get_export_name(cls) -> str:
-        return cls.CATEGORY
+    MODEL: Type[ExportModel]
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
         return {CustomActorList.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return cls.MODEL
 
     @classmethod
     def do_early_checks(cls, export: ExportTableItem) -> bool:
@@ -64,21 +70,21 @@ class GenericActorListExport(Generic[T], MapGathererBase[T]):
             yield cls.extract_single(entry.value.value)
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> GatheredData:
+    def extract_single(cls, export: ExportTableItem) -> models.Actor:
         return get_actor_location_vector_m(export)
 
     @classmethod
-    def before_saving(cls, world: World, data: Dict[str, Any]):
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         convert_location_for_export(world, data)
 
 
 ## Actors
 
 
-class GlitchExport(GenericActorListExport[models.Glitch]):
+class GlitchExport(BaseActorListExport):
     @classmethod
-    def get_export_name(cls) -> str:
-        return 'glitches'
+    def get_model_type(cls) -> str:
+        return models.Glitch
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
@@ -89,7 +95,7 @@ class GlitchExport(GenericActorListExport[models.Glitch]):
         return True
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> GatheredData:
+    def extract_single(cls, export: ExportTableItem) -> GatheringResult:
         poi: PointOfInterestBP = gather_properties(export)
         location = get_actor_location_vector(poi)
 
@@ -110,8 +116,9 @@ class GlitchExport(GenericActorListExport[models.Glitch]):
         return result
 
 
-class PlayerSpawnPointExport(GenericActorExport[models.PlayerSpawn]):
+class PlayerSpawnPointExport(BaseActorExport):
     CLASSES = {PlayerStart.get_ue_type()}
+    MODEL = models.PlayerSpawn
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
@@ -126,64 +133,69 @@ class PlayerSpawnPointExport(GenericActorExport[models.PlayerSpawn]):
         )
 
 
-class OilVeinExport(GenericActorExport[models.OilVein]):
+class OilVeinExport(BaseActorExport):
     CLASSES = {OilVein.get_ue_type()}
+    MODEL = models.OilVein
 
 
-class WaterVeinExport(GenericActorExport[models.WaterVein]):
+class WaterVeinExport(BaseActorExport):
     CLASSES = {WaterVein.get_ue_type()}
+    MODEL = models.WaterVein
 
 
-class LunarOxygenVentExport(GenericActorExport[models.LunarOxygenVent]):
+class LunarOxygenVentExport(BaseActorExport):
     CLASSES = {LunarOxygenVentGen1.get_ue_type()}
+    MODEL = models.LunarOxygenVent
 
 
-class OilVentExport(GenericActorExport[models.OilVent]):
+class OilVentExport(BaseActorExport):
     CLASSES = {OilVentGen1.get_ue_type()}
-    CATEGORY = 'oilVents'
+    MODEL = models.OilVent
 
 
-class GasVeinExport(GenericActorExport[models.GasVein]):
+class GasVeinExport(BaseActorExport):
     CLASSES = {GasVein.get_ue_type(), GasVeinGen1.get_ue_type()}
-    CATEGORY = 'gasVeins'
+    MODEL = models.GasVein
 
 
-class ChargeNodeExport(GenericActorExport[models.ChargeNode]):
+class ChargeNodeExport(BaseActorExport):
     CLASSES = {PrimalStructurePowerNode.get_ue_type()}
-    CATEGORY = 'chargeNodes'
+    MODEL = models.ChargeNode
 
 
-class WildPlantSpeciesZExport(GenericActorExport[models.PlantSpeciesZWild]):
+class WildPlantSpeciesZExport(BaseActorExport):
     CLASSES = {WildPlantSpeciesZ.get_ue_type()}
-    CATEGORY = 'plantZNodes'
+    MODEL = models.PlantSpeciesZWild
 
 
-class WyvernNests(GenericActorListExport[models.WyvernNest]):
+
+
+class WyvernNests(BaseActorListExport):
     TAGS = {'DragonNestSpawns'}
-    CATEGORY = 'wyvernNests'
+    MODEL = models.WyvernNest
 
 
-class IceWyvernNests(GenericActorListExport[models.IceWyvernNest]):
+class IceWyvernNests(BaseActorListExport):
     TAGS = {'IceNestSpawns'}
-    CATEGORY = 'iceWyvernNests'
+    MODEL = models.IceWyvernNest
 
 
-class RockDrakeNests(GenericActorListExport[models.DrakeNest]):
+class RockDrakeNests(BaseActorListExport):
     TAGS = {'DrakeNestSpawns'}
-    CATEGORY = 'drakeNests'
+    MODEL = models.DrakeNest
 
 
-class DeinonychusNests(GenericActorListExport[models.DeinonychusNest]):
+class DeinonychusNests(BaseActorListExport):
     TAGS = {'DeinonychusNestSpawns', 'AB_DeinonychusNestSpawns'}
-    CATEGORY = 'deinonychusNests'
+    MODEL = models.DeinonychusNest
 
 
-class MagmasaurNests(GenericActorListExport[models.MagmasaurNest]):
+class MagmasaurNests(BaseActorListExport):
     TAGS = {'MagmasaurNestSpawns'}
-    CATEGORY = 'magmasaurNests'
+    MODEL = models.MagmasaurNest
 
 
-GATHERERS = [
+BASIC_GATHERERS = [
     # Core
     PlayerSpawnPointExport,
     # Scorched Earth

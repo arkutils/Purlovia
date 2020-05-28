@@ -1,25 +1,35 @@
-from typing import Any, Dict, GeneratorType, List, Optional
+from collections import defaultdict
+from types import GeneratorType
+from typing import Any, Dict, List, Optional, Type
 
-from ue.asset import UAsset
+from automate.exporter import ExportStage
+from automate.version import createExportVersion
+from ue.asset import ExportTableItem, UAsset
 from ue.gathering import gather_properties
+from ue.hierarchy import MissingParent, find_parent_classes
+from ue.loader import AssetLoadException
 from ue.utils import sanitise_output
 from utils.log import get_logger
 
 from .file_models import EXPORTS
+from .gathering_base import MapGathererBase, PersistentLevel
+from .gathering_basic import BASIC_GATHERERS
+from .gathering_complex import COMPLEX_GATHERERS, WorldSettingsExport
+from .models import WorldSettings
 
 logger = get_logger(__name__)
+
+ALL_GATHERERS = COMPLEX_GATHERERS + BASIC_GATHERERS
 
 # TODO: rename file to exporter
 
 
-class World:
-    files: Dict[str, List[Any]]
-    # Persistent level data
-    persistent_level: Optional[str] = None
-    settings: Dict[str, Any]
+class World(PersistentLevel):
+    data: Dict[Type[MapGathererBase], List[Dict[str, Any]]]
 
-    def __init__(self):
-        self.data = []
+    def __init__(self, main_assetname: Optional[str]):
+        self.persistent_level = main_assetname
+        self.data = defaultdict(list)
 
     def ingest_level(self, level: UAsset):
         assetname = level.assetname
@@ -35,34 +45,82 @@ class World:
 
         # Go through each export and, if valuable, gather data from it.
         for export in level.exports:
-            helper = find_gatherer_for_export(export)
-            if helper:
-                category_name = helper.get_export_name()
+            gatherer = find_gatherer_for_export(export)
+            if not gatherer:
+                continue
 
-                # Extract data using helper class.
-                try:
-                    data = helper.extract(proxy=gather_properties(export))
-                except Exception:
-                    logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
-                    continue
-                if not data:
-                    continue
+            # Extract data using gatherer class.
+            try:
+                data = gatherer.extract(proxy=gather_properties(export))
+            except Exception:
+                logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
+                continue
 
-                # Make sure the data list is initialized.
-                if category_name not in self.data:
-                    self.data[category_name] = list()
-
+            # Add fragment to data lists
+            if data:
                 if isinstance(data, GeneratorType):
                     data_fragments: list = sanitise_output(list(data))
                     for fragment in data_fragments:
                         if fragment:
-                            self.data[category_name].append(fragment)
+                            self.data[gatherer].append(fragment)
                 else:
                     fragment = sanitise_output(data)
-                    self.data[category_name].append(fragment)
+                    self.data[gatherer].append(fragment)
 
         # Preemptively remove the level from linker cache.
         loader.cache.remove(assetname)
+
+    def bind_settings(self) -> bool:
+        all_pws = self.data[WorldSettingsExport]
+        if not all_pws:
+            return False
+
+        for candidate in all_pws:
+            if candidate['source'] == self.persistent_level:
+                self.settings = candidate
+                del self.settings['source']
+                return True
+
+        return False
+
+    def convert_for_export(self):
+        '''
+        Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
+        '''
+        ## Run data-specific conversions
+        for gatherer, fragments in self.data.items():
+            # Add lat and long keys as world settings have been found.
+            for fragment in fragments:
+                gatherer.before_saving(self, fragment)
+
+    def construct_export_files(self):
+        by_model = dict()
+        for gatherer, data in self.data.items():
+            model_type = gatherer.get_model_type()
+            if model_type:
+                by_model[model_type] = data
+
+        for name, model_info in EXPORTS.items():
+            file_model, format_version = model_info
+
+            output = dict()
+            for field_name, field_type in file_model.__annotations__.items():
+                entry_model = field_type.__args__[0]
+                if entry_model == WorldSettings:
+                    output[field_name] = self.settings
+                elif entry_model in by_model:
+                    data = by_model[entry_model]
+                    output[field_name] = data
+
+            if output:
+                wrapped = dict(
+                    format=format_version,
+                    persistentLevel=self.persistent_level,
+                )
+                wrapped.update(output)
+                yield (name, wrapped)
+            else:
+                yield (name, None)
 
 
 def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
@@ -71,19 +129,9 @@ def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGather
     except (AssetLoadException, MissingParent):
         return None
 
-    for _, helpers in EXPORTS.items():
-        for helper in helpers:
-            if parents & helper.get_ue_types():
-                if helper.do_early_checks(export):
-                    return helper
-
-    return None
-
-
-def find_gatherer_by_category_name(category: str) -> Optional[Type[MapGathererBase]]:
-    for _, helpers in EXPORTS.items():
-        for helper in helpers:
-            if helper.get_export_name() == category:
+    for helper in ALL_GATHERERS:
+        if parents & helper.get_ue_types():
+            if helper.do_early_checks(export):
                 return helper
 
     return None

@@ -29,7 +29,7 @@ __all__ = [
 ## Common Structure Models
 
 ObjectPath = Optional[str]
-FloatLike = Union[FloatProperty, float]
+FloatLike = Union[FloatProperty, float, int]
 
 
 class Location(ExportModel):
@@ -67,9 +67,9 @@ class WeighedClassSwap(ExportModel):
 
 class Actor(ExportModel):
     hidden: bool = False
-    x: FloatProperty
-    y: FloatProperty
-    z: FloatProperty
+    x: FloatLike
+    y: FloatLike
+    z: FloatLike
     lat: Optional[float]
     long: Optional[float]
 
@@ -92,10 +92,10 @@ class WorldSettings(ExportModel):
     latScale: FloatProperty
     longScale: FloatProperty
     # Not filled in during gathering
-    latMulti: Optional[float]
-    longMulti: Optional[float]
-    latShift: Optional[float]
-    longShift: Optional[float]
+    latMulti: Optional[FloatLike]
+    longMulti: Optional[FloatLike]
+    latShift: Optional[FloatLike]
+    longShift: Optional[FloatLike]
 
     # Gameplay Settings
     maxDifficulty: FloatProperty
@@ -105,6 +105,8 @@ class WorldSettings(ExportModel):
     randomNPCClassWeights: List[WeighedClassSwap]
     ## Uploads
     allowedDinoDownloads: List[ObjectPath]
+    ## HLNA
+    availableTrades: Optional[List[ObjectPath]] = None
 
 
 class NPCManager(ExportModel):
@@ -170,9 +172,9 @@ class PainVolume(Box):
 class PlayerSpawn(ExportModel):
     regionId: IntProperty
 
-    x: FloatProperty
-    y: FloatProperty
-    z: FloatProperty
+    x: FloatLike
+    y: FloatLike
+    z: FloatLike
     lat: Optional[float]
     long: Optional[float]
 
@@ -257,4 +259,8 @@ class LunarOxygenVent(Actor):
 
 
 class MagmasaurNest(Actor):
+    ...
+
+
+class PoisonTree(Actor):
     ...

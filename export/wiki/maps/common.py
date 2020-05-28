@@ -8,7 +8,7 @@ from ue.properties import FloatProperty, Vector
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_float
 
-from .data_container import WorldInfo
+from .gathering_base import PersistentLevel
 from .models import Box, FloatLike, Location
 
 __all__ = [
@@ -22,7 +22,7 @@ __all__ = [
 BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
 
 
-def get_latlong_from_location(world: WorldInfo, x: FloatLike, y: FloatLike) -> Tuple[float, float]:
+def get_latlong_from_location(world: PersistentLevel, x: FloatLike, y: FloatLike) -> Tuple[float, float]:
     return (
         y / world.settings['latMulti'] + world.settings['latShift'],  # lat
         x / world.settings['longMulti'] + world.settings['longShift'])  # long
@@ -99,13 +99,13 @@ def get_volume_bounds_m(volume, convex_index=0) -> Box:
     return Box(start=start, center=center, end=end)
 
 
-def convert_location_for_export(world: WorldInfo, data: Dict[str, Any]):
+def convert_location_for_export(world: PersistentLevel, data: Dict[str, Any]):
     lat, long = get_latlong_from_location(world, data['x'], data['y'])
     data['lat'] = clean_float(lat)
     data['long'] = clean_float(long)
 
 
-def convert_box_bounds_for_export(world: WorldInfo, box_data: Dict[str, Any]):
+def convert_box_bounds_for_export(world: PersistentLevel, box_data: Dict[str, Any]):
     # Start
     lat, long = get_latlong_from_location(world, box_data['start']['x'], box_data['start']['y'])
     box_data['start']['lat'] = clean_float(lat)
