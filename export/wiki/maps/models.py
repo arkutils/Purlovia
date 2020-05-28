@@ -180,7 +180,7 @@ class PlayerSpawn(ExportModel):
 
 
 class MissionDispatcher(ExportModel):
-    type_: str = Field(alias="type")
+    type_: Union[str, int] = Field(alias="type")
     missions: List[ObjectPath]
 
     x: FloatProperty

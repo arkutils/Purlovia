@@ -73,7 +73,7 @@ class WorldSettingsExport(MapGathererBase):
             onlyEventGlobalSwaps=bool(settings.bPreventGlobalNonEventSpawnOverrides[0]),
             randomNPCClassWeights=list(cls._convert_class_swaps(settings)),
             ## Uploads
-            allowedDinoDownloads=settings.get('AllowDownloadDinoClasses', 0, ()),
+            allowedDinoDownloads=sanitise_output(settings.get('AllowDownloadDinoClasses', 0, ())),
         )
 
         # Calculate remaining geo fields
@@ -249,7 +249,7 @@ class BiomeZoneExport(MapGathererBase):
         if biome.has_override('AbsoluteTemperatureOverride'):
             result.override = biome.AbsoluteTemperatureOverride[0]
         if biome.has_override('AbsoluteMaxTemperature') or biome.has_override('AbsoluteMinTemperature'):
-            result.range = MinMaxRange(biome.AbsoluteMinTemperature[0], biome.AbsoluteMaxTemperature[0])
+            result.range = MinMaxRange(min=biome.AbsoluteMinTemperature[0], max=biome.AbsoluteMaxTemperature[0])
         # Pre-offset
         if any_overriden(biome,
                          ('PreOffsetTemperatureMultiplier', 'PreOffsetTemperatureExponent', 'PreOffsetTemperatureAddition')):
@@ -396,7 +396,7 @@ class RadiationZoneExport(MapGathererBase):
             start=start,
             center=center,
             end=end,
-            immune=volume.ActorClassesToExclude[0],
+            immune=sanitise_output(volume.get('ActorClassesToExclude', fallback=[])),
         )
 
     @classmethod
@@ -432,7 +432,7 @@ class MissionDispatcher(MapGathererBase):
         location = get_actor_location_vector(dispatcher)
 
         return models.MissionDispatcher(type_=cls.MISSION_TYPE_MAP.get(type_id, type_id),
-                                        missions=dispatcher.MissionTypes[0].values,
+                                        missions=sanitise_output(dispatcher.MissionTypes[0].values),
                                         x=location.x,
                                         y=location.y,
                                         z=location.z)
