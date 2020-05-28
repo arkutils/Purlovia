@@ -10,8 +10,8 @@ from ue.gathering import gather_properties
 from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.log import get_logger
 
-from .maps.data_container import World
 from .maps.discovery import LevelDiscoverer, group_levels_by_directory
+from .maps.world import World
 
 logger = get_logger(__name__)
 
@@ -98,7 +98,7 @@ class MapStage(ExportStage):
 
     def _save_section(self, version: str, base_path: Path, file_name: str, data: Dict[str, Any]):
         output_path = (base_path / file_name).with_suffix('.json')
-        
+
         if not data:
             # No data for this file. Remove an existing one if it exists
             if output_path.is_file():

@@ -70,8 +70,16 @@ class BaseActorListExport(MapGathererBase):
             yield cls.extract_single(entry.value.value)
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> models.Actor:
-        return get_actor_location_vector_m(export)
+    def extract_single(cls, export: ExportTableItem) -> ExportModel:
+        props = export.properties
+        location = get_actor_location_vector(export)
+
+        return models.Actor(
+            hidden=not props.get_property('bIsVisible', fallback=True),
+            x=location.x,
+            y=location.y,
+            z=location.z,
+        )
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
@@ -83,7 +91,7 @@ class BaseActorListExport(MapGathererBase):
 
 class GlitchExport(BaseActorListExport):
     @classmethod
-    def get_model_type(cls) -> str:
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
         return models.Glitch
 
     @classmethod
@@ -95,7 +103,7 @@ class GlitchExport(BaseActorListExport):
         return True
 
     @classmethod
-    def extract_single(cls, export: ExportTableItem) -> GatheringResult:
+    def extract_single(cls, export: ExportTableItem) -> models.Glitch:
         poi: PointOfInterestBP = gather_properties(export)
         location = get_actor_location_vector(poi)
 

@@ -148,8 +148,8 @@ class Biome(ExportModel):
     priority: IntProperty
     isOutside: BoolProperty
     preventCrops: BoolProperty
-    temperature: Optional[BiomeTempWindSettings] = BiomeTempWindSettings()
-    wind: Optional[BiomeTempWindSettings] = BiomeTempWindSettings()
+    temperature: BiomeTempWindSettings = BiomeTempWindSettings()
+    wind: BiomeTempWindSettings = BiomeTempWindSettings()
     boxes: List[Box] = []
 
 

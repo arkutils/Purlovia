@@ -7,7 +7,6 @@ from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 
 __all__ = [
-    'GatheredData',
     'GatheringResult',
     'MapGathererBase',
 ]
@@ -29,7 +28,7 @@ class MapGathererBase(ABC):
     @classmethod
     @abstractmethod
     def get_model_type(cls) -> Optional[Type[ExportModel]]:
-        return ...
+        ...
 
     @classmethod
     def do_early_checks(cls, _export: ExportTableItem) -> bool:

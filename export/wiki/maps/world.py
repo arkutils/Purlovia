@@ -1,13 +1,13 @@
 from collections import defaultdict
 from types import GeneratorType
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, cast
 
 from automate.exporter import ExportStage
 from automate.version import createExportVersion
 from ue.asset import ExportTableItem, UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import MissingParent, find_parent_classes
-from ue.loader import AssetLoadException
+from ue.loader import AssetLoader, AssetLoadException
 from ue.utils import sanitise_output
 from utils.log import get_logger
 
@@ -21,8 +21,6 @@ logger = get_logger(__name__)
 
 ALL_GATHERERS = COMPLEX_GATHERERS + BASIC_GATHERERS
 
-# TODO: rename file to exporter
-
 
 class World(PersistentLevel):
     data: Dict[Type[MapGathererBase], List[Dict[str, Any]]]
@@ -32,8 +30,10 @@ class World(PersistentLevel):
         self.data = defaultdict(list)
 
     def ingest_level(self, level: UAsset):
+        assert level.assetname
+        assert level.loader
         assetname = level.assetname
-        loader = level.loader
+        loader = cast(AssetLoader, level.loader)
 
         # Check if asset is a persistent level and mark it as such in map info object
         if not getattr(level, 'tile_info', None) and self.persistent_level != assetname:
