@@ -54,6 +54,7 @@ class Actors(MapExportFileModel):
     oilVents: List[models.OilVent] = []
     glitches: List[models.Glitch] = []
     magmasaurNests: List[models.MagmasaurNest] = []
+    poisonTrees: List[models.PoisonTree]
 
 
 class Missions(MapExportFileModel):

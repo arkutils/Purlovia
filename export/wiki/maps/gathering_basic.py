@@ -168,6 +168,9 @@ class WildPlantSpeciesZExport(BaseActorExport):
     MODEL = models.PlantSpeciesZWild
 
 
+class PoisonTreeExport(BaseActorExport):
+    CLASSES = {PoisonTree.get_ue_type()}
+    MODEL = models.PoisonTree
 
 
 class WyvernNests(BaseActorListExport):
@@ -216,4 +219,5 @@ BASIC_GATHERERS = [
     OilVentExport,
     LunarOxygenVentExport,
     MagmasaurNests,
+    PoisonTreeExport,
 ]

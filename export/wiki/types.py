@@ -30,6 +30,7 @@ __all__ = [
     'TogglePainVolume',
     'WaterVein',
     'WildPlantSpeciesZ',
+    'PoisonTree',
     'MissionType_Basketball',
     'MissionType_Sport',
     'MissionType_Gather',
@@ -221,6 +222,12 @@ class PrimalStructurePowerNode(UEProxyStructure, uetype=CHARGE_NODE_CLS):
 
 
 class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class PoisonTree(UEProxyStructure,
+                 uetype='/Game/Genesis/Environment/Bog/Vegetation/Foliage/PoisonPlant/BP_HeroPoisonPlant.BP_HeroPoisonPlant_C'):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
