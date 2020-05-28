@@ -42,16 +42,17 @@ class Actors(MapExportFileModel):
     wyvernNests: List[models.WyvernNest] = []
     # Ragnarok
     iceWyvernNests: List[models.IceWyvernNest] = []
+    # Genesis Part 1
+    oilVents: List[models.OilVent] = []
+    lunarOxygenVents: List[models.LunarOxygenVent] = []
     # Aberration
+    gasVeins: List[models.GasVein] = []
     chargeNodes: List[models.ChargeNode] = []
     plantZNodes: List[models.PlantSpeciesZWild] = []
     drakeNests: List[models.DrakeNest] = []
-    # Aberration and Genesis
-    gasVeins: List[models.GasVein] = []
     # Valguero
     deinonychusNests: List[models.DeinonychusNest] = []
     # Genesis Part 1
-    oilVents: List[models.OilVent] = []
     glitches: List[models.Glitch] = []
     magmasaurNests: List[models.MagmasaurNest] = []
     poisonTrees: List[models.PoisonTree]
@@ -63,11 +64,11 @@ class Missions(MapExportFileModel):
 
 EXPORTS: Dict[str, Tuple[Type[ExportFileModel], str]] = {
     # File name -> ExportFileModel, FormatVersion
-    'world_settings': (WorldSettings, '1'),
+    'world_settings': (WorldSettings, '2'),
     'radiation_zones': (RadiationZones, '1'),
     'npc_spawns': (NPCSpawns, '1'),
-    'biomes': (Biomes, '1'),
-    'loot_crates': (LootCrates, '1'),
+    'biomes': (Biomes, '2'),
+    'loot_crates': (LootCrates, '2'),
     'actors': (Actors, '1'),
     'missions': (Missions, '1'),
 }

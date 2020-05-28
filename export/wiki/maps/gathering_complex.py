@@ -115,7 +115,9 @@ class TradeListExport(MapGathererBase):
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Any):
-        world.settings['availableTrades'] = data
+        if 'availableTrades' not in world.settings:
+            world.settings['availableTrades'] = []
+        world.settings['availableTrades'].append(data)
 
 
 class NPCZoneManagerExport(MapGathererBase):
@@ -232,8 +234,8 @@ class BiomeZoneExport(MapGathererBase):
         )
 
         # Add overriden temperature and wind data
-        result.temperature = cls._extract_temperature_data(biome)
-        result.wind = cls._extract_wind_data(biome)
+        cls._extract_temperature_data(biome, result.temperature)
+        cls._extract_wind_data(biome, result.wind)
 
         # Extract bounds
         box_count = get_volume_box_count(biome)
@@ -243,8 +245,7 @@ class BiomeZoneExport(MapGathererBase):
         return result
 
     @classmethod
-    def _extract_temperature_data(cls, biome: BiomeZoneVolume):
-        result = models.BiomeTempWindSettings()
+    def _extract_temperature_data(cls, biome: BiomeZoneVolume, result: models.BiomeTempWindSettings):
         # Absolute
         if biome.has_override('AbsoluteTemperatureOverride'):
             result.override = biome.AbsoluteTemperatureOverride[0]
@@ -271,11 +272,9 @@ class BiomeZoneExport(MapGathererBase):
         if any_overriden(biome, ('FinalTemperatureMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
             result.final = (None, biome.FinalTemperatureMultiplier[0], biome.FinalTemperatureExponent[0],
                             biome.FinalTemperatureAddition[0])
-        return result
 
     @classmethod
-    def _extract_wind_data(cls, biome: BiomeZoneVolume):
-        result = models.BiomeTempWindSettings()
+    def _extract_wind_data(cls, biome: BiomeZoneVolume, result: models.BiomeTempWindSettings):
         # Absolute
         if biome.has_override('AbsoluteWindOverride'):
             result.override = biome.AbsoluteWindOverride[0]
@@ -292,9 +291,8 @@ class BiomeZoneExport(MapGathererBase):
             result.belowOffset = (biome.BelowWindOffsetThreshold[0], biome.BelowWindOffsetMultiplier[0],
                                   biome.BelowWindOffsetExponent[0], None)
         # Final
-        if any_overriden(biome, ('FinalWindMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
+        if any_overriden(biome, ('FinalWindMultiplier', 'FinalWindExponent', 'FinalWindAddition')):
             result.final = (None, biome.FinalWindMultiplier[0], biome.FinalWindExponent[0], biome.FinalWindAddition[0])
-        return result
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):

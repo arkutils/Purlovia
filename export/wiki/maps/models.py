@@ -106,7 +106,7 @@ class WorldSettings(ExportModel):
     ## Uploads
     allowedDinoDownloads: List[ObjectPath]
     ## HLNA
-    availableTrades: Optional[List[ObjectPath]] = None
+    availableTrades: Optional[List[ObjectPath]]
 
 
 class NPCManager(ExportModel):
@@ -148,8 +148,8 @@ class Biome(ExportModel):
     priority: IntProperty
     isOutside: BoolProperty
     preventCrops: BoolProperty
-    temperature: Optional[BiomeTempWindSettings] = None
-    wind: Optional[BiomeTempWindSettings] = None
+    temperature: Optional[BiomeTempWindSettings] = BiomeTempWindSettings()
+    wind: Optional[BiomeTempWindSettings] = BiomeTempWindSettings()
     boxes: List[Box] = []
 
 
