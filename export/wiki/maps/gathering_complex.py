@@ -254,23 +254,23 @@ class BiomeZoneExport(MapGathererBase):
         # Pre-offset
         if any_overriden(biome,
                          ('PreOffsetTemperatureMultiplier', 'PreOffsetTemperatureExponent', 'PreOffsetTemperatureAddition')):
-            result.preOffset = (None, biome.PreOffsetTemperatureMultiplier[0], biome.PreOffsetTemperatureExponent[0],
-                                biome.PreOffsetTemperatureAddition[0])
+            result.initial = (biome.PreOffsetTemperatureMultiplier[0], biome.PreOffsetTemperatureExponent[0],
+                              biome.PreOffsetTemperatureAddition[0])
         # Above offset
         if any_overriden(
                 biome,
             ('AboveTemperatureOffsetThreshold', 'AboveTemperatureOffsetMultiplier', 'AboveTemperatureOffsetExponent')):
-            result.aboveOffset = (biome.AboveTemperatureOffsetThreshold[0], biome.AboveTemperatureOffsetMultiplier[0],
-                                  biome.AboveTemperatureOffsetExponent[0], None)
+            result.above = (biome.AboveTemperatureOffsetThreshold[0], biome.AboveTemperatureOffsetMultiplier[0],
+                            biome.AboveTemperatureOffsetExponent[0])
         # Below offset
         if any_overriden(
                 biome,
             ('BelowTemperatureOffsetThreshold', 'BelowTemperatureOffsetMultiplier', 'BelowTemperatureOffsetExponent')):
-            result.belowOffset = (biome.BelowTemperatureOffsetThreshold[0], biome.BelowTemperatureOffsetMultiplier[0],
-                                  biome.BelowTemperatureOffsetExponent[0], None)
+            result.below = (biome.BelowTemperatureOffsetThreshold[0], biome.BelowTemperatureOffsetMultiplier[0],
+                            biome.BelowTemperatureOffsetExponent[0])
         # Final
         if any_overriden(biome, ('FinalTemperatureMultiplier', 'FinalTemperatureExponent', 'FinalTemperatureAddition')):
-            result.final = (None, biome.FinalTemperatureMultiplier[0], biome.FinalTemperatureExponent[0],
+            result.final = (biome.FinalTemperatureMultiplier[0], biome.FinalTemperatureExponent[0],
                             biome.FinalTemperatureAddition[0])
 
     @classmethod
@@ -280,19 +280,18 @@ class BiomeZoneExport(MapGathererBase):
             result.override = biome.AbsoluteWindOverride[0]
         # Pre-offset
         if any_overriden(biome, ('PreOffsetWindMultiplier', 'PreOffsetWindExponent', 'PreOffsetWindAddition')):
-            result.preOffset = (None, biome.PreOffsetWindMultiplier[0], biome.PreOffsetWindExponent[0],
-                                biome.PreOffsetWindAddition[0])
+            result.initial = (biome.PreOffsetWindMultiplier[0], biome.PreOffsetWindExponent[0], biome.PreOffsetWindAddition[0])
         # Above offset
         if any_overriden(biome, ('AboveWindOffsetThreshold', 'AboveWindOffsetMultiplier', 'AboveWindOffsetExponent')):
-            result.aboveOffset = (biome.AboveWindOffsetThreshold[0], biome.AboveWindOffsetMultiplier[0],
-                                  biome.AboveWindOffsetExponent[0], None)
+            result.above = (biome.AboveWindOffsetThreshold[0], biome.AboveWindOffsetMultiplier[0],
+                            biome.AboveWindOffsetExponent[0])
         # Below offset
         if any_overriden(biome, ('BelowWindOffsetThreshold', 'BelowWindOffsetMultiplier', 'BelowWindOffsetExponent')):
-            result.belowOffset = (biome.BelowWindOffsetThreshold[0], biome.BelowWindOffsetMultiplier[0],
-                                  biome.BelowWindOffsetExponent[0], None)
+            result.below = (biome.BelowWindOffsetThreshold[0], biome.BelowWindOffsetMultiplier[0],
+                            biome.BelowWindOffsetExponent[0])
         # Final
         if any_overriden(biome, ('FinalWindMultiplier', 'FinalWindExponent', 'FinalWindAddition')):
-            result.final = (None, biome.FinalWindMultiplier[0], biome.FinalWindExponent[0], biome.FinalWindAddition[0])
+            result.final = (biome.FinalWindMultiplier[0], biome.FinalWindExponent[0], biome.FinalWindAddition[0])
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):

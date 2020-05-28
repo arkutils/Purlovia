@@ -87,21 +87,28 @@ class WorldSettings(ExportModel):
     name: Union[StringProperty, str]
 
     # Geo
-    latOrigin: FloatProperty
-    longOrigin: FloatProperty
-    latScale: FloatProperty
-    longScale: FloatProperty
-    # Not filled in during gathering
-    latMulti: Optional[FloatLike]
-    longMulti: Optional[FloatLike]
-    latShift: Optional[FloatLike]
-    longShift: Optional[FloatLike]
+    latOrigin: FloatProperty = Field(title="Latitude Origin",
+                                     description="World origin of Y axis, used by the in-game map, in centimeters.")
+    longOrigin: FloatProperty = Field(title="Longitude Origin",
+                                      description="World origin of X axis, used by the in-game map, in centimeters.")
+    latScale: FloatProperty = Field(title="Latitude Scale",
+                                    description="Height of the map, used by the in-game map, in tens of meters.")
+    longScale: FloatProperty = Field(title="Longitude Scale",
+                                     description="Width of the map, used by the in-game map, in tens of meters.")
+    latMulti: Optional[FloatLike] = Field(
+        title="Latitude Multiplier", description="LatScale in meters. Divide centimeter distance from Y axis by this value.")
+    longMulti: Optional[FloatLike] = Field(
+        title="Longitude Multiplier", description="LongScale in meters. Divide centimeter distance from X axis by this value")
+    latShift: Optional[FloatLike] = Field(title="Latitude Shift", description="Shift of coordinates on the Y axis.")
+    longShift: Optional[FloatLike] = Field(title="Longitude Shift", description="Shift of coordinates on the X axis.")
 
     # Gameplay Settings
     maxDifficulty: FloatProperty
-    mapTextures: InGameMapTextureSet
+    mapTextures: InGameMapTextureSet = Field(
+        description="Preview textures of the map. Weapon refers to the map player can hold.")
     ## Spawn Settings
-    onlyEventGlobalSwaps: bool = False
+    onlyEventGlobalSwaps: bool = Field(False,
+                                       description="Controls whether Primal Game Data's random class replacements are allowed.")
     randomNPCClassWeights: List[WeighedClassSwap]
     ## Uploads
     allowedDinoDownloads: List[ObjectPath]
@@ -111,7 +118,7 @@ class WorldSettings(ExportModel):
 
 class NPCManager(ExportModel):
     disabled: bool = False
-    spawnGroup: ObjectPath
+    spawnGroup: ObjectPath = Field(description="Path to a container of spawning groups.")
     minDesiredNumberOfNPC: IntProperty
     neverSpawnInWater: BoolProperty
     forceUntameable: BoolProperty
@@ -122,25 +129,23 @@ class NPCManager(ExportModel):
     spawnPoints: List[Location] = []
 
 
+EnvironmentalOffset = Tuple[FloatProperty, FloatProperty, FloatProperty]
+EnvironmentalOffsetRelativeDesc = 'Fields: threshold, multiplier and exponent.'
+EnvironmentalOffsetAbsoluteDesc = 'Fields: multiplier, exponent, addition.'
+
+
 class BiomeTempWindSettings(ExportModel):
     override: Optional[FloatProperty]
     range: Optional[MinMaxRange] = Field(description="Only applies to Temperature.")
-    preOffset: Optional[Tuple[None, FloatProperty, FloatProperty, FloatProperty]] = Field(
-        description="Applied before other offsets. No threshold, only multiplier, exponent, and addition (order of fields).")
-    aboveOffset: Optional[Tuple[FloatProperty, FloatProperty, FloatProperty, None]] = Field(
-        description=
-        "Applied only if previous calculation is greater than threshold. Only threshold, multiplier, and exponent (order of fields)."
-    )
-    belowOffset: Optional[Tuple[FloatProperty, FloatProperty, FloatProperty, None]] = Field(
-        description=
-        "Applied only if previous calculation is lower than threshold. Only threshold, multiplier, and exponent (order of fields)."
-    )
-    final: Optional[Tuple[None, FloatProperty, FloatProperty, FloatProperty]] = Field(
-        description=
-        "Applied after all other calculations. No threshold, only multiplier, exponent, and addition (order of fields).")
 
-    class Config(ModelConfig):
-        arbitrary_types_allowed = True
+    initial: Optional[EnvironmentalOffset] = Field(
+        description=f"Applied before other offsets. {EnvironmentalOffsetAbsoluteDesc}")
+    above: Optional[EnvironmentalOffset] = Field(
+        description=f"Applied only if previous calculation is greater than threshold. {EnvironmentalOffsetRelativeDesc}")
+    below: Optional[EnvironmentalOffset] = Field(
+        description=f"Applied only if previous calculation is lower than threshold. {EnvironmentalOffsetRelativeDesc}")
+    final: Optional[EnvironmentalOffset] = Field(
+        description=f"Applied after all other calculations. {EnvironmentalOffsetAbsoluteDesc}")
 
 
 class Biome(ExportModel):
@@ -161,8 +166,9 @@ class SupplyCrateSpawn(ExportModel):
     delayBeforeFirst: MinMaxRange
     intervalBetweenSpawns: MinMaxRange
     intervalBetweenMaxedSpawns: MinMaxRange
-    intervalBetweenSpawnsSP: Optional[MinMaxRange] = None
-    intervalBetweenMaxedSpawnsSP: Optional[MinMaxRange] = None
+    intervalBetweenSpawnsSP: Optional[MinMaxRange] = Field(None, description="Single-player override of intervalBetweenSpawns.")
+    intervalBetweenMaxedSpawnsSP: Optional[MinMaxRange] = Field(
+        None, description="Single-player override of intervalBetweenMaxedSpawns.")
 
 
 class PainVolume(Box):
@@ -170,7 +176,7 @@ class PainVolume(Box):
 
 
 class PlayerSpawn(ExportModel):
-    regionId: IntProperty
+    regionId: IntProperty = Field(description="ID of an element of region definitions list located in PGD or PWS.")
 
     x: FloatLike
     y: FloatLike
@@ -180,7 +186,7 @@ class PlayerSpawn(ExportModel):
 
 
 class MissionDispatcher(ExportModel):
-    type_: Union[str, int] = Field(alias="type")
+    type_: Union[str, int] = Field(alias="type", description="Friendly mission type name, or internal ID if unknown.")
     missions: List[ObjectPath]
 
     x: FloatProperty
@@ -191,7 +197,7 @@ class MissionDispatcher(ExportModel):
 
 
 class ExplorerNote(ExportModel):
-    noteIndex: IntProperty
+    noteIndex: IntProperty = Field(description="Index of an explorer note entry from Primal Game Data.")
     hidden: bool = False
 
     x: FloatProperty
@@ -202,7 +208,7 @@ class ExplorerNote(ExportModel):
 
 
 class Glitch(ExportModel):
-    noteId: Optional[IntProperty]
+    noteId: Optional[IntProperty] = Field(description="Index of an explorer note entry from Primal Game Data.")
     hidden: bool = False
     hexagons: IntProperty
 
