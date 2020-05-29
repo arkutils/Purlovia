@@ -77,13 +77,14 @@ class MapStage(ExportStage):
                 continue
 
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, directory_name, levels, known_persistent=f'{directory}/{selectable_maps[0]}')
+            self._extract_and_save(version, path, Path(directory_name), levels, modid, f'{directory}/{selectable_maps[0]}')
 
     def _extract_and_save(self,
                           version: str,
                           base_path: Path,
                           relative_path: Path,
                           levels: List[str],
+                          modid: Optional[str] = None,
                           known_persistent: Optional[str] = None):
         # Do the actual extraction
         world = World(known_persistent)
@@ -120,6 +121,11 @@ class MapStage(ExportStage):
             output: Dict[str, Any] = dict()
             output['$schema'] = str(schema_path)
             output['version'] = version
+            if modid:
+                mod_data = self.manager.arkman.getModData(modid)
+                assert mod_data
+                title = mod_data['title'] or mod_data['name']
+                output['mod'] = dict(id=modid, tag=mod_data['name'], title=title)
             output.update(data)
 
             # Save if the data changed
