@@ -1,6 +1,5 @@
 from typing import Mapping
 
-from ark.types import PrimalItem
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
 from ue.proxy import *
 
@@ -228,16 +227,15 @@ class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
 class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
     # DevKit Verified
     bIsVisible = uebools(True)
-
-    # DevKit Unverified
     ExplorerNoteIndex = ueints(0)
 
-    # No properties we can assume type for.
+    # DevKit Unverified
+
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
 class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
-    # DevKit Unverified
+    # DevKit Verified
     MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
 
     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
@@ -289,9 +287,9 @@ class DayCycleManager_Gen1(UEProxyStructure, uetype='/Script/ShooterGame.DayCycl
 class MissionDispatcher_MultiUsePylon(
         UEProxyStructure, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
     # DevKit Verified
+    MissionTypeIndex = ueints(0)
 
     # DevKit Unverified
-    MissionTypeIndex = ueints(0)
 
     MissionTypes: Mapping[int, ArrayProperty]
     RootComponent: Mapping[int, ObjectProperty]
@@ -308,10 +306,10 @@ class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
 
 class HexagonTradableOption(UEProxyStructure, uetype='/Script/ShooterGame.HexagonTradableOption'):
     # DevKit Verified
-
-    # DevKit Unverified
     Quantity = ueints(1)
     ItemCost = ueints(0)
+
+    # DevKit Unverified
 
     ItemClass: Mapping[int, ObjectProperty]
 
@@ -470,3 +468,12 @@ class MissionType_Basketball(
     # DevKit Unverified
 
     Basketball_Dino: Mapping[int, StructProperty]
+
+
+class TekCloningChamber(UEProxyStructure, uetype='/Game/PrimalEarth/Structures/TekTier/TekCloningChamber.TekCloningChamber_C'):
+    # DevKit Verified
+    CloneBaseElementCostGlobalMultiplier = uefloats(2500.0)
+    CloneElementCostPerLevelGlobalMultiplier = uefloats(5500.0)
+    CloningTimePerElementShard = uefloats(7.0)
+
+    # DevKit Unverified
