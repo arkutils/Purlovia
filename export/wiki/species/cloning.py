@@ -86,8 +86,8 @@ def gather_cloning_data(species: PrimalDinoCharacter) -> Optional[CloningData]:
         return None
 
     return CloningData(
-        costBase=cost_base,
-        costLevel=cost_level,
-        timeBase=time_base,
-        timeLevel=time_level,
+        costBase=round(cost_base, 1),
+        costLevel=round(cost_level, 2),
+        timeBase=round(time_base, 1),
+        timeLevel=round(time_level, 2),
     )
