@@ -21,10 +21,10 @@ def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]
     levels: Dict[str, Set[str]] = dict()
 
     for assetname in assetnames:
-        map_ = get_assetpath_from_assetname(assetname)
-        if map_ not in levels:
-            levels[map_] = set()
-        levels[map_].add(assetname)
+        assetpath = get_assetpath_from_assetname(assetname)
+        if assetpath not in levels:
+            levels[assetpath] = set()
+        levels[assetpath].add(assetname)
 
     return {path: list(sorted(names)) for path, names in levels.items()}
 

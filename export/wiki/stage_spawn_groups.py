@@ -123,8 +123,8 @@ def convert_single_class_swap_m(d):
                               to=sanitise_output(d['ToClasses']),
                               weights=d['Weights'].values)
 
-    if d['ActiveEvent'] and d['ActiveEvent'].value and d[
-            'ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
+    if d['ActiveEvent'] and d['ActiveEvent'].value and d['ActiveEvent'].value.value:
+        # Assigning "None" here is safe as it is the field default and therefore omitted
         result.during = str(d['ActiveEvent'])
 
     return result
