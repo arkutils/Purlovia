@@ -1,8 +1,8 @@
 from typing import List, Optional, Tuple, Union
 
-from automate.hierarchy_exporter import ExportModel, Field, ModelConfig
+from automate.hierarchy_exporter import ExportModel, Field
 from export.wiki.models import MinMaxRange
-from ue.properties import BoolProperty, FloatProperty, IntProperty, NameProperty, ObjectProperty, StringProperty
+from ue.properties import BoolProperty, FloatProperty, IntProperty, StringProperty
 
 __all__ = [
     # Common
@@ -26,7 +26,7 @@ __all__ = [
     'Glitch'
 ]
 
-## Common Structure Models
+# Common Structure Models
 
 ObjectPath = Optional[str]
 FloatLike = Union[FloatProperty, float, int]
@@ -62,7 +62,7 @@ class WeighedClassSwap(ExportModel):
     during: str = 'None'
 
 
-## Export Models
+# Export Models
 
 
 class Actor(ExportModel):
@@ -87,33 +87,55 @@ class WorldSettings(ExportModel):
     name: Union[StringProperty, str]
 
     # Geo
-    latOrigin: FloatProperty = Field(title="Latitude Origin",
-                                     description="World origin of Y axis, used by the in-game map, in centimeters.")
-    longOrigin: FloatProperty = Field(title="Longitude Origin",
-                                      description="World origin of X axis, used by the in-game map, in centimeters.")
-    latScale: FloatProperty = Field(title="Latitude Scale",
-                                    description="Height of the map, used by the in-game map, in tens of meters.")
-    longScale: FloatProperty = Field(title="Longitude Scale",
-                                     description="Width of the map, used by the in-game map, in tens of meters.")
+    latOrigin: FloatProperty = Field(
+        title="Latitude Origin",
+        description="World origin of Y axis, used by the in-game map, in centimeters.",
+    )
+    longOrigin: FloatProperty = Field(
+        title="Longitude Origin",
+        description="World origin of X axis, used by the in-game map, in centimeters.",
+    )
+    latScale: FloatProperty = Field(
+        title="Latitude Scale",
+        description="Height of the map, used by the in-game map, in tens of meters.",
+    )
+    longScale: FloatProperty = Field(
+        title="Longitude Scale",
+        description="Width of the map, used by the in-game map, in tens of meters.",
+    )
     latMulti: Optional[FloatLike] = Field(
-        title="Latitude Multiplier", description="LatScale in meters. Divide centimeter distance from Y axis by this value.")
+        title="Latitude Multiplier",
+        description="LatScale in meters. Divide centimeter distance from Y axis by this value.",
+    )
     longMulti: Optional[FloatLike] = Field(
-        title="Longitude Multiplier", description="LongScale in meters. Divide centimeter distance from X axis by this value")
-    latShift: Optional[FloatLike] = Field(title="Latitude Shift", description="Shift of coordinates on the Y axis.")
-    longShift: Optional[FloatLike] = Field(title="Longitude Shift", description="Shift of coordinates on the X axis.")
+        title="Longitude Multiplier",
+        description="LongScale in meters. Divide centimeter distance from X axis by this value",
+    )
+    latShift: Optional[FloatLike] = Field(
+        title="Latitude Shift",
+        description="Shift of coordinates on the Y axis.",
+    )
+    longShift: Optional[FloatLike] = Field(
+        title="Longitude Shift",
+        description="Shift of coordinates on the X axis.",
+    )
 
     # Gameplay Settings
     maxDifficulty: FloatProperty
     mapTextures: InGameMapTextureSet = Field(
-        description="Preview textures of the map. Weapon refers to the map player can hold.")
-    ## Spawn Settings
-    onlyEventGlobalSwaps: bool = Field(False,
-                                       description="Controls whether Primal Game Data's random class replacements are allowed.")
-    randomNPCClassWeights: List[WeighedClassSwap]
-    ## Uploads
-    allowedDinoDownloads: List[ObjectPath]
-    ## HLNA
-    availableTrades: Optional[List[ObjectPath]]
+        ...,
+        description="Preview textures of the map. Weapon refers to the map player can hold.",
+    )
+    # Spawn Settings
+    onlyEventGlobalSwaps: bool = Field(
+        False,
+        description="Controls whether Primal Game Data's random class replacements are allowed.",
+    )
+    randomNPCClassWeights: List[WeighedClassSwap] = []
+    # Uploads
+    allowedDinoDownloads: List[ObjectPath] = []
+    # HLNA
+    availableTrades: Optional[List[ObjectPath]] = []
 
 
 class NPCManager(ExportModel):
@@ -136,16 +158,27 @@ EnvironmentalOffsetAbsoluteDesc = 'Fields: multiplier, exponent, addition.'
 
 class BiomeTempWindSettings(ExportModel):
     override: Optional[FloatProperty]
-    range: Optional[MinMaxRange] = Field(description="Only applies to Temperature.")
+    range: Optional[MinMaxRange] = Field(
+        None,
+        description="Only applies to Temperature.",
+    )
 
     initial: Optional[EnvironmentalOffset] = Field(
-        description=f"Applied before other offsets. {EnvironmentalOffsetAbsoluteDesc}")
+        None,
+        description=f"Applied before other offsets. {EnvironmentalOffsetAbsoluteDesc}",
+    )
     above: Optional[EnvironmentalOffset] = Field(
-        description=f"Applied only if previous calculation is greater than threshold. {EnvironmentalOffsetRelativeDesc}")
+        None,
+        description=f"Applied only if previous calculation is greater than threshold. {EnvironmentalOffsetRelativeDesc}",
+    )
     below: Optional[EnvironmentalOffset] = Field(
-        description=f"Applied only if previous calculation is lower than threshold. {EnvironmentalOffsetRelativeDesc}")
+        None,
+        description=f"Applied only if previous calculation is lower than threshold. {EnvironmentalOffsetRelativeDesc}",
+    )
     final: Optional[EnvironmentalOffset] = Field(
-        description=f"Applied after all other calculations. {EnvironmentalOffsetAbsoluteDesc}")
+        None,
+        description=f"Applied after all other calculations. {EnvironmentalOffsetAbsoluteDesc}",
+    )
 
 
 class Biome(ExportModel):
@@ -166,9 +199,14 @@ class SupplyCrateSpawn(ExportModel):
     delayBeforeFirst: MinMaxRange
     intervalBetweenSpawns: MinMaxRange
     intervalBetweenMaxedSpawns: MinMaxRange
-    intervalBetweenSpawnsSP: Optional[MinMaxRange] = Field(None, description="Single-player override of intervalBetweenSpawns.")
+    intervalBetweenSpawnsSP: Optional[MinMaxRange] = Field(
+        None,
+        description="Single-player override of intervalBetweenSpawns.",
+    )
     intervalBetweenMaxedSpawnsSP: Optional[MinMaxRange] = Field(
-        None, description="Single-player override of intervalBetweenMaxedSpawns.")
+        None,
+        description="Single-player override of intervalBetweenMaxedSpawns.",
+    )
 
 
 class PainVolume(Box):
@@ -176,7 +214,7 @@ class PainVolume(Box):
 
 
 class PlayerSpawn(ExportModel):
-    regionId: IntProperty = Field(description="ID of an element of region definitions list located in PGD or PWS.")
+    regionId: IntProperty = Field(description="ID of an element of region definitions list located in PGD or PWS.", )
 
     x: FloatLike
     y: FloatLike
@@ -186,7 +224,10 @@ class PlayerSpawn(ExportModel):
 
 
 class MissionDispatcher(ExportModel):
-    type_: Union[str, int] = Field(alias="type", description="Friendly mission type name, or internal ID if unknown.")
+    type_: Union[str, int] = Field(
+        alias="type",
+        description="Friendly mission type name, or internal ID if unknown.",
+    )
     missions: List[ObjectPath]
 
     x: FloatProperty
@@ -197,7 +238,7 @@ class MissionDispatcher(ExportModel):
 
 
 class ExplorerNote(ExportModel):
-    noteIndex: IntProperty = Field(description="Index of an explorer note entry from Primal Game Data.")
+    noteIndex: IntProperty = Field(description="Index of an explorer note entry from Primal Game Data.", )
     hidden: bool = False
 
     x: FloatProperty
@@ -208,7 +249,7 @@ class ExplorerNote(ExportModel):
 
 
 class Glitch(ExportModel):
-    noteId: Optional[IntProperty] = Field(description="Index of an explorer note entry from Primal Game Data.")
+    noteId: Optional[IntProperty] = Field(description="Index of an explorer note entry from Primal Game Data.", )
     hidden: bool = False
     hexagons: IntProperty
 
@@ -219,7 +260,7 @@ class Glitch(ExportModel):
     long: Optional[float]
 
 
-## Actor-based Models
+# Actor-based Models
 class OilVein(Actor):
     ...
 

@@ -1,17 +1,12 @@
-from pathlib import PurePosixPath
-from typing import *
-from typing import cast
+from typing import Any, List, Optional, Set, Tuple, cast
 
-from ark.asset import find_dcsc
 from ark.overrides import OverrideSettings, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
-from ue.gathering import gather_properties
 from ue.properties import FloatProperty, StringLikeProperty
 from ue.proxy import UEProxyStructure
-from ue.utils import clean_double as cd
 from utils.log import get_logger
 
 from .flags import gather_flags

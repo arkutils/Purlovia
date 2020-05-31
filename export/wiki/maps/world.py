@@ -2,8 +2,6 @@ from collections import defaultdict
 from types import GeneratorType
 from typing import Any, Dict, List, Optional, Type, cast
 
-from automate.exporter import ExportStage
-from automate.version import createExportVersion
 from ue.asset import ExportTableItem, UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import MissingParent, find_parent_classes
@@ -93,7 +91,7 @@ class World(PersistentLevel):
         '''
         Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
         '''
-        ## Run data-specific conversions
+        # Run data-specific conversions
         for gatherer, fragments in self.data.items():
             # Add lat and long keys as world settings have been found.
             for fragment in fragments:

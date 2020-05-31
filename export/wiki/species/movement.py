@@ -1,7 +1,8 @@
-from typing import *
+from typing import Optional
+
+from pydantic import BaseModel
 
 from ark.types import PrimalDinoCharacter, ShooterCharacterMovement
-from pydantic import BaseModel
 
 
 class SpeedData(BaseModel):

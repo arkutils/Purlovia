@@ -1,6 +1,6 @@
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type
 
-from automate.hierarchy_exporter import ExportFileModel, Field
+from automate.hierarchy_exporter import ExportFileModel, Field  # noqa: F401 # 'Field' not used yet... but soon
 
 from . import models
 

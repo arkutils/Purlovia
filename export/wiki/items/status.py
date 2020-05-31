@@ -20,10 +20,14 @@ def convert_status_effect(entry):
         result['pctOf'] = 'max' if pctOfMax else 'current'
         result['pctAbsRange'] = (d['PercentAbsoluteMinValue'], d['PercentAbsoluteMaxValue'])
 
-    if d['bSetValue']: result['setValue'] = True
-    if d['bSetAdditionalValue']: result['setAddValue'] = True
-    if d['bForceUseStatOnDinos']: result['forceUseOnDino'] = True
-    if not d['bDontRequireLessThanMaxToUse']: result['allowWhenFull'] = False
+    if d['bSetValue']:
+        result['setValue'] = True
+    if d['bSetAdditionalValue']:
+        result['setAddValue'] = True
+    if d['bForceUseStatOnDinos']:
+        result['forceUseOnDino'] = True
+    if not d['bDontRequireLessThanMaxToUse']:
+        result['allowWhenFull'] = False
 
     qlyMult = d['ItemQualityAddValueMultiplier']
     if qlyMult != 1.0:

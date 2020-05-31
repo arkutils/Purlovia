@@ -1,10 +1,8 @@
-from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
-from ue.utils import clean_double as cd
 from ue.utils import sanitise_output
 
 from .maps.models import WeighedClassSwap

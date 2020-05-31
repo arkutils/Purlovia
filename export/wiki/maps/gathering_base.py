@@ -3,7 +3,6 @@ from typing import Any, Dict, Iterable, Optional, Set, Type, Union
 
 from automate.hierarchy_exporter import ExportModel
 from ue.asset import ExportTableItem
-from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 
 __all__ = [

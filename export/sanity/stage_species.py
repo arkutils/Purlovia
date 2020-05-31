@@ -1,6 +1,6 @@
 from collections import Counter
-from pathlib import Path, PurePosixPath
-from typing import Any, Dict, List, Optional, cast
+from pathlib import Path
+from typing import List
 
 from ark.overrides import get_overrides
 from ark.types import PrimalDinoCharacter

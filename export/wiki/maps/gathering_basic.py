@@ -1,18 +1,19 @@
 from typing import Any, Dict, Optional, Set, Type, cast
 
 from automate.hierarchy_exporter import ExportModel
-from export.wiki.types import *
+from export.wiki.types import CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, OilVein, OilVentGen1, PlayerStart, \
+    PointOfInterestBP, PointOfInterestListGen1, PoisonTree, PrimalStructurePowerNode, WaterVein, WildPlantSpeciesZ
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
 
 from . import models
-from .common import convert_location_for_export, get_actor_location_vector, get_actor_location_vector_m
+from .common import convert_location_for_export, get_actor_location_vector
 from .gathering_base import GatheringResult, MapGathererBase, PersistentLevel
 
 __all__ = ['BASIC_GATHERERS']
 
-## Bases
+# Bases
 
 
 class BaseActorExport(MapGathererBase):
@@ -86,7 +87,7 @@ class BaseActorListExport(MapGathererBase):
         convert_location_for_export(world, data)
 
 
-## Actors
+# Actors
 
 
 class GlitchExport(BaseActorListExport):
@@ -116,10 +117,11 @@ class GlitchExport(BaseActorListExport):
         if noteid != -1:
             result.noteId = noteid
 
-        #poi_info = poi.get('MyPointOfInterestData', fallback=None)
-        #if poi_info:
-        #    tag = poi_info.as_dict().get('PointTag', None)
-        #    d['poiTag'] = tag
+        # TODO: remove?
+        # poi_info = poi.get('MyPointOfInterestData', fallback=None)
+        # if poi_info:
+        #     tag = poi_info.as_dict().get('PointTag', None)
+        #     d['poiTag'] = tag
 
         return result
 

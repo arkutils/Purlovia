@@ -1,10 +1,10 @@
 from typing import Mapping
 
-from ark.types import PrimalItem
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
-from ue.proxy import *
+from ue.proxy import UEProxyStructure, uebools, uefloats, ueints, uestrings
 
-from .consts import *
+from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, GAS_VEIN_GEN1_CLS, LUNAR_OXYGEN_VENT_GEN1_CLS, \
+    OIL_VEIN_CLS, OIL_VENT_GEN1_CLS, POINT_OF_INTEREST_LIST_GEN1_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 
 __all__ = [
     'BiomeZoneVolume',
@@ -173,10 +173,11 @@ class PointOfInterestListGen1(UEProxyStructure, uetype=POINT_OF_INTEREST_LIST_GE
     ActorList: Mapping[int, ArrayProperty]
 
 
-class PointOfInterestBP(
-        UEProxyStructure,
-        uetype=
-        '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.PointOfInterestBP_MissionStart_Debugging_C'):
+GENESIS_POI_CLS = '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.' + \
+    'PointOfInterestBP_MissionStart_Debugging_C'
+
+
+class PointOfInterestBP(UEProxyStructure, uetype=GENESIS_POI_CLS):
     # DevKit Verified
     Specific_Unlocked_Explorer_Note_Index = ueints(-1)
     number_of_hexagons_to_reward_upon_fixing = ueints(1000)

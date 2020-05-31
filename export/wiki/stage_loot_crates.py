@@ -1,14 +1,13 @@
-from pathlib import PurePosixPath
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, cast
+from typing import Any, List, Optional, Type, cast
 
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
-from ue.properties import BoolProperty, FloatProperty, IntProperty
+from ue.properties import BoolProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
 from .models import DecayTime, MinMaxPowerRange, MinMaxRange
-from .stage_drops import ItemSet, _get_item_sets_override, decode_item_set, get_loot_sets
+from .stage_drops import ItemSet, decode_item_set, get_loot_sets
 
 __all__ = [
     'LootCratesStage',

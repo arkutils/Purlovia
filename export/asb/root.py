@@ -1,8 +1,7 @@
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import Optional
 
 from automate.exporter import ExportRoot
-from config import ConfigFile
 
 from .stage_species import SpeciesStage
 

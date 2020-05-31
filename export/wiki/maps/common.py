@@ -1,10 +1,8 @@
 import re
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple
 
-from export.wiki.consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
-    GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from ue.asset import ExportTableItem
-from ue.properties import FloatProperty, Vector
+from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_float
 
@@ -25,7 +23,8 @@ BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
 def get_latlong_from_location(world: PersistentLevel, x: FloatLike, y: FloatLike) -> Tuple[float, float]:
     return (
         y / world.settings['latMulti'] + world.settings['latShift'],  # lat
-        x / world.settings['longMulti'] + world.settings['longShift'])  # long
+        x / world.settings['longMulti'] + world.settings['longShift'],  # long
+    )
 
 
 def get_actor_location_vector(actor) -> Vector:

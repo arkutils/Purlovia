@@ -1,14 +1,11 @@
 from pathlib import Path, PurePosixPath
-from types import GeneratorType
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, List, Optional
 
-from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager, ExportRoot, ExportStage
-from automate.hierarchy_exporter import ExportModel, _calculate_relative_path, _output_schema
+from automate.hierarchy_exporter import _calculate_relative_path, _output_schema
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
-from ue.gathering import gather_properties
-from ue.utils import get_leaf_from_assetname, sanitise_output
+from ue.utils import get_leaf_from_assetname
 from utils.log import get_logger
 from utils.strings import get_valid_filename
 

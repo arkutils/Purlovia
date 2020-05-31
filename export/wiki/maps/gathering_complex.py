@@ -1,13 +1,14 @@
 import re
-from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
+from typing import Any, Dict, Iterable, Optional, Set, Type, Union, cast
 
 from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.stage_spawn_groups import convert_single_class_swap_m
-from export.wiki.types import *
+from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, MissionDispatcher_MultiUsePylon, \
+    NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
-from ue.properties import ArrayProperty, StringProperty, Vector
+from ue.properties import ArrayProperty, StringProperty
 from ue.proxy import UEProxyStructure
 from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.name_convert import uelike_prettify
@@ -17,7 +18,10 @@ from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_fo
     get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
 from .gathering_base import GatheringResult, MapGathererBase, PersistentLevel
 
-__all__ = ['COMPLEX_GATHERERS', 'WorldSettingsExport']
+__all__ = (
+    'COMPLEX_GATHERERS',
+    'WorldSettingsExport',
+)
 
 
 class WorldSettingsExport(MapGathererBase):
@@ -69,10 +73,10 @@ class WorldSettingsExport(MapGathererBase):
                 big=sanitise_output(settings.get('OverrideUIMapTextureFilled', 0, None)),
                 small=sanitise_output(settings.get('OverrideUIMapTextureSmall', 0, None)),
             ),
-            ## Spawns
+            # Spawns
             onlyEventGlobalSwaps=bool(settings.bPreventGlobalNonEventSpawnOverrides[0]),
             randomNPCClassWeights=list(cls._convert_class_swaps(settings)),
-            ## Uploads
+            # Uploads
             allowedDinoDownloads=sanitise_output(settings.get('AllowDownloadDinoClasses', 0, ())),
         )
 
