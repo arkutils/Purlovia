@@ -20,9 +20,10 @@ requests = "~=2.22.0"
 pydantic = "~=1.5.1"
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
+flake8 = "~=3.8.2"
 
 [requires]
-python_version = "3.7"
+python_version = "~=3.7"
 
 [scripts]
 check = "pipenv check"
@@ -32,6 +33,7 @@ tests-nocov = "pytest -m 'not uses_copyright_material'"
 tests-nogame-nocov = "pytest -m 'not uses_copyright_material and not requires_game'"
 mypy = "mypy ark automate export tests ue utils processing"
 pylint = "pylint ark automate export tests ue utils processing"
+flake = "flake8"
 yapf = "yapf -d --recursive ark automate export tests ue utils processing"
 isort = "isort"
 i = "ipython -i -m interactive interactive/setup.py"
