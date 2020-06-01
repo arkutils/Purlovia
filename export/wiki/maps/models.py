@@ -55,8 +55,8 @@ class WeighedBox(ExportModel):
 
 class WeighedClassSwap(ExportModel):
     # TODO: Possibly move into export.wiki.models after spawn_groups are moved
-    from_: ObjectPath = Field(alias='from')
-    exact: BoolProperty
+    from_class: Optional[ObjectPath] = Field(alias='from')
+    exact: bool
     to: List[Optional[ObjectPath]]
     weights: List[FloatProperty]
     during: str = 'None'

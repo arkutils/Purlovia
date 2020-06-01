@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, Optional, Set, Type, Union, cast
 from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
-from export.wiki.stage_spawn_groups import convert_single_class_swap_m
+from export.wiki.stage_spawn_groups import convert_single_class_swap
 from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, MissionDispatcher_MultiUsePylon, \
     NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
@@ -92,7 +92,7 @@ class WorldSettingsExport(MapGathererBase):
     def _convert_class_swaps(cls, settings: PrimalWorldSettings) -> Iterable[models.WeighedClassSwap]:
         if 'NPCRandomSpawnClassWeights' in settings:
             for struct in settings.NPCRandomSpawnClassWeights[0].values:
-                yield convert_single_class_swap_m(struct.as_dict())
+                yield convert_single_class_swap(struct.as_dict())
 
 
 class TradeListExport(MapGathererBase):

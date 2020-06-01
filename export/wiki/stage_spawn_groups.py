@@ -103,23 +103,8 @@ def convert_limit_entry(struct):
 
 
 def convert_single_class_swap(d):
-    v = {
-        'from': d['FromClass'],
-        'exact': d['bExactMatch'],
-        'to': d['ToClasses'],
-        'weights': d['Weights'],
-    }
-
-    if d['ActiveEvent'] and d['ActiveEvent'].value and d[
-            'ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
-        v['during'] = d['ActiveEvent']
-
-    return v
-
-
-def convert_single_class_swap_m(d):
-    result = WeighedClassSwap(from_=sanitise_output(d['FromClass']),
-                              exact=d['bExactMatch'],
+    result = WeighedClassSwap(from_class=sanitise_output(d['FromClass']),
+                              exact=bool(d.get('bExactMatch', True)),
                               to=sanitise_output(d['ToClasses']),
                               weights=d['Weights'].values)
 
