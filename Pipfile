@@ -23,7 +23,7 @@ psutil = "~=5.6.6"
 flake8 = "~=3.8.2"
 
 [requires]
-python_version = "~=3.7"
+python_version = "3.7"
 
 [scripts]
 check = "pipenv check"

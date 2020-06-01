@@ -97,7 +97,7 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
 
-    modid: str = asset.loader.get_mod_id(asset.assetname)
+    modid: str = asset.loader.get_mod_id(asset.assetname) or ''
     overrides = get_overrides_for_species(asset.assetname, modid)
 
     if overrides.skip_export:
