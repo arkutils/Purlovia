@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable
 
 __all__ = [
     'IniStringList',

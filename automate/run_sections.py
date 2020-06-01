@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterator, Tuple, Type
+from typing import Dict, Iterator, Tuple
 
 __all__ = [
     'should_run_section',

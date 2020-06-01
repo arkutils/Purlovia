@@ -1,4 +1,4 @@
-from typing import *
+from typing import Any, Dict, Iterable
 
 import requests
 

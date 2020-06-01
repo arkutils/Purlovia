@@ -86,7 +86,7 @@ class Steamcmd:
         :param force: forces steamcmd install regardless of its presence
         :return:
         """
-        if not self.steamcmd_exe.is_file() or force == True:  # pylint: disable=singleton-comparison
+        if not self.steamcmd_exe.is_file() or force is True:
             # Steamcmd isn't installed. Go ahead and install it.
             try:
                 self._download_steamcmd()

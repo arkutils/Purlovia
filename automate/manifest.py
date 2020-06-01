@@ -1,9 +1,9 @@
 import json
 import re
-from dataclasses import dataclass, field
+from collections import Counter
 from operator import itemgetter
 from pathlib import Path, PurePosixPath
-from typing import *
+from typing import Any, Dict, Optional, Sequence
 
 from utils.log import get_logger
 
@@ -28,7 +28,7 @@ def update_manifest(path: Path) -> Optional[Dict[str, Any]]:
     if json_data:
         _write_manifest(manifest_file, json_data)
     else:
-        logger.info(f'No files present - removing existing manifest')
+        logger.info('No files present - removing existing manifest')
         if manifest_file.is_file():
             manifest_file.unlink()  # missing_ok=True is 3.8+
 
