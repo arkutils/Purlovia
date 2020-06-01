@@ -14,8 +14,8 @@ from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.name_convert import uelike_prettify
 
 from . import models
-from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, convert_location_for_export, \
-    get_actor_location_vector, get_actor_location_vector_m, get_volume_bounds, get_volume_bounds_m, get_volume_box_count
+from .common import BIOME_REMOVE_WIND_INFO, any_overriden, convert_box_bounds_for_export, \
+    convert_location_for_export, get_actor_location_vector, get_volume_bounds, get_volume_box_count
 from .gathering_base import GatheringResult, MapGathererBase, PersistentLevel
 
 __all__ = (
@@ -180,14 +180,14 @@ class NPCZoneManagerExport(MapGathererBase):
         for zone_volume in volumes.values:
             zone_volume = zone_volume.value.value
             if zone_volume:
-                yield get_volume_bounds_m(zone_volume)
+                yield get_volume_bounds(zone_volume)
 
     @classmethod
     def _extract_spawn_points(cls, markers: ArrayProperty) -> Iterable[models.Location]:
         for marker in markers.values:
             marker = marker.value.value
             if marker:
-                yield get_actor_location_vector_m(marker)
+                yield get_actor_location_vector(marker)
 
     @classmethod
     def _extract_spawn_volumes(cls, entries: ArrayProperty) -> Iterable[models.WeighedBox]:
@@ -196,8 +196,8 @@ class NPCZoneManagerExport(MapGathererBase):
             volume = d["LinkedZoneSpawnVolume"].value.value
 
             if volume:
-                start, center, end = get_volume_bounds(volume)
-                yield models.WeighedBox(weight=d['EntryWeight'], start=start, center=center, end=end)
+                box = get_volume_bounds(volume)
+                yield models.WeighedBox(weight=d['EntryWeight'], start=box.start, center=box.center, end=box.end)
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
@@ -244,8 +244,8 @@ class BiomeZoneExport(MapGathererBase):
         # Extract bounds
         box_count = get_volume_box_count(biome)
         for box_index in range(box_count):
-            volume_bounds = get_volume_bounds_m(biome, box_index)
-            result.boxes.append(volume_bounds)
+            box = get_volume_bounds(biome, box_index)
+            result.boxes.append(box)
         return result
 
     @classmethod
@@ -362,7 +362,7 @@ class LootCrateSpawnExport(MapGathererBase):
         for entry in entries.values:
             marker = entry.as_dict()['LinkedSpawnPoint'].value.value
             if marker:
-                yield get_actor_location_vector_m(marker)
+                yield get_actor_location_vector(marker)
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
@@ -392,11 +392,11 @@ class RadiationZoneExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         volume: TogglePainVolume = cast(TogglePainVolume, proxy)
-        start, center, end = get_volume_bounds(volume)
+        box = get_volume_bounds(volume)
         return models.PainVolume(
-            start=start,
-            center=center,
-            end=end,
+            start=box.start,
+            center=box.center,
+            end=box.end,
             immune=sanitise_output(volume.get('ActorClassesToExclude', fallback=[])),
         )
 

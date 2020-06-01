@@ -34,13 +34,8 @@ def get_actor_location_vector(actor) -> Vector:
         scene_component = actor['RootComponent'][0].value.value
     else:
         scene_component = actor.properties.get_property("RootComponent").value.value
-    actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
+    vector = scene_component.properties.get_property("RelativeLocation").values[0]
 
-    return actor_location
-
-
-def get_actor_location_vector_m(actor) -> Location:
-    vector = get_actor_location_vector(actor)
     return Location(x=vector.x, y=vector.y, z=vector.z)
 
 
@@ -84,17 +79,12 @@ def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[st
         y=box.max.y + volume_location.y,
         z=box.max.z + volume_location.z,
     )
-
     center = dict(
         x=(start['x'] + end['x']) / 2,
         y=(start['y'] + end['y']) / 2,
         z=(start['z'] + end['z']) / 2,
     )
-    return (start, center, end)
 
-
-def get_volume_bounds_m(volume, convex_index=0) -> Box:
-    start, center, end = get_volume_bounds(volume, convex_index)
     return Box(start=start, center=center, end=end)
 
 
