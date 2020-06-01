@@ -1,6 +1,6 @@
 import pytest
 
-from .testutils import *
+from .testutils import load_asset, parse_colors
 
 EMPTY_COLORS = dict(name=None, values=None)
 

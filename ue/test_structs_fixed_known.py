@@ -1,6 +1,7 @@
 import pytest
 
-from .testutils import *
+from .testutils import load_asset
+from ue.properties import Guid
 
 
 @pytest.mark.uses_copyright_material

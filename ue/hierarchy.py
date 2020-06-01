@@ -1,12 +1,10 @@
 from functools import lru_cache
-from operator import attrgetter
 from pathlib import Path
-from typing import *
+from typing import Iterable, Iterator, Optional, Union
 
 import yaml
 
-from config import ConfigFile, get_global_config
-from ue.asset import ExportTableItem, ImportTableItem, UAsset
+from ue.asset import ExportTableItem, UAsset
 from ue.context import ue_parsing_context
 from ue.loader import AssetLoader, AssetLoadException
 from ue.tree import get_parent_fullname
@@ -208,7 +206,8 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
         asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
         for (assetname, ext) in asset_iterator:
             n += 1
-            if verbose and n % 200 == 0: logger.info(assetname)
+            if verbose and n % 200 == 0:
+                logger.info(assetname)
 
             try:
                 asset = loader.load_asset(assetname, quiet=disable_debug)
