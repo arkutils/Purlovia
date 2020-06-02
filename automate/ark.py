@@ -393,7 +393,10 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
 
 
 def getGameBuildId(game_path: Path) -> str:
-    '''Collect the buildid of the game from Steam's metadata files. This will be updated even if the version number doesn't change.'''
+    '''
+    Collect the buildid of the game from Steam's metadata files.
+    This will be updated even if the version number doesn't change.
+    '''
     filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
     data = readACFFile(filename)
     buildid = data['AppState']['buildid']

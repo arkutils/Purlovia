@@ -1,15 +1,12 @@
 import argparse
 import re
 from logging import WARNING, basicConfig
-from pathlib import Path
-from typing import *
+from typing import Iterator, Tuple
 
 from ark.discovery import initialise_hierarchy
 from automate.ark import ArkSteamManager
-from config import ROOT_LOGGER, ConfigFile, get_global_config
-from ue.asset import ExportTableItem, ImportTableItem, UAsset
+from config import get_global_config
 from ue.hierarchy import find_parent_classes, find_sub_classes, iterate_all
-from ue.loader import AssetLoader, AssetNotFound
 from utils.log import get_logger
 
 # pylint: enable=invalid-name
@@ -28,7 +25,7 @@ def modlist(value: str) -> Tuple[str, ...]:
     inputs = [v.strip() for v in value.split(',')]
     mods = tuple(v for v in inputs if v)
     for modid in mods:
-        as_int = int(modid)  # pylint: disable=unused-variable  # For type-checking only
+        as_int = int(modid)  # pylint: disable=unused-variable  # noqa: F841  # For type-checking only
     return mods
 
 

@@ -22,7 +22,8 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
 
     `key` is a JSON-serialisable object specifying any versions needed to uniquely identify the data.
     `filename` is a name to use for the temp file. If it includes a '/' it will not be prefixed by tempdir.
-    `generator_fn` is a (usually slow) function to generate the data that would otherwise be cached. This function will be passed the `key` object.
+    `generator_fn` is a (usually slow) function to generate the data that would otherwise be cached.
+    This function will be passed the `key` object.
     `force_regenerate` to ignore existing cached data and always regerenate it.
 
     Example usage:

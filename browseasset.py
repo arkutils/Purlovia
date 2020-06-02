@@ -1,14 +1,13 @@
 import os
 import sys
-from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from tkinter import EventType, Tk, ttk  # type: ignore
-from typing import *
+from typing import Any, Dict, Optional
 
 from automate.ark import ArkSteamManager
 from config import get_global_config
 from ue.base import UEBase
-from ue.loader import AssetLoader, AssetNotFound
+from ue.loader import AssetNotFound
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None
@@ -71,7 +70,7 @@ def on_tree_open(evt: EventType):
 
     # This is called when a node containing a placeholder is opened for the first time
     itemId = tree.selection()[0]
-    node = treenodes[itemId]
+    # node = treenodes[itemId]
 
     # Remove the placeholder item under this item
     tree.delete(itemId + '_placeholder')
@@ -120,12 +119,14 @@ def get_node_iterator(node):
 def add_placeholder_node(itemId):
     # Add a tag to specifiy this node as having a placeholder (so it will raise an event when opened)
     tags = tree.item(itemId)['tags']
-    if not hasattr(tags, 'append'): tags = [tags]
+    if not hasattr(tags, 'append'):
+        tags = [tags]
     tags.append('placeholdered')
     tree.item(itemId, tags=tags)
 
     # Add a dummy node to it so it look slike it can be opened
     placeholderId = tree.insert(itemId, 'end', itemId + '_placeholder', text='<virtual tree placeholder>')
+    return placeholderId
 
 
 def add_asset_to_root(asset):
@@ -136,8 +137,10 @@ def add_asset_to_root(asset):
 
 
 def get_value_as_string(value):
-    if isinstance(value, list): return f'{len(value)} entries'
-    if isinstance(value, type): return value.__name__
+    if isinstance(value, list):
+        return f'{len(value)} entries'
+    if isinstance(value, type):
+        return value.__name__
     return str(value)
 
 
@@ -180,7 +183,8 @@ def find_asset(assetname, loader):
         assert assetname
 
     # Attempt to work around MingW hijacking /Game as a root path
-    if assetname.startswith('//'): assetname = assetname[1:]
+    if assetname.startswith('//'):
+        assetname = assetname[1:]
     if 'MINGW_PREFIX' in os.environ:
         mingw_base = Path(os.environ['MINGW_PREFIX']).parent
         try:
@@ -194,7 +198,7 @@ def find_asset(assetname, loader):
         clean_path = loader.clean_asset_name(assetname)
         asset = loader[clean_path]
         return asset.assetname
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         pass
 
     # Try a combination of possible roots
