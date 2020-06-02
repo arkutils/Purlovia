@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Tuple
 
 import ark.asset
 import ark.tree
-from ark.tree import inherits_from
 from ark.types import DCSC_CLS
 from ue.asset import ExportTableItem, UAsset
 from ue.coretypes import UEBase
@@ -33,16 +32,19 @@ def gather_properties(asset: UAsset, props: Optional[PriorityPropDict] = None, r
     the_dcsc = asset.loader.load_class(DCSC_CLS)
     props = props or defaultdict(lambda: defaultdict(list))
 
-    if report: print('\nGathering props from hierarchy (skipping DCSCs):')
+    if report:
+        print('\nGathering props from hierarchy (skipping DCSCs):')
     gather_properties_internal(asset, props, dcscs, the_dcsc, report=report, depth=0)
 
     # Order the DCSCs by CharacterStatusComponentPriority value, descending
     # Python's sort is stable, so it will maintain the gathered order of exports with identical priorities (e.g. Deinonychus)
     dcscs.sort(key=lambda p: -p[0])
 
-    if report: print('\nApplying ordered DCSCs:')
+    if report:
+        print('\nApplying ordered DCSCs:')
     for pri, export in reversed(dcscs):
-        if report: print(f'DCSC pri={pri} {export.fullname}')
+        if report:
+            print(f'DCSC pri={pri} {export.fullname}')
         extract_properties_from_export(export, props, recurse=True)
 
     return props
@@ -65,22 +67,26 @@ def gather_properties_internal(asset: UAsset,
         parentpkg = parent.asset
         gather_properties_internal(parentpkg, props, dcscs, dcsc, report=report, depth=depth + 1)
 
-    if report: print(f'{indent}gathering props from {asset.default_export and asset.default_export.fullname}')
+    if report:
+        print(f'{indent}gathering props from {asset.default_export and asset.default_export.fullname}')
     extract_properties_from_export(asset.default_export, props)
 
     # Gather properties from sub-components
     for subcomponent in ark.asset.findSubComponentExports(asset):
-        if report: print(f'{indent}|   subcomponent: {subcomponent.fullname}')
+        if report:
+            print(f'{indent}|   subcomponent: {subcomponent.fullname}')
         if ark.tree.export_inherits_from(subcomponent, dcsc):
             pri = clean_value(get_property(subcomponent, "CharacterStatusComponentPriority"))
             if pri is None:
                 dcsc_cls = asset.loader.load_related(subcomponent.klass.value).default_export
                 pri = clean_value(get_property(dcsc_cls, "CharacterStatusComponentPriority"))
-            if report: print(f'{indent}|   (postponing dcsc: priority={pri})')
+            if report:
+                print(f'{indent}|   (postponing dcsc: priority={pri})')
             pri = pri or 0
             dcscs.append((pri, subcomponent))
         else:
-            if report: print(f'{indent}|   (gather properties)')
+            if report:
+                print(f'{indent}|   (gather properties)')
             extract_properties_from_export(subcomponent, props)
 
     return props

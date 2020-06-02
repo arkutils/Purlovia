@@ -1,12 +1,10 @@
 from pathlib import Path
-from typing import *
 
 import ue.hierarchy
 from ark.mod import get_managed_mods, get_official_mods
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
-from ue.context import ue_parsing_context
-from ue.loader import AssetLoader, AssetLoadException
+from ue.loader import AssetLoader
 from utils.cachefile import cache_data
 from utils.log import get_logger
 
@@ -20,7 +18,10 @@ logger = get_logger(__name__)
 def initialise_hierarchy(arkman: ArkSteamManager, config: ConfigFile = get_global_config()):
     version_key = _gather_version_data(arkman, config)
     loader = arkman.getLoader()
-    gen_fn = lambda _: _generate_hierarchy(loader)
+
+    def gen_fn(_):
+        return _generate_hierarchy(loader)
+
     output_path = f'{config.settings.DataDir}/asset_hierarchy'
     data = cache_data(version_key, output_path, gen_fn, force_regenerate=config.dev.ClearHierarchyCache)
     ue.hierarchy.tree = data

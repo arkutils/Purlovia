@@ -1,6 +1,6 @@
-from typing import Iterable, Optional, Set
+from typing import Iterable
 
-from config import ConfigFile, get_global_config
+from config import get_global_config
 
 __all__ = [
     'get_core_mods',

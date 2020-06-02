@@ -1,17 +1,16 @@
 from collections import defaultdict
-from typing import *
-from typing import cast
+from typing import Dict, Iterable, List, Tuple, cast
 
 import ark.asset
 import ark.tree
-from ark.types import DCSC_CLS, DINO_CHR_CLS, PDC_CLS, PDSC_CLS, DinoCharacterStatusComponent
+from ark.types import DCSC_CLS, PDC_CLS, PDSC_CLS, DinoCharacterStatusComponent
 from ue.asset import ExportTableItem, UAsset
 from ue.base import UEBase
 from ue.context import ue_parsing_context
 from ue.hierarchy import find_parent_classes, inherits_from
-from ue.loader import AssetLoader, AssetLoadException
-from ue.proxy import UEProxyStructure, get_proxy_for_type
-from ue.utils import get_clean_name, get_property
+from ue.loader import AssetLoader
+from ue.proxy import get_proxy_for_type
+from ue.utils import get_property
 
 
 def extract_properties_from_export(export, props: Dict[str, Dict[int, UEBase]], skip_top=False, recurse=False, report=False):
@@ -24,7 +23,8 @@ def extract_properties_from_export(export, props: Dict[str, Dict[int, UEBase]], 
     if skip_top:
         return
 
-    if report: print(f'Props from {export.fullname}')
+    if report:
+        print(f'Props from {export.fullname}')
     for prop in export.properties.values:
         propname = str(prop.header.name)
         if propname:
@@ -63,7 +63,8 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
                     dcsc_cls = loader.load_related(dcsc_export.klass.value).default_export
                     pri_prop = get_property(dcsc_cls, "CharacterStatusComponentPriority")
                 pri = 0 if pri_prop is None else float(pri_prop)
-                if report: print(f'DCSC from {asset.assetname} = {dcsc_export.fullname} (pri {pri_prop} = {pri})')
+                if report:
+                    print(f'DCSC from {asset.assetname} = {dcsc_export.fullname} (pri {pri_prop} = {pri})')
                 dcscs.append((pri, dcsc_export))
 
         # Order the DCSCs by CharacterStatusComponentPriority value, descending

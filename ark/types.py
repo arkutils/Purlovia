@@ -2,7 +2,7 @@ from itertools import repeat
 from typing import Mapping
 
 from ue.properties import ArrayProperty, LinearColor, ObjectProperty
-from ue.proxy import *
+from ue.proxy import LazyReference, ProxyComponent, UEProxyStructure, uebools, uebytes, uefloats, ueints, uestrings
 
 STAT_COUNT = 12
 COLOR_REGION_COUNT = 6
