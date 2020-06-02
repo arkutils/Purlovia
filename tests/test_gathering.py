@@ -1,5 +1,3 @@
-from typing import *
-
 import pytest
 
 from ark.gathering import gather_dcsc_properties
@@ -8,7 +6,8 @@ from ue.gathering import gather_properties
 from ue.hierarchy import inherits_from
 from ue.proxy import UEProxyStructure
 
-from .common import *
+from .common import *  # noqa: F401,F403  # needed to pick up all fixtures
+from .common import DEINO_CHR, DODO_AB_CHR, DODO_CHR, TEST_PGD_CLS, TROODON_CHR, X_DRAGON_CHR, ScanLoadFn
 
 # pylint: disable=singleton-comparison
 

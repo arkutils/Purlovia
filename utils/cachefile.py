@@ -6,9 +6,8 @@ import hashlib
 import json
 import pickle
 import tempfile
-from collections.abc import Hashable
 from pathlib import Path
-from typing import *
+from typing import Callable
 
 from utils.log import get_logger
 
@@ -48,7 +47,7 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
     if key_hash == existing_hash:
         try:
             with open(data_filename, 'rb') as f_data:
-                logger.debug(f'Re-using existing cached data')
+                logger.debug('Re-using existing cached data')
                 data = pickle.load(f_data)
                 return data
         except IOError:
@@ -56,10 +55,10 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
         except pickle.PickleError:
             logger.warning(f'Cached data file {data_filename} could not be unpickled and must be regenerated')
     else:
-        logger.debug(f'Hash did not match')
+        logger.debug('Hash did not match')
 
     # Generate new data, hash it, and save it for future use
-    logger.debug(f'Triggering data generation')
+    logger.debug('Triggering data generation')
     data = generator_fn(key)
 
     try:

@@ -1,4 +1,11 @@
-from .common import *
+import pytest
+
+import ue.hierarchy
+from ark.types import DINO_CHR_CLS, PDC_CLS, PRIMAL_CHR_CLS
+from ue.loader import AssetLoader
+
+from .common import *  # noqa: F401,F403  # needed to pick up all fixtures
+from .common import DODO_AB_CHR, DODO_CHR
 
 
 @pytest.mark.requires_game

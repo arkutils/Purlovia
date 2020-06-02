@@ -1,11 +1,10 @@
-import math
 import time
 from contextlib import contextmanager
 from datetime import datetime
 from threading import Event, Thread
 
 import psutil
-from guppy import hpy
+from guppy import hpy  # noqa: F401  #
 
 __all__ = [
     'resource_monitor',
@@ -81,7 +80,7 @@ def resource_monitor(process=None, interval=2):
 
     def tick():
         # h = lambda v: eng_string(v, sig_figs=4, si=False)
-        h = lambda v: f'{v}'
+        h = str
         mem = process.memory_info()
         pct = process.memory_percent()
         t = datetime.utcnow() - start_time

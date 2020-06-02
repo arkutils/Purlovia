@@ -1,10 +1,7 @@
-import math
-import operator
-from numbers import Number, Real
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional
 
 import pytest
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 
 from ue.properties import BoolProperty, FloatProperty, IntProperty, StringProperty
 from ue.utils import clean_float, sanitise_output
