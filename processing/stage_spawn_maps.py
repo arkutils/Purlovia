@@ -64,9 +64,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
             assert mod_data
-            path = (path / f'{modid}-{mod_data["name"]}/spawngroups.json')
+            path = (path / f'{modid}-{mod_data["name"]}/spawn_groups.json')
         else:
-            path = (path / 'spawngroups.json')
+            path = (path / 'spawn_groups.json')
         return self.load_json_file(path)
 
     def _get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):

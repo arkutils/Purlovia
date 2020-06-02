@@ -62,7 +62,7 @@ def inflate_swap_rules(random_class_weights):
         weights = fix_up_swap_rule_weights(rule)
 
         from_classes = [from_class]
-        if not rule['exact']:
+        if not rule.get('exact', False):
             # Pre-process non-exact match
             from_classes += find_sub_classes(from_class)
             rule['exact'] = True
