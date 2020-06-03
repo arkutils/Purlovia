@@ -1,7 +1,7 @@
 import shutil
 from collections import namedtuple
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
@@ -11,7 +11,7 @@ from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .spawn_maps.swaps import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
-    copy_spawn_groups, fix_up_groups, inflate_swap_rules, make_random_class_weights_dict
+    copy_spawn_groups, fix_up_groups, inflate_swap_rules
 from .stage_base import ProcessingStage
 
 logger = get_logger(__name__)
@@ -35,7 +35,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb = self._load_asb(None)
         data_groups, data_swaps = self._get_spawning_groups(None)
         if not data_asb or not data_groups:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
         self._process_all_maps(maps, data_asb, data_groups, data_swaps, None)
@@ -64,9 +64,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
             assert mod_data
-            path = (path / f'{modid}-{mod_data["name"]}/spawngroups.json')
+            path = (path / f'{modid}-{mod_data["name"]}/spawn_groups.json')
         else:
-            path = (path / 'spawngroups.json')
+            path = (path / 'spawn_groups.json')
         return self.load_json_file(path)
 
     def _get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):
@@ -108,14 +108,14 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb_core = self._load_asb(None)
         data_asb_mod = self._load_asb(modid)
         if not data_asb_core or not data_asb_mod:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
         data_asb_mod['species'] += data_asb_core['species']
 
         # Load and merge spawning group data
         data_groups, data_swaps = self._get_spawning_groups(modid)
         if not data_groups:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
         self._process_all_maps(maps, data_asb_mod, data_groups, data_swaps, modid)
@@ -128,7 +128,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_asb = self._load_asb(modid)
         data_groups, data_swaps = self._get_spawning_groups(modid, is_game_mod=True)
         if not data_asb or not data_groups:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
         self._process_all_maps(maps, data_asb, data_groups, data_swaps, modid)
@@ -182,7 +182,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         data_map_settings = self.load_json_file(data_path / 'world_settings.json')
         data_map_spawns = self.load_json_file(data_path / 'npc_spawns.json')
         if not data_map_settings or not data_map_spawns:
-            logger.debug(f'Data required by the processor is missing or invalid. Skipping.')
+            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
         # Initialize bound structure for this map

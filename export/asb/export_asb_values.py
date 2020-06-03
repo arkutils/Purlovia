@@ -13,7 +13,6 @@ from export.asb.stats import gather_stat_data
 from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
 from ue.loader import AssetNotFound, ModNotFound
-from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 from utils.log import get_logger
 

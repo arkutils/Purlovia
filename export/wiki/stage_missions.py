@@ -9,7 +9,7 @@ from .flags import gather_flags
 from .missions.dinos import gather_dino_data
 from .missions.rewards import collect_rewards
 from .missions.typedata import MISSION_TYPES
-from .types import *
+from .types import MissionType
 
 __all__ = [
     'MissionsStage',

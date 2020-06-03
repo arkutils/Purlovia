@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, cast
 
-from export.wiki.types import *
+from export.wiki.types import MissionType, MissionType_Escort, MissionType_Fishing, MissionType_Gather, MissionType_Gauntlet, \
+    MissionType_GlitchCounter, MissionType_Hunt, MissionType_Race, MissionType_Retrieve, MissionType_Sport
 
 
 class BaseMissionType(ABC):

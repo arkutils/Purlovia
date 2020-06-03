@@ -1,31 +1,32 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional, Set, Union
+from typing import Any, Dict, Iterable, Optional, Set, Type, Union
 
+from automate.hierarchy_exporter import ExportModel
 from ue.asset import ExportTableItem
-from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 
-from .data_container import MapInfo
-
 __all__ = [
-    'GatheredData',
     'GatheringResult',
     'MapGathererBase',
 ]
 
-GatheredData = Union[UEBase, Dict[str, Any]]
-GatheringResult = Optional[Union[GatheredData, Iterable[GatheredData]]]
+GatheringResult = Optional[Union[ExportModel, Iterable[ExportModel]]]
+
+
+class PersistentLevel(ABC):
+    persistent_level: Optional[str] = None
+    settings: Dict[str, Any]
 
 
 class MapGathererBase(ABC):
     @classmethod
     @abstractmethod
-    def get_export_name(cls) -> str:
+    def get_ue_types(cls) -> Set[str]:
         ...
 
     @classmethod
     @abstractmethod
-    def get_ue_types(cls) -> Set[str]:
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
         ...
 
     @classmethod
@@ -41,11 +42,12 @@ class MapGathererBase(ABC):
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         '''
         Collect data from a proxy object and return it as a dict.
-        Caution: Data should be formatted for json to avoid leak any references.
         '''
         ...
 
     @classmethod
-    @abstractmethod
-    def before_saving(cls, map_info: MapInfo, data: Dict[str, Any]):
+    def before_saving(cls, _world: PersistentLevel, _data: Dict[str, Any]):
+        '''
+        Modify the sanitised data before saving.
+        '''
         ...

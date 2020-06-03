@@ -1,5 +1,4 @@
-from pathlib import PurePosixPath
-from typing import *
+from typing import Any, Dict, Iterable, Optional, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from export.wiki.types import PrimalEngramEntry
@@ -10,8 +9,6 @@ from utils.log import get_logger
 __all__ = [
     'EngramsStage',
 ]
-
-
 
 logger = get_logger(__name__)
 

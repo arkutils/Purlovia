@@ -3,10 +3,9 @@ from typing import Dict, Iterable, Iterator, List, Set
 import ue.hierarchy
 from ark.mod import get_core_mods
 from ark.overrides import get_overrides_for_map
-from config import ConfigFile, get_global_config
+from config import get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
-from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetLoadException
+from ue.loader import AssetLoader
 from ue.utils import get_assetpath_from_assetname
 from utils.log import get_logger
 
@@ -23,10 +22,10 @@ def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]
     levels: Dict[str, Set[str]] = dict()
 
     for assetname in assetnames:
-        map_ = get_assetpath_from_assetname(assetname)
-        if map_ not in levels:
-            levels[map_] = set()
-        levels[map_].add(assetname)
+        assetpath = get_assetpath_from_assetname(assetname)
+        if assetpath not in levels:
+            levels[assetpath] = set()
+        levels[assetpath].add(assetname)
 
     return {path: list(sorted(names)) for path, names in levels.items()}
 

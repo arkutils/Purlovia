@@ -6,7 +6,6 @@ from ark.types import PrimalDinoCharacter, PrimalItem
 from ue.loader import AssetLoader
 from ue.properties import ObjectProperty
 from ue.utils import clean_double as cd
-from ue.utils import clean_float as cf
 from utils.log import get_logger
 
 __all__ = [

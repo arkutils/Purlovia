@@ -1,11 +1,11 @@
-from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
-from ue.utils import clean_double as cd
+from ue.utils import sanitise_output
 
+from .maps.models import WeighedClassSwap
 from .types import NPCSpawnEntriesContainer
 
 __all__ = [
@@ -103,18 +103,16 @@ def convert_limit_entry(struct):
 
 
 def convert_single_class_swap(d):
-    v = {
-        'from': d['FromClass'],
-        'exact': d['bExactMatch'],
-        'to': d['ToClasses'],
-        'weights': d['Weights'],
-    }
+    result = WeighedClassSwap(from_class=sanitise_output(d['FromClass']),
+                              exact=bool(d.get('bExactMatch', True)),
+                              to=sanitise_output(d['ToClasses']),
+                              weights=d['Weights'].values)
 
-    if d['ActiveEvent'] and d['ActiveEvent'].value and d[
-            'ActiveEvent'].value.value and d['ActiveEvent'].value.value.value != 'None':
-        v['during'] = d['ActiveEvent']
+    if d['ActiveEvent'] and d['ActiveEvent'].value and d['ActiveEvent'].value.value:
+        # Assigning "None" here is safe as it is the field default and therefore omitted
+        result.during = str(d['ActiveEvent'])
 
-    return v
+    return result
 
 
 def convert_class_swaps(pgd: UAsset):

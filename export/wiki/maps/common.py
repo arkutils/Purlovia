@@ -1,13 +1,12 @@
 import re
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
-from export.wiki.consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, \
-    GAS_VEIN_CLS, OIL_VEIN_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 from ue.asset import ExportTableItem
-from ue.properties import Vector
 from ue.proxy import UEProxyStructure
+from ue.utils import clean_float
 
-from .data_container import MapInfo
+from .gathering_base import PersistentLevel
+from .models import Box, FloatLike, Location
 
 __all__ = [
     'convert_box_bounds_for_export',
@@ -20,16 +19,23 @@ __all__ = [
 BIOME_REMOVE_WIND_INFO = re.compile(r', \d*% W(ind|)')
 
 
-def get_actor_location_vector(actor) -> Vector:
+def get_latlong_from_location(world: PersistentLevel, x: FloatLike, y: FloatLike) -> Tuple[float, float]:
+    return (
+        y / world.settings['latMulti'] + world.settings['latShift'],  # lat
+        x / world.settings['longMulti'] + world.settings['longShift'],  # long
+    )
+
+
+def get_actor_location_vector(actor) -> Location:
     '''Retrieves actor's world-space location vector.'''
 
     if isinstance(actor, UEProxyStructure):
         scene_component = actor['RootComponent'][0].value.value
     else:
         scene_component = actor.properties.get_property("RootComponent").value.value
-    actor_location = scene_component.properties.get_property("RelativeLocation").values[0]
+    vector = scene_component.properties.get_property("RelativeLocation").values[0]
 
-    return actor_location
+    return Location(x=vector.x, y=vector.y, z=vector.z)
 
 
 def get_volume_brush_setup(volume) -> Tuple[ExportTableItem, ExportTableItem]:
@@ -52,7 +58,7 @@ def get_volume_box_count(volume) -> int:
     return len(convex_elements.values)
 
 
-def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
+def get_volume_bounds(volume, convex_index=0) -> Box:
     '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
 
     brush, body = get_volume_brush_setup(volume)
@@ -72,22 +78,35 @@ def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[st
         y=box.max.y + volume_location.y,
         z=box.max.z + volume_location.z,
     )
-
     center = dict(
         x=(start['x'] + end['x']) / 2,
         y=(start['y'] + end['y']) / 2,
         z=(start['z'] + end['z']) / 2,
     )
-    return (start, center, end)
+
+    return Box(start=start, center=center, end=end)
 
 
-def convert_box_bounds_for_export(map_info: MapInfo, box_data: dict):
+def convert_location_for_export(world: PersistentLevel, data: Dict[str, Any]):
+    lat, long = get_latlong_from_location(world, data['x'], data['y'])
+    data['lat'] = clean_float(lat)
+    data['long'] = clean_float(long)
+
+
+def convert_box_bounds_for_export(world: PersistentLevel, box_data: Dict[str, Any]):
     # Start
-    box_data['start']['lat'] = map_info.lat.from_units(box_data['start']['y'])
-    box_data['start']['long'] = map_info.long.from_units(box_data['start']['x'])
+    lat, long = get_latlong_from_location(world, box_data['start']['x'], box_data['start']['y'])
+    box_data['start']['lat'] = clean_float(lat)
+    box_data['start']['long'] = clean_float(long)
     # Center
-    box_data['center']['lat'] = map_info.lat.from_units(box_data['center']['y'])
-    box_data['center']['long'] = map_info.long.from_units(box_data['center']['x'])
+    lat, long = get_latlong_from_location(world, box_data['center']['x'], box_data['center']['y'])
+    box_data['center']['lat'] = clean_float(lat)
+    box_data['center']['long'] = clean_float(long)
     # End
-    box_data['end']['lat'] = map_info.lat.from_units(box_data['end']['y'])
-    box_data['end']['long'] = map_info.long.from_units(box_data['end']['x'])
+    lat, long = get_latlong_from_location(world, box_data['end']['x'], box_data['end']['y'])
+    box_data['end']['lat'] = clean_float(lat)
+    box_data['end']['long'] = clean_float(long)
+
+
+def any_overriden(proxy: UEProxyStructure, props: Tuple[str, ...]) -> bool:
+    return any(proxy.has_override(x) for x in props)

@@ -1,9 +1,10 @@
 from typing import Mapping
 
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
-from ue.proxy import *
+from ue.proxy import UEProxyStructure, uebools, uefloats, ueints, uestrings
 
-from .consts import *
+from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, GAS_VEIN_GEN1_CLS, LUNAR_OXYGEN_VENT_GEN1_CLS, \
+    OIL_VEIN_CLS, OIL_VENT_GEN1_CLS, POINT_OF_INTEREST_LIST_GEN1_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 
 __all__ = [
     'BiomeZoneVolume',
@@ -29,6 +30,7 @@ __all__ = [
     'TogglePainVolume',
     'WaterVein',
     'WildPlantSpeciesZ',
+    'PoisonTree',
     'MissionType_Basketball',
     'MissionType_Sport',
     'MissionType_Gather',
@@ -171,10 +173,11 @@ class PointOfInterestListGen1(UEProxyStructure, uetype=POINT_OF_INTEREST_LIST_GE
     ActorList: Mapping[int, ArrayProperty]
 
 
-class PointOfInterestBP(
-        UEProxyStructure,
-        uetype=
-        '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.PointOfInterestBP_MissionStart_Debugging_C'):
+GENESIS_POI_CLS = '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.' + \
+    'PointOfInterestBP_MissionStart_Debugging_C'
+
+
+class PointOfInterestBP(UEProxyStructure, uetype=GENESIS_POI_CLS):
     # DevKit Verified
     Specific_Unlocked_Explorer_Note_Index = ueints(-1)
     number_of_hexagons_to_reward_upon_fixing = ueints(1000)
@@ -220,6 +223,12 @@ class PrimalStructurePowerNode(UEProxyStructure, uetype=CHARGE_NODE_CLS):
 
 
 class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class PoisonTree(UEProxyStructure,
+                 uetype='/Game/Genesis/Environment/Bog/Vegetation/Foliage/PoisonPlant/BP_HeroPoisonPlant.BP_HeroPoisonPlant_C'):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
