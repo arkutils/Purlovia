@@ -2,7 +2,6 @@ import re
 from typing import Any, Dict, Tuple
 
 from ue.asset import ExportTableItem
-from ue.properties import Vector
 from ue.proxy import UEProxyStructure
 from ue.utils import clean_float
 
