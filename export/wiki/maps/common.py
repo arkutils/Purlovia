@@ -27,7 +27,7 @@ def get_latlong_from_location(world: PersistentLevel, x: FloatLike, y: FloatLike
     )
 
 
-def get_actor_location_vector(actor) -> Vector:
+def get_actor_location_vector(actor) -> Location:
     '''Retrieves actor's world-space location vector.'''
 
     if isinstance(actor, UEProxyStructure):
@@ -59,7 +59,7 @@ def get_volume_box_count(volume) -> int:
     return len(convex_elements.values)
 
 
-def get_volume_bounds(volume, convex_index=0) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
+def get_volume_bounds(volume, convex_index=0) -> Box:
     '''Retrieves volume's world-space bounds as tuple of two vectors: min and max.'''
 
     brush, body = get_volume_brush_setup(volume)
