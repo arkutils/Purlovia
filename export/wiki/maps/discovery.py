@@ -1,14 +1,33 @@
-from typing import Iterable, Iterator
+from typing import Dict, Iterable, Iterator, List, Set
 
 import ue.hierarchy
+from ark.mod import get_core_mods
 from ark.overrides import get_overrides_for_map
-from config import ConfigFile, get_global_config
+from config import get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
-from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetLoadException
+from ue.loader import AssetLoader
+from ue.utils import get_assetpath_from_assetname
 from utils.log import get_logger
 
+__all__ = [
+    'group_levels_by_directory',
+    'LevelDiscoverer',
+]
+
 logger = get_logger(__name__)
+
+
+def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]:
+    '''Takes an unsorted list of levels and groups them by directory.'''
+    levels: Dict[str, Set[str]] = dict()
+
+    for assetname in assetnames:
+        assetpath = get_assetpath_from_assetname(assetname)
+        if assetpath not in levels:
+            levels[assetpath] = set()
+        levels[assetpath].add(assetname)
+
+    return {path: list(sorted(names)) for path, names in levels.items()}
 
 
 class LevelDiscoverer:
@@ -17,10 +36,7 @@ class LevelDiscoverer:
         self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
 
     def discover_vanilla_levels(self) -> Iterator[str]:
-        config = get_global_config()
-        official_modids = set(config.official_mods.ids())
-        official_modids -= set(config.settings.SeparateOfficialMods)
-        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
+        official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in get_core_mods())
 
         all_cls_names = list(ue.hierarchy.find_sub_classes(WORLD_CLS))
         all_cls_names += ue.hierarchy.find_sub_classes(LEVEL_SCRIPT_ACTOR_CLS)

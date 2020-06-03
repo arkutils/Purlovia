@@ -2,12 +2,10 @@ from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, List, Optional, Type
 
-from pydantic import BaseConfig, BaseModel, Field
+from pydantic import BaseModel, Field
 
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
-from config import ConfigFile
-from ue.base import UEBase
 from ue.proxy import UEProxyStructure
 from ue.utils import sanitise_output
 from utils.strings import get_valid_filename

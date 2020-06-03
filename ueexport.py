@@ -1,5 +1,4 @@
 import argparse
-import os
 import sys
 from pathlib import Path
 from pprint import pprint
@@ -8,9 +7,7 @@ from typing import Any, Optional, Tuple
 from automate.ark import ArkSteamManager
 from automate.jsonutils import _format_json
 from browseasset import find_asset
-from config import get_global_config
 from ue.asset import UAsset
-from ue.loader import AssetLoader, AssetLoadException
 from ue.utils import sanitise_output
 
 EPILOG = '''example: python ueexport.py /Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP'''
@@ -102,10 +99,10 @@ def collect_data(asset: UAsset) -> Tuple[str, Any]:
                     found_indexes.append(i)
 
             if found_indexes:
-                print(f"Export with this name not found", file=sys.stderr)
+                print("Export with this name not found", file=sys.stderr)
                 sys.exit(1)
             elif len(found_indexes) > 1:
-                print(f"This name was found at multiple indexes:", file=sys.stderr)
+                print("This name was found at multiple indexes:", file=sys.stderr)
                 pprint(found_indexes, stream=sys.stderr)
                 sys.exit(1)
 
@@ -143,7 +140,7 @@ def main():
     args = create_parser().parse_args()
 
     if args.dir and args.output:
-        print(f"Cannot specify both --dir and --output:", file=sys.stderr)
+        print("Cannot specify both --dir and --output:", file=sys.stderr)
         sys.exit(1)
 
     asset = collect_asset(args.assetname)

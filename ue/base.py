@@ -1,4 +1,4 @@
-from typing import *
+from typing import Any, Dict, List, Optional, Sequence
 
 from .context import INCLUDE_METADATA, get_ctx
 from .stream import MemoryStream

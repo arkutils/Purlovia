@@ -10,12 +10,8 @@ with ue_parsing_context(metadata=False, link=True, properties=False):
         # inherits metadata=False, link=True
 '''
 
-import threading
-from collections import namedtuple
-from contextlib import ContextDecorator
 from dataclasses import dataclass
-from enum import IntEnum, auto
-from typing import NamedTuple, Optional, cast
+from typing import Optional, cast
 
 from utils.log import get_logger
 from utils.xlocal import xlocal
@@ -77,9 +73,12 @@ def ue_parsing_context(
     fields = dict(context_level=__current_ctx.context_level + 1)
 
     # if metadata is not None: fields['metadata'] = metadata
-    if link is not None: fields['link'] = link
-    if properties is not None: fields['properties'] = properties
-    if bulk_data is not None: fields['bulk_data'] = bulk_data
+    if link is not None:
+        fields['link'] = link
+    if properties is not None:
+        fields['properties'] = properties
+    if bulk_data is not None:
+        fields['bulk_data'] = bulk_data
 
     ctx = __current_ctx(**fields)
     return ctx

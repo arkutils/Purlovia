@@ -1,19 +1,21 @@
 import weakref
-from collections import namedtuple
-from typing import *
+from typing import TYPE_CHECKING, Optional, Set
 
 from utils.log import get_logger
 
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
-from .coretypes import *
+from .coretypes import ChunkPtr, CompressedChunk, GenerationInfo, NameIndex, ObjectIndex, Table
 from .properties import Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty
 from .stream import MemoryStream
-from .utils import get_clean_name, get_clean_namespaced_name
+from .utils import get_clean_name
+
+if TYPE_CHECKING:
+    from .loader import AssetLoader
 
 if INCLUDE_METADATA:
     try:
-        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore  # noqa: F401
         support_pretty = True
     except ImportError:
         support_pretty = False
@@ -52,7 +54,7 @@ class UAsset(UEBase):
         super().__init__(self, stream)
 
     def _deserialise(self):  # pylint: disable=arguments-differ
-        ctx = get_ctx()
+        # ctx = get_ctx()  # not yet required
 
         # Header top
         self._newField('tag', self.stream.readUInt32())

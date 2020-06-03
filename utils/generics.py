@@ -1,4 +1,4 @@
-from typing import *
+from typing import List, Optional, Tuple, Type
 
 
 def get_generic_args(obj) -> Optional[List[Type]]:

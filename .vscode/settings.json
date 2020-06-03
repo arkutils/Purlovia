@@ -24,7 +24,8 @@
     "editor.formatOnSaveTimeout": 10000,
 
     "python.jediEnabled": false,
-    "python.linting.pylintEnabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
@@ -74,6 +75,7 @@
     "coverage-gutters.xmlname": "coverage.xml",
     "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
     "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "githubIssues.workingIssueBranch": "issue-${issueNumber}",
 
     "yaml.schemas": {
         "./schema/overrides.yaml.json": ["/config/overrides.yaml"],

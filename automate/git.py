@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
@@ -150,7 +150,7 @@ class GitManager:
 
             logger.info(f'Git configured as user: {username}')
         else:
-            logger.info(f'Git ready, without user identity')
+            logger.info('Git ready, without user identity')
 
     def _set_branch(self):
         branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()

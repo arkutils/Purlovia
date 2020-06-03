@@ -2,7 +2,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import *
+from typing import Any, Dict, Optional, Tuple
 
 from utils.log import get_logger
 

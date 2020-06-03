@@ -1,6 +1,6 @@
 from collections import deque
 from functools import lru_cache
-from typing import *
+from typing import Callable, Deque, Optional, Set, TypeVar
 
 from ue.asset import ExportTableItem, ImportTableItem, UAsset
 

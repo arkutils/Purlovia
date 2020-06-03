@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Set, Tuple
+from typing import Set
 
 from .overrides import OverrideSettings
 from .types import PrimalDinoCharacter

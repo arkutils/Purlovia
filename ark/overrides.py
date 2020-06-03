@@ -2,8 +2,7 @@ import re
 from collections.abc import MutableMapping as Map
 from copy import deepcopy
 from functools import lru_cache
-from pathlib import Path
-from typing import *
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import yaml
 from pydantic import BaseModel, Field
@@ -118,6 +117,7 @@ class OverrideSettings(BaseModel):
 
 class SanityCheckSettings(BaseModel):
     min_species: Dict[str, int] = dict()
+    min_maps: Dict[str, int] = dict()
 
 
 class OverridesFile(BaseModel):
@@ -220,7 +220,7 @@ def get_overrides_for_map(map: str, modid: str) -> OverrideSettings:
     return OverrideSettings(**settings)
 
 
-def any_regexes_match(source: Union[Dict[str, str], List[str]], target: str, flags: int = re.I):
+def any_regexes_match(source: Union[Dict[str, str], List[str]], target: str, flags: int = re.IGNORECASE):
     regexes: Iterable[str] = source.values() if isinstance(source, Map) else source
     for search in regexes:
         if search and re.match(search, target, flags):

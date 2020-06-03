@@ -1,76 +1,51 @@
-from typing import Sequence, Set
+from typing import Iterable
 
-from ark.asset import findComponentExports
-from ue.asset import UAsset
-from ue.loader import AssetLoader
-from ue.utils import *
-
-from .properties import gather_properties
+from config import get_global_config
 
 __all__ = [
-    'get_mod_remapped_spawners',
-    'get_mod_remapped_npcs',
-    'get_species_from_mod',
-    'is_mod',
-    'load_all_species',
+    'get_core_mods',
+    'get_managed_mods',
+    'get_official_mods',
+    'get_separate_mods',
 ]
 
 
-def get_mod_remapped_spawners(asset: UAsset):
-    for export in findComponentExports(asset):
-        remap_spawners = get_property(export, 'GlobalNPCRandomSpawnClassWeights')
-        if not remap_spawners: return
-        for entry in remap_spawners.values:
-            fromPkg = get_clean_name(entry.values[0].value.value.value.namespace)
-            toPkgs = [get_clean_name(toPkg.value.value.namespace) for toPkg in entry.values[1].value.values]
-            yield (fromPkg, toPkgs)
+def _mod_sorter(modid: str):
+    try:
+        return f'{int(modid):014d}'
+    except ValueError:
+        return modid
 
 
-def get_mod_remapped_npcs(asset: UAsset):
-    for export in findComponentExports(asset):
-        remap_entries = get_property(export, 'Remap_NPC')
-        if not remap_entries: return
-        for entry in remap_entries.values:
-            fromPkg = str(entry.values[0].value.value.value.namespace.value.name)
-            toPkg = str(entry.values[1].value.value.value.namespace.value.name)
-            yield (fromPkg, toPkg)
+def get_official_mods() -> Iterable[str]:
+    '''A list of mods that are installed as part of the base game.'''
+    config = get_global_config()
+    official_mods = sorted(set(config.official_mods.ids()), key=_mod_sorter)
+    return official_mods
 
 
-def get_species_from_mod(asset: UAsset, loader: AssetLoader = None) -> list:
-    loader = loader or asset.loader
-    assert loader and asset.assetname
-    this_mod = loader.get_mod_name(asset.assetname)
-    mod_species = set()
-
-    # Gather species from the remapped NPCs list
-    for _, toPkg in get_mod_remapped_npcs(asset):
-        to_mod = loader.get_mod_name(toPkg)
-        if to_mod == this_mod:
-            mod_species.add(toPkg)
-
-    # Gather species from the remapped spawn zones
-    for _, toPkgs in get_mod_remapped_spawners(asset):
-        for toPkg in toPkgs:
-            to_mod = loader.get_mod_name(toPkg)
-            if to_mod == this_mod:
-                mod_species.add(toPkg)
-
-    return sorted(list(mod_species))
+def get_managed_mods() -> Iterable[str]:
+    '''A list of mods that should be installed and managed.'''
+    config = get_global_config()
+    official_mods = set(config.official_mods.ids())
+    separate_mods = set(config.settings.SeparateOfficialMods)
+    extract_mods = set(config.mods)
+    managed_mods = sorted(extract_mods - separate_mods - official_mods, key=_mod_sorter)
+    return managed_mods
 
 
-def is_mod(asset: UAsset) -> bool:
-    if not asset.default_export: return False
-    if 'properties' not in asset.default_export.field_values: return False
-    if not get_property(asset.default_export, 'ModName'): return False
-    return True
+def get_core_mods() -> Iterable[str]:
+    '''A list of mods that should be included in 'core' extraction data.'''
+    config = get_global_config()
+    official_mods = set(config.official_mods.ids())
+    separate_mods = set(config.settings.SeparateOfficialMods)
+    extract_mods = set(config.extract_mods if config.extract_mods is not None else config.mods)
+    core_mods = sorted(official_mods - separate_mods - extract_mods, key=_mod_sorter)
+    return core_mods
 
 
-def load_all_species(modasset: UAsset):
-    assert modasset.loader
-    species_data = []
-    for pkgname in get_species_from_mod(modasset):
-        pkg = modasset.loader[pkgname]
-        props = gather_properties(pkg)
-        species_data.append((pkg, props))
-
-    return species_data
+def get_separate_mods() -> Iterable[str]:
+    '''A list of mods that should be extracted into separate files.'''
+    config = get_global_config()
+    extract_mods = sorted(set(config.extract_mods if config.extract_mods is not None else config.mods), key=_mod_sorter)
+    return extract_mods

@@ -4,11 +4,10 @@ import pytest
 
 import ue.hierarchy
 from ark.discovery import initialise_hierarchy
-from ark.types import *
+from ark.types import DCSC_CLS
 from automate.ark import ArkSteamManager
 from config import HIERARCHY_FILENAME, ConfigFile, get_global_config
-from ue.asset import ExportTableItem, UAsset
-from ue.context import ParsingContext, get_ctx, ue_parsing_context
+from ue.asset import ExportTableItem
 from ue.loader import AssetLoader
 
 TEST_PGD_PKG = '/Game/Mods/1821554891/PrimalGameData_BP_PurloviaTEST'

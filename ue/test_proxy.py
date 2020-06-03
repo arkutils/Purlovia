@@ -1,4 +1,4 @@
-from typing import *
+from typing import Mapping
 
 import pytest
 
@@ -73,13 +73,13 @@ def test_has_override(simple_proxy):
 
     simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
 
-    assert simple_proxy.has_override('IntField', 0) == False
-    assert simple_proxy.has_override('IntField', 1) == False
+    assert simple_proxy.has_override('IntField', 0) is False
+    assert simple_proxy.has_override('IntField', 1) is False
 
     simple_proxy.update({'IntField': ueints(3141)})
 
-    assert simple_proxy.has_override('IntField', 0) == True
-    assert simple_proxy.has_override('IntField', 1) == False
+    assert simple_proxy.has_override('IntField', 0) is True
+    assert simple_proxy.has_override('IntField', 1) is False
 
 
 def test_unspecified_fields(simple_proxy):
@@ -88,10 +88,10 @@ def test_unspecified_fields(simple_proxy):
 
     simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
 
-    assert simple_proxy.has_override('IntField', 0) == False
-    assert simple_proxy.has_override('OtherField', 0) == False
+    assert simple_proxy.has_override('IntField', 0) is False
+    assert simple_proxy.has_override('OtherField', 0) is False
 
     simple_proxy.update({'OtherField': ueints(3141)})
 
-    assert simple_proxy.has_override('OtherField', 0) == True
-    assert simple_proxy.has_override('IntField', 1) == False
+    assert simple_proxy.has_override('OtherField', 0) is True
+    assert simple_proxy.has_override('IntField', 1) is False

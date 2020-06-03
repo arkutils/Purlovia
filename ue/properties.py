@@ -7,14 +7,14 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from numbers import Real
-from typing import *
+from typing import Any, ByteString, Dict, List, Optional, Set, Tuple, Type, Union
 
 from utils.log import get_logger
 
 from .base import UEBase
-from .context import INCLUDE_METADATA, get_ctx
-from .coretypes import *
-from .number import *
+from .context import INCLUDE_METADATA
+from .coretypes import NameIndex, ObjectIndex
+from .number import make_binary_operator, make_binary_operators, make_operator
 from .stream import MemoryStream
 from .utils import clean_double, clean_float
 
@@ -27,7 +27,7 @@ if INCLUDE_METADATA:
 else:
     support_pretty = False
 
-#pylint: disable=unused-argument,arguments-differ
+# pylint: disable=unused-argument,arguments-differ
 
 dbg_structs = 0
 
@@ -200,7 +200,7 @@ class Property(UEBase):
 
             p.text(str(self.header.name) + '[')
             p.pretty(self.header.index)
-            p.text(f'] = ')
+            p.text('] = ')
             # p.text(f'{str(self.header.type)}) ')
             p.pretty(self.value)
 
@@ -392,11 +392,11 @@ class FloatProperty(ValueProperty):
         return self.raw_data
 
     def format_for_json(self):
-        return self.__float__()
+        return clean_float(self.value)
 
     def __float__(self):
         '''Restrict single-precision float output to 7 significant figures.'''
-        return clean_float(self.value)
+        return float(clean_float(self.value))
 
 
 class DoubleProperty(ValueProperty):
@@ -749,20 +749,21 @@ class StructEntry(UEBase):
             self.field_values['value'].deserialise(self.length, with_type=subType)
             self.field_values['value'].link()
             if dbg_structs > 1:
-                print(f'     = ', str(self.value))
+                print('     = ', str(self.value))
         elif propertyType:
             self._newField('value', '<not yet defined>')
             self.field_values['value'] = propertyType(self)
             self.field_values['value'].deserialise(self.length)
             self.field_values['value'].link()
             if dbg_structs > 1:
-                print(f'     = ', str(self.value))
+                print('     = ', str(self.value))
 
             return
 
         if skipLength is not None:
             self.stream.offset += self.length
-            if dbg_structs > 1: print(f'  Recognised as skippable: {self.length} bytes')
+            if dbg_structs > 1:
+                print(f'  Recognised as skippable: {self.length} bytes')
             self.field_values['value'] = f'<skipped {name} ({self.length} bytes)>'
             self.stream.offset += skipLength
             return
@@ -817,25 +818,25 @@ def decode_type_or_name(type_or_name: NameIndex, skip_deserialise=False):
     propertyType = getPropertyType(name, throw=False)
     if propertyType:
         if dbg_structs > 2:
-            print(f'  ...is a supported type')
+            print('  ...is a supported type')
         return name, propertyType, None
 
     # Is it skippable?
     known_length = SKIPPABLE_STRUCTS.get(name, None)
     if known_length is not None:
         if dbg_structs > 2:
-            print(f'  ...is skippable')
+            print('  ...is skippable')
         return name, None, known_length
 
     # Is it known as a fixed length struct but without a length?
     if name in STRUCT_TYPES_TO_ABORT_ON:
         if dbg_structs > 2:
-            print(f'  ...is an unsupported unskippable struct type')
+            print('  ...is an unsupported unskippable struct type')
         return name, None, float('NaN')
 
     # Then treat it as just a name
     if dbg_structs > 2:
-        print(f'  ...is not a name we recognise')
+        print('  ...is not a name we recognise')
     return name, None, None
 
 
@@ -863,7 +864,8 @@ class StructProperty(UEBase):
             # It is a type we have a class for
             if propertyType:
 
-                if dbg_structs > 1: print(f'  Recognised type: {name}')
+                if dbg_structs > 1:
+                    print(f'  Recognised type: {name}')
                 value = propertyType(self)
                 values.append(value)
                 value.deserialise(None)  # we don't have any size information
@@ -875,11 +877,13 @@ class StructProperty(UEBase):
             # It is a fixed-length type we have a length for
             if skipLength is not None:
                 if math.isnan(skipLength):
-                    if dbg_structs > 1: print(f'  Recognised as unskippable and unsupported!!! Struct parsing terminated...')
+                    if dbg_structs > 1:
+                        print('  Recognised as unskippable and unsupported!!! Struct parsing terminated...')
                     self.stream.offset = self.start_offset + size + 8
                     return
                 else:
-                    if dbg_structs > 1: print(f'  Recognised as skippable: {skipLength} bytes')
+                    if dbg_structs > 1:
+                        print(f'  Recognised as skippable: {skipLength} bytes')
                     values.append(f'<skipped {name} ({skipLength} bytes)>')
                     self.stream.offset += skipLength
                     return

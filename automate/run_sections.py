@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterator, Tuple, Type
+from typing import Dict, Iterator, Tuple
 
 __all__ = [
     'should_run_section',
@@ -151,5 +151,5 @@ def verify_sections(sections: Dict[str, bool], roots: tuple):
 
     # Check inputs are all valid
     for name in sections:
-        if name not in valid_values:
+        if name not in valid_values and name != '':
             raise ValueError("Section name matches nothing: " + name)

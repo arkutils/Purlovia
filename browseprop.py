@@ -1,13 +1,11 @@
 import sys
 from collections import defaultdict
-from tkinter import Tk, filedialog, ttk
-from typing import *
+from tkinter import Tk, ttk
+from typing import Any, Dict, Optional
 
 import ark.asset
 from automate.ark import ArkSteamManager
 from browseasset import find_asset
-from ue.base import UEBase
-from ue.loader import AssetLoader
 from ue.properties import FloatProperty, Property, StructProperty
 
 root: Optional[Tk] = None
@@ -38,12 +36,18 @@ def type_name(value):
 
 
 def get_value_as_string(value):
-    if isinstance(value, list): return f'{len(value)} entries'
-    if isinstance(value, type): return value.__name__
-    if isinstance(value, StructProperty): return '<struct>'
-    if isinstance(value, FloatProperty): return value.rounded
-    if isinstance(value, Property) or hasattr(value, 'value'): return get_value_as_string(value.value)
-    if value is None: return ''
+    if isinstance(value, list):
+        return f'{len(value)} entries'
+    if isinstance(value, type):
+        return value.__name__
+    if isinstance(value, StructProperty):
+        return '<struct>'
+    if isinstance(value, FloatProperty):
+        return value.rounded
+    if isinstance(value, Property) or hasattr(value, 'value'):
+        return get_value_as_string(value.value)
+    if value is None:
+        return ''
     return str(value)
 
 
@@ -71,9 +75,12 @@ def load_asset(assetname):
 
 def should_filter_out(prop):
     proptype = str(prop.header.type)
-    if proptype == 'StructProperty': return True
-    if proptype == 'ArrayProperty': return True
-    if proptype == 'ObjectProperty': return True
+    if proptype == 'StructProperty':
+        return True
+    if proptype == 'ArrayProperty':
+        return True
+    if proptype == 'ObjectProperty':
+        return True
 
 
 def record_properties(properties, assetname):
@@ -81,7 +88,8 @@ def record_properties(properties, assetname):
         return
     assetlist.append(assetname)
     for prop in properties:
-        if should_filter_out(prop): continue
+        if should_filter_out(prop):
+            continue
         value = get_value_as_string(prop)
         propertyvalues[str(prop.header.name)][prop.header.index][assetname] = value
 

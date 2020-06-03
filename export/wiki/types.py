@@ -1,10 +1,10 @@
 from typing import Mapping
 
-from ark.types import PrimalItem
 from ue.properties import ArrayProperty, ByteProperty, NameProperty, ObjectProperty, StructProperty
-from ue.proxy import *
+from ue.proxy import UEProxyStructure, uebools, uefloats, ueints, uestrings
 
-from .consts import *
+from .consts import CHARGE_NODE_CLS, EXPLORER_CHEST_BASE_CLS, GAS_VEIN_CLS, GAS_VEIN_GEN1_CLS, LUNAR_OXYGEN_VENT_GEN1_CLS, \
+    OIL_VEIN_CLS, OIL_VENT_GEN1_CLS, POINT_OF_INTEREST_LIST_GEN1_CLS, WATER_VEIN_CLS, WILD_PLANT_SPECIES_Z_CLS
 
 __all__ = [
     'BiomeZoneVolume',
@@ -30,6 +30,7 @@ __all__ = [
     'TogglePainVolume',
     'WaterVein',
     'WildPlantSpeciesZ',
+    'PoisonTree',
     'MissionType_Basketball',
     'MissionType_Sport',
     'MissionType_Gather',
@@ -172,10 +173,11 @@ class PointOfInterestListGen1(UEProxyStructure, uetype=POINT_OF_INTEREST_LIST_GE
     ActorList: Mapping[int, ArrayProperty]
 
 
-class PointOfInterestBP(
-        UEProxyStructure,
-        uetype=
-        '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.PointOfInterestBP_MissionStart_Debugging_C'):
+GENESIS_POI_CLS = '/Game/Genesis/Missions/Debugging/PointOfInterestBP_MissionStart_Debugging.' + \
+    'PointOfInterestBP_MissionStart_Debugging_C'
+
+
+class PointOfInterestBP(UEProxyStructure, uetype=GENESIS_POI_CLS):
     # DevKit Verified
     Specific_Unlocked_Explorer_Note_Index = ueints(-1)
     number_of_hexagons_to_reward_upon_fixing = ueints(1000)
@@ -225,19 +227,24 @@ class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
-    # DevKit Verified
-    bIsVisible = uebools(True)
-
-    # DevKit Unverified
-    ExplorerNoteIndex = ueints(0)
-
+class PoisonTree(UEProxyStructure,
+                 uetype='/Game/Genesis/Environment/Bog/Vegetation/Foliage/PoisonPlant/BP_HeroPoisonPlant.BP_HeroPoisonPlant_C'):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
-class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
+class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
+    # DevKit Verified
+    bIsVisible = uebools(True)
+    ExplorerNoteIndex = ueints(0)
+
     # DevKit Unverified
+
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
+    # DevKit Verified
     MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
 
     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
@@ -289,9 +296,9 @@ class DayCycleManager_Gen1(UEProxyStructure, uetype='/Script/ShooterGame.DayCycl
 class MissionDispatcher_MultiUsePylon(
         UEProxyStructure, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
     # DevKit Verified
+    MissionTypeIndex = ueints(0)
 
     # DevKit Unverified
-    MissionTypeIndex = ueints(0)
 
     MissionTypes: Mapping[int, ArrayProperty]
     RootComponent: Mapping[int, ObjectProperty]
@@ -308,10 +315,10 @@ class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
 
 class HexagonTradableOption(UEProxyStructure, uetype='/Script/ShooterGame.HexagonTradableOption'):
     # DevKit Verified
-
-    # DevKit Unverified
     Quantity = ueints(1)
     ItemCost = ueints(0)
+
+    # DevKit Unverified
 
     ItemClass: Mapping[int, ObjectProperty]
 
@@ -470,3 +477,12 @@ class MissionType_Basketball(
     # DevKit Unverified
 
     Basketball_Dino: Mapping[int, StructProperty]
+
+
+class TekCloningChamber(UEProxyStructure, uetype='/Game/PrimalEarth/Structures/TekTier/TekCloningChamber.TekCloningChamber_C'):
+    # DevKit Verified
+    CloneBaseElementCostGlobalMultiplier = uefloats(2500.0)
+    CloneElementCostPerLevelGlobalMultiplier = uefloats(5500.0)
+    CloningTimePerElementShard = uefloats(7.0)
+
+    # DevKit Unverified

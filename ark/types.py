@@ -1,8 +1,8 @@
 from itertools import repeat
 from typing import Mapping
 
-from ue.properties import ArrayProperty, ByteProperty, LinearColor, ObjectProperty
-from ue.proxy import *
+from ue.properties import ArrayProperty, LinearColor, ObjectProperty
+from ue.proxy import LazyReference, ProxyComponent, UEProxyStructure, uebools, uebytes, uefloats, ueints, uestrings
 
 STAT_COUNT = 12
 COLOR_REGION_COUNT = 6
@@ -90,6 +90,8 @@ class PrimalCharacterStatusComponent(UEProxyStructure, uetype=PCSC_CLS):
     TheMaxTorporIncreasePerBaseLevel = uefloats((0.06000000, '8fc2753d'))
     WakingTameFoodConsumptionRateMultiplier = uefloats((2.00000000, '00000040'))
     WalkingStaminaConsumptionRate = uefloats((-0.30000001, '9a9999be'))
+    RunningStaminaConsumptionRate = uefloats(-5)
+    SwimmingOrFlyingStaminaConsumptionRate = uefloats(-0.3)
 
 
 class Blueprint(UEProxyStructure, uetype=BLUEPRINT_CLS):
@@ -143,7 +145,8 @@ class PrimalDinoStatusComponent(PrimalCharacterStatusComponent, uetype=PDSC_CLS)
     TamingMaxStatAdditions = uefloats(*repeat(0, STAT_COUNT))
     TamingMaxStatMultipliers = uefloats(*repeat(0, STAT_COUNT))
 
-    # DevKit Unverified
+    MaxExperiencePoints = uefloats(100000.0)
+    LevelExperienceRampType = uebytes(('ELevelExperienceRampType', 'Player'))
 
 
 class DinoCharacterStatusComponent(PrimalDinoStatusComponent, uetype=DCSC_CLS):
@@ -167,6 +170,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bAllowCarryFlyerDinos = uebools(False)
     bAllowFlyerLandedRider = uebools(False)
     bAllowRunningWhileSwimming = uebools(False)
+    bAutoTameable = uebools(False)
     bCanBeTamed = uebools(True)
     bCanBeTorpid = uebools(True)
     bCanCrouch = uebools(False)
@@ -177,12 +181,17 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bIsBossDino = uebools(False)
     bIsCorrupted = uebools(False)
     bIsFlyerDino = uebools(False)
+    bIsRobot = uebools(False)
+    bIsVehicle = uebools(False)
     bIsWaterDino = uebools(False)
+    bPreventCloning = uebools(False)
     bPreventEnteringWater = uebools(False)
     bPreventImmobilization = uebools(False)
     bPreventMating = uebools(False)
     bPreventSleepingTame = uebools(False)
+    bPreventUploading = uebools(False)
     bSupportWakingTame = uebools(False)
+    bUniqueDino = uebools(False)
     bUseBabyGestation = uebools(False)
     bUseColorization = uebools(False)
 
@@ -192,6 +201,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     DinoNameTag = uestrings('')  # NameProperty (Default: None)
     DragWeight = uefloats(35.0)
     PreventColorizationRegions = uebytes(*repeat(0, COLOR_REGION_COUNT))
+    AutoFadeOutAfterTameTime = uefloats(0.0)
 
     # Breeding/reproduction
     BabyAgeSpeed = uefloats((0.03300000, '022b073d'))
@@ -225,6 +235,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     FallDamageMultiplier = uefloats(165.0)
 
     FlyingRunSpeedModifier = uefloats(1.0)
+    SwimmingRunSpeedModifier = uefloats(1.0)
     RidingSwimmingRunSpeedModifier = uefloats(1.0)
     RunningSpeedModifier = uefloats(1.5)
     TamedRunningSpeedModifier = uefloats(1.0)
@@ -236,6 +247,18 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     ScaleExtraRunningMultiplierMin = uefloats(0.0)
     ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
     ScaleExtraRunningSpeedModifier = uebools(False)
+
+    DefaultLandMovementMode = uebytes(('EMovementMode', 'MOVE_Walking'))
+    SubmergedWaterMovementMode = uebytes(('EMovementMode', 'MOVE_Swimming'))
+    WaterSubmergedDepthThreshold = uefloats(0.7)
+
+    # Cloning
+    CloneBaseElementCost = uefloats(0)
+    CloneElementCostPerLevel = uefloats(0)
+
+    # Experience
+    OverrideDinoMaxExperiencePoints = uefloats(0)
+    DestroyTamesOverLevelClampOffset = ueints(0)
 
     # DevKit Unverified
 

@@ -10,9 +10,9 @@ import os
 import sys
 from typing import Any, Dict, List
 
-from guppy import hpy
+from guppy import hpy  # noqa: F401  # used by compiled snippet
 
-from .resource_monitor import resource_monitor
+from .resource_monitor import resource_monitor  # noqa: F401  # used by compiled snippet
 
 SRC_NAME = '<cmdline>'
 

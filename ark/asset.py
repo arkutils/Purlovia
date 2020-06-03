@@ -1,4 +1,4 @@
-from typing import *
+from typing import Iterator, Optional
 
 from ark.types import DCSC_CLS
 from ue.asset import ExportTableItem, UAsset
@@ -49,7 +49,7 @@ def findSubComponentExports(asset: UAsset, expectedklassname='BlueprintGenerated
 def findParentPackages(asset: UAsset) -> Iterator[str]:
     '''Find the parents of the main export components from the given asset.'''
     for export in findComponentExports(asset):
-        pkg = findExportSourcePackage(export)  #.klass.value ???
+        pkg = findExportSourcePackage(export)  # .klass.value ???
         if pkg:
             yield pkg
 

@@ -1,7 +1,5 @@
-from pathlib import PurePosixPath
-from typing import Any, Dict, List, Mapping, Optional, Union, cast
+from typing import Any, List, Mapping, Optional, Union, cast
 
-from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
@@ -22,11 +20,11 @@ __all__ = [
 
 logger = get_logger(__name__)
 
+DINO_DROP_BASE_CLS = '/Game/PrimalEarth/CoreBlueprints/Inventories/DinoDropInventoryComponent_BP_Base' + \
+    '.DinoDropInventoryComponent_BP_Base_C'
 
-class DinoDropInventoryComponent(
-        UEProxyStructure,
-        uetype=
-        '/Game/PrimalEarth/CoreBlueprints/Inventories/DinoDropInventoryComponent_BP_Base.DinoDropInventoryComponent_BP_Base_C'):
+
+class DinoDropInventoryComponent(UEProxyStructure, uetype=DINO_DROP_BASE_CLS):
     ItemSets: Mapping[int, ArrayProperty]
     ItemSetsOverride: Mapping[int, ArrayProperty]
     AdditionalItemSets: Mapping[int, ArrayProperty]
@@ -131,9 +129,11 @@ def get_loot_sets(lootinv: Union[DinoDropInventoryComponent, PrimalStructureItem
 
 def decode_item_name(item):
     item = item.value
-    if not item: return None
+    if not item:
+        return None
     item = item.value
-    if not item: return None
+    if not item:
+        return None
     return str(item.name)
 
 

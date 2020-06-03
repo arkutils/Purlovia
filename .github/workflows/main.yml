@@ -56,14 +56,17 @@ jobs:
       env:
         PIPENV_PYUP_API_KEY: ""
 
-#     - name: Run format check
-#       run: pipenv run tests-nogame
+#     - name: Run format check - isort, etc
+#       run: pipenv run ...
 
-    - name: Run tests
-      run: pipenv run tests-nogame
+    - name: Run flake8
+      run: pipenv run flake
 
     - name: Run type checking
       run: pipenv run mypy
+
+    - name: Run tests
+      run: pipenv run tests-nogame
 
     # - name: Save test results
     # - name: Save code coverage

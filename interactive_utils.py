@@ -1,8 +1,7 @@
-import os
 import sys
 from typing import Any
 
-#pylint: disable=import-outside-toplevel,global-statement,import-error
+# pylint: disable=import-outside-toplevel,global-statement,import-error
 
 is_interactive = bool(getattr(sys, 'ps1', sys.flags.interactive))
 pprint = None

@@ -1,5 +1,4 @@
-from pathlib import PurePosixPath
-from typing import *
+from typing import Any, Dict, Optional, cast
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import JsonHierarchyExportStage
@@ -16,7 +15,6 @@ from .items.status import convert_status_effect
 __all__ = [
     'ItemsStage',
 ]
-
 
 logger = get_logger(__name__)
 

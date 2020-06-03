@@ -1,19 +1,16 @@
 from pathlib import Path, PurePosixPath
-from types import GeneratorType
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
-from ark.overrides import get_overrides_for_map
 from automate.exporter import ExportManager, ExportRoot, ExportStage
+from automate.hierarchy_exporter import _calculate_relative_path, _output_schema
 from automate.jsonutils import save_json_if_changed
 from automate.version import createExportVersion
-from ue.gathering import gather_properties
-from ue.utils import get_assetpath_from_assetname, get_leaf_from_assetname, sanitise_output
+from ue.utils import get_leaf_from_assetname
 from utils.log import get_logger
+from utils.strings import get_valid_filename
 
-from .maps.data_container import MapInfo
-from .maps.discovery import LevelDiscoverer
-from .maps.gathering import EXPORTS, find_gatherer_by_category_name, find_gatherer_for_export
-from .maps.geo import GeoCoordCalculator
+from .maps.discovery import LevelDiscoverer, group_levels_by_directory
+from .maps.world import EXPORTS, World
 
 logger = get_logger(__name__)
 
@@ -29,9 +26,6 @@ class MapStage(ExportStage):
         super().initialise(manager, root)
         self.discoverer = LevelDiscoverer(self.manager.loader)
 
-    def get_format_version(self) -> str:
-        return '1'
-
     def get_name(self) -> str:
         return 'maps'
 
@@ -40,18 +34,23 @@ class MapStage(ExportStage):
         if not self.manager.config.export_wiki.ExportVanillaMaps:
             return
 
+        # Prepare a schema, if requested
+        for name, model_info in EXPORTS.items():
+            model, _ = model_info
+            _output_schema(model, path / self._get_schema_file_path(name))
+
         # Core versions are based on the game version and build number
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
         # Extract every core map
-        maps = self._group_levels_by_directory(self.discoverer.discover_vanilla_levels())
+        maps = group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
 
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, directory_name, levels)
+            self._extract_and_save(version, path, Path(directory_name), levels)
 
     def extract_mod(self, path: Path, modid: str):
         '''Perform extraction for mod data.'''
@@ -68,143 +67,66 @@ class MapStage(ExportStage):
 
         # Extract the map
         path = (path / f'{modid}-{mod_data["name"]}')
-        maps = self._group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
+        maps = group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
 
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, directory_name, levels, known_persistent=f'{directory}/{selectable_maps[0]}')
+            self._extract_and_save(version, path, Path(directory_name), levels, modid, f'{directory}/{selectable_maps[0]}')
 
     def _extract_and_save(self,
                           version: str,
                           base_path: Path,
-                          relative_path: str,
+                          relative_path: Path,
                           levels: List[str],
+                          modid: Optional[str] = None,
                           known_persistent: Optional[str] = None):
-        # Work out the output path
-        output_path = Path(base_path / relative_path)
+        # Do the actual extraction
+        world = World(known_persistent)
+        for assetname in levels:
+            asset = self.manager.loader[assetname]
+            world.ingest_level(asset)
 
-        # Do the actual export
-        intermediate = self._gather_data_from_levels(levels, known_persistent=known_persistent)
-        if not intermediate.data['worldSettings']:
-            logger.error(f'World settings were not extracted from {relative_path} - data will not be emitted.')
-            return
-        self._convert_data_for_export(intermediate)
+        if not world.bind_settings():
+            logger.error(f'No world settings could have been found for {relative_path} - data will not be emitted.')
+            return None
 
-        # Save all files if the data changed
-        for file_name in EXPORTS:
-            self._save_section(version, output_path, file_name, intermediate)
+        world.convert_for_export()
 
-    def _save_section(self, version: str, base_path: Path, file_name: str, intermediate: MapInfo):
-        # Setup the output structure
-        results: Dict[str, Any] = dict()
-        format_version = self.get_format_version()
-        output: Dict[str, Any] = dict(version=version, format=format_version)
-        output['persistentLevel'] = intermediate.persistent_level
-
-        # Add exported data to the output
-        for helper in EXPORTS[file_name]:
-            output_key = helper.get_export_name()
-            if output_key in intermediate.data:
-                results[output_key] = intermediate.data[output_key]
-
-        # Stop if no data has been extracted from this section
-        if not results:
-            return
-        output.update(results)
-
-        # Save if the data changed
+        # Save
         pretty_json = self.manager.config.export_wiki.PrettyJson
         if pretty_json is None:
             pretty_json = True
-        save_json_if_changed(output, (base_path / file_name).with_suffix('.json'), pretty_json)
 
-    def _group_levels_by_directory(self, assetnames: Iterable[str]) -> Dict[str, List[str]]:
-        '''
-        Takes an unsorted list of levels and groups them by directory.
-        '''
-        levels: Dict[str, Set[str]] = dict()
+        for file_name, data in world.construct_export_files():
+            # Work out the clean output path
+            output_path = (relative_path / file_name).with_suffix('.json')
+            clean_relative_path = PurePosixPath(*(get_valid_filename(p) for p in output_path.parts))
 
-        for assetname in assetnames:
-            map_ = get_assetpath_from_assetname(assetname)
-            if map_ not in levels:
-                levels[map_] = set()
-            levels[map_].add(assetname)
+            # Remove existing file if exists and no data was found.
+            if not data:
+                if output_path.is_file():
+                    output_path.unlink()
+                continue
 
-        return {path: list(sorted(names)) for path, names in levels.items()}
+            # Work out schema path
+            schema_path = _calculate_relative_path(clean_relative_path, self._get_schema_file_path(file_name))
 
-    def _gather_data_from_levels(self, levels: List[str], known_persistent: Optional[str] = None) -> MapInfo:
-        '''
-        Goes through each sublevel, gathering data and looking for the persistent level.
-        '''
-        map_info = MapInfo(data=dict())
-        for assetname in levels:
-            asset = self.manager.loader[assetname]
+            # Setup the output structure
+            output: Dict[str, Any] = dict()
+            output['$schema'] = str(schema_path)
+            output['version'] = version
+            if modid:
+                mod_data = self.manager.arkman.getModData(modid)
+                assert mod_data
+                title = mod_data['title'] or mod_data['name']
+                output['mod'] = dict(id=modid, tag=mod_data['name'], title=title)
+            output.update(data)
 
-            # Check if asset is a persistent level and mark it as such in map info object
-            if not getattr(asset, 'tile_info', None) and (not known_persistent or known_persistent == assetname):
-                if getattr(map_info, 'persistent_level', None):
-                    logger.warning(
-                        f'Found another persistent level ({assetname}), but {map_info.persistent_level} was located earlier: skipping.'
-                    )
-                    continue
-                map_info.persistent_level = assetname
+            # Save if the data changed
+            save_json_if_changed(output, (base_path / output_path), pretty_json)
 
-            # Go through each export and, if valuable, gather data from it.
-            for export in asset.exports:
-                helper = find_gatherer_for_export(export)
-                if helper:
-                    category_name = helper.get_export_name()
-
-                    # Extract data using helper class.
-                    try:
-                        data = helper.extract(proxy=gather_properties(export))
-                    except Exception:  # pylint: disable=base-except
-                        logger.warning(f'Gathering properties failed for export "{export.name}" in {assetname}', exc_info=True)
-                        continue
-                    if not data:
-                        continue
-
-                    # Make sure the data list is initialized.
-                    if category_name not in map_info.data:
-                        map_info.data[category_name] = list()
-
-                    if isinstance(data, GeneratorType):
-                        data_fragments: list = sanitise_output(list(data))
-                        for fragment in data_fragments:
-                            if fragment:
-                                map_info.data[category_name].append(fragment)
-                    else:
-                        fragment = sanitise_output(data)
-                        map_info.data[category_name].append(fragment)
-
-            # Preemptively remove the level from linker cache.
-            self.manager.loader.cache.remove(assetname)
-
-        return map_info
-
-    def _convert_data_for_export(self, map_info: MapInfo):
-        '''
-        Converts XYZ coords to long/lat keys, and sorts data by every category's criteria.
-        '''
-        # Create longitude and latitude calculators
-        for candidate in map_info.data['worldSettings']:
-            if candidate['source'] == map_info.persistent_level:
-                world_settings = candidate
-                del world_settings['source']
-                break
-        map_info.lat = GeoCoordCalculator(world_settings['latOrigin'], world_settings['latScale'])
-        map_info.long = GeoCoordCalculator(world_settings['longOrigin'], world_settings['longScale'])
-
-        # Run data-specific conversions
-        for key, values in map_info.data.items():
-            # Helper class exists if data has been exported from it.
-            helper = find_gatherer_by_category_name(key)
-            # Add lat and long keys as world settings have been found.
-            for data in values:
-                helper.before_saving(map_info, data)  # type:ignore
-
-        # Move the world settings out of the single element list
-        map_info.data['worldSettings'] = world_settings
+    def _get_schema_file_path(self, file_name: str) -> PurePosixPath:
+        return PurePosixPath('.schema') / f'maps_{file_name}.json'

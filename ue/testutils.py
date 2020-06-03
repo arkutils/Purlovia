@@ -1,20 +1,17 @@
 import os.path
 
-import pytest
-
 import ark.asset
 import ark.mod
-from ue.asset import UAsset
-from ue.base import UEBase
-from ue.loader import load_file_into_memory
-from ue.properties import *
-from ue.stream import MemoryStream
-from ue.utils import *
+
+from .asset import UAsset
+from .loader import load_file_into_memory
+from .stream import MemoryStream
 
 
 def load_asset(assetfile: str):
     assetfile = assetfile.replace('/', '_')
-    if not assetfile.lower().endswith('.uasset'): assetfile += '.uasset'
+    if not assetfile.lower().endswith('.uasset'):
+        assetfile += '.uasset'
     filename = os.path.join('.', 'testdata', assetfile)
     mem = load_file_into_memory(filename)
     stream = MemoryStream(mem, 0, len(mem))

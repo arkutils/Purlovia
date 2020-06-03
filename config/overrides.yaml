@@ -86,6 +86,17 @@ sanity_checks:
         '/Game/Mods/Valguero': 11 # 13 at last check
         '/Game/Mods/Ragnarok': 13 # 16 at last check
         '/Game/Mods/111111111': 12 # 14 at last check
+    
+    min_maps:
+        '/Game/Maps/TheIslandSubMaps': 93 # 102 at last check
+        '/Game/Maps/Aberration': 103 # 105 at last check
+        '/Game/Maps/Extinction': 96 # 98 at last check
+        '/Game/Maps/Genesis': 130 # 132 at last check
+        '/Game/Maps/ScorchedEarth': 63 # 65 at last check
+
+        '/Game/Mods/TheCenter': 80 # 82 at last check
+        '/Game/Mods/Ragnarok': 266 # 268 at last check
+        '/Game/Mods/Valguero': 146 # 148 at last check
 
 
 # Override settings on a per-mod basis

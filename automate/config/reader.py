@@ -1,6 +1,8 @@
 from configparser import ConfigParser
+from typing import Optional
 
-from .sections import *
+from .sections import ConfigFile, DevSection, ErrorsSection, ExportASBSection, ExportDefaultsSection, \
+    ExportWikiSection, GitSection, OptimisationSection, ProcessingSection, SettingsSection, SteamCmdSection
 from .util_types import ModIdAccess
 
 SIMPLE_SECTION_TYPES = {

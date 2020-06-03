@@ -1,10 +1,9 @@
-import datetime
 import json
 import re
 import shutil
 from os import walk
 from pathlib import Path
-from typing import *
+from typing import Any, Dict, Optional, Sequence, Set, Union
 
 import requests
 
@@ -16,7 +15,6 @@ from utils.name_convert import uelike_prettify
 from .modutils import readACFFile, readModInfo, readModMetaInfo, unpackModFile
 from .steamapi import SteamApi
 from .steamcmd import Steamcmd
-from .version import createExportVersion
 
 __all__ = ('ArkSteamManager', )
 
@@ -179,7 +177,7 @@ class ArkSteamManager:
             else:
                 logger.info('(skipped)')
         else:
-            logger.info(f'No mods to update')
+            logger.info('No mods to update')
 
         # Delete unwanted installed mods
         if uninstallOthers:
@@ -190,7 +188,7 @@ class ArkSteamManager:
                 else:
                     logger.info('(skipped)')
             else:
-                logger.info(f'No mods to remove')
+                logger.info('No mods to remove')
 
         # Delete all downloaded steamapps mods
         logger.info('Removing steam workshop cache')
@@ -206,7 +204,7 @@ class ArkSteamManager:
         # Verify there are no overlapping mod tags
         tag_list = [data['name'].lower() for data in self.mod_data_cache.values()]
         if len(set(tag_list)) != len(tag_list):
-            raise ValueError(f'There are mods with duplicate tag names present. Aborting.')
+            raise ValueError('There are mods with duplicate tag names present. Aborting.')
 
     def _installMods(self, modids):
         # TODO: Consider doing the extractions in parallel with the installations (offset) to speed this up
@@ -224,7 +222,6 @@ class ArkSteamManager:
 
             # Collection mod version number from workshop data file
             newVersions = getSteamModVersions(self.gamedata_path, [modid])
-            newVersion = newVersions[modid]
 
             # Save data on the installed mod
             moddata = gatherModInfo(self.asset_path, modid)
@@ -396,7 +393,10 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
 
 
 def getGameBuildId(game_path: Path) -> str:
-    '''Collect the buildid of the game from Steam's metadata files. This will be updated even if the version number doesn't change.'''
+    '''
+    Collect the buildid of the game from Steam's metadata files.
+    This will be updated even if the version number doesn't change.
+    '''
     filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
     data = readACFFile(filename)
     buildid = data['AppState']['buildid']

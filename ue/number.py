@@ -1,6 +1,4 @@
-import math
-import operator
-from numbers import Number, Real
+from numbers import Number
 
 __all__ = [
     'make_binary_operators',

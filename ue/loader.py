@@ -1,12 +1,10 @@
 import os.path
 import re
-import sys
-import weakref
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from itertools import islice
 from pathlib import Path
-from typing import *
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 import psutil  # type: ignore
 
@@ -14,8 +12,8 @@ from utils.log import get_logger
 
 from .asset import ExportTableItem, ImportTableItem, UAsset
 from .base import UEBase
-from .context import ParsingContext, get_ctx
-from .properties import ObjectIndex, ObjectProperty, Property
+from .context import get_ctx
+from .properties import ObjectProperty, Property
 from .stream import MemoryStream
 
 logger = get_logger(__name__)

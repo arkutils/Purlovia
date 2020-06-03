@@ -1,27 +1,60 @@
-from typing import *
+from typing import Any, Dict, Optional
 
-from ark.types import PrimalDinoCharacter, ShooterCharacterMovement
 from pydantic import BaseModel
 
+from ark.types import DinoCharacterStatusComponent, PrimalDinoCharacter, ShooterCharacterMovement
+from automate.hierarchy_exporter import ExportModel
+from ue.properties import FloatProperty
 
-class SpeedData(BaseModel):
+
+class SpeedData(ExportModel):
     base: float
     crouch: Optional[float]
     sprint: Optional[float]
 
 
-class MovementModes(BaseModel):
+class MovementModes(ExportModel):
     walk: Optional[SpeedData]
     fly: Optional[SpeedData]
     swim: Optional[SpeedData]
 
 
+class StaminaRates(ExportModel):
+    sprint: Optional[FloatProperty]
+    swimOrFly: Optional[FloatProperty]
+
+
 class MovementIntermediate(BaseModel):
     movementW: Optional[MovementModes]
     movementD: Optional[MovementModes]
+    staminaRates: Optional[StaminaRates]
 
 
-def gather_movement_data(species: PrimalDinoCharacter) -> MovementIntermediate:
+def can_walk(_species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
+    return nav_props.get('bCanWalk', True)
+
+
+def has_free_movement_in_water(species: PrimalDinoCharacter) -> bool:
+    '''Returns True if dino flies when submerged, granting full movement freedom.'''
+    return species.SubmergedWaterMovementMode[0].get_enum_value_name() == 'MOVE_Flying'
+
+
+def can_swim(species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
+    '''Returns True if dino can submerge and swims by default when that happens.'''
+    if nav_props.get('bCanSwim', False):
+        return True
+
+    if bool(species.bPreventEnteringWater[0]) or species.WaterSubmergedDepthThreshold[0] > 1.0:
+        return False
+
+    submerged_mode = species.SubmergedWaterMovementMode[0].get_enum_value_name()
+    if submerged_mode in ('MOVE_Swimming', 'MOVE_Flying'):
+        return True
+
+    return False
+
+
+def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> MovementIntermediate:
     result = MovementIntermediate()
 
     untamedMult = species.UntamedRunningSpeedModifier[0] * species.ExtraUnTamedSpeedMultiplier[0]
@@ -29,6 +62,8 @@ def gather_movement_data(species: PrimalDinoCharacter) -> MovementIntermediate:
 
     tamedMult = species.TamedRunningSpeedModifier[0] * species.ExtraTamedSpeedMultiplier[0]
     result.movementD = _gather_speeds(species, tamedMult)
+
+    result.staminaRates = _gather_stamina(dcsc, result.movementW)
 
     return result
 
@@ -49,11 +84,10 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
     nav_props_struct = cm.get('NavAgentProps', fallback=None)
     nav_props = nav_props_struct.as_dict() if nav_props_struct else {}
 
-    isWaterDino = bool(species.bIsWaterDino[0])
-    canWalk = nav_props.get('bCanWalk', True) and not isWaterDino
+    canRun = species.bCanRun[0]
+    canWalk = nav_props.get('bCanWalk', True)
     canCrouch = nav_props.get('bCanCrouch', False) and canWalk
-    canRun = canWalk and species.bCanRun[0]
-    canSwim = (nav_props.get('bCanSwim', True) or isWaterDino) and not species.bPreventEnteringWater[0]
+    canSwim = can_swim(species, nav_props)
     canFly = nav_props.get('bCanFly', False) or species.bIsFlyerDino[0]
 
     if canWalk:
@@ -69,8 +103,20 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
             result.fly.sprint = mult(cm.MaxFlySpeed[0] * species.FlyingRunSpeedModifier[0])
 
     if canSwim:
-        result.swim = SpeedData(base=mult(cm.MaxSwimSpeed[0]))
-        if canRun and species.bAllowRunningWhileSwimming[0] and species.RidingSwimmingRunSpeedModifier[0] != 1.0:
-            result.swim.sprint = mult(cm.MaxSwimSpeed[0] * species.RidingSwimmingRunSpeedModifier[0])
+        max_speed = cm.MaxSwimSpeed[0] if not has_free_movement_in_water(species) else cm.MaxFlySpeed[0]
+        result.swim = SpeedData(base=mult(max_speed))
+        if canRun and species.bAllowRunningWhileSwimming[0] and species.SwimmingRunSpeedModifier[0] != 1.0:
+            result.swim.sprint = mult(max_speed * species.SwimmingRunSpeedModifier[0])
+
+    return result
+
+
+def _gather_stamina(dcsc: DinoCharacterStatusComponent, movementW: MovementModes) -> StaminaRates:
+    result = StaminaRates()
+
+    if movementW.walk and movementW.walk.sprint:
+        result.sprint = dcsc.RunningStaminaConsumptionRate[0]
+    if movementW.fly or movementW.swim:
+        result.swimOrFly = dcsc.SwimmingOrFlyingStaminaConsumptionRate[0]
 
     return result

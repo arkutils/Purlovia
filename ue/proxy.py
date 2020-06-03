@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import *
+from typing import Any, Dict, Iterable, Mapping, Optional, Tuple, Type, TypeVar, Union
 
 from utils.generics import get_generic_args
 
-from .asset import ExportTableItem
 from .base import UEBase
 from .hierarchy import find_parent_classes
 from .loader import AssetLoader

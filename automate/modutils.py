@@ -1,5 +1,5 @@
 import zlib
-from typing import *
+from typing import Optional
 
 from ue.stream import MemoryStream
 from utils.log import get_logger
@@ -33,7 +33,7 @@ def unpackModFile(src: str, dst: str):
     f = loadFileAsStream(src)
     token = f.readUInt64()
     sizeUnpackedChunk = f.readUInt64()
-    sizePacked = f.readUInt64()
+    _ = f.readUInt64()  # sizePacked
     sizeUnpacked = f.readUInt64()
 
     assert token == 0x9e2a83c1, DecompressionError("Invalid header in downloaded mod")
@@ -72,7 +72,8 @@ def readACFFile(filename, outputType=dict):
     with open(filename) as f:
         while True:
             line = f.readline()
-            if not line: break
+            if not line:
+                break
             line = line.strip()
             try:
                 key, value = line.split(None, 1)

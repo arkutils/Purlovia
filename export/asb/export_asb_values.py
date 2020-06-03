@@ -13,7 +13,6 @@ from export.asb.stats import gather_stat_data
 from export.asb.taming import gather_taming_data
 from ue.asset import UAsset
 from ue.loader import AssetNotFound, ModNotFound
-from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
 from utils.log import get_logger
 
@@ -97,7 +96,7 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
 
     assert asset.assetname and asset.default_export and asset.default_class and asset.default_class.fullname
 
-    modid: str = asset.loader.get_mod_id(asset.assetname)
+    modid: str = asset.loader.get_mod_id(asset.assetname) or ''
     overrides = get_overrides_for_species(asset.assetname, modid)
 
     if overrides.skip_export:

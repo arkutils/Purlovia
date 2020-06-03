@@ -1,8 +1,6 @@
-from functools import lru_cache
-from typing import Optional, Set, TypeVar, Union, cast
+from typing import Set, TypeVar, Union, cast
 
 from .asset import ExportTableItem
-from .base import UEBase
 from .consts import BLUEPRINT_GENERATED_CLASS_CLS
 from .hierarchy import find_parent_classes
 from .loader import AssetLoader

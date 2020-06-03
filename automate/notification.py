@@ -1,4 +1,3 @@
-import json
 import os.path
 from traceback import format_exc
 from typing import List

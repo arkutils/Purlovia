@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
+from ark.mod import get_core_mods, get_separate_mods
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
 from ue.gathering import gather_properties
@@ -112,7 +113,7 @@ class ExportManager:
         game_version = self.arkman.getGameVersion()
         base_path = self.config.settings.OutputPath
 
-        modids = self.config.mods if self.config.extract_mods is None else self.config.extract_mods
+        modids = get_separate_mods()
 
         if not game_version:
             raise ValueError("Game not installed or ArkSteamManager not yet initialised")
@@ -139,9 +140,7 @@ class ExportManager:
                 stage.section_name = f'{root.get_name()}.{stage.get_name()}'
 
         # Extract : Core : Run each stage of each root
-        official_modids = set(self.config.official_mods.ids())
-        official_modids -= set(self.config.settings.SeparateOfficialMods)
-        self.official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in official_modids)
+        self.official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in get_core_mods())
         for root in self.roots:
             root_path = Path(base_path / root.get_relative_path())
             for stage in root.stages:
