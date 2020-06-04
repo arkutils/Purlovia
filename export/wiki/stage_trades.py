@@ -9,7 +9,6 @@ __all__ = [
     'TradesStage',
 ]
 
-
 logger = get_logger(__name__)
 
 

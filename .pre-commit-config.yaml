@@ -21,8 +21,19 @@ repos:
         additional_dependencies:
         -   'pydantic==1.5.1'
 
+-   repo: https://github.com/pre-commit/mirrors-yapf
+    rev: 'v0.28.0'
+    hooks:
+    -   id: yapf
+        args: ['--diff']
 
-# also want (check-only): isort, yapf
+# 'isort' checking has issues...
+
+# It runs from within its own virtualenv so it cannot properly
+# detect 3rd-party libraries, which messes up ordering.
+
+# seed-isort-config tries to solve this, but requires updating
+# isort's config file each run, and
 
 # -   repo: https://github.com/asottile/seed-isort-config
 #     rev: v2.1.1
