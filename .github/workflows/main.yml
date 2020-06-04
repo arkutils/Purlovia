@@ -56,13 +56,16 @@ jobs:
       env:
         PIPENV_PYUP_API_KEY: ""
 
-#     - name: Run format check - isort, etc
-#       run: pipenv run ...
+    # - name: Format check - isort
+    #   run: pipenv run isort > /dev/null
 
-    - name: Run flake8
+    - name: Format check - yapf
+      run: pipenv run yapf > /dev/null
+
+    - name: Lint check - flake8
       run: pipenv run flake
 
-    - name: Run type checking
+    - name: Type check - mypy
       run: pipenv run mypy
 
     - name: Run tests
