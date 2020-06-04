@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import weakref
 from typing import TYPE_CHECKING, Optional, Set
 
@@ -43,7 +45,7 @@ class UAsset(UEBase):
     def __init__(self, stream):
         # Bit of a hack because we are the root of the tree
         self.asset = self
-        self.loader: Optional['AssetLoader'] = None
+        self.loader: Optional[AssetLoader] = None
         self.assetname: Optional[str] = None
         self.name: Optional[str] = None
         self.file_ext: Optional[str] = None

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 from ark.types import COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field

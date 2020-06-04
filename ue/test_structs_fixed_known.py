@@ -1,7 +1,8 @@
 import pytest
 
-from .testutils import load_asset
 from ue.properties import Guid
+
+from .testutils import load_asset
 
 
 @pytest.mark.uses_copyright_material
@@ -12,4 +13,5 @@ def test_Guid_DinoColorSet_Baryonyx():
     assert len(prop.value.values) == 1
     entry = prop.value.values[0]
     assert isinstance(entry, Guid)
+
     assert str(entry) == '99b635ca-c7d1-4673-8398-69cde8efb9ee'
