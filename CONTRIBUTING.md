@@ -13,8 +13,8 @@ IPython is supported throughout the data system, and each of the `*_i.py` files 
 ## Editor
 
 Any editor could be used, but VSCode is preconfigured to:
-* Format on save using `yapf`
-* Lint using `pylint` and `mypy`
+* Format on save using `yapf` and `isort`
+* Lint using `flake8` and `mypy`
 * Run tests using `PyTest`
 
 ## Testing
@@ -23,29 +23,45 @@ There are a few `PyTest` tests present, but many have been removed to avoid usin
 
 Run the tests in the editor or using:
 ```sh
-pytest -m "not uses_copyright_material"
+pipenv run tests
 ```
 
-Test files **and** functions must be prefixed `test_`, but `doctest`-style tests are discovered and run automatically anywhere in the code.
+Test files **and** functions must be prefixed `test_`, but `doctest`-style tests are also discovered and run automatically anywhere in the code.
 
 ## Formatting
 
 The project *strictly* uses `yapf` for formatting and `isort` for import ordering, and VSCode is set to do both of these on save.
 
-To run these project-wide:
+To check these project-wide:
 ```sh
 pipenv run isort
 pipenv run yapf
 ```
 
-## Linting
-
-The project attempts to follow the recommendations of `pylint`, but given this is an experimental/prototyping project we aren't strict about it.
-
-The project is also checked with `mypy`. Some areas of the code have extensive typing in place while others have very little.
-
+To actively fix issues project-wide:
 ```sh
-mypy .
+pipenv run fix-isort
+pipenv run fix-yapf
 ```
 
-Both linters are enabled in VSCode.
+## Linting
+
+The project is checked with `flake8` and `mypy`, and the results should be clean before commit.
+
+```sh
+pipenv run flake
+pipenv run mypy
+```
+
+Both checkers are enabled in VSCode.
+
+## Pre-commit Checks
+
+A pre-commit hook has been introduced to verify `flake8` and `mypy` cleanliness, along with some other basic and fast checks. No changes will be made to project files during commit hooks.
+
+Useful commands:
+```sh
+pre-commit install          # install this hook in your local repo
+pre-commit run              # run pre-commit checks against currently *staged* files
+pre-commit run --all-files  # run pre-commit checks against all files
+```
