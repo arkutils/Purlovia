@@ -1,6 +1,4 @@
-from typing import Any, Dict, Optional
-
-from pydantic import BaseModel
+from typing import Any, Dict, Optional, Union
 
 from ark.types import DinoCharacterStatusComponent, PrimalDinoCharacter, ShooterCharacterMovement
 from automate.hierarchy_exporter import ExportModel
@@ -64,14 +62,15 @@ def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatus
     return result
 
 
-def _calculate_base_speed(species: PrimalDinoCharacter, base: float, tamed: bool) -> float:
+def _calculate_base_speed(species: PrimalDinoCharacter, base: FloatProperty, tamed: bool) -> float:
     if not tamed:
         return base * species.UntamedWalkingSpeedModifier[0]
     else:
         return base * species.TamedWalkingSpeedModifier[0]
 
 
-def _calculate_sprint_speed(species: PrimalDinoCharacter, base: float, mult: FloatProperty, tamed: bool) -> float:
+def _calculate_sprint_speed(species: PrimalDinoCharacter, base: Union[float, FloatProperty], mult: Union[float, FloatProperty],
+                            tamed: bool) -> float:
     speed = base * mult * species.RunningSpeedModifier[0]
     if not tamed:
         speed = speed * species.UntamedRunningSpeedModifier[0]
@@ -117,7 +116,7 @@ def _gather_speeds(species: PrimalDinoCharacter, staticMult: FloatProperty, tame
 
         # Calculate running speed
         if canRun:
-            sprint = mult(_calculate_sprint_speed(species, cm.MaxWalkSpeed[0], 1, tamed))
+            sprint = mult(_calculate_sprint_speed(species, cm.MaxWalkSpeed[0], 1.0, tamed))
             if sprint != result.walk.base:
                 result.walk.sprint = sprint
 
