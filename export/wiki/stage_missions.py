@@ -2,7 +2,7 @@ from logging import NullHandler, getLogger
 from typing import Any, Dict, cast
 
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from ue.hierarchy import find_parent_classes
+from ue.hierarchy import find_parent_classes, get_parent_class
 from ue.proxy import UEProxyStructure
 
 from .flags import gather_flags
@@ -59,9 +59,10 @@ class MissionsStage(JsonHierarchyExportStage):
             type='unknown',
             name=mission.MissionDisplayName[0],
             description=mission.MissionDescription[0],
-            flags=gather_flags(mission, OUTPUT_FLAGS),
-            duration=mission.MissionMaxDurationSeconds[0],
         )
+        v['parent'] = get_parent_class(v['bp'])
+        v['flags'] = gather_flags(mission, OUTPUT_FLAGS)
+        v['duration'] = mission.MissionMaxDurationSeconds[0]
 
         v['cooldown'] = {
             'player': mission.PerPlayerMissionCooldown[0],
