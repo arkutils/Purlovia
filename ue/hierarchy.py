@@ -21,6 +21,7 @@ __all__ = [
     'inherits_from',
     'find_sub_classes',
     'find_parent_classes',
+    'get_parent_class',
     'load_internal_hierarchy',
     'explore_asset',
     'explore_path',
@@ -138,6 +139,10 @@ def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=Fals
         parent = node.parent
         yield parent.data
         node = parent
+
+
+def get_parent_class(klass: Union[str, ExportTableItem]) -> str:
+    return next(find_parent_classes(klass, include_self=False))
 
 
 def iterate_all() -> Iterator[str]:
