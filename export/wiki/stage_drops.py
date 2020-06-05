@@ -38,12 +38,14 @@ class ItemSetEntry(ExportModel):
     quality: MinMaxPowerRange
     forceBP: BoolProperty
     items: List[Optional[str]]
+    itemWeights: List[float] = []
 
 
 class ItemSet(ExportModel):
     name: Optional[StringLikeProperty]
     weight: Union[FloatProperty, float]
     qtyScale: MinMaxPowerRange
+    qualityScale: MinMaxPowerRange
     entries: List[ItemSetEntry]
 
 
@@ -154,6 +156,7 @@ def decode_item_entry(entry) -> ItemSetEntry:
         ),
         forceBP=d['bForceBlueprint'],
         items=[decode_item_name(item) for item in d['Items'].values],
+        itemWeights=d['ItemsWeights'].values,
     )
 
 
@@ -217,6 +220,11 @@ def decode_item_set(item_set) -> ItemSet:
             min=d.get('MinNumItems', 1.0),
             max=d.get('MaxNumItems', 1.0),
             pow=d.get('NumItemsPower', 1.0),
+        ),
+        qualityScale=MinMaxPowerRange(
+            min=d.get('MinQuality', 1.0),
+            max=d.get('MaxQuality', 1.0),
+            pow=d.get('QualityPower', 1.0),
         ),
         entries=[decode_item_entry(entry) for entry in d['ItemEntries'].values],
     )
