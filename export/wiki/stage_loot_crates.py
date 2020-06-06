@@ -57,7 +57,7 @@ class LootCrateExportModel(ExportFileModel):
 
 class LootCratesStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "4"
+        return "5"
 
     def get_name(self) -> str:
         return "loot_crates"

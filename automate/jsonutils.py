@@ -105,7 +105,7 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
 JOIN_COLORS_REGEX = re.compile(r"\[\n\s+([\w\" ]+),\n\s+(.{,90})\n\s+\]")
 
 # Reduce 2-12 numbers in an array onto a single line
-JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)[-+.\de]+,(?:\n\s+[-+.\de"]+,?){1,12}')
+JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)[-+.\de]+,(?:\n\s+(?:[-+.\de"]|null)+,?){1,12}')
 
 # Reduce short arrays of strings onto a single line
 JOIN_MULTIPLE_STRINGS_REGEX = re.compile(r'\[((?:\n\s+".{1,30}",?\s*$){1,4})\n\s+\]', re.MULTILINE)
@@ -214,6 +214,21 @@ if __name__ == '__main__':
             ["Light Green", [0.5325, 1.0, 0.5, 0.0]],
             ["Light Grey", [0.581026, 0.6, 0.59417, 0.0]],
         ],
+        item_weights={
+            'items': [
+                [0.05, "PrimalItem_WeaponMetalHatchet_C"],
+                [0.05, "PrimalItem_WeaponMetalPick_C"],
+                [0.05, "PrimalItem_WeaponSickle_C"],
+                [0.05, "PrimalItemAmmo_Grapple_C"],
+                [0.05, "PrimalItemWeapon_EternalSpyglass_C"],
+                [0.05, "PrimalItem_WeaponSickle_AEStone_C"],
+                [0.05, "PrimalItem_WeaponStoneHatchet_AE_C"],
+                [0.05, "PrimalItem_WeaponStonePick_AE_C"],
+                [0.05, "PrimalItem_WeaponBola_AETranq_C"],
+                [0.05, None],
+                [1, None],
+            ]
+        },
         qty=dict(min=1, max=2),
         qty_pow=dict(min=1, max=2, pow=3),
     )

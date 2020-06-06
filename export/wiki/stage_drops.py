@@ -1,4 +1,5 @@
-from typing import Any, List, Mapping, Optional, Union, cast
+from itertools import chain, repeat
+from typing import Any, List, Mapping, Optional, Tuple, Union, cast
 
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
@@ -37,8 +38,10 @@ class ItemSetEntry(ExportModel):
     qty: MinMaxPowerRange
     quality: MinMaxPowerRange
     forceBP: BoolProperty
-    items: List[Optional[str]]
-    itemWeights: List[float] = []
+    items: List[Tuple[Union[FloatProperty, float], Optional[str]]] = Field(
+        ...,
+        description="Pairs of (weighted chance, item class name)",
+    )
 
 
 class ItemSet(ExportModel):
@@ -72,7 +75,7 @@ class DropExportModel(ExportFileModel):
 
 class DropsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "3"
+        return "4"
 
     def get_name(self) -> str:
         return "drops"
@@ -141,6 +144,10 @@ def decode_item_name(item):
 
 def decode_item_entry(entry) -> ItemSetEntry:
     d = entry.as_dict()
+
+    items_iter = (decode_item_name(item) for item in d['Items'].values)
+    weights_iter = chain(d['ItemsWeights'].values, repeat(1))
+
     return ItemSetEntry(
         name=d['ItemEntryName'] or None,
         weight=d['EntryWeight'],
@@ -155,8 +162,7 @@ def decode_item_entry(entry) -> ItemSetEntry:
             pow=d['QualityPower'],
         ),
         forceBP=d['bForceBlueprint'],
-        items=[decode_item_name(item) for item in d['Items'].values],
-        itemWeights=d['ItemsWeights'].values,
+        items=list(zip(weights_iter, items_iter)),
     )
 
 

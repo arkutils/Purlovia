@@ -40,7 +40,7 @@ OUTPUT_FLAGS = (
 
 class MissionsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "1"
+        return "2"
 
     def get_name(self):
         return 'missions'
