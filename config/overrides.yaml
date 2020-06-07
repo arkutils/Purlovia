@@ -86,7 +86,7 @@ sanity_checks:
         '/Game/Mods/Valguero': 11 # 13 at last check
         '/Game/Mods/Ragnarok': 13 # 16 at last check
         '/Game/Mods/111111111': 12 # 14 at last check
-    
+
     min_maps:
         '/Game/Maps/TheIslandSubMaps': 93 # 102 at last check
         '/Game/Maps/Aberration': 103 # 105 at last check
@@ -393,6 +393,8 @@ species:
         descriptive_name: Ice Golem
     /Game/Mods/Valguero/Assets/Dinos/RockGolem/ChalkGolem/ChalkGolem_Character_BP:
         descriptive_name: Chalk Golem
+    /Game/PrimalEarth/Dinos/Purlovia/Purlovia_Character_BP_Polar:
+        descriptive_name: Polar Purlovia
 
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
