@@ -1,6 +1,4 @@
-from typing import Any, Dict, Optional
-
-from pydantic import BaseModel
+from typing import Any, Dict, Optional, Union
 
 from ark.types import DinoCharacterStatusComponent, PrimalDinoCharacter, ShooterCharacterMovement
 from automate.hierarchy_exporter import ExportModel
@@ -24,7 +22,7 @@ class StaminaRates(ExportModel):
     swimOrFly: Optional[FloatProperty]
 
 
-class MovementIntermediate(BaseModel):
+class MovementIntermediate(ExportModel):
     movementW: Optional[MovementModes]
     movementD: Optional[MovementModes]
     staminaRates: Optional[StaminaRates]
@@ -57,28 +55,45 @@ def can_swim(species: PrimalDinoCharacter, nav_props: Dict[str, Any]) -> bool:
 def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> MovementIntermediate:
     result = MovementIntermediate()
 
-    untamedMult = species.UntamedRunningSpeedModifier[0] * species.ExtraUnTamedSpeedMultiplier[0]
-    result.movementW = _gather_speeds(species, untamedMult)
-
-    tamedMult = species.TamedRunningSpeedModifier[0] * species.ExtraTamedSpeedMultiplier[0]
-    result.movementD = _gather_speeds(species, tamedMult)
-
+    result.movementW = _gather_speeds(species, species.ExtraUnTamedSpeedMultiplier[0], False)
+    result.movementD = _gather_speeds(species, species.ExtraTamedSpeedMultiplier[0], True)
     result.staminaRates = _gather_stamina(dcsc, result.movementW)
 
     return result
 
 
-def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementModes:
+def _calculate_base_speed(species: PrimalDinoCharacter, base: FloatProperty, tamed: bool) -> float:
+    if not tamed:
+        return base * species.UntamedWalkingSpeedModifier[0]
+    else:
+        return base * species.TamedWalkingSpeedModifier[0]
+
+
+def _calculate_sprint_speed(species: PrimalDinoCharacter, base: Union[float, FloatProperty], mult: Union[float, FloatProperty],
+                            tamed: bool) -> float:
+    speed = base * mult * species.RunningSpeedModifier[0]
+    if not tamed:
+        speed = speed * species.UntamedRunningSpeedModifier[0]
+    else:
+        speed = speed * species.TamedRunningSpeedModifier[0]
+
+    if bool(species.ScaleExtraRunningSpeedModifier[0]) and species.ScaleExtraRunningMultiplierMax[0] <= 1.0:
+        # ScaleExtraRunningMultiplierMax determines max speed while running.
+        speed = speed * species.ScaleExtraRunningMultiplierMax[0]
+    # Other ScaleExtra properties didn't seem to have an effect.
+
+    return speed
+
+
+def _gather_speeds(species: PrimalDinoCharacter, staticMult: FloatProperty, tamed) -> MovementModes:
     result = MovementModes()
 
     def mult(v):
-        v = v * multValue
+        v = v * staticMult
         v = round(v, 1)
         if v == int(v):
             v = int(v)
         return v
-
-    # TODO: Include ScaleExtraRunningSpeedModifier and ScaleExtraRunningMultiplier(Min|Max|Speed)
 
     cm: ShooterCharacterMovement = species.CharacterMovement[0]
     nav_props_struct = cm.get('NavAgentProps', fallback=None)
@@ -91,22 +106,43 @@ def _gather_speeds(species: PrimalDinoCharacter, multValue: float) -> MovementMo
     canFly = nav_props.get('bCanFly', False) or species.bIsFlyerDino[0]
 
     if canWalk:
-        result.walk = SpeedData(base=mult(cm.MaxWalkSpeed[0]))
+        # Calculate base walking speed
+        walk = _calculate_base_speed(species, cm.MaxWalkSpeed[0], tamed)
+        result.walk = SpeedData(base=mult(walk))
+
+        # Calculate crouching speed
         if canCrouch:
             result.walk.crouch = mult(cm.MaxWalkSpeedCrouched[0])
-        if canRun and species.RunningSpeedModifier[0] != 1.0:
-            result.walk.sprint = mult(cm.MaxWalkSpeed[0] * species.RunningSpeedModifier[0])
+
+        # Calculate running speed
+        if canRun:
+            sprint = mult(_calculate_sprint_speed(species, cm.MaxWalkSpeed[0], 1.0, tamed))
+            if sprint != result.walk.base:
+                result.walk.sprint = sprint
 
     if canFly:
-        result.fly = SpeedData(base=mult(cm.MaxFlySpeed[0]))
-        if canRun and species.FlyingRunSpeedModifier[0] != 1.0:
-            result.fly.sprint = mult(cm.MaxFlySpeed[0] * species.FlyingRunSpeedModifier[0])
+        # Calculate base flying speed
+        fly = _calculate_base_speed(species, cm.MaxFlySpeed[0], tamed)
+        result.fly = SpeedData(base=mult(fly))
+
+        # Calculate running speed
+        if canRun:
+            sprint = mult(_calculate_sprint_speed(species, cm.MaxFlySpeed[0], species.FlyingRunSpeedModifier[0], tamed))
+            if sprint != result.fly.base:
+                result.fly.sprint = sprint
 
     if canSwim:
-        max_speed = cm.MaxSwimSpeed[0] if not has_free_movement_in_water(species) else cm.MaxFlySpeed[0]
-        result.swim = SpeedData(base=mult(max_speed))
-        if canRun and species.bAllowRunningWhileSwimming[0] and species.SwimmingRunSpeedModifier[0] != 1.0:
-            result.swim.sprint = mult(max_speed * species.SwimmingRunSpeedModifier[0])
+        # Calculate base swimming speed
+        has_free_movement = has_free_movement_in_water(species)
+        swim = cm.MaxSwimSpeed[0] if not has_free_movement else cm.MaxFlySpeed[0]
+        swim_walk = _calculate_base_speed(species, swim, tamed)
+        result.swim = SpeedData(base=mult(swim_walk))
+
+        # Calculate running speed
+        if canRun and bool(species.bAllowRunningWhileSwimming[0]):
+            sprint = mult(_calculate_sprint_speed(species, swim, species.SwimmingRunSpeedModifier[0], tamed))
+            if sprint != result.swim.base:
+                result.swim.sprint = sprint
 
     return result
 

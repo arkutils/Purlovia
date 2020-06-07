@@ -21,26 +21,27 @@
 # DinoSettings.ExtraFoodEffectivenessMultipliers[i].FoodItemParent = extra_food_parent
 # DinoSettings.ExtraFoodEffectivenessMultipliers[i].UntamedFoodConsumptionPriority = extra_food_priority
 
-# Item.UseItemAddCharacterStatusValues[i].BaseAmountToAdd = base_value
-# Item.UseItemAddCharacterStatusValues[i].bPercentOfMaxStatusValue = is_percent_of_max
-# Item.UseItemAddCharacterStatusValues[i].bPercentofCurrentStatusValue = is_percent_of_current
-# Item.UseItemAddCharacterStatusValues[i].bUseItemQuality = use_quality
-# Item.UseItemAddCharacterStatusValues[i].bDontRequireLessThanMaxToUse = not_require_less_than_max
-# Item.UseItemAddCharacterStatusValues[i].bAddOverTime = is_over_time
-# Item.UseItemAddCharacterStatusValues[i].bAddOverTimeSpeedInSeconds = is_over_time_in_secs
-# Item.UseItemAddCharacterStatusValues[i].bSetValue = set_value
-# Item.UseItemAddCharacterStatusValues[i].bSetAdditionalValue = set_add_value
-# Item.UseItemAddCharacterStatusValues[i].bResetExistingModifierDescritionIndex = reset_existing_mod_desc_index
-# Item.UseItemAddCharacterStatusValues[i].bForceUseStatOnDinos = use_stat_on_dino
-# Item.UseItemAddCharacterStatusValues[i].LimitExistingModifierDescriptionToMaxAmount = limit_mod_desc_to_max
-# Item.UseItemAddCharacterStatusValues[i].AddOverTimeSpeed = add_over_time_speed
-# Item.UseItemAddCharacterStatusValues[i].PercentAbsoluteMaxValue = percent_absolute_max_value
-# Item.UseItemAddCharacterStatusValues[i].PercentAbsoluteMinValue = percent_absolute_max_value
-# Item.UseItemAddCharacterStatusValues[i].StatusValueModifierDescriptionIndex = stat_value_mod_desc_index #  2 (Used for Creatures?) || 1 (Used for Players?)
-# Item.UseItemAddCharacterStatusValues[i].ItemQualityAddValueMultiplier = item_quality_add_value_multiplier
-# Item.UseItemAddCharacterStatusValues[i].StatusValueType = stat_value_type #  EPrimalCharacterStatusValue::Food || EPrimalCharacterStatusValue::Torpidity || EPrimalCharacterStatusValue::Health
-# Item.UseItemAddCharacterStatusValues[i].StopAtValueNearMax = stop_at_value_near_max
-# Item.UseItemAddCharacterStatusValues[i].ScaleValueByCharacterDamageType = scale_value_by_character_damage_type
+# Item.UseItemAddCharacterStatusValues[i]
+# .BaseAmountToAdd = base_value
+# .bPercentOfMaxStatusValue = is_percent_of_max
+# .bPercentofCurrentStatusValue = is_percent_of_current
+# .bUseItemQuality = use_quality
+# .bDontRequireLessThanMaxToUse = not_require_less_than_max
+# .bAddOverTime = is_over_time
+# .bAddOverTimeSpeedInSeconds = is_over_time_in_secs
+# .bSetValue = set_value
+# .bSetAdditionalValue = set_add_value
+# .bResetExistingModifierDescritionIndex = reset_existing_mod_desc_index
+# .bForceUseStatOnDinos = use_stat_on_dino
+# .LimitExistingModifierDescriptionToMaxAmount = limit_mod_desc_to_max
+# .AddOverTimeSpeed = add_over_time_speed
+# .PercentAbsoluteMaxValue = percent_absolute_max_value
+# .PercentAbsoluteMinValue = percent_absolute_max_value
+# .StatusValueModifierDescriptionIndex = stat_value_mod_desc_index #  2=Creatures? 1=Players?
+# .ItemQualityAddValueMultiplier = item_quality_add_value_multiplier
+# .StatusValueType = stat_value_type #  EPrimalCharacterStatusValue::Food,Torpidity,Health
+# .StopAtValueNearMax = stop_at_value_near_max
+# .ScaleValueByCharacterDamageType = scale_value_by_character_damage_type
 
 # for food_group in DinoSettings.FoodEffectivenessMultipliers:
 #   for food in items[food_group]:
@@ -55,7 +56,8 @@
 #                torpor_value = food_group.TorpidityEffectivenessMultiplier * food.BaseAmountToAdd
 #
 #   affinity = food_group.AffinityOverride
-#   foods.add({food_name=food, affinity=affinity, food=food_value}) # health=health_value, stamina=stamina_value, torpor=torpor_value})
+#   foods.add({food_name=food, affinity=affinity, food=food_value})
+#       # health=health_value, stamina=stamina_value, torpor=torpor_value})
 #
 # for food in foods:
 #   for food_group in DinoSettings.ExtraFoodEffectivenessMultipliers:

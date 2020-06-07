@@ -49,7 +49,7 @@ _MERGED_DINOS = [
         '/Game/PrimalEarth/Dinos/Ant/Ant_Character_BP.Ant_Character_BP',
         '/Game/PrimalEarth/Dinos/Ant/FlyingAnt_Character_BP.FlyingAnt_Character_BP',
     ],
-    
+
     ## 839162288: Primal Fear
     # Alpha Bulbdog
     [
@@ -76,7 +76,7 @@ _MERGED_DINOS = [
         '/Game/Mods/Primal_Fear/Dinos/Celestial/Wyvern/CelestialWyvern_Character_BP_Fire.CelestialWyvern_Character_BP_Fire_C',
         '/Game/Mods/Primal_Fear/Dinos/Celestial/Wyvern/CelestialWyvern_Character_BP_Ice.CelestialWyvern_Character_BP_Ice_C',
     ],
-    
+
     ## 893735676: Ark Eternal
     # Kunimasu Salmon
     [

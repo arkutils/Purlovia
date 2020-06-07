@@ -36,7 +36,7 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
             data['wakeAffinityMult'] = cf(char_props.WakingTameFoodAffinityMultiplier[0].rounded_value)
             data['wakeFoodDeplMult'] = cf(dcsc_props.WakingTameFoodConsumptionRateMultiplier[0].rounded_value)
 
-        data['foodConsumptionBase'] = cf(-dcsc_props.BaseFoodConsumptionRate[0].rounded_value)  # pylint: disable=invalid-unary-operand-type
+        data['foodConsumptionBase'] = cf(-dcsc_props.BaseFoodConsumptionRate[0].rounded_value)
         data['foodConsumptionMult'] = cf(dcsc_props.ProneWaterFoodConsumptionMultiplier[0].rounded_value)
 
         if eats is not None:
