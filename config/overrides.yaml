@@ -395,6 +395,8 @@ species:
         descriptive_name: Chalk Golem
     /Game/PrimalEarth/Dinos/Purlovia/Purlovia_Character_BP_Polar:
         descriptive_name: Polar Purlovia
+    /Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP_Aberrant:
+        descriptive_name: Aberrant Coelacanth # fixes in-game typo
 
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
