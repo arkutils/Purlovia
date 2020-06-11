@@ -1,6 +1,7 @@
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional
 
+from ark.mod import get_official_mods
 from automate.exporter import ExportManager, ExportRoot, ExportStage
 from automate.hierarchy_exporter import _calculate_relative_path, _output_schema
 from automate.jsonutils import save_json_if_changed
@@ -56,11 +57,13 @@ class MapStage(ExportStage):
         '''Perform extraction for mod data.'''
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        if int(mod_data.get('type', 1)) != 2:
-            return
-        selectable_maps = mod_data.get('maps', None)
-        if not selectable_maps:
-            return
+        selectable_maps: Optional[str] = None
+        if modid not in get_official_mods():
+            if int(mod_data.get('type', 1)) != 2:
+                return
+            selectable_maps = mod_data.get('maps', None)
+            if not selectable_maps:
+                return
 
         # Core versions are based on the game version and build number
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
@@ -68,13 +71,18 @@ class MapStage(ExportStage):
         # Extract the map
         path = (path / f'{modid}-{mod_data["name"]}')
         maps = group_levels_by_directory(self.discoverer.discover_mod_levels(modid))
+
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
 
+            persistent: Optional[str] = None
+            if selectable_maps:
+                persistent = f'{directory}/{selectable_maps[0]}'
+
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, Path(directory_name), levels, modid, f'{directory}/{selectable_maps[0]}')
+            self._extract_and_save(version, path, Path(directory_name), levels, modid, persistent)
 
     def _extract_and_save(self,
                           version: str,

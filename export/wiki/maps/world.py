@@ -42,10 +42,9 @@ class World(PersistentLevel):
         # Check if asset is a persistent level and mark it as such in map info object
         if not getattr(level, 'tile_info', None) and self.persistent_level != assetname:
             if self.persistent_level:
-                logger.warning(
-                    f'Found a persistent level ({assetname}), but {self.persistent_level} was located earlier: skipping.')
-                return
-            self.persistent_level = assetname
+                logger.warning(f'Found a persistent level ({assetname}), but {self.persistent_level} was located earlier')
+            else:
+                self.persistent_level = assetname
 
         # Go through each export and, if valuable, gather data from it.
         for export in level.exports:

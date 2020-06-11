@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 
+from ark.mod import get_official_mods
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries
 from utils.log import get_logger
@@ -29,7 +30,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        if int(mod_data.get('type', 1)) != 2:
+        if int(mod_data.get('type', 1)) != 2 and modid not in get_official_mods():
             # Mod is not a map, skip it.
             return
 
