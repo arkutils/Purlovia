@@ -3,6 +3,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List, Optional
 
+from ark.mod import get_official_mods
 from ark.overrides import get_overrides_for_map
 from processing.common import SVGBoundaries, remove_unicode_control_chars
 from utils.log import get_logger
@@ -44,10 +45,10 @@ class ProcessSpawnMapsStage(ProcessingStage):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         mod_type = int(mod_data.get('type', 1))
-        if mod_type == 1:
-            self._game_mod_generate_svgs(modid, mod_data['name'])
-        elif mod_type == 2:
+        if mod_type == 2 or modid in get_official_mods():
             self._map_mod_generate_svgs(modid, mod_data['name'])
+        elif mod_type == 1:
+            self._game_mod_generate_svgs(modid, mod_data['name'])
 
     def _load_asb(self, modid: Optional[str]):
         path = self.asb_path
