@@ -13,7 +13,7 @@ from utils.log import get_logger
 
 from .base import UEBase
 from .context import INCLUDE_METADATA
-from .coretypes import NameIndex, ObjectIndex
+from .coretypes import BulkDataHeader, NameIndex, ObjectIndex, StripDataFlags, Table
 from .number import make_binary_operator, make_binary_operators, make_operator
 from .stream import MemoryStream
 from .utils import clean_double, clean_float
@@ -1211,8 +1211,6 @@ TYPE_MAP = {
     'IntPoint': IntPoint,
     # 'Transform': Transform, # no worky
 }
-
-AFTER_PROPERTY_TABLE_TYPES: Dict[str, Type] = {}
 
 
 def getPropertyType(typeName: str, throw=True):
