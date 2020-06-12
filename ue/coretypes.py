@@ -213,14 +213,26 @@ class ObjectIndex(UEBase):
 
 
 class StripDataFlags(UEBase):
-    display_fields = ('global_flags', 'class_flags')
+    display_fields = ('global_flags', 'custom_flags')
+
+    global_flags: int
+    custom_flags: int
 
     def _deserialise(self):
         self._newField('global_flags', self.stream.readInt8())
-        self._newField('class_flags', self.stream.readInt8())
+        self._newField('custom_flags', self.stream.readInt8())
+
+    def is_stripped_for_editor(self) -> bool:
+        return (self.global_flags & 1) != 0
+
+    def is_stripped_for_server(self) -> bool:
+        return (self.global_flags & 2) != 0
+    
+    def is_stripped_for_custom(self, flag: int) -> bool:
+        return (self.custom_flags & flag) != 0
 
     def __str__(self):
-        return f'StripDataFlags ({self.global_flags}, {self.class_flags})'
+        return f'StripDataFlags ({self.global_flags}, {self.custom_flags})'
 
 
 class BulkDataHeader(UEBase):

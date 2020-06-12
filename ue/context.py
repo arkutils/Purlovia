@@ -37,6 +37,7 @@ class ParsingContext:
     # metadata: bool
     link: bool
     properties: bool
+    extended_properties: bool
     bulk_data: bool
     context_level: int
 
@@ -45,6 +46,7 @@ DEFAULT_CONTEXT = ParsingContext(
     # metadata=True,
     link=True,
     properties=True,
+    extended_properties=False,
     bulk_data=False,
     context_level=1,
 )
@@ -61,6 +63,7 @@ def ue_parsing_context(
         #    metadata: Optional[bool] = None,
         link: Optional[bool] = None,
         properties: Optional[bool] = None,
+        extended_properties: Optional[bool] = None,
         bulk_data: Optional[bool] = None):
     '''
     Change the current UE parsing context.
@@ -77,6 +80,8 @@ def ue_parsing_context(
         fields['link'] = link
     if properties is not None:
         fields['properties'] = properties
+    if extended_properties is not None:
+        fields['extended_properties'] = extended_properties
     if bulk_data is not None:
         fields['bulk_data'] = bulk_data
 

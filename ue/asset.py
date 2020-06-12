@@ -8,7 +8,8 @@ from utils.log import get_logger
 from .base import UEBase
 from .context import INCLUDE_METADATA, get_ctx
 from .coretypes import ChunkPtr, CompressedChunk, GenerationInfo, NameIndex, ObjectIndex, Table
-from .properties import Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty, AFTER_PROPERTY_TABLE_TYPES
+from .properties import Box, CustomVersion, EngineVersion, Guid, PropertyTable, StringProperty
+from .objects import AFTER_PROPERTY_TABLE_TYPES
 from .stream import MemoryStream
 from .utils import get_clean_name
 
@@ -315,8 +316,9 @@ class ExportTableItem(UEBase):
         self._newField('properties', PropertyTable(self, weakref.proxy(stream)))
         self.properties.link()
 
+        ctx = get_ctx()
         # Read data that some types have, located after the property table
-        if self.klass.value:
+        if ctx.extended_properties and self.klass.value:
             stream.offset += 4  # skip the remaining bytes of the PropertyTable marker
 
             type_cls = AFTER_PROPERTY_TABLE_TYPES.get(str(self.klass.value.name), None)
