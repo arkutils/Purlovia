@@ -4,7 +4,7 @@ Reusable tree structure, including a variant with a fast indexed lookup.
 from __future__ import annotations
 
 from collections import deque
-from typing import Callable, Deque, Dict, Generic, Iterable, List, Optional, TypeVar, Union
+from typing import Callable, Deque, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar, Union
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore

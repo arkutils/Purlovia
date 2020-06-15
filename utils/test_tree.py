@@ -210,7 +210,8 @@ def test_translate(basic_tree: Node[str]):
 
 def test_translate_filtered(basic_tree: Node[str]):
     def make_new_filtered(data: str):
-        if data == 'b': return None
+        if data == 'b':
+            return None
         return "+" + data
 
     out: Optional[Node[str]] = basic_tree.translate(make_new_filtered)
@@ -263,7 +264,8 @@ TranslatedDataType('+b'), TranslatedDataType('+b1'), TranslatedDataType('+b2')]"
 
 def test_translate_indexed_typed_filtered(indexed_typed_tree: IndexedTree[MyDataType]):
     def make_new_filtered(data: MyDataType) -> Optional[TranslatedDataType]:
-        if data.name == 'b': return None
+        if data.name == 'b':
+            return None
         return TranslatedDataType(title='+' + data.name)
 
     out: IndexedTree[TranslatedDataType] = indexed_typed_tree.translate(make_new_filtered, attrgetter('title'))
