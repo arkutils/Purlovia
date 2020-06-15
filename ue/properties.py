@@ -1040,6 +1040,9 @@ class ArrayProperty(UEBase):
     def format_for_json(self):
         return self.values
 
+    def __iter__(self):
+        return iter(self.values)
+
     if INCLUDE_METADATA and support_pretty:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
