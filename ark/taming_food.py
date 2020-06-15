@@ -1,12 +1,15 @@
 '''Parse and cache taming food data for use in extraction phases.'''
 
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import singledispatch
 from math import ceil
 from operator import attrgetter, itemgetter
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Set
 
+from cachetools import LRUCache, cached
+
 from config import get_global_config
+from ue.asset import UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import find_parent_classes, find_sub_classes
 from ue.loader import AssetLoader
@@ -37,14 +40,12 @@ class ItemStatEffect:
         return f"{self.base:6.3f}{speed}"
 
 
-@dataclass()
+@dataclass
 class ItemOverride:
     bp: str
-    priority: float = field(default=0, init=False)
-    food_mult: float = field(default=0, init=False)
-    torpor_mult: float = field(default=0, init=False)
-    affinity_mult: float = field(default=0, init=False)
-    affinity_override: float = field(default=0, init=False)
+    untamed_priority: float = field(default=0, init=False)
+    overrides: Dict[str, float] = field(default_factory=dict, init=False)
+    mults: Dict[str, float] = field(default_factory=dict, init=False)
 
 
 @dataclass(eq=True, unsafe_hash=True)
@@ -95,46 +96,60 @@ def gather_items(loader: AssetLoader, *, limit_modids: Optional[Iterable[str]] =
         _collect_item_effects(item, proxy)
 
 
+@singledispatch
 def collect_species_data(cls_name: str, loader: AssetLoader) -> List[ItemOverride]:
     '''
     Get food overrides for a species.
     '''
-    settings_cls = _get_species_settings_cls(cls_name, loader)
-    if not settings_cls:
+    asset = loader[cls_name]
+    species: PrimalDinoCharacter = gather_properties(asset)
+    try:
+        settings = species.DinoSettingsClass[0]
+    except ValueError:
         return []
-    foods = _collect_settings_foods(settings_cls, loader)
+    foods = _collect_settings_foods(settings)
     return foods
 
 
-def _get_species_settings_cls(cls_name: str, loader: AssetLoader) -> Optional[str]:
-    '''
-    Get the DinoSettings class for a species.
-    '''
-    asset = loader[cls_name]
-    proxy: PrimalDinoCharacter = gather_properties(asset)
-    settings = proxy.get('DinoSettingsClass', 0, fallback=None)
-    if settings is None:
-        return None
-    return settings.value.value.fullname
+@collect_species_data.register
+def collect_species_data_by_asset(asset: UAsset) -> List[ItemOverride]:
+    species: PrimalDinoCharacter = gather_properties(asset)
+    try:
+        settings = species.DinoSettingsClass[0]
+    except ValueError:
+        return []
+    foods = _collect_settings_foods(settings)
+    return foods
 
 
-@lru_cache(maxsize=100)
-def _collect_settings_foods(cls_name: str, loader: AssetLoader) -> List[ItemOverride]:
+@collect_species_data.register
+def collect_species_data_by_proxy(species: PrimalDinoCharacter) -> List[ItemOverride]:
+    try:
+        settings = species.DinoSettingsClass[0]
+    except ValueError:
+        return []
+    foods = _collect_settings_foods(settings)
+    return foods
+
+
+# cache is keyed by proxy's fullname
+@cached(cache=LRUCache(maxsize=100), key=lambda proxy: proxy.get_source().fullname)
+def _collect_settings_foods(proxy: PrimalDinoSettings) -> List[ItemOverride]:
     '''
     Get food overrides from a DinoSettings asset.
     Cached, as these are re-used by multiple species.
     '''
-    asset = loader[cls_name]
-    proxy: PrimalDinoSettings = gather_properties(asset)
+    # asset = loader[cls_name]
+    # proxy: PrimalDinoSettings = gather_properties(asset)
 
     # Join base and extra entries
     normal_list = proxy.get('FoodEffectivenessMultipliers', 0, None)
     extra_list = proxy.get('ExtraFoodEffectivenessMultipliers', 0, None)
     foods: List[ItemOverride] = []
     if normal_list:
-        foods.extend(_collect_settings_effect(food) for food in normal_list.values)
+        foods.extend(eff for eff in (_collect_settings_effect(food) for food in normal_list.values) if eff is not None)
     if extra_list:
-        foods.extend(_collect_settings_effect(food) for food in extra_list.values)
+        foods.extend(eff for eff in (_collect_settings_effect(food) for food in extra_list.values) if eff is not None)
 
     # Remove duplicates, in reverse # TODO: Verify priority of duplicates
     bps: Set[str] = set()
@@ -150,14 +165,26 @@ def _collect_settings_foods(cls_name: str, loader: AssetLoader) -> List[ItemOver
     return foods
 
 
-def _collect_settings_effect(food: StructProperty) -> ItemOverride:
+def _collect_settings_effect(food: StructProperty) -> Optional[ItemOverride]:
     v = food.as_dict()
-    o = ItemOverride(bp=v['FoodItemParent'].value.value.fullname)
-    o.priority = float(v['UntamedFoodConsumptionPriority'])
-    o.food_mult = float(v['FoodEffectivenessMultiplier'])
-    o.torpor_mult = float(v['TorpidityEffectivenessMultiplier'])
-    o.affinity_mult = float(v['AffinityEffectivenessMultiplier'])
-    o.affinity_override = float(v['AffinityOverride'])
+    bp = v['FoodItemParent'].value.value and v['FoodItemParent'].value.value.fullname
+    if not bp:
+        return None
+    o = ItemOverride(bp=bp)
+    o.untamed_priority = float(v['UntamedFoodConsumptionPriority'])
+
+    value = float(v['AffinityOverride'])
+    if value != 0:
+        o.overrides['affinity'] = value
+
+    value = float(v['AffinityEffectivenessMultiplier'])
+    o.mults['affinity'] = value if value != 0 else 1
+
+    o.mults['health'] = float(v['HealthEffectivenessMultiplier'])
+    o.mults['torpor'] = float(v['TorpidityEffectivenessMultiplier'])
+    o.mults['food'] = float(v['FoodEffectivenessMultiplier'])
+    o.mults['stamina'] = float(v['StaminaEffectivenessMultiplier'])
+
     return o
 
 
@@ -273,11 +300,11 @@ def _apply_override_to_item(item: Item, override: ItemOverride):
     def combine_stat(a: ItemStatEffect, b: float) -> ItemStatEffect:
         return ItemStatEffect(base=a.base * b, speed=a.speed)
 
-    out.food = combine_stat(item.food, override.food_mult)
-    out.torpor = combine_stat(item.torpor, override.torpor_mult)
+    out.food = combine_stat(item.food, override.mults['food'])
+    out.torpor = combine_stat(item.torpor, override.mults['torpor'])
 
-    out.affinity = ItemStatEffect(base=override.affinity_override)
-    # TODO: is there any use for affinity_mult?
+    out.affinity = ItemStatEffect(base=override.overrides.get('affinity', 0) * override.mults.get('affinity', 1))
+    # TODO: Verify this is how affinity_mult is applied
 
     return out
 
@@ -287,7 +314,7 @@ def evaluate_food_for_species(cls_name: str, loader: AssetLoader, *,
     '''
     Search for all taming foods relevant to the given species, and their effects.
     '''
-    config = get_global_config()
+    # config = get_global_config()
     overrides = collect_species_data(cls_name, loader)
     for item in items.values():
         # Get modid of item and check if we want to include it

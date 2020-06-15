@@ -10,11 +10,6 @@ from typing import *
 import pytest
 
 import ark.taming_food
-from ark.gathering import gather_dcsc_properties
-from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent, PrimalItem
-from ue.gathering import gather_properties
-from ue.hierarchy import inherits_from
-from ue.proxy import UEProxyStructure
 
 from ..common import *
 
@@ -66,16 +61,16 @@ def test_gathering_items(items, loader: AssetLoader):
 def test_collect_species_dodo(dodos, loader: AssetLoader):
     effects = ark.taming_food.collect_species_data(DODO_CHR, loader)
     assert len(effects) == 15
-    assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].affinity_override == 100000.0
-    assert effects[1].bp.endswith('Berry_Amarberry_C') and effects[1].affinity_override == 20.0
+    assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].overrides.get('affinity', 0) == 100000.0
+    assert effects[1].bp.endswith('Berry_Amarberry_C') and effects[1].overrides.get('affinity', 0) == 20.0
 
 
 @pytest.mark.requires_game
 def test_collect_species_bary(baryonyx, loader: AssetLoader):
     effects = ark.taming_food.collect_species_data(BARY_CHR, loader)
     assert len(effects) == 19
-    assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].affinity_override == 100000.0
-    assert effects[1].bp.endswith('RawMeat_Fish_C') and effects[1].affinity_override == 50.0
+    assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].overrides.get('affinity', 0) == 100000.0
+    assert effects[1].bp.endswith('RawMeat_Fish_C') and effects[1].overrides.get('affinity', 0) == 50.0
 
 
 @pytest.mark.requires_game

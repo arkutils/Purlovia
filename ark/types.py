@@ -166,6 +166,21 @@ class PrimalColorSet(UEProxyStructure, uetype=PRIMAL_COLOR_SET_CLS):
     # DevKit Unverified
 
 
+class PrimalDinoSettings(UEProxyStructure, uetype=PRIMAL_DINO_SETTINGS_CLS):
+    # DevKit Verified
+    DinoFoodTypeName = uestrings('')
+    TamingAffinityNoFoodDecreasePercentageSpeed = uefloats(0.0075)  # TODO: needs raw data
+    WakingTameDisplayItemName = uebools(False)
+
+    BaseDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
+    ExtraDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
+    ExtraFoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
+    FoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
+    DinoFoodTypeImage: Mapping[int, ObjectProperty]  # = None
+
+    # DevKit Unverified
+
+
 class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # DevKit Verified
 

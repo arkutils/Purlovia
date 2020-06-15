@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Set, Tuple, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 from ark.gathering import gather_dcsc_properties
 from ark.overrides import OverrideSettings, TamingMethod, get_overrides_for_species
@@ -63,6 +63,19 @@ class FallingData(ExportModel):
     maxSpeed: FloatProperty = Field(..., title="Max speed")
 
 
+class TamingOverride(ExportModel):
+    class_name: str = Field(alias="cls")
+    untamed_priority: float = 1.0
+    overrides: Dict[str, float] = Field(
+        {},
+        description="Overrides that replace the food's base value (only values != 0)",
+    )
+    mults: Dict[str, float] = Field(
+        {},
+        description="Multipliers that apply on top of the food's normal affects, per stat (only values != 1)",
+    )
+
+
 class Species(ExportModel):
     name: Optional[str] = Field(
         None,
@@ -122,6 +135,12 @@ class Species(ExportModel):
     staminaRates: Optional[StaminaRates]
     attack: Optional[AttackData]
     death: DeathData = DeathData()
+
+    food: List[TamingOverride] = Field(
+        [],
+        title="Taming food",
+        description="A list of food overrides that apply when feeding this species",
+    )
 
 
 class SpeciesExportModel(ExportFileModel):
@@ -241,6 +260,8 @@ class SpeciesStage(JsonHierarchyExportStage):
         out.attack = gather_attack_data(species)
         out.death = gather_death_data(species)
 
+        out.food = gather_food_data(species)
+
         return out
 
 
@@ -252,3 +273,17 @@ def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettin
         return True
 
     return False
+
+
+def gather_food_data(species: PrimalDinoCharacter):
+    foods = collect_species_data(species)
+
+    def convert(effect: ItemOverride) -> TamingOverride:
+        return TamingOverride(
+            class_name=effect.bp[effect.bp.rfind('.') + 1:],
+            untamed_priority=effect.untamed_priority,
+            overrides=effect.overrides,
+            mults=effect.mults,
+        )
+
+    return [convert(food) for food in foods]
