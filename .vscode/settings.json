@@ -7,10 +7,20 @@
         ".vscode/.ropeproject": true,
     },
 
+    "python.jediEnabled": false,
+    "python.languageServer": "Microsoft",
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
+
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [],
+
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
 
     "python.sortImports.args": ["--settings-path=${workspaceFolder}/setup.cfg"],
     "python.formatting.provider": "yapf",
@@ -22,13 +32,6 @@
     },
     "editor.codeActionsOnSaveTimeout": 10000,
     "editor.formatOnSaveTimeout": 10000,
-
-    "python.jediEnabled": false,
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true,
-    "python.linting.lintOnSave": true,
 
     "git.ignoreLimitWarning": true,
 
@@ -74,10 +77,11 @@
 
     "coverage-gutters.xmlname": "coverage.xml",
     "coverage-gutters.ignoredPathGlobs": "{livedata,output,logs,interactive,.vscode,config,.vscode}/**",
-    "python.pythonPath": ".venv\\Scripts\\python.exe",
+
     "githubIssues.workingIssueBranch": "issue-${issueNumber}",
 
     "yaml.schemas": {
+        // To update this schema run `pipenv run update-schema`
         "./schema/overrides.yaml.json": ["/config/overrides.yaml"],
     }
 }
