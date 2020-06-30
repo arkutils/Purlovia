@@ -27,6 +27,7 @@ RUN set -ex \
     && useradd --no-log-init -r -g purlovia -d /app purlovia
 
 # Grab Pipfile and Pipfile.lock then install requirements using pipenv, system-wide
+# ...then compile the version-grabbing log hook
 WORKDIR /app
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
@@ -38,6 +39,7 @@ RUN set -ex \
     && pip3 install pipenv \
     && pipenv install --deploy --system \
     && pip3 uninstall -y pipenv \
+    && gcc /app/utils/shootergameserver_fwrite_hook.c -o /app/utils/shootergameserver_fwrite_hook.so -fPIC -shared -ldl \
     && apt-get purge -y --auto-remove gcc libc6-dev \
     && rm -r /root/.cache
 
