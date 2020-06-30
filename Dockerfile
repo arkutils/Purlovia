@@ -17,6 +17,9 @@ ENV PYTHONDONTWRITEBYTECODE 1
 #  git for output repo management
 #  ssh for git to use contacting GitHub
 #  lib32gcc1 as required by SteamCMD
+#
+# Clean up caches
+# Create /app path and a safe user
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y git openssh-client lib32gcc1 \
@@ -26,10 +29,16 @@ RUN set -ex \
     && groupadd -r purlovia \
     && useradd --no-log-init -r -g purlovia -d /app purlovia
 
-# Grab Pipfile and Pipfile.lock then install requirements using pipenv, system-wide
+# Copy the app over
 WORKDIR /app
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
+COPY . .
+
+# Install:
+#  gcc for library compilation
+#  requirements from Pipfile.lock using pipenv, system-wide
+#
+# Compile the version-grabbing log hook
+# Uninstall gcc and clean up caches
 RUN set -ex \
     && apt-get update \
     && apt-get install --no-install-recommends -y gcc libc6-dev \
@@ -38,13 +47,11 @@ RUN set -ex \
     && pip3 install pipenv \
     && pipenv install --deploy --system \
     && pip3 uninstall -y pipenv \
+    && gcc /app/utils/shootergameserver_fwrite_hook.c -o /app/utils/shootergameserver_fwrite_hook.so -fPIC -shared -ldl \
     && apt-get purge -y --auto-remove gcc libc6-dev \
-    && rm -r /root/.cache
-
-# Copy the app over and prepare its environment
-COPY . .
-RUN set -ex \
+    && rm -r /root/.cache \
     && rm Pipfile Pipfile.lock
+
 
 VOLUME /app/logs /app/livedata /app/output /app/config
 

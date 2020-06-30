@@ -64,7 +64,8 @@
 		"sanity_checks": {
 			"title": "Sanity Checks",
 			"default": {
-				"min_species": {}
+				"min_species": {},
+				"min_maps": {}
 			},
 			"allOf": [
 				{
@@ -280,6 +281,14 @@
 			"properties": {
 				"min_species": {
 					"title": "Min Species",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "integer"
+					}
+				},
+				"min_maps": {
+					"title": "Min Maps",
 					"default": {},
 					"type": "object",
 					"additionalProperties": {
