@@ -51,3 +51,4 @@ mem-genesis = "python -m utils.measuremem 'from interactive.setup import loader'
 time-discovery = "python -m timeit -n 1 -r 2 -s 'from interactive.setup import loader,config;from ark.discovery import _generate_hierarchy;config.mods=()' '_generate_hierarchy(loader)'"
 mem-discovery = "python -m utils.measuremem 'from interactive.setup import loader,config;from ark.discovery import _generate_hierarchy;config.mods=()' '_generate_hierarchy(loader)'"
 update-schema = "python -m ark.overrides"
+compile-hook = "gcc utils/shootergameserver_fwrite_hook.c -o utils/shootergameserver_fwrite_hook.so -fPIC -shared -ldl -Wall"
