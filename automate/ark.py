@@ -1,8 +1,10 @@
 import json
 import re
 import shutil
-from os import walk
+import sys
+from os import getcwd, walk
 from pathlib import Path
+from subprocess import TimeoutExpired, run
 from typing import Any, Dict, Optional, Sequence, Set, Union
 
 import requests
@@ -349,9 +351,10 @@ def findInstalledMods(asset_path: Path) -> Dict[str, Dict]:
 
 def _fetchGameVersionFromAPI() -> Optional[str]:
     rsp = requests.get('http://arkdedicated.com/version')
-    rsp.raise_for_status()
+    if rsp.status_code != 200:
+        return None
     version = (rsp.text or '').strip()
-    return version
+    return version or None
 
 
 def _fetchGameVersionFromFile(gamedata_path: Path) -> Optional[str]:
@@ -364,23 +367,51 @@ def _fetchGameVersionFromFile(gamedata_path: Path) -> Optional[str]:
 
 
 def fetchGameVersion(gamedata_path: Path) -> str:
-    # Try version.txt in depot... cross fingers
-    version = _fetchGameVersionFromFile(gamedata_path)
-    if version:
-        if not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
-            logger.warning(f"Falling back to version API due to invalid version.txt!: {version}")
+    # Try to run the server itself and grab its version output
+    exe_version = getGameVersionFromServerExe(gamedata_path)
+    if exe_version:
+        if not re.fullmatch(r"\d+(\.\d+)*", exe_version, re.I):
+            logger.warning("Invalid version number returned from running Ark server: %s", exe_version)
+            exe_version = None
         else:
-            logger.info(f"Game version from version.txt: {version}")
-            return version
+            logger.info("Game version from server exe: %s", exe_version)
 
-    # Fall back to possibly out-of-sync official server network version API
-    logger.warning('Falling back to version API as version.txt is missing (again)!')
-    version = _fetchGameVersionFromAPI()
-    if not version or not re.fullmatch(r"\d+(\.\d+)*", version, re.I):
-        raise ValueError(f"Fallback version API return unexpected data: {version}")
+    # Try version.txt in depot... cross fingers
+    txt_version = _fetchGameVersionFromFile(gamedata_path)
+    if txt_version:
+        if not re.fullmatch(r"\d+(\.\d+)*", txt_version, re.I):
+            logger.warning("Invalid version number in version.txt: %s", txt_version)
+            txt_version = None
+        else:
+            logger.info("Game version from version.txt: %s", txt_version)
 
-    logger.info(f"Game version from server API: {version}")
-    return version
+    # Fetch official server network version API
+    api_version = _fetchGameVersionFromAPI()
+    if api_version:
+        if not re.fullmatch(r"\d+(\.\d+)*", api_version, re.I):
+            logger.warning("Invalid version from official servers API : %s", api_version)
+            api_version = None
+        else:
+            logger.info("Game version from official servers API: %s", api_version)
+
+    # Decide which to return
+    if exe_version:
+        logger.debug("Choosing version from server exe")
+        return exe_version
+
+    if txt_version and api_version and txt_version != api_version:
+        logger.warning("Mismatched version from version.txt and official server API - choosing version.txt")
+        return txt_version
+
+    if txt_version:
+        logger.debug("Choosing version from version.txt")
+        return txt_version
+
+    if api_version:
+        logger.debug("Choosing version from official server API")
+        return api_version
+
+    raise ValueError("No version number source available")
 
 
 def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
@@ -471,3 +502,59 @@ def unpackMod(game_path, modid):
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 logger.debug(f'Copying {src} -> {dst}')
                 shutil.copyfile(src, dst)
+
+
+def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
+    '''
+    On Linux, launch the server to extract the version number.
+
+    We use an LD_PRELOAD hook to terminate the server immediately once it outputs what we want.
+    '''
+    docker = False
+    if sys.platform == 'win32':
+        logger.info("Attempting to collect Ark server version within Docker...")
+        docker = True
+    elif sys.platform != 'linux':
+        logger.warning("Unable to collect version from running Ark server - platform not supported")
+        return None
+
+    # Prep paths and command
+    local_app_path_str = getcwd()
+    remote_app_path_str = '/app' if docker else local_app_path_str
+    game_path_str = '/app/livedata/game' if docker else str(game_path)
+
+    cmd = ''
+    if docker:
+        cmd += f'docker run -it --rm -v {local_app_path_str}:/app debian:10 bash -c "'
+    cmd += f'LD_PRELOAD={remote_app_path_str}/utils/shootergameserver_fwrite_hook.so '
+    cmd += f'{game_path_str}/ShooterGame/Binaries/Linux/ShooterGameServer '
+    cmd += '-culture=en -insecure -lowmemory -NoBattlEye -nodinos'
+    if docker:
+        cmd += '"'
+    logger.debug("Server cmd: %s", cmd)
+
+    # Run with timeout
+    try:
+        result = run(cmd, shell=not docker, capture_output=True, text=True, timeout=45)
+    except (TimeoutError, TimeoutExpired):
+        logger.warning("Collecting version by running Ark server timed out")
+        return None
+    except FileNotFoundError:
+        logger.warning("Unable to run docker command")
+        return None
+
+    # Check for our hook's return code
+    if result.returncode != 80:
+        logger.warning("Collecting version by running Ark server failed with retcode %d (0x%0X)", result.returncode,
+                       result.returncode)
+        return None
+
+    # Grab the version out of the output
+    match = re.search(r'ARK Version: (.*)', result.stdout)
+    if not match:
+        logger.warning("Collecting version by running Ark server failed with unexpected output (see debug.log)")
+        logger.debug("Collecting version by running Ark server failed with unexpected output:\n%s", result.stdout)
+        return None
+
+    version = match[1].strip()
+    return version

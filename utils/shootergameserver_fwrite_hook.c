@@ -2,7 +2,7 @@
  * Hook to intercept log writes within ShooterGameServer and exit once it outputs a version string.
  *
  * To compile:
- * gcc utils/shootergameserver_fwrite_hook.c -o utils/shootergameserver_fwrite_hook.so -fPIC -shared -ldl
+ * gcc utils/shootergameserver_fwrite_hook.c -o utils/shootergameserver_fwrite_hook.so -fPIC -shared -ldl -Wall
  *
  * To run:
  * LD_PRELOAD=/app/utils/shootergameserver_fwrite_hook.so livedata/game/ShooterGame/Binaries/Linux/ShooterGameServer
@@ -16,24 +16,39 @@
 #define _GNU_SOURCE 1
 #include <dlfcn.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/types.h>
 
 
-static int _write_count = 0;
-static bool _symbol_loaded_write = 0;
-static bool _symbol_loaded_open = 0;
-static ssize_t (*_real_write)(int fd, const char *buf, size_t count) = NULL;
-static int (*_real_open)(const char *pathname, int mode) = NULL;
+#define WRITE_LIMIT 30
+#define TEXT_TO_SEARCH_FOR "ARK Version: "
+#define PATH_TO_INTERRUPT_ON "game/ShooterGame/Content/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint.uasset"
 
-static bool _filter_writes = 0;
-static const int WRITE_LIMIT = 30;
-static const char *TEXT_TO_SEARCH_FOR = "ARK Version: ";
-static const char *PATH_TO_INTERRUPT_ON = "game/ShooterGame/Content/PrimalEarth/CoreBlueprints/PrimalGlobalsBlueprint.uasset";
+static int (*__purlovia__real_open)(const char *pathname, int mode) = NULL;
+static ssize_t (*__purlovia__real_write)(int fd, const char *buf, size_t count) = NULL;
+
+static int __purlovia__write_count = 0;
+static bool __purlovia__symbols_loaded = 0;
+static bool __purlovia__monitor_writes = 0;
+
+/* Avoid including unistd.h as it overlaps with our hook definitions */
+extern pid_t getpid(void);
 
 
-char *strnstr(const char *s1, const char *s2, size_t len)
+void __purlovia__ensure_symbols()
+{
+    if (!__purlovia__symbols_loaded)
+    {
+        __purlovia__real_open = dlsym(RTLD_NEXT, "open");
+        __purlovia__real_write = dlsym(RTLD_NEXT, "write");
+
+        __purlovia__symbols_loaded = 1;
+    }
+}
+
+
+char *__purlovia__strnstr(const char *s1, const char *s2, size_t len)
 {
     size_t l2;
 
@@ -52,31 +67,32 @@ char *strnstr(const char *s1, const char *s2, size_t len)
 
 ssize_t write(int fd, const char *buf, size_t count)
 {
-    if ( _symbol_loaded_write != 1 ) {
-        _real_write = dlsym(RTLD_NEXT, "write");
-        _symbol_loaded_write = 1;
-    }
+    __purlovia__ensure_symbols();
 
     /* Search for matching text */
-    if (_filter_writes && count > 135 && count < 166)
+    if (__purlovia__monitor_writes)
     {
-        const char *start = strnstr(buf, TEXT_TO_SEARCH_FOR, 166);
-        if (start != NULL) {
-            const char* end = strnstr(start, "\n", 32);
-            if (end != NULL) {
-                /* Print version to stdout */
-                _real_write(1, start, end - start + 1);
+        if (count > 135 && count < 166)
+        {
+            const char *start = __purlovia__strnstr(buf, TEXT_TO_SEARCH_FOR, 166);
+            if (start != NULL) {
+                const char* end = __purlovia__strnstr(start, "\n", 32);
+                if (end != NULL) {
+                    /* Print version to stdout */
+                    __purlovia__real_write(1, start, end - start + 1);
 
-                /* Exit with code 0x50 ('P') to signify successful capture to Purlovia */
-                _Exit(0x50);
+                    /* Exit with code 0x50 ('P') to signify successful capture to Purlovia */
+                    _Exit(0x50);
+                }
             }
         }
-    }
 
-    _write_count += 1;
-    if (_write_count > WRITE_LIMIT) {
-        /* Exit with 255 to indicate failure to Purlovia */
-        _Exit(0xFF);
+        /* Bail after a fixed number of monitored writes without match */
+        __purlovia__write_count += 1;
+        if (__purlovia__write_count > WRITE_LIMIT) {
+            /* Exit with 255 to indicate failure to Purlovia */
+            _Exit(0xFF);
+        }
     }
 
     /* Skip the output for everything else */
@@ -86,19 +102,16 @@ ssize_t write(int fd, const char *buf, size_t count)
 
 int open(const char *pathname, int mode)
 {
-    if ( _symbol_loaded_open != 1 ) {
-        _real_open = dlsym(RTLD_NEXT, "open");
-        _symbol_loaded_open = 1;
-    }
-    
+    __purlovia__ensure_symbols();
+
     /* Search for matching text */
-	const char *start = strnstr(pathname, PATH_TO_INTERRUPT_ON, 162);
+	const char *start = __purlovia__strnstr(pathname, PATH_TO_INTERRUPT_ON, 162);
 	if (start != NULL) {
 	    /* Send a keyboard interrupt signal to self, so UE can flush the log buffer */
-	    _filter_writes = true;
+	    __purlovia__monitor_writes = true;
 	    kill(getpid(), SIGINT);
 	}
-	
+
 	/* Continue as normal */
-	return _real_open(pathname, mode);
+	return __purlovia__real_open(pathname, mode);
 }
