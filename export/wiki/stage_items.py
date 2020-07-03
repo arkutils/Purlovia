@@ -36,8 +36,18 @@ class ItemsStage(JsonHierarchyExportStage):
         item: PrimalItem = cast(PrimalItem, proxy)
 
         v: Dict[str, Any] = dict()
-        if not item.has_override('DescriptiveNameBase'):
-            return None
+
+        is_baseclass = False
+        icon_texture = item.get('ItemIcon', 0, None)
+        icon_material = item.get('ItemIconMaterialParent', 0, None)
+        if not item.has_override('DescriptiveNameBase') or (not icon_texture and not icon_material):
+            is_baseclass = True
+
+        if is_baseclass:
+            v['name'] = item.get('DescriptiveNameBase', 0, None)
+            v['blueprintPath'] = item.get_source().fullname
+            #v['parent'] = get_parent_class(v['blueprintPath'])
+            return v
 
         try:
             v['name'] = item.get('DescriptiveNameBase', 0, None)
