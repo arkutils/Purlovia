@@ -46,18 +46,15 @@ class ItemsStage(JsonHierarchyExportStage):
         if is_baseclass:
             v['name'] = item.get('DescriptiveNameBase', 0, None)
             v['blueprintPath'] = item.get_source().fullname
-            #v['parent'] = get_parent_class(v['blueprintPath'])
+            # v['parent'] = get_parent_class(v['blueprintPath'])
             return v
 
         try:
             v['name'] = item.get('DescriptiveNameBase', 0, None)
             v['description'] = item.get('ItemDescription', 0, None)
             v['blueprintPath'] = item.get_source().fullname
-
-            icon = item.get('ItemIcon', 0, None)
-            if not icon:
-                return None  # this is used as an indicator that this is a non-spawnable base item
-            v['icon'] = icon
+            # v['parent'] = get_parent_class(v['blueprintPath'])
+            v['icon'] = icon_material or icon_texture
 
             itemType = item.get('MyItemType', 0, None)
             v['type'] = itemType.get_enum_value_name()
