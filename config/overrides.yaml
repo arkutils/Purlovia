@@ -87,6 +87,18 @@ sanity_checks:
         '/Game/Mods/Ragnarok': 13 # 16 at last check
         '/Game/Mods/111111111': 12 # 14 at last check
 
+    min_items:
+        '/Game/PrimalEarth': 1342 # 1371 at last check
+        '/Game/Aberration': 68 # 70 at last check
+        '/Game/Extinction': 83 # 85 at last check
+        '/Game/Genesis': 80 # 82 at last check
+        '/Game/ScorchedEarth': 79 # 81 at last check
+
+        '/Game/Mods/Valguero': 2 # 3 at last check
+        '/Game/Mods/Ragnarok': 3 # 4 at last check
+        '/Game/Mods/111111111': 354 # 356 at last check, inaccurate due to hierarchy issues 
+        '/Game/Mods/CrystalIsles': 7 # 9 at last check
+
     min_maps:
         '/Game/Maps/TheIslandSubMaps': 93 # 102 at last check
         '/Game/Maps/Aberration': 103 # 105 at last check
