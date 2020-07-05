@@ -3,6 +3,7 @@ from typing import Optional
 
 from automate.exporter import ExportRoot
 
+from .stage_items import ItemsStage
 from .stage_maps import MapsStage
 from .stage_species import SpeciesStage
 
@@ -26,5 +27,6 @@ class SanityRoot(ExportRoot):
 
         self.stages = [
             SpeciesStage(),
+            ItemsStage(),
             MapsStage(),
         ]

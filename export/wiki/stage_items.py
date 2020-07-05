@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 class ItemsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "2"
+        return "3"
 
     def get_name(self) -> str:
         return "items"
@@ -36,18 +36,23 @@ class ItemsStage(JsonHierarchyExportStage):
         item: PrimalItem = cast(PrimalItem, proxy)
 
         v: Dict[str, Any] = dict()
-        if not item.has_override('DescriptiveNameBase'):
-            return None
+        item_name = item.get('DescriptiveNameBase', 0, None)
 
+        # Export minimal data if the item is likely a base class
+        if is_item_base_class(item):
+            if item_name:
+                v['name'] = item_name
+            v['bp'] = item.get_source().fullname
+            # v['parent'] = get_parent_class(v['bp'])
+            return v
+
+        # Export full data otherwise
         try:
-            v['name'] = item.get('DescriptiveNameBase', 0, None)
+            v['name'] = item_name
             v['description'] = item.get('ItemDescription', 0, None)
-            v['blueprintPath'] = item.get_source().fullname
-
-            icon = item.get('ItemIcon', 0, None)
-            if not icon:
-                return None  # this is used as an indicator that this is a non-spawnable base item
-            v['icon'] = icon
+            v['bp'] = item.get_source().fullname
+            # v['parent'] = get_parent_class(v['bp'])
+            v['icon'] = item.get('ItemIconMaterialParent', 0, item.get('ItemIcon', 0, None))
 
             itemType = item.get('MyItemType', 0, None)
             v['type'] = itemType.get_enum_value_name()
@@ -123,3 +128,13 @@ class ItemsStage(JsonHierarchyExportStage):
 
         master_list = [ref.value.value and ref.value.value.fullname for ref in d.values]
         return dict(indices=master_list)
+
+
+def is_item_base_class(item: PrimalItem) -> bool:
+    item_name = item.get('DescriptiveNameBase', 0, None)
+    icon_texture = item.get('ItemIcon', 0, None)
+    icon_material = item.get('ItemIconMaterialParent', 0, None)
+
+    if not item_name or (not icon_texture and not icon_material):
+        return True
+    return False
