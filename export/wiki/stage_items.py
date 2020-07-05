@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 class ItemsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "2"
+        return "3"
 
     def get_name(self) -> str:
         return "items"
@@ -42,16 +42,16 @@ class ItemsStage(JsonHierarchyExportStage):
         if is_item_base_class(item):
             if item_name:
                 v['name'] = item_name
-            v['blueprintPath'] = item.get_source().fullname
-            # v['parent'] = get_parent_class(v['blueprintPath'])
+            v['bp'] = item.get_source().fullname
+            # v['parent'] = get_parent_class(v['bp'])
             return v
 
         # Export full data otherwise
         try:
             v['name'] = item_name
             v['description'] = item.get('ItemDescription', 0, None)
-            v['blueprintPath'] = item.get_source().fullname
-            # v['parent'] = get_parent_class(v['blueprintPath'])
+            v['bp'] = item.get_source().fullname
+            # v['parent'] = get_parent_class(v['bp'])
             v['icon'] = item.get('ItemIconMaterialParent', 0, item.get('ItemIcon', 0, None))
 
             itemType = item.get('MyItemType', 0, None)
