@@ -33,7 +33,7 @@ tests-nogame = "pytest --cov=. --cov-report=xml --no-cov-on-fail -m 'not uses_co
 tests-nocov = "pytest -m 'not uses_copyright_material'"
 tests-nogame-nocov = "pytest -m 'not uses_copyright_material and not requires_game'"
 pre-commit = "pre-commit run --all-files"
-mypy = "mypy ark automate export tests ue utils processing"
+mypy = "mypy ."
 pylint = "pylint ark automate export tests ue utils processing"
 flake = "flake8"
 yapf = "yapf --diff --recursive ark automate export tests ue utils processing"
