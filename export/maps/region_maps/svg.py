@@ -74,9 +74,9 @@ def _generate_biome_rects(bounds: SVGBoundaries, world_settings, biome):
 
 
 def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, follow_mod_convention):
-    svg_output = (
-        '<svg xmlns="http://www.w3.org/2000/svg"'
-        f''' width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}" style="position: absolute; width:100%; height:100%;">
+    svg_output = (f'''<svg xmlns="http://www.w3.org/2000/svg"
+    width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"
+    style="position: absolute; width:100%; height:100%;">
 <defs>
     <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
         <feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0"/>

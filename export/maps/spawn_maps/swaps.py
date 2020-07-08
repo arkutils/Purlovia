@@ -53,7 +53,7 @@ def fix_up_swap_rule_weights(rule):
 def inflate_swap_rules(random_class_weights):
     '''
     Mutates a rule set with pre-processed inheritance.
-    
+
     Target's "from" field will turn into a list of classes.
     '''
     for rule in random_class_weights:

@@ -8,7 +8,7 @@ from .swaps import apply_ideal_swaps_to_entry
 
 # TODO: Move this to overrides, or find a better way
 _MERGED_DINOS = [
-    ## Core
+    # # Core
     # Coelacanths
     [
         '/Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP.Coel_Character_BP_C',
@@ -50,7 +50,7 @@ _MERGED_DINOS = [
         '/Game/PrimalEarth/Dinos/Ant/FlyingAnt_Character_BP.FlyingAnt_Character_BP',
     ],
 
-    ## 839162288: Primal Fear
+    # # 839162288: Primal Fear
     # Alpha Bulbdog
     [
         '/Game/Mods/Primal_Fear/Dinos/Alpha/Alpha_Bulbdog/AlphaLanternPug_Character_BP_Child.AlphaLanternPug_Character_BP_Child_C',
@@ -77,7 +77,7 @@ _MERGED_DINOS = [
         '/Game/Mods/Primal_Fear/Dinos/Celestial/Wyvern/CelestialWyvern_Character_BP_Ice.CelestialWyvern_Character_BP_Ice_C',
     ],
 
-    ## 893735676: Ark Eternal
+    # # 893735676: Ark Eternal
     # Kunimasu Salmon
     [
         '/Game/Mods/AE/Dinos/Special/TropicalOcean/KunimasuSalmon/Kunimasu_Salmon1_Character_BP.Kunimasu_Salmon1_Character_BP_C',
