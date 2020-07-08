@@ -6,8 +6,7 @@ Creates an svg-file with regions that contain links to the according region-page
 import html
 import re
 
-from processing.common import SVGBoundaries
-
+from ..common import SVGBoundaries
 from .func import make_biome_link, map_translate_coord, translate_coord
 
 REGEX_INVALID_BIOME = re.compile(r'^\?+$')

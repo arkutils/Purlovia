@@ -4,8 +4,7 @@ Creates an svg-file with spawning regions of a species colored depending on the 
 
 from typing import List
 
-from processing.common import SVGBoundaries
-
+from ..common import SVGBoundaries
 from .consts import POINT_RADIUS
 from .intermediate_types import SpawnPoint, SpawnRectangle
 from .species import get_rarity_for_spawn

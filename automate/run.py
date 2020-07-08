@@ -9,6 +9,7 @@ import yaml
 import ark.discovery
 from config import LOGGING_FILENAME, ConfigFile
 from export.asb.root import ASBRoot
+from export.maps.root import WikiMapsRoot
 from export.sanity.root import SanityRoot
 from export.wiki.root import WikiRoot
 from utils.log import get_logger
@@ -32,6 +33,7 @@ ROOT_TYPES = (
     SanityRoot,
     ASBRoot,
     WikiRoot,
+    WikiMapsRoot,
 )
 
 

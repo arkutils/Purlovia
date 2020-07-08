@@ -5,9 +5,9 @@ from typing import List, Optional
 
 from ark.mod import get_official_mods
 from ark.overrides import get_overrides_for_map
-from processing.common import SVGBoundaries, remove_unicode_control_chars
 from utils.log import get_logger
 
+from .common import SVGBoundaries, remove_unicode_control_chars
 from .spawn_maps.game_mod import merge_game_mod_groups
 from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
@@ -30,7 +30,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
     def extract_core(self, _: Path):
         # Find data of maps with NPC spawns
-        maps: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(None)
@@ -39,7 +39,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        self._process_all_maps(maps, data_asb, data_groups, data_swaps, None)
+        self._process_all_maps(maps, self.wiki_path, data_asb, data_groups, data_swaps, None)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
@@ -103,7 +103,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
     def _map_mod_generate_svgs(self, modid: str, mod_name: str):
         # Find data of maps with NPC spawns
         root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_name}')
-        maps: List[Path] = [path.parent for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
 
         # Load and merge ASB data
         data_asb_core = self._load_asb(None)
@@ -119,11 +119,11 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        self._process_all_maps(maps, data_asb_mod, data_groups, data_swaps, modid)
+        self._process_all_maps(maps, self.wiki_path, data_asb_mod, data_groups, data_swaps, modid)
 
     def _game_mod_generate_svgs(self, modid: str, _mod_name: str):
         # Find data of core maps with NPC spawns
-        maps: List[Path] = [path.parent for path in self.wiki_path.glob('*/npc_spawns.json')]
+        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in self.wiki_path.glob('*/npc_spawns.json')]
 
         # Load ASB and spawning group data
         data_asb = self._load_asb(modid)
@@ -132,9 +132,9 @@ class ProcessSpawnMapsStage(ProcessingStage):
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        self._process_all_maps(maps, data_asb, data_groups, data_swaps, modid)
+        self._process_all_maps(maps, self.wiki_path, data_asb, data_groups, data_swaps, modid)
 
-    def _process_all_maps(self, maps, data_asb, data_groups, data_swaps, modid):
+    def _process_all_maps(self, maps: List[Path], base_path: Path, data_asb, data_groups, data_swaps, modid: Optional[str]):
         spawndata = _SpawningData(
             asb=data_asb,
             # Generate species groups
@@ -145,14 +145,14 @@ class ProcessSpawnMapsStage(ProcessingStage):
         )
 
         for map_path in maps:
-            self._map_process_data(map_path, spawndata, modid)
+            self._map_process_data(map_path, base_path, spawndata, modid)
 
     def _get_svg_output_path(self, data_path: Path, map_name: str, modid: Optional[str]) -> Path:
         if not modid:
             # Core maps
             #   data/wiki/Map/spawn_maps
             #   or data_path/spawn_maps
-            return Path(data_path / 'spawn_maps')
+            return self.output_path / data_path / 'spawn_maps'
 
         # Mods
         mod_data = self.manager.arkman.getModData(modid)
@@ -162,16 +162,16 @@ class ProcessSpawnMapsStage(ProcessingStage):
             # Custom maps
             #   data/wiki/Id-Mod/MapName/spawn_maps
             #   or data_path / spawn_maps
-            return Path(data_path / 'spawn_maps')
+            return self.output_path / data_path / 'spawn_maps'
 
         # mod_type == 1
         # Game mods
         #   data/wiki/Id-Mod/spawn_maps/Map
         #   Data path can't be used as it points at a core map
-        return Path(self.wiki_path / f'{modid}-{mod_data["name"]}' / 'spawn_maps' / map_name)
+        return self.output_path / f'{modid}-{mod_data["name"]}' / 'spawn_maps' / map_name
 
-    def _map_process_data(self, data_path: Path, spawndata: _SpawningData, modid: Optional[str]):
-        logger.info(f'Processing data of map: {data_path.name}')
+    def _map_process_data(self, data_path: Path, base_path: Path, spawndata: _SpawningData, modid: Optional[str]):
+        logger.info(f'Processing data of map: {data_path}')
 
         # Determine base output path
         output_path = self._get_svg_output_path(data_path, data_path.name, modid)
@@ -180,8 +180,8 @@ class ProcessSpawnMapsStage(ProcessingStage):
             shutil.rmtree(output_path)
 
         # Load exported data
-        data_map_settings = self.load_json_file(data_path / 'world_settings.json')
-        data_map_spawns = self.load_json_file(data_path / 'npc_spawns.json')
+        data_map_settings = self.load_json_file(base_path / data_path / 'world_settings.json')
+        data_map_spawns = self.load_json_file(base_path / data_path / 'npc_spawns.json')
         if not data_map_settings or not data_map_spawns:
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return

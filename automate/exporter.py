@@ -50,6 +50,10 @@ class ExportRoot(metaclass=ABCMeta):
         '''Return a nice name for a path to appear in the commit message (or return None for default).'''
         ...
 
+    def get_should_commit(self) -> bool:
+        '''Return true if changes to this root should be committed. Defaults to True.'''
+        return True
+
 
 class ExportStage(metaclass=ABCMeta):
     section_name: str
@@ -171,7 +175,8 @@ class ExportManager:
             root.manifest = update_manifest(root.path)
 
             # git after - commit, etc
-            self.git.after_exports(root.path.relative_to(outdir), root.get_commit_header(), self._commit_line_for_file)
+            if root.get_should_commit():
+                self.git.after_exports(root.path.relative_to(outdir), root.get_commit_header(), self._commit_line_for_file)
 
     def _commit_line_for_file(self, filename: str) -> Optional[str]:
         '''Works out a reasonable single-line commit comment for the given file path.'''
