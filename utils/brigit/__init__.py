@@ -10,7 +10,9 @@ import logging
 import os
 import re
 from datetime import datetime
-from subprocess import PIPE, Popen
+from subprocess import run
+
+CMD_TIMEOUT = 5 * 60  # 5 minutes should be plenty for any normal Git op
 
 handler = logging.StreamHandler()
 
@@ -43,20 +45,16 @@ class RawGit(object):
         full_command = (('git', kebab_case(command)) + tuple(
             (u"--%s=%s" % (key, value) if len(key) > 1 else u"-%s %s" % (key, value)) for key, value in kwargs.items()) + args)
         self.logger.debug(u"> %s" % u' '.join(full_command))
-        process = Popen(full_command, stdout=PIPE, stderr=PIPE, cwd=self.path)
-        out, err = process.communicate()
-        out = out.decode(self.encoding)
-        err = err.decode(self.encoding)
-        self.logger.debug("%s" % out)
-        retcode = process.poll()
-        if retcode:
-            if err:
-                self.logger.error("%s" % err)
-            raise GitException("%s has returned %d - error was %s" % (' '.join(full_command), retcode, err))
+        result = run(full_command, cwd=self.path, text=True, capture_output=True, timeout=CMD_TIMEOUT, encoding=self.encoding)
+        self.logger.debug("%s" % result.stdout)
+        if result.returncode != 0:
+            if result.stderr:
+                self.logger.error("%s" % result.stderr)
+            raise GitException("%s has returned %d - error was %s" % (' '.join(full_command), result.returncode, result.stderr))
         else:
-            if err:
-                self.logger.warning("%s" % err)
-        return out
+            if result.stderr:
+                self.logger.warning("%s" % result.stderr)
+        return result.stdout
 
     def __getattr__(self, name):
         """Any method not implemented will be executed as is."""
