@@ -9,7 +9,11 @@ from typing import *
 
 import pytest
 
-import ark.taming_food
+import ark.taming_food.calc
+import ark.taming_food.items
+import ark.taming_food.species
+from ark.taming_food.datatypes import Item, ItemOverride
+from utils.tree import IndexedTree
 
 from ..common import *
 
@@ -35,31 +39,32 @@ TEST_ITEMS = (
 
 
 @pytest.fixture(name='items', scope='module')
-def fixture_items(consumables, loader: AssetLoader):
-    ark.taming_food.gather_items(loader)
+def fixture_items(consumables, loader: AssetLoader) -> IndexedTree[Item]:
+    ark.taming_food.items.gather_items(loader)
+    return ark.taming_food.items.items
 
 
 @pytest.fixture(name='dodo_foods', scope='module')
-def fixture_dodo_foods(dodos, loader: AssetLoader) -> List[ark.taming_food.ItemOverride]:
-    return ark.taming_food.collect_species_data(DODO_CHR, loader)
+def fixture_dodo_foods(dodos, loader: AssetLoader) -> List[ItemOverride]:
+    return ark.taming_food.species.collect_species_data(DODO_CHR, loader)
 
 
 @pytest.fixture(name='bary_foods', scope='module')
-def fixture_bary_foods(baryonyx, loader: AssetLoader) -> List[ark.taming_food.ItemOverride]:
-    return ark.taming_food.collect_species_data(BARY_CHR, loader)
+def fixture_bary_foods(baryonyx, loader: AssetLoader) -> List[ItemOverride]:
+    return ark.taming_food.species.collect_species_data(BARY_CHR, loader)
 
 
 @pytest.mark.requires_game
-def test_gathering_items(items, loader: AssetLoader):
+def test_gathering_items(items: IndexedTree[Item], loader: AssetLoader):
     # Check we gathered some key items and that they have a correct hierarchy
-    assert MEATRAW_ITEM in ark.taming_food.items
-    assert FISHRAW_ITEM in ark.taming_food.items
-    assert ark.taming_food.items[FISHRAW_ITEM].parent == ark.taming_food.items[MEATRAW_ITEM]
+    assert MEATRAW_ITEM in items
+    assert FISHRAW_ITEM in items
+    assert items[FISHRAW_ITEM].parent == items[MEATRAW_ITEM]
 
 
 @pytest.mark.requires_game
 def test_collect_species_dodo(dodos, loader: AssetLoader):
-    effects = ark.taming_food.collect_species_data(DODO_CHR, loader)
+    effects = ark.taming_food.species.collect_species_data(DODO_CHR, loader)
     assert len(effects) == 15
     assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].overrides.get('affinity', 0) == 100000.0
     assert effects[1].bp.endswith('Berry_Amarberry_C') and effects[1].overrides.get('affinity', 0) == 20.0
@@ -67,15 +72,15 @@ def test_collect_species_dodo(dodos, loader: AssetLoader):
 
 @pytest.mark.requires_game
 def test_collect_species_bary(baryonyx, loader: AssetLoader):
-    effects = ark.taming_food.collect_species_data(BARY_CHR, loader)
+    effects = ark.taming_food.species.collect_species_data(BARY_CHR, loader)
     assert len(effects) == 19
     assert effects[0].bp.endswith('SuperTestMeat_C') and effects[0].overrides.get('affinity', 0) == 100000.0
     assert effects[1].bp.endswith('RawMeat_Fish_C') and effects[1].overrides.get('affinity', 0) == 50.0
 
 
 @pytest.mark.requires_game
-def test_collect_item_amarberry(items, loader: AssetLoader):
-    effect = ark.taming_food.items[BERRYAMAR_ITEM].data
+def test_collect_item_amarberry(items: IndexedTree[Item], loader: AssetLoader):
+    effect = items[BERRYAMAR_ITEM].data
     assert effect.name == 'Amarberry'
     assert effect.food.base == 1.0 and effect.food.speed == 3.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
@@ -83,8 +88,8 @@ def test_collect_item_amarberry(items, loader: AssetLoader):
 
 
 @pytest.mark.requires_game
-def test_collect_item_narcoberry(items, loader: AssetLoader):
-    effect = ark.taming_food.items[BERRYNARC_ITEM].data
+def test_collect_item_narcoberry(items: IndexedTree[Item], loader: AssetLoader):
+    effect = items[BERRYNARC_ITEM].data
     assert effect.name == 'Narcoberry'
     assert effect.food.base == 4.0 and effect.food.speed == 3.0
     assert effect.torpor.base == 7.0 and effect.torpor.speed == 3.0
@@ -92,8 +97,8 @@ def test_collect_item_narcoberry(items, loader: AssetLoader):
 
 
 @pytest.mark.requires_game
-def test_collect_item_raw_meat(items, loader: AssetLoader):
-    effect = ark.taming_food.items[MEATRAW_ITEM].data
+def test_collect_item_raw_meat(items: IndexedTree[Item], loader: AssetLoader):
+    effect = items[MEATRAW_ITEM].data
     assert effect.name == 'Raw Meat'
     assert effect.food.base == 10.0 and effect.food.speed == 5.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
@@ -101,8 +106,8 @@ def test_collect_item_raw_meat(items, loader: AssetLoader):
 
 
 @pytest.mark.requires_game
-def test_collect_item_raw_fish(items, loader: AssetLoader):
-    effect = ark.taming_food.items[FISHRAW_ITEM].data
+def test_collect_item_raw_fish(items: IndexedTree[Item], loader: AssetLoader):
+    effect = items[FISHRAW_ITEM].data
     assert effect.name == 'Raw Fish Meat'
     assert effect.food.base == 5.0 and effect.food.speed == 5.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
@@ -118,8 +123,8 @@ DODO_FOOD_EFFECTS = (
 
 @pytest.mark.requires_game
 @pytest.mark.parametrize('food, torpor, affinity, item_cls', DODO_FOOD_EFFECTS)
-def test_apply_dodo_items(dodo_foods, items, item_cls, food, torpor, affinity):
-    effect = ark.taming_food.apply_species_overrides_to_item(ark.taming_food.items[item_cls].data, dodo_foods)
+def test_apply_dodo_items(dodo_foods, items: IndexedTree[Item], item_cls, food, torpor, affinity):
+    effect = ark.taming_food.calc._apply_species_overrides_to_item(items[item_cls].data, dodo_foods)
     assert effect.food.base == pytest.approx(food)
     assert effect.torpor.base == pytest.approx(torpor)
     assert effect.affinity.base == pytest.approx(affinity)
@@ -136,8 +141,8 @@ BARY_FOOD_EFFECTS = (
 
 @pytest.mark.requires_game
 @pytest.mark.parametrize('food, torpor, affinity, item_cls', BARY_FOOD_EFFECTS)
-def test_apply_bary_items(bary_foods, items, item_cls, food, torpor, affinity):
-    effect = ark.taming_food.apply_species_overrides_to_item(ark.taming_food.items[item_cls].data, bary_foods)
+def test_apply_bary_items(bary_foods, items: IndexedTree[Item], item_cls, food, torpor, affinity):
+    effect = ark.taming_food.calc._apply_species_overrides_to_item(items[item_cls].data, bary_foods)
     assert effect.food.base == pytest.approx(food)
     assert effect.torpor.base == pytest.approx(torpor)
     assert effect.affinity.base == pytest.approx(affinity)
