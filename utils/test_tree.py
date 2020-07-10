@@ -72,6 +72,29 @@ def test_construct_simple_string_node_tree():
     assert t.nodes[0].nodes[0].parent is t.nodes[0]
 
 
+def test_indexed_tree_del(indexed_string_tree: IndexedTree[str]):
+    tree = indexed_string_tree
+
+    def content():
+        return repr([n.data for n in tree.root.walk_iterator(skip_self=False)])
+
+    assert content() == "['root', 'a', 'a1', 'b', 'b1', 'b2']"
+
+    # Remove a single node
+    del tree['b1']
+    assert len(tree['b'].nodes) == 1
+    assert content() == "['root', 'a', 'a1', 'b', 'b2']"
+
+    # Removes nodes recursively
+    del tree['a']
+    assert len(tree['root'].nodes) == 1
+    assert content() == "['root', 'b', 'b2']"
+
+    # Cannot delete root
+    with pytest.raises(ValueError):
+        del tree['root']
+
+
 def test_walk_nodes(basic_tree: Node[str]):
     found = []
     basic_tree.walk(lambda n: found.append(n.data))
@@ -96,6 +119,11 @@ def test_walk_iterator_without_self_dfs(basic_tree: Node[str]):
 def test_walk_iterator_without_self_bfs(basic_tree: Node[str]):
     found = [node.data for node in basic_tree.walk_iterator(skip_self=True, breadth_first=True)]
     assert repr(found) == "['a', 'b', 'a1', 'b1', 'b2']"
+
+
+def test_walk_post_iterator(basic_tree: Node[str]):
+    found = [node.data for node in basic_tree.walk_post_iterator()]
+    assert repr(found) == "['a1', 'a', 'b1', 'b2', 'b', 'root']"
 
 
 def test_walk_abort(basic_tree: Node[str]):
@@ -281,3 +309,18 @@ def test_translate_indexed_typed_filtered(indexed_typed_tree: IndexedTree[MyData
     assert '+b' not in out
     assert '+b1' not in out
     assert '+b2' not in out
+
+
+def test_reindex_indexed_tree(indexed_string_tree: IndexedTree[str]):
+    tree = indexed_string_tree
+    assert len(tree) == 6
+
+    # Remove a node from the tree via the node lists directly
+    del tree['b'].nodes[1]
+
+    # Index hasn't changed
+    assert len(tree) == 6
+
+    # Reindex and verify it fixes it
+    tree.reindex()
+    assert len(tree) == 5

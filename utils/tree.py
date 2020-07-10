@@ -61,6 +61,16 @@ class Node(Generic[T]):
             else:
                 q.extendleft(reversed(node.nodes))
 
+    def walk_post_iterator(self) -> Iterable[Node[T]]:
+        '''
+        Yield each node in post- (reverse) depth-first traversal order.
+        This guarantees all sub-nodes are supplied before their parents at all levels.
+        '''
+        for node in list(self.nodes):
+            yield from node.walk_post_iterator()
+
+        yield self
+
     def walk(self, fn: Callable[[Node[T]], Optional[bool]]) -> Optional[bool]:
         '''
         Call the given function for every node below this one, depth-first.
@@ -70,7 +80,7 @@ class Node(Generic[T]):
         if fn(self) is False:
             return False
 
-        for node in self.nodes:
+        for node in list(self.nodes):
             if node.walk(fn) is False:
                 return False
 
@@ -162,6 +172,15 @@ class IndexedTree(Generic[T]):
 
         return new_tree
 
+    def reindex(self):
+        '''
+        Rebuild the index after direct modifications to the tree.
+        '''
+        self._lookup.clear()
+        for node in self.root.walk_iterator(skip_self=False, breadth_first=True):
+            key: str = self._key_fn(node.data) if self._key_fn else node.data  # type: ignore
+            self._lookup[key] = node
+
     def __iter__(self):
         yield from self._lookup
 
@@ -176,6 +195,15 @@ class IndexedTree(Generic[T]):
 
     def __bool__(self) -> bool:
         return bool(self._lookup)
+
+    def __delitem__(self, key: str):
+        node = self.__getitem__(key)
+        parent = node.parent
+        if parent is None or parent is node:
+            raise ValueError("Cannot remove the root node")
+
+        parent.nodes.remove(node)
+        self.reindex()
 
     def get(self, key: str, fallback=MISSING) -> Node[T]:
         if fallback is MISSING:
