@@ -73,8 +73,8 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
 
         # Collect properties from each DCSC in order
         props: Dict[str, Dict[int, UEBase]] = defaultdict(lambda: defaultdict(lambda: None))  # type: ignore
-        for _, dcsc in dcscs:
-            extract_properties_from_export(dcsc, props, skip_top=alt, recurse=True, report=False)
+        if dcscs:
+            extract_properties_from_export(dcscs[-1][1], props, skip_top=alt, recurse=True, report=False)
         proxy.update(props)
 
     return proxy

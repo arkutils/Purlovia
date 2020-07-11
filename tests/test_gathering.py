@@ -7,7 +7,7 @@ from ue.hierarchy import inherits_from
 from ue.proxy import UEProxyStructure
 
 from .common import *  # noqa: F401,F403  # needed to pick up all fixtures
-from .common import DEINO_CHR, DODO_AB_CHR, DODO_CHR, TEST_PGD_CLS, TROODON_CHR, X_DRAGON_CHR, ScanLoadFn
+from .common import DEINO_CHR, DODO_AB_CHR, DODO_CHR, PTM_DCSC_CONFLICT_CHR, TEST_PGD_CLS, TROODON_CHR, X_DRAGON_CHR, ScanLoadFn
 
 # pylint: disable=singleton-comparison
 
@@ -105,3 +105,18 @@ def test_gather_x_dragon(scan_and_load: ScanLoadFn):
     assert isinstance(props, UEProxyStructure)
     assert isinstance(props, PrimalDinoStatusComponent)
     assert props.bCanSuffocate[0] == False
+
+
+@pytest.mark.requires_game
+def test_gather_dcsc_conflict(scan_and_load: ScanLoadFn):
+    # Species inherits from Quetz but doesn't use that DCSC
+    # Used to verify that DCSCs shouldn't be combined if no override exists for a property
+    chr_export = scan_and_load(PTM_DCSC_CONFLICT_CHR)
+    props = gather_dcsc_properties(chr_export)
+    assert isinstance(props, UEProxyStructure)
+    assert isinstance(props, PrimalDinoStatusComponent)
+    assert props.MaxStatusValues[0] == 100  # from PTM_DCSC and not DCSC_Quetz (1200)
+    assert props.MaxStatusValues[1] == 100  # from PTM_DCSC and not DCSC_Quetz (800)
+    assert props.MaxStatusValues[2] == 100  # from PTM_DCSC and not DCSC_Quetz (1850)
+    assert props.MaxStatusValues[4] == 100  # from PTM_DCSC and not DCSC_Quetz (1200)
+    assert props.TamedBaseHealthMultiplier[0] == 1  # from PTM_DCSC and not DCSC_Quetz (0.85)
