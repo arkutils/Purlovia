@@ -4,7 +4,7 @@ Helpers for regionMaps.py
 
 from urllib.parse import quote
 
-from processing.common import remove_unicode_control_chars
+from ..common import remove_unicode_control_chars
 
 LINK_SAFE_CHARS = '()'
 

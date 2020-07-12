@@ -4,8 +4,7 @@ Creates an svg-file with spawning regions of a species colored depending on the 
 
 from typing import List
 
-from processing.common import SVGBoundaries
-
+from ..common import SVGBoundaries
 from .consts import POINT_RADIUS
 from .intermediate_types import SpawnPoint, SpawnRectangle
 from .species import get_rarity_for_spawn
@@ -143,8 +142,7 @@ def _generate_svg_caves(rarity_sets):
 
 
 def generate_svg_map(bounds: SVGBoundaries, spawn_freqs, spawns, force_untameable):
-    svg_output = \
-f'''<?xml version="1.0" encoding="utf-8"?>
+    svg_output = f'''<?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{bounds.size}" height="{bounds.size}"
         viewBox="0 0 {bounds.size} {bounds.size}" class="creatureMap" style="position:absolute;">
     <defs>

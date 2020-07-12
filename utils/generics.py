@@ -1,5 +1,9 @@
 from typing import List, Optional, Tuple, Type
 
+__all__ = [
+    'get_generic_args',
+]
+
 
 def get_generic_args(obj) -> Optional[List[Type]]:
     orig_class = getattr(obj, '__orig_class__', None)

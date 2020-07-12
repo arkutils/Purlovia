@@ -1,1 +1,0 @@
-POINT_RADIUS = 2  #max(SVG_SIZE // 150, 2)

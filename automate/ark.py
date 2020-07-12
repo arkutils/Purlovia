@@ -545,7 +545,13 @@ def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
 
     # Check for our hook's return code
     if result.returncode != 80:
-        logger.warning("Collecting version by running Ark server failed with retcode %d (0x%0X)", result.returncode,
+        if not get_global_config().dev.DevMode:
+            if docker:
+                logger.warning("Is Docker running?")
+            raise ChildProcessError("Collecting version by running Ark server failed with retcode " +
+                                    f"{result.returncode} (0x{result.returncode:0X})")
+
+        logger.warning("Collecting version by running Ark server failed with retcode " + "%d (0x%0X)", result.returncode,
                        result.returncode)
         return None
 
