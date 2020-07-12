@@ -96,7 +96,7 @@ sanity_checks:
 
         '/Game/Mods/Valguero': 2 # 3 at last check
         '/Game/Mods/Ragnarok': 3 # 4 at last check
-        '/Game/Mods/111111111': 354 # 356 at last check, inaccurate due to hierarchy issues 
+        '/Game/Mods/111111111': 354 # 356 at last check, inaccurate due to hierarchy issues
         '/Game/Mods/CrystalIsles': 7 # 9 at last check
 
     min_maps:
@@ -225,6 +225,10 @@ mods:
         classname_variant_parts:
             VDay: true
             Ocean: true
+
+    1821554891: # Purlovia Test Mod
+        add_variants:
+            Test Only: true
 
 
 # Override settings on a per-map basis
