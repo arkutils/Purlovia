@@ -65,15 +65,15 @@ def findExportSourcePackage(export: ExportTableItem) -> Optional[str]:
     '''Find the source package of the given export.'''
     empty = dict(value=None)
 
-    namespace = export.field_values.get('namespace', empty).value
+    namespace = export.field_values.get('namespace', empty).value  # type: ignore
     if namespace:
         return str(namespace.name)
 
-    super_export = export.field_values.get('super', empty).value
+    super_export = export.field_values.get('super', empty).value  # type: ignore
     if super_export:
         return findExportSourcePackage(super_export)
 
-    klass_export = export.field_values.get('klass', empty).value
+    klass_export = export.field_values.get('klass', empty).value  # type: ignore
     if klass_export:
         return findExportSourcePackage(klass_export)
 

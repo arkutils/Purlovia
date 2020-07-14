@@ -62,7 +62,7 @@ def gather_dcsc_properties(species_cls: ExportTableItem, *, alt=False, report=Fa
                 if pri_prop is None:
                     dcsc_cls = loader.load_related(dcsc_export.klass.value).default_export
                     pri_prop = get_property(dcsc_cls, "CharacterStatusComponentPriority")
-                pri = 0 if pri_prop is None else float(pri_prop)
+                pri = 0 if pri_prop is None else float(pri_prop)  # type: ignore
                 if report:
                     print(f'DCSC from {asset.assetname} = {dcsc_export.fullname} (pri {pri_prop} = {pri})')
                 dcscs.append((pri, dcsc_export))

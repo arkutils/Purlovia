@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, Iterator, Optional, Union
+from typing import Generator, Iterable, Iterator, Optional, Union
 
 import yaml
 
@@ -67,11 +67,11 @@ def inherits_from(klass: Union[str, ExportTableItem], target: str, safe=False, i
     '''
     if safe:
         try:
-            return target in find_parent_classes(klass, include_self=include_self)
+            return target in find_parent_classes(klass, include_self=include_self)  # type: ignore
         except HierarchyError:
             return False
     else:
-        return target in find_parent_classes(klass, include_self=include_self)
+        return target in find_parent_classes(klass, include_self=include_self)  # type: ignore
 
 
 def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
@@ -94,7 +94,7 @@ def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
     yield from (node.data for node in node.walk_iterator(skip_self=True))
 
 
-def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=False) -> Iterator[str]:
+def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=False) -> Generator[str, None, None]:
     '''
     Iterate over an export's parent classes.
     `klass` should be a full classname or an exported class.
@@ -132,7 +132,9 @@ def find_parent_classes(klass: Union[str, ExportTableItem], *, include_self=Fals
         if not node and not parent_name.startswith('/Game'):
             raise MissingParent(f'Unable to find parent for {parent_name}')
         if not node:
-            export = export.asset.loader.load_class(parent_name)
+            loader = export.asset.loader
+            assert loader
+            export = loader.load_class(parent_name)
 
     # Phase 2: simply step up through our own hierarchy
     while node.parent:
@@ -145,8 +147,8 @@ def get_parent_class(klass: Union[str, ExportTableItem]) -> str:
     return next(find_parent_classes(klass, include_self=False))
 
 
-def iterate_all() -> Iterator[str]:
-    yield from tree.keys()
+def iterate_all() -> Generator[str, None, None]:
+    yield from tree.keys()  # type: ignore
 
 
 NO_DEFAULT = object()
@@ -168,7 +170,7 @@ def _node_from_argument(klass: Union[str, ExportTableItem], default=NO_DEFAULT) 
     return node
 
 
-def load_internal_hierarchy(filename: Path):
+def load_internal_hierarchy(filename: Union[Path, str]):
     '''
     Pre-load hierarchy with 'internal' type data that cannot otherwise be discovered.
     `filename` should be a yaml file with a top-level key matching the root name.

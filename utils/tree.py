@@ -8,9 +8,8 @@ from typing import Callable, Deque, Dict, Generic, Iterable, List, Optional, Typ
 
 try:
     from IPython.lib.pretty import PrettyPrinter  # type: ignore
-    support_pretty = True
 except ImportError:
-    support_pretty = False
+    PrettyPrinter = None
 
 __all__ = [
     'Node',
@@ -83,7 +82,7 @@ class Node(Generic[T]):
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
 
-    if support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             if cycle:
@@ -195,7 +194,7 @@ class IndexedTree(Generic[T]):
 
         return parent_node
 
-    if support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             if cycle:

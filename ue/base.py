@@ -1,16 +1,20 @@
-from typing import Any, Dict, List, Optional, Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
 
 from .context import INCLUDE_METADATA, get_ctx
 from .stream import MemoryStream
 
+if TYPE_CHECKING:
+    from .asset import UAsset
+
 if INCLUDE_METADATA:
     try:
         from IPython.lib.pretty import PrettyPrinter  # type: ignore
-        support_pretty = True
     except ImportError:
-        support_pretty = False
+        PrettyPrinter = None
 else:
-    support_pretty = False
+    PrettyPrinter = None
 
 
 class UEBase(object):
@@ -19,13 +23,13 @@ class UEBase(object):
     display_fields: Optional[Sequence[str]] = None
     skip_level_field: Optional[str] = None
 
-    def __init__(self, owner: "UEBase", stream=None):
+    def __init__(self, owner: UEBase, stream=None):
         assert owner is not None, "Owner must be specified"
         self.stream: MemoryStream = stream or owner.stream
-        self.asset = owner.asset  # type: ignore
+        self.asset: UAsset = owner.asset  # type: ignore
         self.field_values: Dict[str, Any] = {}
         self.start_offset: Optional[int] = None
-        self.is_serialised = False
+        self.is_serialised: bool = False
         self.is_linked = False
         self.is_inside_array = False
         if INCLUDE_METADATA:
@@ -48,7 +52,7 @@ class UEBase(object):
         self._deserialise(*args, **kwargs)
         if INCLUDE_METADATA:
             self.end_offset = self.stream.offset - 1
-        self.is_serialised = True
+        self.is_serialised = True  # type: ignore
 
         return self
 
@@ -121,7 +125,7 @@ class UEBase(object):
         fields_txt = ', '.join(str(self.field_values[name]) for name in fields)
         return f'{self.__class__.__name__}({fields_txt})'
 
-    if support_pretty and INCLUDE_METADATA:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''

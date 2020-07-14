@@ -1,3 +1,5 @@
+from typing import Any, Dict, cast
+
 import pytest
 from pydantic import BaseModel
 
@@ -53,7 +55,7 @@ def test_sanitise_float_properties():
 
 
 def test_sanitise_models(simple_model: Item):
-    output = sanitise_output(simple_model)
+    output = cast(Dict[str, Any], sanitise_output(simple_model))
     assert output['a'] == 'string'
     assert output['b']['c'] is 1
 

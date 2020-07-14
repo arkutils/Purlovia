@@ -62,13 +62,13 @@ class World(PersistentLevel):
             # Add fragment to data lists
             if data:
                 if isinstance(data, GeneratorType):
-                    data_fragments: list = sanitise_output(list(data))
+                    data_fragments: List[Any] = sanitise_output(list(data))  # type: ignore
                     for fragment in data_fragments:
                         if fragment:
                             self.data[gatherer].append(fragment)
                 else:
                     fragment = sanitise_output(data)
-                    self.data[gatherer].append(fragment)
+                    self.data[gatherer].append(fragment)  # type: ignore
 
         # Preemptively remove the level from linker cache.
         loader.cache.remove(assetname)

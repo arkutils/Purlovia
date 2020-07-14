@@ -42,7 +42,7 @@ def should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str]
     Returns a tuple of (changed, version), where `changed` is a boolean saying whether the data needs to be
     saved and `version` is the version number to use.
     '''
-    new_version: str = values.get('version', None)
+    new_version: str = values.get('version', '')
     if not new_version:
         raise ValueError('Export data must contain a version field')
 
@@ -187,7 +187,7 @@ def save_as_json(data, filename, pretty=False):
 if __name__ == '__main__':
     # Some example cases to evaluate changes
     # `python -m automate.jsonutils` to run
-    test_data = dict(
+    test_data = dict(  # type: ignore
         lone_int_field=dict(a=13245),
         lone_str_field=dict(a="abc"),
         lone_null_field=dict(a=None),

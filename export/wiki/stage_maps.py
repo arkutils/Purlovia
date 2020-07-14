@@ -58,7 +58,7 @@ class MapStage(ExportStage):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         selectable_maps: Optional[str] = None
-        if modid not in get_official_mods():
+        if modid not in get_official_mods():  # type: ignore
             if int(mod_data.get('type', 1)) != 2:
                 return
             selectable_maps = mod_data.get('maps', None)

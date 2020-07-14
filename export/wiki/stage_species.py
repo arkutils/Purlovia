@@ -154,7 +154,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         asset: UAsset = proxy.get_source().asset
         assert asset.assetname and asset.default_class
         modid: Optional[str] = self.manager.loader.get_mod_id(asset.assetname)
-        overrides = get_overrides_for_species(asset.assetname, modid)
+        overrides = get_overrides_for_species(asset.assetname, modid or '')
 
         if _should_skip_species(species, overrides):
             return None
@@ -179,7 +179,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         out.dinoNameTag = species.DinoNameTag[0]
         out.customTag = species.CustomTag[0]
         out.targetingTeamName = species.TargetingTeamNameOverride[0]
-        out.mass = species.CharacterMovement[0].Mass[0]
+        out.mass = species.CharacterMovement[0].Mass[0]  # type: ignore
         out.dragWeight = species.DragWeight[0]
 
         if variants:

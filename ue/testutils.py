@@ -26,6 +26,7 @@ def load_asset(assetfile: str):
 
 def parse_colors(props):
     colours = dict()
+    array = None
     for prop in props:
         if str(prop.header.name) != 'ColorSetDefinitions':
             continue

@@ -145,7 +145,7 @@ if __name__ == '__main__':
     mainasset = find_asset(mainasset, loader)
     print(f"Asset: {mainasset}")
 
-    root.title(f"Property Browser : {mainasset}")
+    root.title(f"Property Browser : {mainasset}")  # type: ignore
     load_asset(mainasset)
     fill_property_grid()
-    root.mainloop()
+    root.mainloop()  # type: ignore

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, List, Optional, Type
+from typing import Any, Dict, Iterator, List, Optional, Type, cast
 
 from pydantic import BaseModel, Field
 
@@ -185,6 +185,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         results: List[Any] = []
         format_version = self.get_format_version()
         output: Dict[str, Any] = dict()
+        expected_subtype = None
         if schema_file:
             model = self.get_schema_model()  # pylint: disable=assignment-from-none # stupid pylint
             assert model
@@ -194,8 +195,8 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         output['format'] = format_version
 
         # Pre-data comes before the main items
-        pre_data = self.get_pre_data(modid) or dict()
-        pre_data = sanitise_output(pre_data)
+        pre_data: Dict[str, Any] = self.get_pre_data(modid) or dict()
+        pre_data = cast(Dict[str, Any], sanitise_output(pre_data))
         output.update(pre_data)
 
         # Main items array
@@ -215,8 +216,8 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         self.gathered_results = results
 
         # Post-data comes after the main items
-        post_data = self.get_post_data(modid) or {}
-        post_data = sanitise_output(post_data)
+        post_data: Dict[str, Any] = self.get_post_data(modid) or {}
+        post_data = cast(Dict[str, Any], sanitise_output(post_data))
         output.update(post_data)
         post_data_has_content = post_data and any(post_data.values())
 

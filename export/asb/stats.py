@@ -14,7 +14,7 @@ IS_PERCENT_STAT = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1)
 def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, statIndexes: Tuple[int, ...]) -> List[Optional[List[float]]]:
     statsArray = list()
 
-    iw_values: List[float] = [0] * len(statIndexes)
+    iw_values: List[float] = [0.0] * len(statIndexes)
     for _, ark_index in enumerate(statIndexes):
         can_level = (ark_index == 2) or dcsc_props.CanLevelUpValue[ark_index]
         dont_use = dcsc_props.DontUseValue[ark_index]
@@ -35,7 +35,7 @@ def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, statIndexes: Tuple[i
             else:
                 iw_values[ark_index] = dcsc_props.AmountMaxGainedPerLevelUpValue[ark_index].rounded_value
 
-            stat_data = [
+            stat_data = [  # type: ignore
                 cd(dcsc_props.MaxStatusValues[ark_index].rounded_value + add_one),
                 cd(iw_values[ark_index] * zero_mult),
                 cd(dcsc_props.AmountMaxGainedPerLevelUpValueTamed[ark_index].rounded_value * ETHM * zero_mult),

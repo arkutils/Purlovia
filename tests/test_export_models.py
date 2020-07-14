@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Dict, Optional, cast
 
 import pytest
 from pydantic import BaseModel, ValidationError
@@ -53,7 +53,7 @@ def test_field_prop_as_attr(field_type, field_name, value, target):
     assert output[field_name] is field_value
 
     # Sanitise model, verify field is converted as expected
-    result = sanitise_output(output)
+    result = cast(Dict[str, Any], sanitise_output(output))
     field_result = result[field_name]
     assert field_result == target
 
@@ -77,7 +77,7 @@ def test_field_prop_in_constructor(field_type, field_name, value, target):
     assert output[field_name] is field_value
 
     # Sanitise model, verify field is converted as expected
-    result = sanitise_output(output)
+    result = cast(Dict[str, Any], sanitise_output(output))
     field_result = result[field_name]
     assert field_result == target
 
@@ -99,7 +99,7 @@ def test_props_in_plain_fields():
 
     # put it in the non-property field and check it is formatted
     model = UETypedModel()
-    model.float_field = v
+    model.float_field = v  # type: ignore
     assert model.float_field == clean_float(v)
 
     # put it in the constructor
@@ -113,7 +113,7 @@ def test_plain_values_in_prop_fields():
     # put it in the property field
     with pytest.raises(ValidationError):
         model = UETypedModel()
-        model.float_prop_field = v
+        model.float_prop_field = v  # type: ignore
 
     # put it in the constructor
     with pytest.raises(ValidationError):

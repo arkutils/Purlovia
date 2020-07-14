@@ -75,7 +75,9 @@ def get_parent_fullname(export: ExportTableItem) -> Optional[str]:
         if not is_fullname_an_asset(parent_fullname):
             return parent_fullname  # nowhere else to go
 
-        parent = export.asset.loader.load_class(parent_fullname)
+        loader = export.asset.loader
+        assert loader
+        parent = loader.load_class(parent_fullname)
     elif isinstance(parentref, ExportTableItem):
         # An export - simply follow it
         parent = parentref

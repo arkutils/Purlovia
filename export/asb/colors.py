@@ -38,7 +38,7 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
             name = definition.get('ColorName', None) or '~~unset~~'
             value = definition.get('ColorValue', None)
             color = value.values[0].as_tuple() if value else None
-            colors.append((str(name), color))
+            colors.append((str(name), color))  # type: ignore
 
     # Collect the dye definitions
     dye_def_overrides = props.MasterDyeList[0]
@@ -53,7 +53,7 @@ def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
             name = dye_props.DescriptiveNameBase[0] or '~~unset~~'
             value = dye_props.DyeColor[0]
             color = value.values[0].as_tuple() if value else None
-            dyes.append((str(name), color))
+            dyes.append((str(name), color))  # type: ignore
 
     return (colors, dyes)
 
@@ -64,11 +64,11 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
     colors: List[Dict] = list()
 
     try:
-        male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]
+        male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]  # type: ignore
     except ValueError:
         male_colorset_props = None
     try:
-        female_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsFemale[0]
+        female_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsFemale[0]  # type: ignore
     except ValueError:
         female_colorset_props = None
 

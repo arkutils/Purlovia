@@ -3,6 +3,7 @@ from glob import iglob
 from itertools import chain
 from pathlib import Path
 from tempfile import gettempdir
+from typing import Any, Dict
 
 from pytest_mock import MockFixture  # type: ignore
 
@@ -54,7 +55,7 @@ def test_cached_data_fetches_from_cache(mocker: MockFixture):
 
 
 def test_cached_data_cache_invalided_on_key_change(mocker: MockFixture):
-    key = dict(version=1)
+    key: Dict[str, Any] = dict(version=1)
     expected_result = _simple_data_fn(key)
 
     # Run once, expecting the data to be generated

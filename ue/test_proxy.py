@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import Mapping, Optional
 
 import pytest
 
@@ -8,12 +8,12 @@ from .proxy import UEProxyStructure, get_proxy_for_exact_type, ueints
 # pylint: disable=redefined-outer-name  # to allow fixture use
 
 
-@pytest.fixture
-def simple_proxy():
+@pytest.fixture(name='simple_proxy')
+def fixture_simple_proxy():
     class SimpleProxy(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    proxy: SimpleProxy = get_proxy_for_exact_type('DummyType1')
+    proxy: Optional[SimpleProxy] = get_proxy_for_exact_type('DummyType1')
     assert proxy
     return proxy
 
@@ -67,31 +67,33 @@ def test_simple_usage(simple_proxy):
     assert simple_proxy.IntField[0] == 3141
 
 
-def test_has_override(simple_proxy):
+def test_has_override():
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
+    proxy: Optional[Proxy1] = get_proxy_for_exact_type('DummyType1')
 
-    assert simple_proxy.has_override('IntField', 0) is False
-    assert simple_proxy.has_override('IntField', 1) is False
+    assert proxy
+    assert proxy.has_override('IntField', 0) is False
+    assert proxy.has_override('IntField', 1) is False
 
-    simple_proxy.update({'IntField': ueints(3141)})
+    proxy.update({'IntField': ueints(3141)})
 
-    assert simple_proxy.has_override('IntField', 0) is True
-    assert simple_proxy.has_override('IntField', 1) is False
+    assert proxy.has_override('IntField', 0) is True
+    assert proxy.has_override('IntField', 1) is False
 
 
-def test_unspecified_fields(simple_proxy):
+def test_unspecified_fields():
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
-    simple_proxy: Proxy1 = get_proxy_for_exact_type('DummyType1')
+    proxy: Optional[Proxy1] = get_proxy_for_exact_type('DummyType1')
 
-    assert simple_proxy.has_override('IntField', 0) is False
-    assert simple_proxy.has_override('OtherField', 0) is False
+    assert proxy
+    assert proxy.has_override('IntField', 0) is False
+    assert proxy.has_override('OtherField', 0) is False
 
-    simple_proxy.update({'OtherField': ueints(3141)})
+    proxy.update({'OtherField': ueints(3141)})
 
-    assert simple_proxy.has_override('OtherField', 0) is True
-    assert simple_proxy.has_override('IntField', 1) is False
+    assert proxy.has_override('OtherField', 0) is True
+    assert proxy.has_override('IntField', 1) is False

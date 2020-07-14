@@ -45,7 +45,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
         mod_type = int(mod_data.get('type', 1))
-        if mod_type == 2 or modid in get_official_mods():
+        if mod_type == 2 or modid in get_official_mods():  # type: ignore
             self._map_mod_generate_svgs(modid, mod_data['name'])
         elif mod_type == 1:
             self._game_mod_generate_svgs(modid, mod_data['name'])
@@ -227,7 +227,7 @@ class ProcessSpawnMapsStage(ProcessingStage):
 
 
 def _get_svg_bounds_for_map(persistent_level: str) -> SVGBoundaries:
-    config = get_overrides_for_map(persistent_level, None).svgs
+    config = get_overrides_for_map(persistent_level, '').svgs
     bounds = SVGBoundaries(
         size=300,
         border_top=config.border_top,

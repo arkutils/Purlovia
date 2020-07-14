@@ -21,12 +21,12 @@ from .utils import clean_double, clean_float
 if INCLUDE_METADATA:
     try:
         from IPython.lib.pretty import PrettyPrinter  # type: ignore
-        support_pretty = True
     except ImportError:
-        support_pretty = False
+        PrettyPrinter = None
 else:
-    support_pretty = False
+    PrettyPrinter = None
 
+# pyright: reportGeneralTypeIssues=false
 # pylint: disable=unused-argument,arguments-differ
 
 dbg_structs = 0
@@ -128,7 +128,7 @@ class PropertyTable(UEBase):
         out = {k: v[0] if list(v.keys()) == [0] else v for k, v in out.items()}
         return out
 
-    if INCLUDE_METADATA and support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -190,7 +190,7 @@ class Property(UEBase):
             self._newField('value', f'<unsupported type {str(self.header.type)}>')
             self.stream.offset += self.header.size
 
-    if INCLUDE_METADATA and support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Clean property format: Name[index] = (type) value'''
@@ -323,7 +323,7 @@ class FloatProperty(ValueProperty):
     rounded_value: float
 
     @classmethod
-    def create(cls, inp: Union[float, str, Tuple[float, str]], asset: UEBase = None):
+    def create(cls, inp: Union[float, str, Tuple[float, str], Real], asset: UEBase = None):
         '''Create a new FloatProperty directly.
 
         Specify as either:
@@ -543,7 +543,7 @@ class ByteProperty(ValueProperty):  # With optional enum type
         '''...allows the type to be used as a pydantic field'''
         field_schema.update(type='integer')
 
-    if INCLUDE_METADATA and support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -953,7 +953,7 @@ class StructProperty(UEBase):
 
         return self.as_dict()
 
-    if INCLUDE_METADATA and support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -1021,7 +1021,7 @@ class ArrayProperty(UEBase):
                 # logger.warning('exception during decoding of array element', exc_info=True)
                 assetname = '<unnamed asset>'
                 if hasattr(self, 'asset') and hasattr(self.asset, 'assetname'):
-                    assetname = self.asset.assetname
+                    assetname = self.asset.assetname or assetname
                 logger.debug('Skippable exception parsing %s: %s', assetname, err)
                 self.stream.offset = saved_offset + size
                 return
@@ -1031,7 +1031,7 @@ class ArrayProperty(UEBase):
     def format_for_json(self):
         return self.values
 
-    if INCLUDE_METADATA and support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''

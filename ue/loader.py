@@ -3,6 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from itertools import islice
+from os import walk
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Tuple, Union
 
@@ -368,7 +369,7 @@ class AssetLoader:
         assert extensions
 
         toppath = self.convert_asset_name_to_path(toppath, partial=True)
-        for path, _, files in os.walk(toppath):
+        for path, _, files in walk(toppath):
             for filename in files:
                 fullpath = os.path.join(path, filename)
                 name, ext = os.path.splitext(fullpath)
@@ -399,6 +400,7 @@ class AssetLoader:
         if isinstance(obj, ImportTableItem):
             assetname = str(obj.namespace.value.name.value)
             loader = obj.asset.loader
+            assert loader
             asset = loader[assetname]
             return asset
 

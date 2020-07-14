@@ -55,7 +55,7 @@ def gather_immobilization_data(char_props: PrimalDinoCharacter, loader: AssetLoa
     if char_props.bIsWaterDino[0]:
         return immobilizedBy
     weight = char_props.DragWeight[0]
-    mass = char_props.CharacterMovement[0].Mass[0].rounded_value
+    mass = char_props.CharacterMovement[0].Mass[0].rounded_value  # type: ignore
     is_boss = char_props.bIsBossDino[0]
     tag = char_props.CustomTag[0]
     ignore_traps = char_props.bIgnoreAllImmobilizationTraps[0]

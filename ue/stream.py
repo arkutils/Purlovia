@@ -1,5 +1,7 @@
 import struct
 
+# pyright: reportGeneralTypeIssues=false
+
 __all__ = ('MemoryStream', )
 
 

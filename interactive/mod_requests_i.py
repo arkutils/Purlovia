@@ -51,7 +51,7 @@ modids = set([
 #%% Conversion function
 
 
-def data_from_mod(data):
+def data_from_mod(data) -> Dict[str, Any]:
     return dict(
         id=data['publishedfileid'],
         file_size=data['file_size'],

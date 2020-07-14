@@ -36,7 +36,9 @@ def get_parent_of_export(export: ExportTableItem) -> Optional[ExportTableItem]:
         # An import - maybe load it
         if not str(parentref.namespace.value.name).startswith('/Game'):
             return None  # nowhere else to go
-        parent_asset: UAsset = export.asset.loader.load_related(parentref)
+        loader = export.asset.loader
+        assert loader
+        parent_asset: UAsset = loader.load_related(parentref)
         parent: Optional[ExportTableItem] = parent_asset.default_export
         if not parent:
             return None

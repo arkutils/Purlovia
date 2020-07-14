@@ -6,6 +6,8 @@ import platform
 import subprocess
 import urllib.request
 from pathlib import Path
+from subprocess import CompletedProcess
+from typing import Optional
 
 from utils.log import get_logger
 
@@ -99,6 +101,9 @@ class Steamcmd:
                 return e
 
     def _launch_steamcmd(self, params):
+        proc_ret: Optional[CompletedProcess[bytes]] = None
+        attempt: int = 1
+
         for attempt in range(1, 6):
             # subprocess.run is the modern version of subprocess.call and more flexible
             # capture_output=True silences the process. Output is accessible from proc_ret.stdout

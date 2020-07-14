@@ -83,7 +83,7 @@ def fixture_ark_types(loader: AssetLoader, internal_hierarchy):  # pylint: disab
 def fixture_scan_and_load(loader: AssetLoader, ark_types):  # pylint: disable=unused-argument
     def _scan_and_load(cls_name: str):
         cls = loader.load_class(cls_name)
-        ue.hierarchy.explore_asset(cls.asset.assetname, loader)
+        ue.hierarchy.explore_asset(cls.asset.assetname, loader)  # type: ignore
         return cls
 
     return _scan_and_load

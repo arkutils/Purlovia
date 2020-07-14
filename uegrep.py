@@ -1,7 +1,7 @@
 import argparse
 import re
 from logging import WARNING, basicConfig
-from typing import Iterator, Tuple
+from typing import Iterator, List, Tuple
 
 from ark.discovery import initialise_hierarchy
 from automate.ark import ArkSteamManager
@@ -76,6 +76,7 @@ def find_matches() -> Iterator[str]:
     else:
         searches = list(args.searches)
 
+    regexes: List[re.Pattern] = []
     if args.regex:
         regexes = [re.compile(search, flags=re.I if args.ignore_case else 0) for search in searches]
 

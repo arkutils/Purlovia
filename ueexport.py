@@ -39,7 +39,7 @@ def collect_asset(assetname: str) -> UAsset:
     loader = arkman.getLoader()
     # config = get_global_config()
 
-    assetname = find_asset(args.assetname, loader)
+    assetname = find_asset(args.assetname, loader)  # type: ignore
     if not assetname:
         print("Asset not found")
         sys.exit(1)

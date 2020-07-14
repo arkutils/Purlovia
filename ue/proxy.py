@@ -57,7 +57,7 @@ class UEProxyStructure:
 
         # Register this cls as available for proxy creation
         setattr(cls, _UETYPE, uetype)
-        _register_proxy(uetype, cls)
+        _register_proxy(uetype, cls)  # type: ignore
 
         # Record the defaults into _UEFIELDS
         fields = dict()
@@ -172,12 +172,12 @@ def get_proxy_for_type(cls_name: str, loader: AssetLoader, default=MISSING) -> T
     return default
 
 
-def get_proxy_for_exact_type(uetype: str):
+def get_proxy_for_exact_type(uetype: str) -> Optional[Tproxy]:
     global _proxies  # pylint: disable=global-statement
     cls = _proxies.get(uetype, None)
     if cls is None:
         return None
-    proxy = cls()
+    proxy: Tproxy = cls()  # type: ignore
     return proxy
 
 

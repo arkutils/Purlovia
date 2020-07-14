@@ -174,7 +174,7 @@ def relative_path(path, root):
         return None
 
 
-def find_asset(assetname, loader):
+def find_asset(assetname, loader) -> str:
     if not assetname:
         from tkinter import filedialog
         assetname = filedialog.askopenfilename(title='Select asset file...',
@@ -246,4 +246,4 @@ if __name__ == '__main__':
     assetname = find_asset(assetname, loader)
     load_asset(assetname)
 
-    root.mainloop()
+    root.mainloop()  # type: ignore

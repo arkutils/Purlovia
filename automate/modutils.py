@@ -1,5 +1,6 @@
 import zlib
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 from ue.stream import MemoryStream
 from utils.log import get_logger
@@ -29,7 +30,7 @@ class DecompressionError(Exception):
 #   repeat:
 #     8   chunk compressed size
 #     8   chunk uncompressed size (matches chunk size in all but the last chunk)
-def unpackModFile(src: str, dst: str):
+def unpackModFile(src: Union[str, Path], dst: Union[str, Path]):
     f = loadFileAsStream(src)
     token = f.readUInt64()
     sizeUnpackedChunk = f.readUInt64()

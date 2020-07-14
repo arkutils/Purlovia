@@ -76,8 +76,8 @@ class ArkSteamManager:
         modid = str(modid)
 
         # Official "mods" get a custom moddata using the game's version
-        if modid in self.config.official_mods.ids():
-            data = dict(id=modid)
+        if modid in self.config.official_mods.ids():  # type: ignore
+            data: Dict[str, Union[str, None]] = dict(id=modid)
             data['version'] = self.getGameBuildId() or '0'
             data['name'] = self.config.official_mods.tag_from_id(modid)
             data['title'] = data['name']

@@ -132,7 +132,7 @@ def test_insert_segment():
     t.add('root', MyDataType('b'))
 
     # Make a simple separate tree segment
-    n = Node[str](MyDataType('segment'))
+    n = Node[MyDataType](MyDataType('segment'))
     na = n.add(MyDataType('na'))
     n.add(MyDataType('nb'))
     na.add(MyDataType('naa'))

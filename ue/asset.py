@@ -17,12 +17,11 @@ if TYPE_CHECKING:
 
 if INCLUDE_METADATA:
     try:
-        from IPython.lib.pretty import PrettyPrinter  # type: ignore  # noqa: F401
-        support_pretty = True
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
     except ImportError:
-        support_pretty = False
+        PrettyPrinter = None
 else:
-    support_pretty = False
+    PrettyPrinter = None
 
 dbg_getName = 0
 
@@ -235,7 +234,7 @@ class ImportTableItem(UEBase):
         if INCLUDE_METADATA:
             self.users.add(user)
 
-    if support_pretty and INCLUDE_METADATA:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p, cycle):
             if cycle:

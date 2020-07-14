@@ -30,7 +30,8 @@ def gather_properties(asset: UAsset, props: Optional[PriorityPropDict] = None, r
 
     dcscs: List[Tuple[int, ExportTableItem]] = list()
     the_dcsc = asset.loader.load_class(DCSC_CLS)
-    props = props or defaultdict(lambda: defaultdict(list))
+    props = props or defaultdict(lambda: defaultdict(list))  # type: ignore
+    assert props
 
     if report:
         print('\nGathering props from hierarchy (skipping DCSCs):')
@@ -56,10 +57,11 @@ def gather_properties_internal(asset: UAsset,
                                dcsc,
                                report=False,
                                depth=0):
-    assert asset and asset.loader
+    assert asset and asset.loader and asset.default_class
+    indent = ''
     if report:
         indent = '|   ' * depth
-        print(indent + asset.name)
+        print(indent + (asset.name or '<unknown>'))
 
     parent = ark.tree.get_parent_of_export(asset.default_class)
     if parent and parent.asset.assetname != asset.assetname and not ark.tree.export_inherits_from(parent, dcsc):
@@ -83,7 +85,7 @@ def gather_properties_internal(asset: UAsset,
             if report:
                 print(f'{indent}|   (postponing dcsc: priority={pri})')
             pri = pri or 0
-            dcscs.append((pri, subcomponent))
+            dcscs.append((pri, subcomponent))  # type: ignore
         else:
             if report:
                 print(f'{indent}|   (gather properties)')

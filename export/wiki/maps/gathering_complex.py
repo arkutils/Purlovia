@@ -50,7 +50,7 @@ class WorldSettingsExport(MapGathererBase):
         if settings.has_override('Title'):
             display_name = settings.Title[0]
         else:
-            display_name = get_leaf_from_assetname(source.asset.assetname)
+            display_name = get_leaf_from_assetname(source.asset.assetname or '<unknown asset>')
             display_name = display_name.rstrip('_P')
             display_name = uelike_prettify(display_name)
 
@@ -355,7 +355,7 @@ class LootCrateSpawnExport(MapGathererBase):
         for entry in entries.values:
             klass = entry.as_dict()['CrateTemplate']
             if klass:
-                yield sanitise_output(klass)
+                yield sanitise_output(klass)  # type: ignore
 
     @classmethod
     def _extract_spawn_points(cls, entries) -> Iterable[models.Location]:

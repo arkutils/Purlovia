@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
 
 from ark.mod import get_core_mods, get_separate_mods
 from automate.ark import ArkSteamManager
@@ -132,7 +132,7 @@ class ExportManager:
 
         # Prepare roots
         for root in self.roots:
-            root.files = []
+            root.files = []  # type: ignore
 
             # Pre-calculate the real platform-dependant path, creating it if needed
             root.path = Path(self.config.settings.OutputPath / root.get_relative_path())
@@ -176,9 +176,11 @@ class ExportManager:
 
             # git after - commit, etc
             if root.get_should_commit():
-                self.git.after_exports(root.path.relative_to(outdir), root.get_commit_header(), self._commit_line_for_file)
+                hdr = root.get_commit_header()
+                assert hdr
+                self.git.after_exports(root.path.relative_to(outdir), hdr, self._commit_line_for_file)
 
-    def _commit_line_for_file(self, filename: str) -> Optional[str]:
+    def _commit_line_for_file(self, filename: Union[str, Path]) -> Optional[str]:
         '''Works out a reasonable single-line commit comment for the given file path.'''
         path = PurePosixPath(self.config.settings.OutputPath / filename)
 

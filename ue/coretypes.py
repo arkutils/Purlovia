@@ -3,11 +3,13 @@ from typing import List, Type, Union
 from .base import UEBase
 from .context import INCLUDE_METADATA
 
-try:
-    from IPython.lib.pretty import PrettyPrinter  # type: ignore
-    support_pretty = True
-except ImportError:
-    support_pretty = False
+if INCLUDE_METADATA:
+    try:
+        from IPython.lib.pretty import PrettyPrinter  # type: ignore
+    except ImportError:
+        PrettyPrinter = None
+else:
+    PrettyPrinter = None
 
 __all__ = (
     'Table',
@@ -62,7 +64,7 @@ class Table(UEBase):
     def __len__(self):
         return len(self.values)
 
-    if support_pretty and INCLUDE_METADATA:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             '''Cleanly wrappable display in Jupyter.'''
@@ -125,14 +127,14 @@ class NameIndex(UEBase):
     def _link(self):
         self._newField('value', self.asset.getName(self.index))
         if INCLUDE_METADATA:
-            self.value.register_user(self.parent or self)
+            self.value.register_user(self.parent or self)  # type: ignore
         if self.instance:
             self.field_values['value'] = f'{self.value}_{self.instance - 1}'
 
     def format_for_json(self):
         return str(self)
 
-    if support_pretty:
+    if PrettyPrinter:
 
         def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
             cls = self.__class__.__name__
@@ -187,7 +189,7 @@ class ObjectIndex(UEBase):
                 value = source[self.used_index]
                 value.register_user(self)
 
-        self._newField('value', value)
+        self._newField('value', value)  # type: ignore
 
     def format_for_json(self):
         if self.kind == 'import':
@@ -198,7 +200,7 @@ class ObjectIndex(UEBase):
     def __bool__(self):
         return self.index != 0
 
-    # if support_pretty:
+    # if PrettyPrinter:
 
     #     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool):
     #         if cycle:

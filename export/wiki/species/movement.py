@@ -95,7 +95,7 @@ def _gather_speeds(species: PrimalDinoCharacter, staticMult: FloatProperty, tame
             v = int(v)
         return v
 
-    cm: ShooterCharacterMovement = species.CharacterMovement[0]
+    cm: ShooterCharacterMovement = species.CharacterMovement[0]  # type: ignore
     nav_props_struct = cm.get('NavAgentProps', fallback=None)
     nav_props = nav_props_struct.as_dict() if nav_props_struct else {}
 

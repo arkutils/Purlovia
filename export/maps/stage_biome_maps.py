@@ -30,7 +30,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        if int(mod_data.get('type', 1)) != 2 and modid not in get_official_mods():
+        if int(mod_data.get('type', 1)) != 2 and modid not in get_official_mods():  # type: ignore
             # Mod is not a map, skip it.
             return
 
@@ -52,7 +52,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs
+        config = get_overrides_for_map(data_map_settings['persistentLevel'], None).svgs  # type: ignore
         bounds = SVGBoundaries(
             size=1024,
             border_top=config.border_top,

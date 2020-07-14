@@ -57,6 +57,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
             pgd_output = values_from_pgd(pgd_asset, require_override=False)
             output.update(pgd_output)
+            modid = ''
 
         # Add species override data, if any
         mod_overrides = get_overrides_for_mod(modid)

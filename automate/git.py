@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Union
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
@@ -42,7 +42,7 @@ class GitManager:
 
         logger.info('Git repo is setup and ready to go')
 
-    def after_exports(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], str]):
+    def after_exports(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], Union[str, None]]):
         if self.config.settings.SkipGit:
             return
 
@@ -158,7 +158,7 @@ class GitManager:
         if branch != self.config.git.Branch:
             self.git.checkout(self.config.git.Branch)
 
-    def _create_commit_msg(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], str]):
+    def _create_commit_msg(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], Union[str, None]]):
         message = commit_header
 
         lines = []
@@ -167,7 +167,7 @@ class GitManager:
         for filename in filelist:
             if ' -> ' in filename:
                 filename = filename.split(' -> ')[-1].strip()
-            line = msg_fn(filename)
+            line = msg_fn(Path(filename))
             if line is None:
                 line = self._generate_info_line_from_file(filename)
             if line:
