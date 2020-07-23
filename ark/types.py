@@ -378,6 +378,8 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     WeaponTemplate: Mapping[int, ObjectProperty]  # = 'None'
     EggDinoClassToSpawn: Mapping[int, ObjectProperty]  # = 'None'
 
+    GlobalTameAffinityMultiplier = uefloats(1.0)
+
     # DevKit Unverified
 
     DefaultFolderPaths: Mapping[int, ArrayProperty]

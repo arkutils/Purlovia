@@ -59,6 +59,9 @@ def _collect_item_effects(item: Item, proxy: PrimalItem):
     if not inputs:
         return
 
+    mult = proxy.GlobalTameAffinityMultiplier[0]
+    item.affinity = ItemStatEffect(base=0, speed=float(mult) or 1.0)
+
     for add in inputs.values:
         effect = _collect_status_effects(add)
         stat = add.get_property('StatusValueType', 0).get_enum_value_name()

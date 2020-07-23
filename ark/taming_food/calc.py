@@ -113,7 +113,8 @@ def _apply_override_to_item(item: Item, override: ItemOverride):
     out.food = combine_stat(item.food, override.mults['food'])
     out.torpor = combine_stat(item.torpor, override.mults['torpor'])
 
-    out.affinity = ItemStatEffect(base=override.overrides.get('affinity', 0) * override.mults.get('affinity', 1))
+    out.affinity = ItemStatEffect(base=override.overrides.get('affinity', 0) * override.mults.get('affinity', 1) *
+                                  item.affinity.speed)
     # TODO: Verify this is how affinity_mult is applied
     # Pretty sure one of both of these have to behave different if they are zero
 

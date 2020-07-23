@@ -84,7 +84,7 @@ def test_collect_item_amarberry(items: IndexedTree[Item], loader: AssetLoader):
     assert effect.name == 'Amarberry'
     assert effect.food.base == 1.0 and effect.food.speed == 3.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
-    assert effect.affinity.base == 0.0 and effect.affinity.speed == 0.0
+    assert effect.affinity.base == 0.0 and effect.affinity.speed == 1.0
 
 
 @pytest.mark.requires_game
@@ -93,7 +93,7 @@ def test_collect_item_narcoberry(items: IndexedTree[Item], loader: AssetLoader):
     assert effect.name == 'Narcoberry'
     assert effect.food.base == 4.0 and effect.food.speed == 3.0
     assert effect.torpor.base == 7.0 and effect.torpor.speed == 3.0
-    assert effect.affinity.base == 0.0 and effect.affinity.speed == 0.0
+    assert effect.affinity.base == 0.0 and effect.affinity.speed == 1.0
 
 
 @pytest.mark.requires_game
@@ -102,7 +102,7 @@ def test_collect_item_raw_meat(items: IndexedTree[Item], loader: AssetLoader):
     assert effect.name == 'Raw Meat'
     assert effect.food.base == 10.0 and effect.food.speed == 5.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
-    assert effect.affinity.base == 0.0 and effect.affinity.speed == 0.0
+    assert effect.affinity.base == 0.0 and effect.affinity.speed == 1.0
 
 
 @pytest.mark.requires_game
@@ -111,7 +111,7 @@ def test_collect_item_raw_fish(items: IndexedTree[Item], loader: AssetLoader):
     assert effect.name == 'Raw Fish Meat'
     assert effect.food.base == 5.0 and effect.food.speed == 5.0
     assert effect.torpor.base == 0.0 and effect.torpor.speed == 0.0
-    assert effect.affinity.base == 0.0 and effect.affinity.speed == 0.0
+    assert effect.affinity.base == 0.0 and effect.affinity.speed == 0.4
 
 
 DODO_FOOD_EFFECTS = (
@@ -132,8 +132,8 @@ def test_apply_dodo_items(dodo_foods, items: IndexedTree[Item], item_cls, food, 
 
 BARY_FOOD_EFFECTS = (
     (0.0, 0.0, 0.0, MEATRAW_ITEM),  # food * 0
-    (5.0 * 5.0, 0.0, 50.0, FISHRAW_ITEM),
-    (10.0 * 1.25, 0.0, 25.0, FISHCOOKED_ITEM),
+    (5.0 * 5.0, 0.0, 20.0, FISHRAW_ITEM),
+    (10.0 * 1.25, 0.0, 10.0, FISHCOOKED_ITEM),
     (0.0, 0.0, 0.0, BERRYAMAR_ITEM),  # food * 0
     (0.0, 7.0, 0.0, BERRYNARC_ITEM),  # food * 0
 )
