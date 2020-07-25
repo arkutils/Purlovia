@@ -5,6 +5,7 @@ from typing import Iterable, Iterator, List, Optional, Set, Tuple
 
 from ue.hierarchy import find_parent_classes
 from ue.loader import AssetLoader
+from ue.tree import is_fullname_an_asset
 from utils.tree import IndexedTree, Node
 
 from .datatypes import Item, ItemOverride, ItemStatEffect, ItemStatus
@@ -168,3 +169,13 @@ def collapse_full_trees(tree: IndexedTree[ItemStatus], items: IndexedTree[Item] 
 
     # Fix the tree index after we directly messed with the node lists
     tree.reindex()
+
+
+def flatten_tree(tree: IndexedTree[ItemStatus]) -> List[ItemStatus]:
+    result: List[ItemStatus] = []
+    for node in tree.root.walk_iterator(skip_self=False, breadth_first=True):
+        if not is_fullname_an_asset(node.data.bp):
+            continue
+        result.append(node.data)
+
+    return result
