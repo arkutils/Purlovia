@@ -1,3 +1,4 @@
+# flake8: noqa
 # Asset interactive experiments
 
 #%% Setup
@@ -28,13 +29,23 @@ loader = arkman.getLoader()
 modids = set([
     # Delayed decisions
     '538986229',  # Annunaki Genesis - old but still loved and kind of working
-    '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
-    '833379388',  # Pugnacia Dinos
     '916417001',  # MAP: Ebenus Astrum -                                        CHECK for dinos
     '972887420',  # Jurassic Park Expansion - massive, but updated
 
+    # Unable to process currently
+    # '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
+    # '833379388',  # Pugnacia Dinos
+
     # Candidates
-    '1984936918',  # Marnii's Mods: Wildlife
+    '843960973',  # Dragontail
+    '1188224480',  # Tamable Alphas by Ogdaonly
+    '1405944717',  # JPs Ark Server Tweaks
+    '1679826889',  # Caballus Custom Map - The Equestrian Lan
+    '1754846792',  # Zytharian Critters
+    '1850732334',  # Forest Wyvern Remastered
+    '1880357240',  # Sanctuary Overhaul
+    '1989252120',  # ARK: Reclamation
+    '2019846325',  # APEX
 ])
 
 #%% Conversion function
@@ -70,7 +81,7 @@ with open('livedata/mod_requests.csv', 'wt', newline='') as f:
 
 #%% Config addition
 
-age_cutoff = datetime.utcnow() - timedelta(days=365)
+age_cutoff = datetime.utcnow() - timedelta(days=90)
 for mod in sorted(output_data, key=lambda v: int(v['id'])):
     size = f"{ceil(mod['file_size']/1024.0/1024.0):>4.0f}"
     comment = f"{size} Mb, {mod['sub_count_current']:>7} subs, {mod['fave_count_current']:>6} faves"
