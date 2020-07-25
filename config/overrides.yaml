@@ -22,6 +22,7 @@ defaults:
         Base: true
         Rare: true
         FORTESTING: true
+        Aggressive_DragonBoss: true
 
     # Parts of an asset path that will be added as a variant, matching _Variant or Variant_
     pathname_variant_parts:
@@ -33,6 +34,7 @@ defaults:
         Easy: Gamma
         Medium: Beta
         Hard: Alpha
+        Aggressive_DragonBoss: Minion
 
     # If these variants are found, the object will not be exported in all cases
     variants_to_skip_export:
@@ -953,6 +955,9 @@ species:
                 2: "Belly"
                 4: "Top"
                 5: "Underside"
+
+    /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
+        skip_export: true
 
 
     # Mod-specific overrides
