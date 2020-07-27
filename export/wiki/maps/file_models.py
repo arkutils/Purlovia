@@ -14,6 +14,7 @@ class MapExportFileModel(ExportFileModel):
 class WorldSettings(MapExportFileModel):
     # Core
     worldSettings: Optional[models.WorldSettings] = None
+    trades: List[models.Trade] = []
     playerSpawns: List[models.PlayerSpawn] = []
 
 
