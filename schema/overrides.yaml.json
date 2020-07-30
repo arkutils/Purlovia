@@ -11,8 +11,10 @@
 				"add_variants": {},
 				"remove_variants": {},
 				"variant_renames": {},
+				"name_variants": {},
 				"classname_variant_parts": {},
 				"pathname_variant_parts": {},
+				"pathname_variant_components": {},
 				"variants_to_skip_export": {},
 				"variants_to_skip_export_asb": {},
 				"variants_to_remove_name_parts": {},
@@ -65,6 +67,7 @@
 			"title": "Sanity Checks",
 			"default": {
 				"min_species": {},
+				"min_items": {},
 				"min_maps": {}
 			},
 			"allOf": [
@@ -186,7 +189,36 @@
 					"default": {},
 					"type": "object",
 					"additionalProperties": {
-						"type": "string"
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						]
+					}
+				},
+				"name_variants": {
+					"title": "Name Variants",
+					"description": "Variants that will be added if the supplied regex matches the descriptive name",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						]
 					}
 				},
 				"classname_variant_parts": {
@@ -201,6 +233,15 @@
 				"pathname_variant_parts": {
 					"title": "Pathname Variant Parts",
 					"description": "Parts of an asset path that will be added as a variant, matching _Variant or Variant_",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
+				},
+				"pathname_variant_components": {
+					"title": "Pathname Variant Components",
+					"description": "Parts of an asset path that will be added as a variant, matching /Variant/ only",
 					"default": {},
 					"type": "object",
 					"additionalProperties": {
@@ -281,6 +322,14 @@
 			"properties": {
 				"min_species": {
 					"title": "Min Species",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "integer"
+					}
+				},
+				"min_items": {
+					"title": "Min Items",
 					"default": {},
 					"type": "object",
 					"additionalProperties": {

@@ -75,9 +75,13 @@ class OverrideSettings(BaseModel):
         dict(),
         description="Explicitly remove variants from this entity, in for dict form `variant: true`",
     )
-    variant_renames: Dict[str, str] = Field(
+    variant_renames: Dict[str, Union[str, List[str]]] = Field(
         dict(),
         description="Rename these variants, if present, in the dict form `fromname: toname`",
+    )
+    name_variants: Dict[str, Union[str, List[str]]] = Field(
+        dict(),
+        description="Variants that will be added if the supplied regex matches the descriptive name",
     )
     classname_variant_parts: Dict[str, bool] = Field(
         dict(),
@@ -86,6 +90,10 @@ class OverrideSettings(BaseModel):
     pathname_variant_parts: Dict[str, bool] = Field(
         dict(),
         description="Parts of an asset path that will be added as a variant, matching _Variant or Variant_",
+    )
+    pathname_variant_components: Dict[str, bool] = Field(
+        dict(),
+        description="Parts of an asset path that will be added as a variant, matching /Variant/ only",
     )
     variants_to_skip_export: Dict[str, bool] = Field(
         dict(),

@@ -139,6 +139,15 @@ mods:
             Shapeshifter_Large: true
             Shapeshifter_Small: true
 
+        pathname_variant_components:
+            Genesis: true
+            Aberration: true
+            Extinction: true
+            ScorchedEarth: true
+
+        name_variants:
+            "^Alpha ": Mega
+
         variant_renames:
             # Correct some inconsistency in naming
             Volcanic: Volcano
@@ -148,6 +157,8 @@ mods:
             Shapeshifter_Large: Large
             Shapeshifter_Small: Small
             Corrupt: Corrupted
+            VR: [ VR, Minion ]
+            TekCave: [ TekCave, Cave ]
 
         species_remaps:
             # Valguero Ice Wyvern -> Ragnarok Ice Wyvern
@@ -165,7 +176,7 @@ mods:
             LL: true
 
         variant_renames:
-            LL: LifeLabyrinth
+            LL: [LifeLabyrinth, Cave]
 
     Valguero:
         add_variants:
@@ -780,6 +791,8 @@ species:
                 4: "Feathers"
                 5: "Belly"
     /Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP:
+        add_variants:
+            Valguero: true
         color_regions:
             region_names:
                 2: null
@@ -958,6 +971,36 @@ species:
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
         skip_export: true
+
+    /Game/PrimalEarth/Dinos/Griffin/Griffin_Character_BP:
+        add_variants:
+            Ragnarok: true
+
+    /Game/Mods/Ragnarok/Custom_Assets/JacksonL/Iceworm/Iceworm_Queen_Character_BP:
+        add_variants:
+            Boss: true
+
+    /Game/PrimalEarth/Dinos/Tropeognathus/Tropeognathus_Character_BP:
+        add_variants:
+            CrystalIsles: true
+
+    /Game/PrimalEarth/Dinos/CrystalWyvern/CrystalWyvern_Character_BP_Blood:
+        add_variants:
+            CrystalIsles: true
+
+    /Game/PrimalEarth/Dinos/CrystalWyvern/CrystalWyvern_Character_BP_Ember:
+        add_variants:
+            CrystalIsles: true
+
+    /Game/PrimalEarth/Dinos/CrystalWyvern/CrystalWyvern_Character_BP_WS:
+        add_variants:
+            CrystalIsles: true
+
+    /Game/PrimalEarth/Dinos/CrystalWyvern/CrystalWyvern_Character_BP_Mega:
+        add_variants:
+            CrystalIsles: true
+            Mega: true
+
 
 
     # Mod-specific overrides

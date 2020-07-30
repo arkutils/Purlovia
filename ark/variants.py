@@ -20,12 +20,14 @@ def _gather_mission_variants(bp: str, variants: Set[str]):
     if match:
         variants.add(match[1])
         variants.add(match[2])
+        variants.add('Mission')
         return
 
     # Just mission type
     match = re.search(r'/MissionVariants/(\w+?)/', bp)
     if match:
         variants.add(match[1])
+        variants.add('Mission')
 
 
 def _gather_biome_variants(bp: str, variants: Set[str]):
@@ -53,7 +55,7 @@ def adjust_name_from_variants(name: str, variants: set, overrides: OverrideSetti
     return name
 
 
-def get_variants_from_species(char: PrimalDinoCharacter) -> Set[str]:
+def get_variants_from_species(char: PrimalDinoCharacter, overrides: OverrideSettings) -> Set[str]:
     variants: Set[str] = set()
 
     # Handle basic features
@@ -61,6 +63,13 @@ def get_variants_from_species(char: PrimalDinoCharacter) -> Set[str]:
         variants.add('Boss')
     if char.bIsCorrupted[0]:
         variants.add('Corrupted')
+
+    # Search for variants in the descriptive name using supplied regexes
+    descriptive_name = str(char.DescriptiveName[0] or '')
+    for part, target in overrides.name_variants.items():
+        if re.match(part, descriptive_name, re.DOTALL):
+            for label in target if isinstance(target, list) else [target]:
+                variants.add(label)
 
     return variants
 
@@ -79,10 +88,15 @@ def get_variants_from_assetname(assetname: str, overrides: OverrideSettings) -> 
         if use and ('_' + name in cls_ or name + '_' in cls_):
             variants.add(name)
 
-    # Search for variants within the full assetname
+    # Search for variants surrounded by underscores within the full assetname
     path_ = assetname[:assetname.rfind('/')].replace('/', '_')
     for name, use in overrides.pathname_variant_parts.items():
         if use and ('_' + name in path_ or name + '_' in path_):
+            variants.add(name)
+
+    # Search for variants as full path components within the full assetname
+    for name, use in overrides.pathname_variant_components.items():
+        if use and ('/' + name + '/' in assetname):
             variants.add(name)
 
     # Additions from overrides
@@ -99,7 +113,8 @@ def get_variants_from_assetname(assetname: str, overrides: OverrideSettings) -> 
     for old_name, new_name in overrides.variant_renames.items():
         if old_name in variants:
             variants.remove(old_name)
-            variants.add(new_name)
+            for name in new_name if isinstance(new_name, list) else [new_name]:
+                variants.add(name)
 
     return variants
 

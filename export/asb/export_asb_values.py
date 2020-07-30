@@ -110,7 +110,7 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
     name = overrides.descriptive_name or name
 
     # Variant information
-    variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(proxy)
+    variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(proxy, overrides)
     if variants:
         if should_skip_from_variants(variants, overrides):
             return None
