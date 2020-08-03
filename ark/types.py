@@ -148,6 +148,9 @@ class PrimalDinoStatusComponent(PrimalCharacterStatusComponent, uetype=PDSC_CLS)
     MaxExperiencePoints = uefloats(100000.0)
     LevelExperienceRampType = uebytes(('ELevelExperienceRampType', 'Player'))
 
+    # DevKit Unverified
+    StatusValueNameOverrides: Mapping[int, ArrayProperty]
+
 
 class DinoCharacterStatusComponent(PrimalDinoStatusComponent, uetype=DCSC_CLS):
     pass

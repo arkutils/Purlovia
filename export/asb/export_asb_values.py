@@ -207,4 +207,19 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
     species['doesNotUseOxygen'] = doesntUseOxygen
     species['displayedStats'] = displayed_stats
 
+    stat_name_overrides = get_stat_name_overrides(dcsc_props)
+    if stat_name_overrides:
+        species['statNames'] = stat_name_overrides
+
     return species
+
+
+def get_stat_name_overrides(dcsc: PrimalDinoStatusComponent) -> Dict[int, str]:
+    names = dcsc.get('StatusValueNameOverrides', 0, fallback=None)
+    if names is None:
+        return dict()
+
+    pairs = [(n, str(raw).strip()) for n, raw in enumerate(names.values)]
+    output = {n: name for n, name in pairs if name}
+
+    return output
