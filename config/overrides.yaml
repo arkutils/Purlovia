@@ -755,6 +755,9 @@ species:
         color_regions:
             region_names:
                 0: "Body"
+                1: null # Unused
+                2: null # Unused
+                3: null # Unused
                 4: "Back Stripes"
                 5: "Inner Ear, Snout, Belly, Appendages"
     /Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP:
@@ -957,6 +960,7 @@ species:
             region_names:
                 0: "Body"
                 1: "Spine"
+                2: null # unused
                 3: "Spikes"
                 4: "Furred Stripes"
                 5: "Underside and Legs"
@@ -968,6 +972,43 @@ species:
                 2: "Belly"
                 4: "Top"
                 5: "Underside"
+
+    # Ignore regions present in color set but not the color mask
+    /Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+    /Game/Genesis/Dinos/BiomeVariants/Snow_Yutyrannus/Snow_Yutyrannus_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+    /Game/Genesis/Dinos/BiomeVariants/Bog_Raptor/Bog_Raptor_Character_BP:
+        color_regions:
+            region_names:
+                1: null # Covers extremely small area, and is barely visible with default intensity
+    /Game/Genesis/Dinos/BiomeVariants/Volcano_Allosaurus/Volcano_Allo_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+                2: null
+    /Game/Mods/Ragnarok/Custom_Assets/Dinos/Wyvern/Ice_Wyvern/Ragnarok_Wyvern_Override_Ice:
+        color_regions:
+            region_names:
+                1: null
+                2: null
+    /Game/Aberration/Dinos/Pteroteuthis/Pteroteuthis_Char_BP:
+        color_regions:
+            region_names:
+                3: null
+    /Game/Genesis/Dinos/BiomeVariants/Snow_Argentavis/Snow_Argent_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+    /Game/Genesis/Dinos/BiomeVariants/Bog_Spino/Bog_Spino_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+    
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
         skip_export: true
