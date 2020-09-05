@@ -119,7 +119,7 @@ class TradeListExport(MapGathererBase):
                     yield cls._extract_single(option)
 
     @classmethod
-    def _extract_single(cls, option: ObjectProperty) -> models.Trade:
+    def _extract_single(cls, option: ObjectProperty) -> Optional[models.Trade]:
         export = option.asset.loader.load_class(option.value.value.fullname)
         trade: HexagonTradableOption = gather_properties(export)
 
