@@ -651,7 +651,7 @@ species:
                 3: null
                 4: "Underside"
                 5: "Spine and Feet"
-    /Game/Genesis/Dinos/Cherufe/Cherufe_Character_BP.Cherufe_Character_BP:
+    /Game/Genesis/Dinos/Cherufe/Cherufe_Character_BP:
         color_regions:
             region_names:
                 2: "Tips"
@@ -1013,7 +1013,7 @@ species:
         color_regions:
             region_names:
                 1: null
-    
+
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
         skip_export: true
