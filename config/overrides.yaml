@@ -651,6 +651,11 @@ species:
                 3: null
                 4: "Underside"
                 5: "Spine and Feet"
+    /Game/Genesis/Dinos/Cherufe/Cherufe_Character_BP.Cherufe_Character_BP:
+        color_regions:
+            region_names:
+                2: "Tips"
+                5: "Gradient"
     /Game/PrimalEarth/Dinos/Mammoth/Mammoth_Character_BP:
         color_regions:
             region_names:
