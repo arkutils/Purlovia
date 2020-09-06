@@ -185,6 +185,15 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
     if dmg_mults:
         species['boneDamageAdjusters'] = dmg_mults
 
+    # Food rates
+    food_rates = None
+    try:
+        food_rates = gather_food_rates(dcsc_props)
+    except (AssetNotFound, ModNotFound) as ex:
+        logger.warning(f'Failure while gathering food rate data for {asset.assetname}:\n\t{ex}')
+    if food_rates:
+        species['foodRates'] = food_rates
+
     # Misc data
     noSpeedImprint: bool = (dcsc_props.DinoMaxStatAddMultiplierImprinting[9] == 0)
     usesOxyWild = dcsc_props.bCanSuffocate[0]
@@ -221,5 +230,15 @@ def get_stat_name_overrides(dcsc: PrimalDinoStatusComponent) -> Dict[int, str]:
 
     pairs = [(n, str(raw).strip()) for n, raw in enumerate(names.values)]
     output = {n: name for n, name in pairs if name}
+
+    return output
+
+
+def gather_food_rates(dcsc: PrimalDinoStatusComponent):
+    output = dict(
+        base=dcsc.BaseFoodConsumptionRate[0],
+        baby=dcsc.BabyDinoConsumingFoodRateMultiplier[0],
+        extraBaby=dcsc.ExtraBabyDinoConsumingFoodRateMultiplier[0],
+    )
 
     return output
