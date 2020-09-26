@@ -51,7 +51,7 @@ class ModInfo(BaseModel):
 class ExportFileModel(ExportModel):
     version: str = Field(
         ...,
-        description="Data version of the format <gamemajor>.<gamemajor>.<specificversion>, e.g. '306.83.4740398'",
+        description="Data version of the format <gamemajor>.<gameminor>.<specificversion>, e.g. '306.83.4740398'",
     )
     format: str = Field(
         ...,
