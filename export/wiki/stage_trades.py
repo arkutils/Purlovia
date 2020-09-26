@@ -1,8 +1,6 @@
-from typing import Any, Dict, cast
+from pathlib import Path
 
-from automate.hierarchy_exporter import JsonHierarchyExportStage
-from export.wiki.types import HexagonTradableOption
-from ue.proxy import UEProxyStructure
+from automate.exporter import ExportStage
 from utils.log import get_logger
 
 __all__ = [
@@ -12,30 +10,15 @@ __all__ = [
 logger = get_logger(__name__)
 
 
-class TradesStage(JsonHierarchyExportStage):
-    def get_name(self):
+# TODO: Delete once safe.
+class TradesStage(ExportStage):
+    def get_name(self) -> str:
         return 'trades'
 
-    def get_format_version(self) -> str:
-        return "1"
+    def extract_core(self, path: Path):
+        filepath = Path(path / 'trades.json')
+        if filepath.is_file():
+            filepath.unlink()
 
-    def get_use_pretty(self) -> bool:
-        return bool(self.manager.config.export_wiki.PrettyJson)
-
-    def get_ue_type(self) -> str:
-        return HexagonTradableOption.get_ue_type()
-
-    def extract(self, proxy: UEProxyStructure) -> Any:
-        trade: HexagonTradableOption = cast(HexagonTradableOption, proxy)
-
-        item = trade.get('ItemClass', fallback=None)
-        if not item:
-            return None
-
-        v: Dict[str, Any] = dict()
-        v['bp'] = proxy.get_source().fullname
-        v['itemBP'] = trade.ItemClass[0]
-        v['qty'] = trade.Quantity[0]
-        v['cost'] = trade.ItemCost[0]
-
-        return v
+    def extract_mod(self, path: Path, modid: str):
+        ...

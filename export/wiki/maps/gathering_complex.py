@@ -5,10 +5,11 @@ from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.stage_spawn_groups import convert_single_class_swap
-from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, MissionDispatcher_MultiUsePylon, \
-    NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
+    MissionDispatcher_MultiUsePylon, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
-from ue.properties import ArrayProperty, StringProperty
+from ue.gathering import gather_properties
+from ue.properties import ArrayProperty, ObjectProperty, StringProperty
 from ue.proxy import UEProxyStructure
 from ue.utils import get_leaf_from_assetname, sanitise_output
 from utils.name_convert import uelike_prettify
@@ -98,7 +99,7 @@ class WorldSettingsExport(MapGathererBase):
 class TradeListExport(MapGathererBase):
     @classmethod
     def get_model_type(cls) -> Optional[Type[ExportModel]]:
-        return None
+        return models.Trade
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
@@ -114,14 +115,24 @@ class TradeListExport(MapGathererBase):
         option_list = manager.get('GenesisTradableOptions', fallback=None)
         if option_list:
             for option in option_list.values:
-                if option:
-                    yield option
+                if bool(option):
+                    yield cls._extract_single(option)
 
     @classmethod
-    def before_saving(cls, world: PersistentLevel, data: Any):
-        if 'availableTrades' not in world.settings:
-            world.settings['availableTrades'] = []
-        world.settings['availableTrades'].append(data)
+    def _extract_single(cls, option: ObjectProperty) -> Optional[models.Trade]:
+        export = option.asset.loader.load_class(option.value.value.fullname)
+        trade: HexagonTradableOption = gather_properties(export)
+
+        item = trade.get('ItemClass', fallback=None)
+        if not bool(item):
+            return None
+
+        return models.Trade(
+            bp=trade.get_source().fullname,
+            item=str(trade.ItemClass[0].value.value.name),
+            qty=trade.Quantity[0],
+            cost=trade.ItemCost[0],
+        )
 
 
 class NPCZoneManagerExport(MapGathererBase):

@@ -105,11 +105,11 @@ class WorldSettings(ExportModel):
     )
     latMulti: Optional[FloatLike] = Field(
         title="Latitude Multiplier",
-        description="LatScale in meters. Divide centimeter distance from Y axis by this value.",
+        description="Latitude scale in meters. Divide centimeter distance from Y axis by this value.",
     )
     longMulti: Optional[FloatLike] = Field(
         title="Longitude Multiplier",
-        description="LongScale in meters. Divide centimeter distance from X axis by this value",
+        description="Longitude scale in meters. Divide centimeter distance from X axis by this value",
     )
     latShift: Optional[FloatLike] = Field(
         title="Latitude Shift",
@@ -129,13 +129,18 @@ class WorldSettings(ExportModel):
     # Spawn Settings
     onlyEventGlobalSwaps: bool = Field(
         False,
-        description="Controls whether Primal Game Data's random class replacements are allowed.",
+        description="Controls whether Primal Game Data's random non-event class replacements are allowed.",
     )
     randomNPCClassWeights: List[WeighedClassSwap] = []
     # Uploads
     allowedDinoDownloads: List[ObjectPath] = []
-    # HLNA
-    availableTrades: Optional[List[ObjectPath]] = []
+
+
+class Trade(ExportModel):
+    bp: str
+    item: str
+    qty: IntProperty
+    cost: IntProperty
 
 
 class NPCManager(ExportModel):
@@ -146,8 +151,11 @@ class NPCManager(ExportModel):
     forceUntameable: BoolProperty
 
     # Zones
-    locations: List[Box] = []
-    spawnLocations: List[WeighedBox] = []
+    locations: List[Box] = Field(
+        [],
+        title="Counting volumes",
+    )
+    spawnLocations: List[WeighedBox] = Field([], title="Spawning volumes")
     spawnPoints: List[Location] = []
 
 
@@ -210,7 +218,7 @@ class SupplyCrateSpawn(ExportModel):
 
 
 class PainVolume(Box):
-    immune: List[ObjectPath]
+    immune: List[ObjectPath] = Field([], title="Explicitly immune species")
 
 
 class PlayerSpawn(ExportModel):
