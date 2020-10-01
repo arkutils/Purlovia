@@ -11,7 +11,6 @@ from .stage_maps import MapStage
 from .stage_missions import MissionsStage
 from .stage_spawn_groups import SpawnGroupStage
 from .stage_species import SpeciesStage
-from .stage_trades import TradesStage
 
 __all__ = [
     'WikiRoot',
@@ -42,6 +41,5 @@ class WikiRoot(ExportRoot):
             DropsStage(),
             LootCratesStage(),
             SpeciesStage(),
-            TradesStage(),
             MissionsStage(),
         ]
