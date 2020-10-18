@@ -1,9 +1,11 @@
-from typing import Any, Dict, Iterable, Optional, cast
+from typing import Any, Dict, Iterable, List, Optional, cast
 
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from export.wiki.types import PrimalEngramEntry
 from ue.asset import UAsset
+from ue.properties import IntProperty, StringProperty
 from ue.proxy import UEProxyStructure
+from ue.utils import sanitise_output
 from utils.log import get_logger
 
 __all__ = [
@@ -11,6 +13,46 @@ __all__ = [
 ]
 
 logger = get_logger(__name__)
+
+
+class EngramRequirements(ExportModel):
+    characterLevel: Optional[IntProperty] = Field(None, title="Required character level")
+    engramPoints: Optional[IntProperty] = Field(None, title="Required number of points")
+    otherEngrams: Optional[List[Optional[str]]] = Field(None, title="Required engrams")
+
+
+class Engram(ExportModel):
+    description: Optional[StringProperty]
+    blueprintPath: str = Field(
+        ...,
+        title="Full blueprint path of the engram",
+    )
+    itemBlueprintPath: Optional[str] = Field(
+        ...,
+        title="Full blueprint path of the item",
+    )
+    group: Optional[str] = Field(
+        ...,
+        title="DLC group",
+    )
+    requirements: EngramRequirements
+    manualUnlock: bool = Field(
+        ...,
+        title="Unlockable in UI",
+        description="Whether the engram can be unlocked by the player in UI",
+    )
+    givesBP: bool = Field(
+        ...,
+        title="Craftable in inventory",
+        description="Whether the player can craft the item in their inventory",
+    )
+
+
+class EngramsExportModel(ExportFileModel):
+    species: List[Engram]
+
+    class Config:
+        title = "Engram data for the Wiki"
 
 
 class EngramsStage(JsonHierarchyExportStage):
@@ -26,6 +68,9 @@ class EngramsStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalEngramEntry.get_ue_type()
 
+    def get_schema_model(self):
+        return EngramsExportModel
+
     def get_pre_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
@@ -35,26 +80,26 @@ class EngramsStage(JsonHierarchyExportStage):
 
         return None
 
-    def extract(self, proxy: UEProxyStructure) -> Any:
+    def extract(self, proxy: UEProxyStructure) -> Engram:
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
-        v: Dict[str, Any] = dict()
-        if engram.has_override('ExtraEngramDescription'):
-            v['description'] = engram.ExtraEngramDescription[0]
-        v['blueprintPath'] = engram.get_source().fullname
-        v['itemBlueprintPath'] = engram.get('BluePrintEntry', 0, None)
-        v['group'] = convert_engram_group(engram)
-        v['requirements'] = dict(
-            characterLevel=engram.RequiredCharacterLevel[0],
-            engramPoints=engram.RequiredEngramPoints[0],
+        out = Engram(
+            description=engram.ExtraEngramDescription[0] if engram.has_override('ExtraEngramDescription') else None,
+            blueprintPath=engram.get_source().fullname,
+            itemBlueprintPath=sanitise_output(engram.get('BluePrintEntry', 0, None)),
+            group=convert_engram_group(engram),
+            requirements=EngramRequirements(
+                characterLevel=engram.RequiredCharacterLevel[0],
+                engramPoints=engram.RequiredEngramPoints[0],
+            ),
+            manualUnlock=bool(engram.bCanBeManuallyUnlocked[0]),
+            givesBP=bool(engram.bGiveBlueprintToPlayerInventory[0]),
         )
-        v['manualUnlock'] = engram.bCanBeManuallyUnlocked[0]
-        v['givesBP'] = engram.bGiveBlueprintToPlayerInventory[0]
 
         if 'EngramRequirementSets' in engram:
-            v['requirements']['otherEngrams'] = list(convert_requirement_sets(engram))
+            out.requirements.otherEngrams = list(convert_requirement_sets(engram))
 
-        return v
+        return out
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if not self.gathered_results:
@@ -111,7 +156,7 @@ def convert_engram_group(engram: PrimalEngramEntry) -> str:
     return _ENGRAM_GROUP_MAP.get(group, group)
 
 
-def convert_requirement_sets(engram: PrimalEngramEntry) -> Iterable:
+def convert_requirement_sets(engram: PrimalEngramEntry) -> Iterable[Optional[str]]:
     for struct in engram.EngramRequirementSets[0].values:
-        entries = struct.get_property('EngramEntries')
-        yield from entries.values
+        for entry in struct.get_property('EngramEntries').values:
+            yield sanitise_output(entry)
