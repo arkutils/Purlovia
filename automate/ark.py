@@ -519,13 +519,18 @@ def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
         return None
 
     # Prep paths and command
-    local_app_path_str = getcwd()
+    local_app_path_str = str(Path(getcwd()).resolve().absolute())
+    local_livedata_path_str = str(get_global_config().settings.DataDir.resolve().absolute())
     remote_app_path_str = '/app' if docker else local_app_path_str
     game_path_str = '/app/livedata/game' if docker else str(game_path)
 
     cmd = ''
     if docker:
-        cmd += f'docker run -it --rm -v {local_app_path_str}:/app debian:10 bash -c "'
+        cmd += 'docker run -it --rm '
+        cmd += f'-v \"{local_app_path_str}:/app\" '
+        cmd += f'-v \"{local_livedata_path_str}:/app/livedata\" '
+        cmd += 'debian:10 bash -c "'
+
     cmd += f'LD_PRELOAD={remote_app_path_str}/utils/shootergameserver_fwrite_hook.so '
     cmd += f'{game_path_str}/ShooterGame/Binaries/Linux/ShooterGameServer '
     cmd += '-culture=en -insecure -lowmemory -NoBattlEye -nodinos'
