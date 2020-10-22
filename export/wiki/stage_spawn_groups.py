@@ -20,32 +20,36 @@ class Vector(ExportModel):
     z: float
 
 
+class NpcEntry(ExportModel):
+    chance: float
+    bp: Optional[str]
+    offset: Vector = Vector(x=0, y=0, z=0)
+
+
 class NpcGroup(ExportModel):
     name: str
     weight: float
-    classes: List[Optional[str]]
-    spawnOffsets: List[Vector]
-    classWeights: List[float]
+    species: List[NpcEntry]
     classSwaps: Optional[List[WeighedClassSwap]]
 
 
 class NpcLimit(ExportModel):
-    klass: Optional[str] = Field(..., alias="class")
-    desiredNumberMult: float
+    bp: str
+    mult: float = Field(..., title="Max desired NPC number multiplier")
 
     class Config:
         allow_population_by_field_name = True
 
 
 class NpcGroupsContainer(ExportModel):
-    blueprintPath: str
+    bp: str
     maxNPCNumberMultiplier: float
-    entries: Optional[List[NpcGroup]]
-    limits: Optional[List[NpcLimit]]
+    entries: List[NpcGroup] = list()
+    limits: List[NpcLimit] = list()
 
 
 class RuntimeGroupAddition(ExportModel):
-    blueprintPath: Optional[str] = Field(...)
+    bp: Optional[str] = Field(...)
     entries: List[NpcGroup] = list()
     limits: List[NpcLimit] = list()
 
@@ -70,7 +74,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return '3'
+        return '4'
 
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
@@ -111,7 +115,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
         # Export basic values
         out = NpcGroupsContainer(
-            blueprintPath=container.get_source().fullname,
+            bp=container.get_source().fullname,
             maxNPCNumberMultiplier=container.MaxDesiredNumEnemiesMultiplier[0],
         )
 
@@ -121,7 +125,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
 
         # Export class spawn limits
         if container.has_override('NPCSpawnLimits'):
-            out.limits = [convert_limit_entry(entry) for entry in container.NPCSpawnLimits[0].values]
+            out.limits = list(convert_limit_entries(container.NPCSpawnLimits[0].values))
 
         return out
 
@@ -131,10 +135,19 @@ def convert_group_entry(struct) -> NpcGroup:
     out = NpcGroup(
         name=str(d['AnEntryName']),
         weight=d['EntryWeight'],
-        classes=sanitise_output(d['NPCsToSpawn']),
-        spawnOffsets=sanitise_output(d['NPCsSpawnOffsets']),
-        classWeights=d['NPCsToSpawnPercentageChance'].values,
+        species=list(),
     )
+
+    # Export zipped NPC entries
+    chances = d['NPCsToSpawnPercentageChance'].values
+    offsets = d['NPCsSpawnOffsets'].values
+    for index, kls in enumerate(d['NPCsToSpawn'].values):
+        npc = NpcEntry(
+            chance=chances[index] if index < len(chances) else 1,
+            bp=sanitise_output(kls),
+            offset=sanitise_output(offsets[index] if index < len(offsets) else Vector(x=0, y=0, z=0)),
+        )
+        out.species.append(npc)
 
     # Export local random class swaps if any exist
     swaps = d['NPCRandomSpawnClassWeights'].values
@@ -144,12 +157,13 @@ def convert_group_entry(struct) -> NpcGroup:
     return out
 
 
-def convert_limit_entry(struct) -> NpcLimit:
-    d = struct.as_dict()
-    return NpcLimit(
-        klass=sanitise_output(d['NPCClass']),
-        desiredNumberMult=d['MaxPercentageOfDesiredNumToAllow'],
-    )
+def convert_limit_entries(array) -> Iterable[NpcLimit]:
+    for entry in array:
+        d = entry.as_dict()
+        npc_class = sanitise_output(d['NPCClass'])
+
+        if npc_class:
+            yield NpcLimit(bp=npc_class, mult=d['MaxPercentageOfDesiredNumToAllow'])
 
 
 def convert_single_class_swap(d) -> WeighedClassSwap:
@@ -196,9 +210,9 @@ def segregate_container_additions(pgd: UAsset) -> Optional[List[RuntimeGroupAddi
             continue
 
         out = RuntimeGroupAddition(
-            blueprintPath=sanitise_output(klass),
+            bp=sanitise_output(klass),
             entries=[convert_group_entry(entry) for entry in entries],
-            limits=[convert_limit_entry(entry) for entry in limits],
+            limits=convert_limit_entries(limits),
         )
 
         # Skip if no data
