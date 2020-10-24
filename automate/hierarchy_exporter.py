@@ -112,6 +112,13 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         '''Override to change the name of the generated schema file.'''
         return self.get_core_file_path()
 
+    def pre_load_filter(self, cls_name: str) -> bool:
+        '''
+        Return True if this class should be included in the data.
+        This filter is checked before the asset is loaded and should be light and fast.
+        '''
+        return True
+
     @abstractmethod
     def extract(self, proxy: UEProxyStructure) -> Any:
         '''Perform extraction on the given proxy and return any JSON-able object.'''
@@ -152,7 +159,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.arkman.getGameBuildId())  # type: ignore
 
         filename = self.get_core_file_path()
-        proxy_iter = self.manager.iterate_core_exports_of_type(self.get_ue_type())
+        proxy_iter = self.manager.iterate_core_exports_of_type(self.get_ue_type(), filter=self.pre_load_filter)
         self._extract_and_save(version, None, path, filename, proxy_iter, schema_file=schema_file)
 
     def extract_mod(self, path: Path, modid: str):
@@ -166,7 +173,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
         version = createExportVersion(self.manager.arkman.getGameVersion(), self.manager.get_mod_version(modid))  # type: ignore
 
         filename = self.get_mod_file_path(modid)
-        proxy_iter = self.manager.iterate_mod_exports_of_type(self.get_ue_type(), modid)
+        proxy_iter = self.manager.iterate_mod_exports_of_type(self.get_ue_type(), modid, filter=self.pre_load_filter)
         self._extract_and_save(version, modid, path, filename, proxy_iter, schema_file=schema_file)
 
     def _extract_and_save(self,

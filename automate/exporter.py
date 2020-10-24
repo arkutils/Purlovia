@@ -255,7 +255,7 @@ class ExportManager:
         max_mem = self.loader.max_memory / 1024.0 / 1024.0
         logger.debug("Stats: max mem = %6.2f Mb, max cache entries = %d", max_mem, self.loader.max_cache)
 
-    def iterate_core_exports_of_type(self, type_name: str, sort=True) -> Iterator[UEProxyStructure]:
+    def iterate_core_exports_of_type(self, type_name: str, sort=True, filter=None) -> Iterator[UEProxyStructure]:
         '''
         Yields a ready-to-use proxy for each class that inherits from `type_name` and exists in the core+DLC of the game.
         Classes that have a 'Default__' counterpart are excluded from the output.
@@ -265,6 +265,9 @@ class ExportManager:
         # (core path prefixes were pre-calculated earlier)
         classes: Set[str] = set()
         for cls_name in find_sub_classes(type_name):
+            if filter and not filter(cls_name):
+                continue
+
             if not cls_name.startswith('/Game'):
                 continue
 
@@ -277,7 +280,7 @@ class ExportManager:
         # The rest of the work is shared
         yield from self._iterate_exports(classes, sort)
 
-    def iterate_mod_exports_of_type(self, type_name: str, modid: str, sort=True) -> Iterator[UEProxyStructure]:
+    def iterate_mod_exports_of_type(self, type_name: str, modid: str, sort=True, filter=None) -> Iterator[UEProxyStructure]:
         '''
         Yields a ready-to-use proxy for each class that inherits from `type_name` and exists in the specified mod.
         Classes that have a 'Default__' counterpart are excluded from the output.
@@ -289,6 +292,9 @@ class ExportManager:
         # Gather classes of this type in the mod
         classes: Set[str] = set()
         for cls_name in find_sub_classes(type_name):
+            if filter and not filter(cls_name):
+                continue
+
             if not cls_name.startswith(mod_path):
                 continue
 
