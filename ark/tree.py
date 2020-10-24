@@ -1,3 +1,7 @@
+'''
+Obsolete! Use ue.hierarchy.
+'''
+
 from collections import deque
 from functools import lru_cache
 from typing import Callable, Deque, Optional, Set, TypeVar

@@ -1,3 +1,7 @@
+'''
+Obsolete! Use ue.hierarchy.
+'''
+
 from functools import lru_cache
 from typing import List, Optional
 
