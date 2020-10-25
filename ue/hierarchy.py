@@ -70,6 +70,8 @@ def inherits_from(klass: Union[str, ExportTableItem], target: str, safe=False, i
             return target in find_parent_classes(klass, include_self=include_self)
         except HierarchyError:
             return False
+        except ValueError:
+            return False
     else:
         return target in find_parent_classes(klass, include_self=include_self)
 
