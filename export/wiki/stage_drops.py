@@ -1,35 +1,24 @@
 from itertools import chain, repeat
-from typing import Any, List, Mapping, Optional, Tuple, Union, cast
+from typing import Any, List, Optional, Tuple, Union, cast
 
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
-from export.wiki.types import PrimalStructureItemContainer_SupplyCrate
+from export.wiki.types import PrimalInventoryComponent, PrimalStructureItemContainer_SupplyCrate
 from ue.hierarchy import find_parent_classes
-from ue.properties import ArrayProperty, BoolProperty, FloatProperty, StringLikeProperty
+from ue.properties import BoolProperty, FloatProperty, IntProperty, StringLikeProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
-from .models import MinMaxPowerRange
+from .models import MinMaxPowerRange, MinMaxRange
 
 __all__ = [
     'DropsStage',
     'get_loot_sets',
-    'DinoDropInventoryComponent',
     'decode_item_name',
     'decode_item_entry',
     'decode_item_set',
 ]
 
 logger = get_logger(__name__)
-
-DINO_DROP_BASE_CLS = '/Game/PrimalEarth/CoreBlueprints/Inventories/DinoDropInventoryComponent_BP_Base' + \
-    '.DinoDropInventoryComponent_BP_Base_C'
-
-
-class DinoDropInventoryComponent(UEProxyStructure, uetype=DINO_DROP_BASE_CLS):
-    ItemSets: Mapping[int, ArrayProperty]
-    ItemSetsOverride: Mapping[int, ArrayProperty]
-    AdditionalItemSets: Mapping[int, ArrayProperty]
-    AdditionalItemSetsOverride: Mapping[int, ArrayProperty]
 
 
 class ItemSetEntry(ExportModel):
@@ -57,6 +46,25 @@ class Drop(ExportModel):
         ...,
         description="Full blueprint path",
     )
+
+    name: StringLikeProperty = Field('')
+    description: StringLikeProperty = Field('')
+    maxItems: IntProperty = Field(0)
+    maxWeight: FloatProperty = Field(25)
+
+    randomSetsWithNoReplacement: Optional[BoolProperty] = Field(
+        None,
+        description="Unknown meaning",
+    )
+    qualityMult: Optional[MinMaxRange] = Field(
+        MinMaxRange(min=1, max=1),
+        title="Quality range",
+    )
+    qtyMult: Optional[MinMaxPowerRange] = Field(
+        MinMaxPowerRange(min=1, max=1, pow=1),
+        title="Quantity range",
+    )
+
     sets: Optional[List[ItemSet]] = Field(
         None,
         description="Loot sets",
@@ -75,7 +83,7 @@ class DropExportModel(ExportFileModel):
 
 class DropsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "4"
+        return "5"
 
     def get_name(self) -> str:
         return "drops"
@@ -84,19 +92,28 @@ class DropsStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_ue_type(self) -> str:
-        return DinoDropInventoryComponent.get_ue_type()
+        return PrimalInventoryComponent.get_ue_type()
 
     def get_schema_model(self):
         return DropExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
-        inv: DinoDropInventoryComponent = cast(DinoDropInventoryComponent, proxy)
+        inv: PrimalInventoryComponent = cast(PrimalInventoryComponent, proxy)
 
         item_sets = get_loot_sets(inv)
         if not item_sets:
             return None
 
         result: Drop = Drop(bp=proxy.get_source().fullname)
+        result.name = inv.InventoryNameOverride[0]
+        result.description = inv.RemoteInventoryDescriptionString[0]
+        result.maxItems = inv.MaxInventoryItems[0]
+        result.maxWeight = inv.MaxInventoryWeight[0]
+
+        result.randomSetsWithNoReplacement = inv.bSetsRandomWithoutReplacement[0]
+        result.qualityMult = MinMaxRange(min=inv.MinQualityMultiplier[0], max=inv.MaxQualityMultiplier[0])
+        result.qtyMult = MinMaxPowerRange(min=inv.MinItemSets[0], max=inv.MaxItemSets[0], pow=inv.NumItemSetsPower[0])
+
         result.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]
 
         if not result.sets:
@@ -105,7 +122,7 @@ class DropsStage(JsonHierarchyExportStage):
         return result
 
 
-def get_loot_sets(lootinv: Union[DinoDropInventoryComponent, PrimalStructureItemContainer_SupplyCrate]) -> List[Any]:
+def get_loot_sets(lootinv: Union[PrimalInventoryComponent, PrimalStructureItemContainer_SupplyCrate]) -> List[Any]:
     item_sets: List[Any] = []
     # Add base item sets to the list
     base_sets = lootinv.get('ItemSetsOverride', fallback=None)
