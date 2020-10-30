@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Optional, cast
+from collections import defaultdict
+from typing import Any, Dict, Iterable, List, Optional, cast
 
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 from ue.utils import sanitise_output
@@ -11,6 +12,51 @@ from .types import NPCSpawnEntriesContainer
 __all__ = [
     'SpawnGroupStage',
 ]
+
+
+class Vector(ExportModel):
+    x: float
+    y: float
+    z: float
+
+
+class NpcGroup(ExportModel):
+    name: str
+    weight: float
+    classes: List[Optional[str]]
+    spawnOffsets: List[Vector]
+    classWeights: List[float]
+    classSwaps: Optional[List[WeighedClassSwap]]
+
+
+class NpcLimit(ExportModel):
+    klass: Optional[str] = Field(..., alias="class")
+    desiredNumberMult: float
+
+    class Config:
+        allow_population_by_field_name = True
+
+
+class NpcGroupsContainer(ExportModel):
+    blueprintPath: str
+    maxNPCNumberMultiplier: float
+    entries: Optional[List[NpcGroup]]
+    limits: Optional[List[NpcLimit]]
+
+
+class RuntimeGroupAddition(ExportModel):
+    blueprintPath: Optional[str] = Field(...)
+    entries: List[NpcGroup] = list()
+    limits: List[NpcLimit] = list()
+
+
+class SpawnGroupsExportModel(ExportFileModel):
+    spawngroups: List[NpcGroupsContainer]
+    classSwaps: List[WeighedClassSwap]
+    externalGroupChanges: List[RuntimeGroupAddition]
+
+    class Config:
+        title = "NPC spawning groups data for the Wiki"
 
 
 class SpawnGroupStage(JsonHierarchyExportStage):
@@ -29,6 +75,9 @@ class SpawnGroupStage(JsonHierarchyExportStage):
     def get_ue_type(self):
         return NPCSpawnEntriesContainer.get_ue_type()
 
+    def get_schema_model(self):
+        return SpawnGroupsExportModel
+
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if modid:
             mod_data = self.manager.arkman.getModData(modid)
@@ -36,8 +85,10 @@ class SpawnGroupStage(JsonHierarchyExportStage):
             package = mod_data.get('package', None)
             if package:
                 pgd_asset = self.manager.loader[package]
-                result = dict()
-                class_swaps = convert_class_swaps(pgd_asset)
+                result: Dict[str, Any] = dict()
+                # Export global NPC replacements and runtime group
+                # additions from the mod PGD.
+                class_swaps = list(convert_class_swaps(pgd_asset))
                 ext_group_changes = segregate_container_additions(pgd_asset)
                 if class_swaps:
                     result['classSwaps'] = class_swaps
@@ -47,7 +98,8 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         else:
             pgd_asset = self.manager.loader['/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP']
             result = dict()
-            class_swaps = convert_class_swaps(pgd_asset)
+            # Export global NPC replacements from core PGD.
+            class_swaps = list(convert_class_swaps(pgd_asset))
             if class_swaps:
                 result['classSwaps'] = class_swaps
             return result
@@ -58,51 +110,49 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         container: NPCSpawnEntriesContainer = cast(NPCSpawnEntriesContainer, proxy)
 
         # Export basic values
-        values: Dict[str, Any] = dict()
-        values['blueprintPath'] = container.get_source().fullname
-        values['maxNPCNumberMultiplier'] = container.MaxDesiredNumEnemiesMultiplier[0]
+        out = NpcGroupsContainer(
+            blueprintPath=container.get_source().fullname,
+            maxNPCNumberMultiplier=container.MaxDesiredNumEnemiesMultiplier[0],
+        )
 
         # Export NPC class entries
         if container.has_override('NPCSpawnEntries'):
-            values['entries'] = [convert_group_entry(entry) for entry in container.NPCSpawnEntries[0].values]
+            out.entries = [convert_group_entry(entry) for entry in container.NPCSpawnEntries[0].values]
 
         # Export class spawn limits
         if container.has_override('NPCSpawnLimits'):
-            values['limits'] = [convert_limit_entry(entry) for entry in container.NPCSpawnLimits[0].values]
+            out.limits = [convert_limit_entry(entry) for entry in container.NPCSpawnLimits[0].values]
 
-        return values
+        return out
 
 
-def convert_group_entry(struct):
+def convert_group_entry(struct) -> NpcGroup:
     d = struct.as_dict()
+    out = NpcGroup(
+        name=str(d['AnEntryName']),
+        weight=d['EntryWeight'],
+        classes=sanitise_output(d['NPCsToSpawn']),
+        spawnOffsets=sanitise_output(d['NPCsSpawnOffsets']),
+        classWeights=d['NPCsToSpawnPercentageChance'].values,
+    )
 
-    v = dict()
-    v['name'] = d['AnEntryName']
-    v['weight'] = d['EntryWeight']
-    v['classes'] = d['NPCsToSpawn']
-    v['spawnOffsets'] = d['NPCsSpawnOffsets']
+    # Export local random class swaps if any exist
+    swaps = d['NPCRandomSpawnClassWeights'].values
+    if swaps:
+        out.classSwaps = [convert_single_class_swap(entry.as_dict()) for entry in swaps]
 
-    # Weights, as confirmed by ZenRowe. It's up to the user to calculate actual chances.
-    v['classWeights'] = d['NPCsToSpawnPercentageChance']
-
-    d_swaps = d['NPCRandomSpawnClassWeights'].values
-    if d_swaps:
-        v['classSwaps'] = [convert_single_class_swap(entry.as_dict()) for entry in d_swaps]
-
-    return v
+    return out
 
 
-def convert_limit_entry(struct):
+def convert_limit_entry(struct) -> NpcLimit:
     d = struct.as_dict()
-
-    v = dict()
-    v['class'] = d['NPCClass']
-    v['desiredNumberMult'] = d['MaxPercentageOfDesiredNumToAllow']
-
-    return v
+    return NpcLimit(
+        klass=sanitise_output(d['NPCClass']),
+        desiredNumberMult=d['MaxPercentageOfDesiredNumToAllow'],
+    )
 
 
-def convert_single_class_swap(d):
+def convert_single_class_swap(d) -> WeighedClassSwap:
     result = WeighedClassSwap(from_class=sanitise_output(d['FromClass']),
                               exact=bool(d.get('bExactMatch', True)),
                               to=sanitise_output(d['ToClasses']),
@@ -115,21 +165,18 @@ def convert_single_class_swap(d):
     return result
 
 
-def convert_class_swaps(pgd: UAsset):
+def convert_class_swaps(pgd: UAsset) -> Iterable[WeighedClassSwap]:
     assert pgd.default_export
-    all_values = []
     export_data = pgd.default_export.properties
     d = export_data.get_property('GlobalNPCRandomSpawnClassWeights', fallback=None)
     if not d:
         return None
 
     for entry in d.values:
-        all_values.append(convert_single_class_swap(entry.as_dict()))
-
-    return all_values
+        yield convert_single_class_swap(entry.as_dict())
 
 
-def segregate_container_additions(pgd: UAsset):
+def segregate_container_additions(pgd: UAsset) -> Optional[List[RuntimeGroupAddition]]:
     if not pgd.default_export:
         return None
 
@@ -139,7 +186,7 @@ def segregate_container_additions(pgd: UAsset):
         return None
 
     # Extract the addition entries
-    change_queues: Dict[str, List[Dict[str, Any]]] = dict()
+    change_queues: Dict[str, List[RuntimeGroupAddition]] = defaultdict(list)
     for add in d.values:
         add = add.as_dict()
         klass = add['SpawnEntriesContainerClass']
@@ -148,23 +195,19 @@ def segregate_container_additions(pgd: UAsset):
         if not klass.value.value or (not entries and not limits):
             continue
 
-        v = dict()
-        v['blueprintPath'] = klass
-        if entries:
-            v['entries'] = [convert_group_entry(entry) for entry in entries]
-
-        if limits:
-            v['limits'] = [convert_limit_entry(entry) for entry in limits]
+        out = RuntimeGroupAddition(
+            blueprintPath=sanitise_output(klass),
+            entries=[convert_group_entry(entry) for entry in entries],
+            limits=[convert_limit_entry(entry) for entry in limits],
+        )
 
         # Skip if no data
-        if 'limits' not in v and 'entries' not in v:
+        if not out.limits and not out.entries:
             continue
 
         # Append to the fragment list
         klass_name = klass.format_for_json()
-        if klass_name not in change_queues:
-            change_queues[klass_name] = []
-        change_queues[klass_name].append(v)
+        change_queues[klass_name].append(out)
 
     # Merge
     vs = []
@@ -173,25 +216,13 @@ def segregate_container_additions(pgd: UAsset):
             vs.append(changes[0])
             continue
 
-        v = changes.pop(0)
-        # Make sure 'entries' and 'limits' are initialised.
-        if 'entries' not in v:
-            v['entries'] = []
-        if 'limits' not in v:
-            v['limits'] = []
+        out = changes.pop(0)
 
         # Concat data arrays
         for extra in changes:
-            if 'entries' in extra:
-                v['entries'] += extra['entries']
-            if 'limits' in extra:
-                v['limits'] += extra['limits']
+            out.entries += extra.entries
+            out.limits += extra.limits
 
-        # Remove empty arrays and add the container mod
-        if not v['limits']:
-            del v['limits']
-        if not v['entries']:
-            del v['entries']
-        vs.append(v)
+        vs.append(out)
 
     return vs
