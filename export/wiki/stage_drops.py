@@ -52,9 +52,10 @@ class Drop(ExportModel):
     maxItems: IntProperty = Field(0)
     maxWeight: FloatProperty = Field(25)
 
-    randomSetsWithNoReplacement: Optional[BoolProperty] = Field(
+    noRepeatsInSets: Optional[BoolProperty] = Field(
         None,
-        description="Unknown meaning",
+        title="No repeats in sets",
+        description="Entries cannot be picked more than once per set",
     )
     qualityMult: Optional[MinMaxRange] = Field(
         MinMaxRange(min=1, max=1),
@@ -83,7 +84,7 @@ class DropExportModel(ExportFileModel):
 
 class DropsStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "5"
+        return "6"
 
     def get_name(self) -> str:
         return "drops"
@@ -110,7 +111,7 @@ class DropsStage(JsonHierarchyExportStage):
         result.maxItems = inv.MaxInventoryItems[0]
         result.maxWeight = inv.MaxInventoryWeight[0]
 
-        result.randomSetsWithNoReplacement = inv.bSetsRandomWithoutReplacement[0]
+        result.noRepeatsInSets = inv.bSetsRandomWithoutReplacement[0]
         result.qualityMult = MinMaxRange(min=inv.MinQualityMultiplier[0], max=inv.MaxQualityMultiplier[0])
         result.qtyMult = MinMaxPowerRange(min=inv.MinItemSets[0], max=inv.MaxItemSets[0], pow=inv.NumItemSetsPower[0])
 
