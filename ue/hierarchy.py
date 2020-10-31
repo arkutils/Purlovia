@@ -91,7 +91,7 @@ def find_sub_classes(klass: Union[str, ExportTableItem]) -> Iterator[str]:
 
     node = tree.get(name, None)
     if not node:
-        raise ValueError(f'Node f{name} not found')
+        raise ValueError(f'Node {name} not found')
 
     yield from (node.data for node in node.walk_iterator(skip_self=True))
 

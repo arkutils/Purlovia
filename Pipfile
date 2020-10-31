@@ -4,21 +4,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-yapf = "~=0.28.0"
+yapf = "~=0.30.0"
 isort = {extras = ["pipfile"],version = "~=4.3.21"}
 rope = "~=0.14"
-pytest = "~=5.4.1"
+pytest = "~=6.1.2"
 pytest-cov = "*"
 pytest-mock = "*"
-pylint = "~=2.5.0"
+pylint = "~=2.6.0"
 mypy = "!=0.740"
 pygments = "~=2.4"
 guppy3 = "~=3.0.8"
-pre-commit = "~=2.4.0"
+pre-commit = "~=2.8.1"
 
 [packages]
-requests = "~=2.22.0"
-pydantic = "~=1.5.1"
+requests = "~=2.24.0"
+pydantic = {git="https://github.com/PrettyWood/pydantic.git",editable=true,ref="fix/validate-assignment-keep-order"}
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
 flake8 = "~=3.8.2"
@@ -33,6 +33,7 @@ tests-nogame = "pytest --cov=. --cov-report=xml --no-cov-on-fail -m 'not uses_co
 tests-nocov = "pytest -m 'not uses_copyright_material'"
 tests-nogame-nocov = "pytest -m 'not uses_copyright_material and not requires_game'"
 pre-commit = "pre-commit run --all-files"
+update-pre-commit = "pre-commit autoupdate"
 mypy = "mypy ."
 pylint = "pylint ark automate export tests ue utils processing"
 flake = "flake8"

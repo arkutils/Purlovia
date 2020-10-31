@@ -30,9 +30,10 @@ class LootCrate(ExportModel):
         None,
         title="Decay timing",
     )
-    randomSetsWithNoReplacement: Optional[BoolProperty] = Field(
+    noRepeatsInSets: Optional[BoolProperty] = Field(
         None,
-        description="Unknown meaning",
+        title="No repeats in sets",
+        description="Entries cannot be picked more than once per set",
     )
     qualityMult: Optional[MinMaxRange] = Field(
         None,
@@ -57,7 +58,7 @@ class LootCrateExportModel(ExportFileModel):
 
 class LootCratesStage(JsonHierarchyExportStage):
     def get_format_version(self) -> str:
-        return "5"
+        return "6"
 
     def get_name(self) -> str:
         return "loot_crates"
@@ -84,7 +85,7 @@ class LootCratesStage(JsonHierarchyExportStage):
         out = LootCrate(bp=crate.get_source().fullname)
         out.levelReq = MinMaxRange(min=crate.RequiredLevelToAccess[0], max=crate.MaxLevelToAccess[0])
         out.decayTime = DecayTime(start=crate.InitialTimeToLoseHealth[0], interval=crate.IntervalTimeToLoseHealth[0])
-        out.randomSetsWithNoReplacement = crate.bSetsRandomWithoutReplacement[0]
+        out.noRepeatsInSets = crate.bSetsRandomWithoutReplacement[0]
         out.qualityMult = MinMaxRange(min=crate.MinQualityMultiplier[0], max=crate.MaxQualityMultiplier[0])
         out.setQty = MinMaxPowerRange(min=crate.MinItemSets[0], max=crate.MaxItemSets[0], pow=crate.NumItemSetsPower[0])
         out.sets = [d for d in (decode_item_set(item_set) for item_set in item_sets) if d.entries]

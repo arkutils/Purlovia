@@ -653,6 +653,15 @@ class StringProperty(StringLikeProperty):
     def __str__(self):
         return self.value
 
+    def __eq__(self, other):
+        if isinstance(other, StringLikeProperty):
+            return self.value == str(other)
+
+        if isinstance(other, str):
+            return self.value == other
+
+        return NotImplemented
+
     def format_for_json(self):
         return str(self)
 

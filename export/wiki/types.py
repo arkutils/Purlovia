@@ -23,6 +23,7 @@ __all__ = [
     'PointOfInterestBP',
     'PointOfInterestListGen1',
     'PrimalEngramEntry',
+    'PrimalInventoryComponent',
     'PrimalStructureItemContainer_SupplyCrate',
     'PrimalStructurePowerNode',
     'PrimalWorldSettings',
@@ -249,6 +250,29 @@ class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPC
 
     NPCSpawnEntries: Mapping[int, ArrayProperty]  # = []
     NPCSpawnLimits: Mapping[int, ArrayProperty]  # = []
+
+
+class PrimalInventoryComponent(UEProxyStructure, uetype='/Script/ShooterGame.PrimalInventoryComponent'):
+
+    # DevKit Unverified
+    ItemSets: Mapping[int, ArrayProperty]
+    ItemSetsOverride: Mapping[int, ArrayProperty]
+    AdditionalItemSets: Mapping[int, ArrayProperty]
+    AdditionalItemSetsOverride: Mapping[int, ArrayProperty]
+
+    InventoryNameOverride = uestrings('')
+    RemoteInventoryDescriptionString = uestrings('')
+
+    MaxInventoryItems = ueints(0)
+    MaxInventoryWeight = uefloats(0)
+
+    bSetsRandomWithoutReplacement = uebools(False)
+
+    MinItemSets = uefloats(1.0)
+    MaxItemSets = uefloats(1.0)
+    MinQualityMultiplier = uefloats(1.0)
+    MaxQualityMultiplier = uefloats(1.0)
+    NumItemSetsPower = uefloats(1.0)
 
 
 class PrimalStructureItemContainer_SupplyCrate(UEProxyStructure,

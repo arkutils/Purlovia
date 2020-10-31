@@ -21,7 +21,9 @@ NULLABLE_REGION_COLORS = set(['Red'])
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
 
-def gather_pgd_colors(asset: UAsset, props: PrimalGameData, loader: AssetLoader,
+def gather_pgd_colors(asset: UAsset,
+                      props: PrimalGameData,
+                      loader: AssetLoader,
                       require_override=True) -> Tuple[Optional[Sequence[ColorEntry]], Optional[Sequence[ColorEntry]]]:
     '''Gather color and dye definitions from a PrimalGameData asset.'''
     colors: Optional[List[ColorEntry]] = list()
