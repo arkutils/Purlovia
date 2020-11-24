@@ -540,7 +540,7 @@ def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
 
     # Run with timeout
     try:
-        result = run(cmd, shell=not docker, capture_output=True, text=True, timeout=45)
+        result = run(cmd, shell=not docker, capture_output=True, text=True, timeout=180)
     except (TimeoutError, TimeoutExpired):
         logger.warning("Collecting version by running Ark server timed out")
         return None
