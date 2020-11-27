@@ -15,6 +15,8 @@ from automate.ark import ArkSteamManager
 from automate.steamapi import SteamApi
 from config import ConfigFile, get_global_config
 
+OLD_DAYS = 9 * 30
+
 config = get_global_config()
 config.settings.SkipInstall = True
 
@@ -39,13 +41,12 @@ modids = set([
     # Candidates
     '843960973',  # Dragontail
     '1188224480',  # Tamable Alphas by Ogdaonly
-    '1405944717',  # JPs Ark Server Tweaks
     '1679826889',  # Caballus Custom Map - The Equestrian Lan
     '1754846792',  # Zytharian Critters
-    '1850732334',  # Forest Wyvern Remastered
     '1880357240',  # Sanctuary Overhaul
     '1989252120',  # ARK: Reclamation
-    '2019846325',  # APEX
+    '1169020368',  # Ark Creatures Rebalanced (AG REBORN) 2.0
+    '1558114752',  # Dino hybrids & more (Radioactive tag?)
 ])
 
 #%% Conversion function
@@ -81,7 +82,7 @@ with open('livedata/mod_requests.csv', 'wt', newline='') as f:
 
 #%% Config addition
 
-age_cutoff = datetime.utcnow() - timedelta(days=90)
+age_cutoff = datetime.utcnow() - timedelta(days=OLD_DAYS)
 for mod in sorted(output_data, key=lambda v: int(v['id'])):
     size = f"{ceil(mod['file_size']/1024.0/1024.0):>4.0f}"
     comment = f"{size} Mb, {mod['sub_count_current']:>7} subs, {mod['fave_count_current']:>6} faves"
