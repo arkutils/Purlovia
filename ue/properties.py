@@ -943,9 +943,9 @@ class StructProperty(UEBase):
 
         for entry in self.values:
             name = str(entry.name)
-            value = entry.value
-
-            result[name] = value
+            if hasattr(entry, 'value'):
+                value = entry.value
+                result[name] = value
 
         self._as_dict = result
         return result
