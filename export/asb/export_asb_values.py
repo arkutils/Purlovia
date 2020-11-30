@@ -122,12 +122,12 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    normal_stats = gather_stat_data(dcsc_props, ARK_STAT_INDEXES)
-    alt_stats = gather_stat_data(dcsc_alt_props, ARK_STAT_INDEXES)
+    normal_stats = gather_stat_data(dcsc_props, dcsc_props, ARK_STAT_INDEXES)
+    alt_stats = gather_stat_data(dcsc_alt_props, dcsc_props, ARK_STAT_INDEXES)
     alt_stats = reduce_alt_stats(normal_stats, alt_stats)
     species['fullStatsRaw'] = normal_stats
     if alt_stats:
-        species['altStatsRaw'] = alt_stats
+        species['altBaseStats'] = alt_stats
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
@@ -232,7 +232,5 @@ def get_stat_name_overrides(dcsc: PrimalDinoStatusComponent) -> Dict[int, str]:
 
 
 def reduce_alt_stats(normal_stats, alt_stats):
-    output = [None if n == a else a for (n, a) in zip(normal_stats, alt_stats)]
-    output = {i: v for i, v in enumerate(output) if v}
-
-    return output if any(output) else None
+    output = {i: a[0] for (i, (n, a)) in enumerate(zip(normal_stats, alt_stats)) if n and a and n[0] != a[0]}
+    return output if output else None
