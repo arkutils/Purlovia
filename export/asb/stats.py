@@ -11,13 +11,14 @@ __all__ = [
 IS_PERCENT_STAT = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1)
 
 
-def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, statIndexes: Tuple[int, ...]) -> List[Optional[List[float]]]:
+def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, meta_props: PrimalDinoStatusComponent,
+                     statIndexes: Tuple[int, ...]) -> List[Optional[List[float]]]:
     statsArray = list()
 
     iw_values: List[float] = [0] * len(statIndexes)
     for _, ark_index in enumerate(statIndexes):
-        can_level = (ark_index == 2) or dcsc_props.CanLevelUpValue[ark_index]
-        dont_use = dcsc_props.DontUseValue[ark_index]
+        can_level = (ark_index == 2) or meta_props.CanLevelUpValue[ark_index]
+        dont_use = meta_props.DontUseValue[ark_index]
 
         # Creates a null value in the JSON for stats that are unused
         if dont_use and not can_level:

@@ -367,6 +367,8 @@ species:
         remove_variants:
             Base: true
     /Game/Extinction/Dinos/KingKaiju/Minions/Corrupt_Arthro_Character_BP:
+        add_variants:
+            Minion: true
         remove_variants:
             Corrupted: true
     /Game/EndGame/Dinos/Drone/EndDrone_Character_BP:
@@ -414,6 +416,15 @@ species:
     /Game/PrimalEarth/Dinos/Tusoteuthis/Tusoteuthis_Character_BP_Caves:
         add_variants:
             Cave: true
+    /Game/Mods/Ragnarok/Custom_Assets/JacksonL/LavaGolem/LavaGolem_Character_BP:
+        add_variants:
+            Boss: true
+    /Game/Extinction/Dinos/DesertKaiju/DesertKaiju_FirstFlockChar_BP:
+        add_variants:
+            Minion: true
+    /Game/Extinction/Dinos/KingKaiju/CorruptTumor_Character_BP:
+        add_variants:
+            Minion: true
 
     # Distinguish between species that share the same names
     /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP:

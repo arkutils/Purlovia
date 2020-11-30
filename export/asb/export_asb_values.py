@@ -82,6 +82,7 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
 
     char_props: PrimalDinoCharacter = ue.gathering.gather_properties(asset.default_export)
     dcsc_props: PrimalDinoStatusComponent = ark.gathering.gather_dcsc_properties(asset.default_export)
+    dcsc_alt_props: PrimalDinoStatusComponent = ark.gathering.gather_dcsc_properties(asset.default_export, alt=True)
 
     # Having no name or tag is an indication that this is an intermediate class, not a spawnable species
     name = (str(char_props.DescriptiveName[0]) or str(char_props.DinoNameTag[0])).strip()
@@ -121,7 +122,12 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    species['fullStatsRaw'] = gather_stat_data(dcsc_props, ARK_STAT_INDEXES)
+    normal_stats = gather_stat_data(dcsc_props, dcsc_props, ARK_STAT_INDEXES)
+    alt_stats = gather_stat_data(dcsc_alt_props, dcsc_props, ARK_STAT_INDEXES)
+    alt_stats = reduce_alt_stats(normal_stats, alt_stats)
+    species['fullStatsRaw'] = normal_stats
+    if alt_stats:
+        species['altBaseStats'] = alt_stats
 
     # Set imprint multipliers
     stat_imprint_mults: List[float] = list()
@@ -223,3 +229,8 @@ def get_stat_name_overrides(dcsc: PrimalDinoStatusComponent) -> Dict[int, str]:
     output = {n: name for n, name in pairs if name}
 
     return output
+
+
+def reduce_alt_stats(normal_stats, alt_stats):
+    output = {i: a[0] for (i, (n, a)) in enumerate(zip(normal_stats, alt_stats)) if n and a and n[0] != a[0]}
+    return output if output else None
