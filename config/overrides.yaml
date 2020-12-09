@@ -366,18 +366,24 @@ maps:
             border_left: 3
             border_right: 102
             border_bottom: 102
-    /Game/Maps/Ragnarok/Ragnarok:
+    /Game/Mods/Ragnarok/Ragnarok:
         svgs:
             border_top: 0
             border_left: 0
             border_right: 100
             border_bottom: 100
-    /Game/Maps/Valguero/Valguero_P:
+    /Game/Mods/Valguero/Valguero_P:
         svgs:
-            border_top: 0
-            border_left: 0
-            border_right: 100
-            border_bottom: 100
+            border_top: -2.3
+            border_left: -1.6
+            border_right: 99.7
+            border_bottom: 104
+    /Game/Mods/CrystalIsles/CrystalIsles:
+        svgs:
+            border_top: 10.5
+            border_left: 14
+            border_right: 86
+            border_bottom: 87
 
 
 # Override settings on a per-species basis
