@@ -33,7 +33,7 @@ def build_shapes(bounds: SVGBoundaries, spawns, spawn_entries_frequencies, alway
     v_points: List[List[SpawnPoint]] = [[] for _ in range(6)]
     for s in spawns['spawns']:
         # Check if spawngroup exists for current species
-        if not s['locations'] or s.get('disabled', False) or 'minDesiredNumberOfNPC' not in s:
+        if not s.get('locations', None) or s.get('disabled', False) or s.get('minDesiredNumberOfNPC', -1) <= 0:
             continue
 
         frequency = find_frequency_for_group(spawn_entries_frequencies, s['spawnGroup'])

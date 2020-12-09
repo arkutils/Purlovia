@@ -213,8 +213,9 @@ class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         # Counting regions
-        for location in data['locations']:
-            convert_box_bounds_for_export(world, location)
+        if 'locations' in data:
+            for location in data['locations']:
+                convert_box_bounds_for_export(world, location)
         # Spawn regions
         if 'spawnLocations' in data:
             for location in data['spawnLocations']:

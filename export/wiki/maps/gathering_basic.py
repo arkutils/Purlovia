@@ -189,7 +189,11 @@ class WyvernNests(BaseActorListExport):
 
 
 class IceWyvernNests(BaseActorListExport):
-    TAGS = {'IceNestSpawns'}
+    TAGS = {
+        'IceNestSpawns',
+        # 1679826889 Caballus
+        'DragonIceNestSpawns'
+    }
     MODEL = models.IceWyvernNest
 
 
