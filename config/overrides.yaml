@@ -988,6 +988,10 @@ species:
                 2: "Belly"
                 4: "Top"
                 5: "Underside"
+    /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Lightning:
+        color_regions:
+            region_names:
+                5: "Belly Scales and Wing Patterns"
 
     # Ignore regions present in color set but not the color mask
     /Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP:
