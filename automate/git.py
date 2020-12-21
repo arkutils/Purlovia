@@ -60,13 +60,16 @@ class GitManager:
         # Commit
         self._do_commit(message, relative_path)
 
-    def finish(self):
+    def finish(self, game_version: str):
         if self.config.settings.SkipGit:
             return
 
         # If no changes to push, return
         if not self._any_changes_to_push():
             return
+
+        # Tag
+        self._do_tag(game_version)
 
         # Push
         self._do_push()
@@ -102,6 +105,23 @@ class GitManager:
             else:
                 self.git.add('--', str(relative_path))
 
+    def _do_tag(self, game_version: str):
+        '''Create a tag based on the game version, if it does not already exist.'''
+        if self.config.git.SkipCommit:
+            logger.info('(tag skipped by request)')
+        elif not self.config.git.UseIdentity:
+            logger.warning('Tagging skipped due to lack of git identity')
+        else:
+            version_tag = 'v' + game_version
+            existing_tags = (self.git.tag('--list') or '').splitlines()
+            existing_tags = [t for t in (tag.strip() for tag in existing_tags) if t]
+            if version_tag in existing_tags:
+                logger.info('Game version tag already exists')
+                return
+
+            self.git.tag(version_tag)
+            logger.info(f'Created tag: {version_tag}')
+
     def _do_push(self):
         if self.config.git.SkipPush:
             logger.info('(push skipped by request)')
@@ -109,7 +129,7 @@ class GitManager:
             logger.warning('Push skipped due to lack of git identity')
         else:
             logger.info('Pushing changes')
-            self.git.push()
+            self.git.push('--tags')
 
     def _do_commit(self, message: str, relative_path: Path):
         if self.config.git.SkipCommit:

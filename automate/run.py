@@ -80,6 +80,10 @@ def run(config: ConfigFile):
         arkman.ensureGameUpdated()
         arkman.ensureModsUpdated(mods)
 
+        game_version = arkman.getGameVersion()
+        if not game_version:
+            raise ValueError("Game version not detected")
+
         # Ensure Git is setup and ready
         git = GitManager(config=config)
         git.before_exports()
@@ -94,7 +98,7 @@ def run(config: ConfigFile):
         exporter.perform()
 
         # Push any changes
-        git.finish()
+        git.finish(game_version)
 
         logger.info('Automation completed')
 
