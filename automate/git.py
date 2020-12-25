@@ -129,6 +129,8 @@ class GitManager:
             logger.warning('Push skipped due to lack of git identity')
         else:
             logger.info('Pushing changes')
+            self.git.push()
+            logger.info('Pushing tags')
             self.git.push('--tags')
 
     def _do_commit(self, message: str, relative_path: Path):
