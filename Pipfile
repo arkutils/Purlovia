@@ -27,7 +27,7 @@ flake8 = "~=3.8.2"
 python_version = "3.7"
 
 [scripts]
-check = "pipenv check"
+check = "pipenv check -i 39253"
 tests = "pytest --cov=. --cov-report=xml --no-cov-on-fail -m 'not uses_copyright_material'"
 tests-nogame = "pytest --cov=. --cov-report=xml --no-cov-on-fail -m 'not uses_copyright_material and not requires_game'"
 tests-nocov = "pytest -m 'not uses_copyright_material'"
