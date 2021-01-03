@@ -992,6 +992,27 @@ species:
         color_regions:
             region_names:
                 5: "Belly Scales and Wing Patterns"
+    /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombieFire:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Wings"
+                3: "Wing Highlights"
+                5: "Underbelly and Arms"
+    /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombieLightning:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Wings"
+                3: "Wing Highlights"
+                5: "Underbelly and Arms"
+    /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombiePoison:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Wings"
+                3: "Wing Highlights"
+                5: "Underbelly and Arms"
 
     # Ignore regions present in color set but not the color mask
     /Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP:
