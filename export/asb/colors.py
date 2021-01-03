@@ -60,10 +60,10 @@ def gather_pgd_colors(asset: UAsset,
     return (colors, dyes)
 
 
-def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings) -> Optional[List[Dict[str, Any]]]:
+def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettings) -> Optional[List[Optional[Dict[str, Any]]]]:
     '''Gather color region definitions for a species.'''
     settings = overrides.color_regions
-    colors: List[Dict] = list()
+    colors: List[Optional[Dict]] = list()
 
     try:
         male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]
@@ -77,7 +77,11 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
     if not colorset_props:
-        return None
+        if not settings.region_names:
+            return None
+
+        names = [(i, settings.region_names.get(i, None)) for i in range(NUM_REGIONS)]
+        return [({'name': name} if name is not None else None) for i, name in names]
 
     if char_props.bIsCorrupted[0]:
         return colors
@@ -90,6 +94,9 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
 
         if prevent_region:
             color['name'] = None
+        elif not colorset_props:
+            if i in settings.region_names:
+                color['name'] = settings.region_names[i]
         elif i not in colorset_props.ColorSetDefinitions:
             color['name'] = None
         else:
@@ -126,7 +133,7 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
                     color['colors'] = sorted(color_names)
 
         if color['name'] is None:
-            colors.append(None)  # type: ignore
+            colors.append(None)
         else:
             colors.append(color)
 
