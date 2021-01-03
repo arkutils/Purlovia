@@ -61,18 +61,12 @@ class PropertyTable(UEBase):
         raise KeyError(f"Property {name}[{index}] not found")
 
     def _convert_to_dict(self):
-        result: PropDict = {}
+        result: PropDict = defaultdict(lambda: defaultdict(lambda: None))
 
         for prop in self.values:
             name = str(prop.header.name)
             idx = prop.header.index
             value = prop.value
-
-            if isinstance(value, ObjectProperty) and value.is_none():
-                continue
-
-            if name not in result:
-                result[name] = {}
 
             result[name][idx] = value
 
@@ -581,9 +575,6 @@ class ObjectProperty(UEBase):
 
     def __bool__(self):
         return bool(self.value)
-
-    def is_none(self):
-        return self.value.index == 0
 
 
 class StringLikeProperty(UEBase, ABC):
