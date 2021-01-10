@@ -988,6 +988,12 @@ species:
                 2: "Belly"
                 4: "Top"
                 5: "Underside"
+    /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire:
+        color_regions:
+            region_names:
+                2: "Belly Scales"
+                3: null # unused
+                4: "Wing Membrane and Fins Highlight"
     /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Lightning:
         color_regions:
             region_names:
