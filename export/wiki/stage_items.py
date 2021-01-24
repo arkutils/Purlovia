@@ -1,16 +1,20 @@
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from ark.types import PrimalItem
-from automate.hierarchy_exporter import JsonHierarchyExportStage
+from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
+from ue.gathering import gather_properties
+from ue.hierarchy import get_parent_class
+from ue.properties import FloatProperty, IntProperty, ObjectProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
-from .items.cooking import convert_cooking_values
-from .items.crafting import convert_crafting_values
-from .items.durability import convert_durability_values
-from .items.egg import convert_egg_values
-from .items.status import convert_status_effect
+from .flags import gather_flags
+from .items.cooking import CookingIngredientData, convert_cooking_values
+from .items.crafting import CraftingData, RepairData, convert_crafting_values
+from .items.durability import DurabilityData, convert_durability_values
+from .items.egg import EggData, convert_egg_values
+from .items.status import StatEffectData, convert_status_effect
 
 __all__ = [
     'ItemsStage',
@@ -18,13 +22,74 @@ __all__ = [
 
 logger = get_logger(__name__)
 
+OUTPUT_FLAGS = (
+    'bPreventCheatGive',
+    'bDurabilityRequirementIgnoredInWater',
+)
+
+
+class SpoilageData(ExportModel):
+    time: Optional[FloatProperty] = Field(..., title="Time to spoil")
+    product: Optional[str] = Field(..., title="Resulting spoilage product")
+
+
+class Item(ExportModel):
+    name: Optional[str] = Field(None, title="Descriptive name")
+    description: Optional[str] = Field(None, title="Description of the item")
+    bp: str = Field(..., title="Full blueprint path")
+    parent: Optional[str] = Field(None, title="Full blueprint path to the parent class of this item")
+    icon: Optional[str] = Field(
+        None,
+        title="Full blueprint path to the icon",
+        description="This is either a texture or a material instance",
+    )
+    type: Optional[str] = Field(None, description="")
+    flags: Optional[List[str]] = Field(
+        list(),
+        description="Relevant boolean flags that are True for this item",
+    )
+    folders: List[str] = Field(
+        [],
+        title="Crafting station folder",
+        description="This is the folder in a crafting station where this item's blueprint is shown.",
+    )
+    weight: Optional[FloatProperty] = Field(None, title="Weight of a single unit")
+    stackSize: Optional[IntProperty] = Field(None, title="Stack size")
+    spoilage: Optional[SpoilageData]
+    durability: Optional[DurabilityData]
+    crafting: Optional[CraftingData]
+    repair: Optional[RepairData]
+    structure: Optional[str] = Field(
+        None,
+        title="Structure blueprint path",
+        description="Can be looked up in structures.json.",
+    )
+    weapon: Optional[str] = Field(
+        None,
+        title="Weapon blueprint path",
+        description="Can be looked up in weapons.json.",
+    )
+    statEffects: Optional[Dict[str, StatEffectData]] = Field(
+        None,
+        title="Stat effects when consumed",
+    )
+    egg: Optional[EggData]
+    cooking: Optional[CookingIngredientData]
+
+
+class ItemsExportModel(ExportFileModel):
+    items: List[Item]
+
+    class Config:
+        title = "Item data for the Wiki"
+
 
 class ItemsStage(JsonHierarchyExportStage):
-    def get_format_version(self) -> str:
-        return "3"
-
     def get_name(self) -> str:
         return "items"
+
+    def get_format_version(self) -> str:
+        return "4"
 
     def get_use_pretty(self) -> bool:
         return bool(self.manager.config.export_wiki.PrettyJson)
@@ -32,82 +97,86 @@ class ItemsStage(JsonHierarchyExportStage):
     def get_ue_type(self) -> str:
         return PrimalItem.get_ue_type()
 
+    def get_schema_model(self):
+        return ItemsExportModel
+
     def extract(self, proxy: UEProxyStructure) -> Any:
         item: PrimalItem = cast(PrimalItem, proxy)
+        item_name = item.get('DescriptiveNameBase', fallback=None)
 
-        v: Dict[str, Any] = dict()
-        item_name = item.get('DescriptiveNameBase', 0, None)
+        out = Item(
+            name=str(item_name) if item_name else None,
+            bp=item.get_source().fullname,
+        )
+        out.parent = get_parent_class(out.bp)
+
+        # The game adds the Skin suffix to the item's name if bIsItemSkin is true.
+        if item.bIsItemSkin[0] and out.name:
+            out.name += ' Skin'
 
         # Export minimal data if the item is likely a base class
         if is_item_base_class(item):
-            if item_name:
-                v['name'] = item_name
-            v['bp'] = item.get_source().fullname
-            # v['parent'] = get_parent_class(v['bp'])
-            return v
+            return out
 
         # Export full data otherwise
         try:
-            v['name'] = item_name
-            v['description'] = item.get('ItemDescription', 0, None)
-            v['bp'] = item.get_source().fullname
-            # v['parent'] = get_parent_class(v['bp'])
-            v['icon'] = item.get('ItemIconMaterialParent', 0, item.get('ItemIcon', 0, None))
+            icon_ref = item.get('ItemIconMaterialParent', fallback=item.get('ItemIcon', fallback=None))
+            out.description = str(item.get('ItemDescription', fallback=None))
+            out.icon = _safe_get_bp_from_object(icon_ref)
 
-            itemType = item.get('MyItemType', 0, None)
-            v['type'] = itemType.get_enum_value_name()
+            # Export item type and subtypes
+            out.type = _get_pretty_item_type(item)
 
-            if v['type'] == 'MiscConsumable':
-                consumableType = item.get('MyConsumableType', 0, None)
-                v['type'] += '/' + consumableType.get_enum_value_name()
-            elif v['type'] == 'Equipment':
-                equipmentType = item.get('MyEquipmentType', 0, None)
-                v['type'] += '/' + equipmentType.get_enum_value_name()
+            # Export the boolean flags
+            out.flags = gather_flags(item, OUTPUT_FLAGS)
 
-            if item.has_override('bPreventCheatGive'):
-                v['preventCheatGive'] = item.bPreventCheatGive[0]
-
+            # Export folders seen in crafting stations
             if item.has_override('DefaultFolderPaths'):
-                v['folders'] = [str(folder) for folder in item.DefaultFolderPaths[0].values]
-            else:
-                v['folders'] = []
+                out.folders = [str(folder) for folder in item.DefaultFolderPaths[0].values]
 
-            v['weight'] = item.BaseItemWeight[0]
-            v['maxQuantity'] = item.MaxItemQuantity[0]
+            # Export weight & stack size
+            out.weight = item.BaseItemWeight[0]
+            out.stackSize = item.MaxItemQuantity[0]
 
-            if item.has_override('SpoilingTime'):
-                v['spoilage'] = dict(time=item.SpoilingTime[0])
-                if item.has_override('SpoilingItem'):
-                    v['spoilage']['productBP'] = item.SpoilingItem[0]
+            # Export spoilage info
+            if item.has_override('SpoilingTime') or item.has_override('SpoilingItem'):
+                out.spoilage = SpoilageData(
+                    time=item.SpoilingTime[0],
+                    product=_safe_get_bp_from_object(item.get('SpoilingItem', fallback=None)),
+                )
 
-            if item.bUseItemDurability[0].value:
-                v.update(convert_durability_values(item))
+            # Export durability info if the mechanic is enabled
+            # if bool(item.bUseItemDurability[0]):
+            #    out.durability = convert_durability_values(item)
 
-            v.update(convert_crafting_values(item))
+            # Export crafting info
+            out.crafting, out.repair = convert_crafting_values(item)
 
+            # Export string references to the structure or weapon templates (if any), which can then be looked up in
+            # a separate file, without having this export grow in size too much.
             if 'StructureToBuild' in item and item.StructureToBuild[0].value.value:
-                v['structureTemplate'] = item.StructureToBuild[0]
-
+                out.structure = _safe_get_bp_from_object(item.StructureToBuild[0])
             if 'WeaponTemplate' in item and item.WeaponTemplate[0].value.value:
-                v['weaponTemplate'] = item.WeaponTemplate[0]
+                out.weapon = _safe_get_bp_from_object(item.WeaponTemplate[0])
 
+            # Export status effect info when item is consumed
             if item.has_override('UseItemAddCharacterStatusValues'):
                 status_effects = item.UseItemAddCharacterStatusValues[0]
-                v['statEffects'] = dict(convert_status_effect(entry) for entry in status_effects.values)
+                out.statEffects = dict(convert_status_effect(entry) for entry in status_effects.values)
 
+            # Export egg info
             if item.bIsEgg[0]:
-                egg_data = convert_egg_values(item)
-                if egg_data:
-                    v['egg'] = egg_data
+                out.egg = convert_egg_values(item)
 
+            # Export cooking info
             if item.bIsCookingIngredient[0]:
-                v.update(convert_cooking_values(item))
+                out.cooking = convert_cooking_values(item)
 
         except Exception:  # pylint: disable=broad-except
             logger.warning(f'Export conversion failed for {proxy.get_source().fullname}', exc_info=True)
             return None
 
-        return v
+        return out
 
     def get_post_data(self, modid: Optional[str]) -> Optional[Dict[str, Any]]:
         if self.gathered_results and not modid:
@@ -154,3 +223,21 @@ def get_item_name(item: PrimalItem) -> Optional[str]:
         out += ' Skin'
 
     return out
+
+
+def _get_pretty_item_type(item: PrimalItem) -> str:
+    itemType = item.get('MyItemType', 0, None)
+    value = itemType.get_enum_value_name()
+    if value == 'MiscConsumable':
+        consumableType = item.get('MyConsumableType', 0, None)
+        return value + '/' + consumableType.get_enum_value_name()
+    elif value == 'Equipment':
+        equipmentType = item.get('MyEquipmentType', 0, None)
+        return value + '/' + equipmentType.get_enum_value_name()
+    return value
+
+
+def _safe_get_bp_from_object(obj: Optional[ObjectProperty]) -> Optional[str]:
+    if not obj or not obj.value or not obj.value.value:
+        return None
+    return obj.value.value.fullname

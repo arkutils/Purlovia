@@ -284,7 +284,7 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     bIsEgg = uebools(False)
     bIsItemSkin = uebools(False)
     bSupportDragOntoOtherItem = uebools(False)
-    bUseItemDurability = uebools(True)
+    bUseItemDurability = uebools(False)
     bOverrideRepairingRequirements = uebools(False)
     bIsCookingIngredient = uebools(False)
     bPreventCheatGive = uebools(False)
@@ -324,6 +324,7 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     Ingredient_FoodIncreasePerQuantity = uefloats(0.1)
     Ingredient_HealthIncreasePerQuantity = uefloats(0.1)
     Ingredient_StaminaIncreasePerQuantity = uefloats(0.1)
+    Ingredient_WaterIncreasePerQuantity = uefloats(0.1)
 
     BaseCraftingResourceRequirements: Mapping[int, ArrayProperty]  # = []
     ItemIconMaterialParent: Mapping[int, ObjectProperty]  # = 'None'

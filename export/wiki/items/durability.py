@@ -1,10 +1,13 @@
-from typing import Any, Dict
+from typing import Optional
 
 from ark.types import PrimalItem
+from automate.hierarchy_exporter import ExportModel, Field
+from ue.properties import FloatProperty
 
 
-def convert_durability_values(item: PrimalItem) -> Dict[str, Any]:
-    return dict(durability=dict(
-        min=item.MinItemDurability[0],
-        ignoreInWater=item.bDurabilityRequirementIgnoredInWater[0],
-    ))
+class DurabilityData(ExportModel):
+    min: Optional[FloatProperty] = Field(..., title="Minimum number of units")
+
+
+def convert_durability_values(item: PrimalItem) -> DurabilityData:
+    return DurabilityData(min=item.MinItemDurability[0], )
