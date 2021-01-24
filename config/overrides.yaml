@@ -270,11 +270,6 @@ maps:
             border_left: 11.5
             border_right: 88.5
             border_bottom: 88.5
-            # Following borders apply to in-game textures
-            # border_top: 2
-            # border_left: -3
-            # border_right: 100
-            # border_bottom: 100
     /Game/Maps/ScorchedEarth/ScorchedEarth_P:
         svgs:
             border_top: 7.2
@@ -451,6 +446,8 @@ species:
         color_regions:
             region_names:
                 0: "Body"
+                1: null
+                2: null
                 4: "Spine"
                 5: "Belly"
     /Game/PrimalEarth/Dinos/Ammonite/Ammonite_Character:
@@ -464,6 +461,7 @@ species:
         color_regions:
             region_names:
                 0: "Body"
+                4: "Spots"
                 5: "Tail fin and Accents"
     /Game/PrimalEarth/Dinos/Ankylo/Ankylo_Character_BP:
         color_regions:
@@ -478,7 +476,9 @@ species:
         color_regions:
             region_names:
                 0: "Sides, Tail, Wings and Face"
+                1: null
                 2: "Skin"
+                3: null
                 4: "Top and Wing Tips"
                 5: "Underside and Accents"
     /Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP:
@@ -516,6 +516,8 @@ species:
             region_names:
                 0: "Body"
                 1: "Feet"
+                2: null
+                3: null # texture artifact, barely visible
                 4: "Stripe"
                 5: "Tail"
     /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP:
@@ -575,12 +577,18 @@ species:
             region_names:
                 0: "Sides, Legs, and Accents"
                 1: "Spines"
+                2: null
+                3: null # texture artifact, barely visible
                 4: "Back"
                 5: "Underside"
     /Game/PrimalEarth/Dinos/Direbear/Direbear_Character_BP:
         color_regions:
             region_names:
                 0: "Back and Head"
+                1: null
+                2: null
+                3: null
+                4: null
                 5: "Belly and Legs"
     /Game/PrimalEarth/Dinos/Direwolf/Direwolf_Character_BP:
         color_regions:
@@ -638,6 +646,7 @@ species:
             region_names:
                 0: "Body"
                 1: "Feathers"
+                3: "Back Accents"
                 4: "Spine and Feather Tips"
                 5: "Lower Body"
     /Game/PrimalEarth/Dinos/Giganotosaurus/Gigant_Character_BP:
@@ -1025,6 +1034,15 @@ species:
         color_regions:
             region_names:
                 1: null
+    /Game/Extinction/Dinos/Gacha/Gacha_Character_BP:
+        color_regions:
+            region_names:
+                1: null # texture artifact, not visible
+    /Game/Extinction/Dinos/GasBag/GasBags_Character_BP:
+        color_regions:
+            region_names:
+                1: null
+                3: null # texture artifact, not visible
     /Game/Genesis/Dinos/BiomeVariants/Snow_Yutyrannus/Snow_Yutyrannus_Character_BP:
         color_regions:
             region_names:
