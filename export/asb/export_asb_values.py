@@ -122,7 +122,7 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    is_flyer = bool(char_props.bIsFlyerDino)
+    is_flyer = bool(char_props.bIsFlyerDino[0])
     normal_stats = gather_stat_data(dcsc_props, dcsc_props, is_flyer, ARK_STAT_INDEXES)
     alt_stats = gather_stat_data(dcsc_alt_props, dcsc_props, is_flyer, ARK_STAT_INDEXES)
     alt_stats = reduce_alt_stats(normal_stats, alt_stats)
