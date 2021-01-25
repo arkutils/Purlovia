@@ -18,7 +18,7 @@ pre-commit = "~=2.8.1"
 
 [packages]
 requests = "~=2.24.0"
-pydantic = {git="https://github.com/PrettyWood/pydantic.git",editable=true,ref="fix/validate-assignment-keep-order"}
+pydantic = "~=1.7.3"
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
 flake8 = "~=3.8.2"
