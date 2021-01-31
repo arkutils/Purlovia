@@ -64,6 +64,7 @@ defaults:
             ignore_nothing: '\**IGNORE(\*|\s)*NOTHING\**'
             no_effect: '\**NO(\*|\s)*EFFECT\**'
             not_used: '\**NOT(\*|\s)*USED\**'
+            unused: '\*+(UNUSED|Unused|unused)\*+'
 
         # Region names that will be replaced by the default_name
         # (if not specifically overridden in the species)
