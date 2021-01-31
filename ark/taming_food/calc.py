@@ -22,7 +22,9 @@ __all__ = [
 # Equus, Megatherium, Tuso, Giant Queen Bee... and eventually Gacha
 
 
-def evaluate_food_for_species(cls_name: str, loader: AssetLoader, *,
+def evaluate_food_for_species(cls_name: str,
+                              loader: AssetLoader,
+                              *,
                               limit_modids: Optional[Iterable[str]] = None) -> Iterator[Item]:
     '''
     Search for all taming foods relevant to the given species, and their effects.
@@ -67,7 +69,8 @@ def _insert_status_node(tree: IndexedTree[ItemStatus], status: ItemStatus):
     tree.insert_segment(bp, insert_node)
 
 
-def make_eval_simplification_tree(evals: Iterable[Item], *,
+def make_eval_simplification_tree(evals: Iterable[Item],
+                                  *,
                                   limit_modids: Optional[Iterable[str]] = None) -> IndexedTree[ItemStatus]:
     '''
     Produces a tree with the same structure as the main, full item tree but only containing
