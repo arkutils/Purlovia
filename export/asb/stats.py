@@ -11,7 +11,7 @@ __all__ = [
 IS_PERCENT_STAT = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1)
 
 
-def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, meta_props: PrimalDinoStatusComponent, is_flyer: bool,
+def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, meta_props: PrimalDinoStatusComponent,
                      statIndexes: Tuple[int, ...]) -> List[Optional[List[float]]]:
     statsArray = list()
 
@@ -26,13 +26,7 @@ def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, meta_props: PrimalDi
 
         else:
             add_one = 1 if IS_PERCENT_STAT[ark_index] else 0
-
-            # Zero-out stats that can't level
-            wild_mult = 1 if can_level else 0
-
-            # Also zero-out domestic stats that can't level, adding exception for flyer speed :(
-            dom_mult = 1 if ark_index == 9 and is_flyer else wild_mult
-
+            zero_mult = 1 if can_level else 0
             ETHM = dcsc_props.ExtraTamedHealthMultiplier[0].rounded_value if ark_index == 0 else 1
 
             # Overrides the IW value for Torpor. While this hasn't been seen before, a species may allow torpor
@@ -44,8 +38,8 @@ def gather_stat_data(dcsc_props: PrimalDinoStatusComponent, meta_props: PrimalDi
 
             stat_data = [
                 cd(dcsc_props.MaxStatusValues[ark_index].rounded_value + add_one),
-                cd(iw_values[ark_index] * wild_mult),
-                cd(dcsc_props.AmountMaxGainedPerLevelUpValueTamed[ark_index].rounded_value * ETHM * dom_mult),
+                cd(iw_values[ark_index] * zero_mult),
+                cd(dcsc_props.AmountMaxGainedPerLevelUpValueTamed[ark_index].rounded_value * ETHM * zero_mult),
                 cf(dcsc_props.TamingMaxStatAdditions[ark_index].rounded_value),
                 cf(dcsc_props.TamingMaxStatMultipliers[ark_index].rounded_value),
             ]
