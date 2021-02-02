@@ -1030,6 +1030,179 @@ species:
                 3: "Wing Highlights"
                 5: "Underbelly and Arms"
 
+    # Marnii Wildlife mod creatures colour region names				
+    /Game/Mods/MarniiModsWildlife/Wildlife/Camel/Camel_MM_Character_BP.Camel_MM_Character_BP:
+        color_regions:			
+    		region_names:		
+    			0:	"Main body"
+		    	1:	"Eyes"
+		    	2:	null # None, no color generated in colour region
+		    	3:	null # None, no color generated in colour region
+		    	4:	"Side markings"
+		    	5:	"Back and neck markings"
+    /Game/Mods/MarniiModsWildlife/Wildlife/CanisLupus/Wolf_MM_Character_BP.Wolf_MM_Character_BP:
+    	color_regions:			
+	    	region_names:		
+	    		0:	"Main body"
+	    		1:	"Toes and tail tip"
+	    		2:	"Back and facial markings"
+	    		3:	"Eyes"
+	    		4:	"Underbelly and legs"
+	    		5:	"Face and body markings"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Capra/Capra_MM_Character_BP.Capra_MM_Character_BP:
+	    color_regions:			
+	    	region_names:		
+	    		0:	"Main body"
+		    	1:	"Eyes"
+			    2:	"Spinal stripe"
+	    		3:	"Horns"
+		    	4:	"Underbelly and legs"
+			    5:	"Back, head, and muzzle markings"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Cat/Cat_Character_BP.Cat_Character_BP:
+    	color_regions:			
+	    	region_names:		
+	    		0:	"Main body"
+		    	1:	"Eye tint"
+			    2:	"Marking accents"
+    			3:	null # None, no color generated in colour region
+	    		4:	"Belly, feet, facial markings, and tail tip"
+		    	5:	"Marking tint"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Cattle/Cattle_Character_BP.Cattle_Character_BP:
+    	color_regions:			
+    		region_names:		
+    			0:	"Main body"
+	    		1:	"Eyes(F), None(M)"
+		    	2:	"None(F), Horns(M)
+			    3:	null # None, no color generated in colour region
+	    		4:	"Unused(F), Leg and body tint(M)"
+		    	5:	"Body pattern(F), Mane"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Chicken/Chicken_character_bp.Chicken_Character_BP:
+    	color_regions:			
+	    	region_names:		
+    			0:	"Head, wing, leg and tail accents"
+	    		1:	"Neck"
+		    	2:	"Comb and Wattle"
+			    3:	"Head accent"
+			    4:	"Chest and nape(F); Tail and feather tips(M)"
+			    5:	"Wings; Back(F), Main body(M)"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Elephant/Elephant_MM_Character_BP.Elephant_MM_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Main body"
+			    1:	null # Not visible
+    			2:	"Tusks"
+	    		3:	null # Not visible
+		    	4:	"Marking tint"
+			    5:	"Inner ear tint"
+    /Game/Mods/MarniiModsWildlife/Wildlife/ExoticBird/ExoticBird_Character_BP.ExoticBird_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Main body"
+			    1:	"Cere and legs"
+    			2:	"Eyes"
+	    		3:	null # Not visible
+		    	4:	"Feather accents"
+			    5:	"Underbelly and marginal coverts"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Frog/Frog_MM_Character_BP.Frog_MM_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Main body"
+			    1:	"Eyes"
+    			2:	"Facial markings and stripes"
+	    		3:	null # Not visible
+		    	4:	null # Not visible
+			    5:	"Back spots and underbelly"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Gecko/Gecko_Character_BP.Gecko_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Main body"
+			    1:	null # Not visible
+    			2:	"Stripe accents"
+	    		3:	null # Not visible
+		    	4:	"Underbelly and toes"
+			    5:	"Back pattern"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Hare/Hare_Character_BP.Hare_Character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	"Eye tint"
+	    		2:	null # Not visible
+		    	3:	null # Not visible
+			    4:	"Inner ear"
+    			5:	"Fur details"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Lions/Lions_Character_BP.Lions_Character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	null # None, no color generated in colour region
+	    		2:	"Eyes"
+		    	3:	"None, Jaw tint(M)"
+			    4:	"Belly and accents"
+    			5:	"Unused(F); Mane(M)"
+    /Game/Mods/MarniiModsWildlife/Wildlife/MMOwls/A_Owl_Character_BP.A_Owl_Character_BP:
+	    color_regions:			
+		    region_names:		
+    			0:	"Main body"
+	    		1:	"None, eyes"
+		    	2:	"Feather barring"
+			    3:	null # None, no color generated in colour region
+    			4:	"Underbelly, throat, lower face, and underwing coverts"
+	    		5:	"Main wing and back"
+    /Game/Mods/MarniiModsWildlife/Wildlife/MMOwls/Avesowl_Character_BP.Avesowl_Character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	"Eyes"
+    			2:	"Feather barring"
+	    		3:	null # None, no color generated in colour region
+		    	4:	"Underbelly, throat, lower face, and underwing coverts"
+			    5:	"Main wing and back"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Rats/Rats_MM_Character_BP.Rats_MM_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Fur"
+			    1:	null # Not visible
+    			2:	null # Not visible
+	    		3:	null # None, no color generated in colour region
+		    	4:	"Skin"
+			    5:	"Eye tint"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Raven/Raven_MM_Character_BP.Raven_MM_Character_BP:
+    	color_regions:			
+	    	region_names:		
+		    	0:	"Body, beak, and eyes"
+			    1:	"Eye pupil"
+    			2:	"Talons"
+	    		3:	null # Not visible
+		    	4:	"Legs"
+			    5:	"Feather tips"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Shadowcat/Shadowcat_character_BP.Shadowcat_character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	null # None, no color generated in colour region
+    			2:	"None, eyes"
+	    		3:	null # Not visible
+		    	4:	"Underbelly and highlights"
+			    5:	"Stripes"
+    /Game/Mods/MarniiModsWildlife/Wildlife/Snakes/Snake_MM_Character_BP.Snake_MM_Character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	"Eyes"
+	    		2:	"Inside stripes"
+		    	3:	null # Not visible
+			    4:	"Underbelly and face"
+    			5:	"Outside stripes"
+    /Game/Mods/MarniiModsWildlife/Wildlife/SnowLeopard/Snowleopard_character_BP.Snowleopard_character_BP:
+	    color_regions:			
+		    region_names:		
+			    0:	"Main body"
+    			1:	"Eyes"
+	    		2:	"Inside rosettes"
+		    	3:	null # None, no color generated in colour region
+			    4:	"Underbelly, mane, and toes"
+    			5:	"Tail tip and rosette tint"
+    
     # Ignore regions present in color set but not the color mask
     /Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP:
         color_regions:
