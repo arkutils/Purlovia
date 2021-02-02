@@ -964,7 +964,12 @@ class StructProperty(UEBase):
         if self.count == 0:
             return self.values
 
-        return self.as_dict()
+        # Pull all props into `out[name][index] = value` format
+        out = self.as_dict()
+
+        # Reduce any prop with just index 0 to only its value
+        out = {k: v[0] if list(v.keys()) == [0] else v for k, v in out.items()}
+        return out
 
     if INCLUDE_METADATA and support_pretty:
 
