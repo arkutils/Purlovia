@@ -1072,7 +1072,7 @@ species:
             region_names:
                 0: "Main body"
                 1: "Eyes(F), None(M)"
-                2: "None(F), Horns(M)
+                2: "None(F), Horns(M)"
                 3: null # None, no color generated in colour region
                 4: "Unused(F), Leg and body tint(M)"
                 5: "Body pattern(F), Mane"
