@@ -22,9 +22,9 @@ def gather_properties(export: Union[ExportTableItem, ObjectProperty, UAsset]) ->
         return gather_properties(cast(ExportTableItem, export.value))
 
     if isinstance(export, UAsset):
-        export = getattr(export, 'default_export', None)
+        export = getattr(export, 'default_class', None)
         if export is None:
-            raise ValueError("UAsset must have a default_export")
+            raise ValueError("UAsset must have a default_class")
 
     if not isinstance(export, ExportTableItem):
         raise TypeError("ExportTableItem required")
