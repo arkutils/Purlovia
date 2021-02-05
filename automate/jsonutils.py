@@ -101,11 +101,13 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
     return (version, digest)
 
 
+NUMBER_RE = r'[+-]?\d+(\.\d+)?([eE][-+]?\d+)?|null|true|false'
+
 # Join 2-line color (name, [r,g,b,e]) data onto one line
 JOIN_COLORS_REGEX = re.compile(r"\[\n\s+([\w\" ]+),\n\s+(.{,90})\n\s+\]")
 
 # Reduce 2-12 numbers in an array onto a single line
-JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)[-+.\de]+,(?:\n\s+(?:[-+.\de"]|null)+,?){1,12}')
+JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)(' + NUMBER_RE + r'),(?:\n\s+(?:' + NUMBER_RE + r'|"[^"\n\t]*"),?){1,12}')
 
 # Reduce short arrays of strings onto a single line
 JOIN_MULTIPLE_STRINGS_REGEX = re.compile(r'\[((?:\n\s+".{1,30}",?\s*$){1,4})\n\s+\]', re.MULTILINE)
@@ -182,57 +184,3 @@ def save_as_json(data, filename, pretty=False):
     json_string = _format_json(data, pretty)
     with open(filename, 'w', newline='\n') as f:
         f.write(json_string)
-
-
-if __name__ == '__main__':
-    # Some example cases to evaluate changes
-    # `python -m automate.jsonutils` to run
-    test_data = dict(
-        lone_int_field=dict(a=13245),
-        lone_str_field=dict(a="abc"),
-        lone_null_field=dict(a=None),
-        lone_float_field=dict(a=13245.1345),
-        lone_big_float_field=dict(a=-9E18),
-        lone_long_field=dict(a="A longer string " * 4),
-        lone_longer_field=dict(a="A longer string " * 8),
-        two_fields=dict(a=123, c=457),
-        color_array=[0.1, 1, -9E18],
-        long_number_array=[0.1, 1, -9E18] * 2,
-        longer_number_array=[0.1, 1, -9E18] * 6,
-        str_array=["one"],
-        str_big_array=["one two three four five"],
-        long_str_array=["one 1", "two 2", "three 3"],
-        longer_str_array=["one", "two", "three"] * 2,
-        long_str_big_array=["one" * 8, "two" * 8, "three" * 8],
-        plain_xyz=dict(x=1436325.5, y=532476.132, z=-32450),
-        plain_latlon=dict(lat=20.45643, lon=56.32451),
-        xyz_latlon=dict(a="hello", x=1436325.5, y=532476.132, z=-32450, lat=20.45643, lon=56.32451, b=435.1),
-        xyz_latlong=dict(a="hello", x=1436325.5, y=532476.132, z=-32450, lat=20.45643, long=56.32451, b=435.1),
-        color_data=[
-            ["Cyan", [0.0, 1.0, 1.0, 0.0]],
-            ["Magenta", [1.0, 0.0, 1.0, 0.0]],
-            ["Light Green", [0.5325, 1.0, 0.5, 0.0]],
-            ["Light Grey", [0.581026, 0.6, 0.59417, 0.0]],
-        ],
-        item_weights={
-            'items': [
-                [0.05, "PrimalItem_WeaponMetalHatchet_C"],
-                [0.05, "PrimalItem_WeaponMetalPick_C"],
-                [0.05, "PrimalItem_WeaponSickle_C"],
-                [0.05, "PrimalItemAmmo_Grapple_C"],
-                [0.05, "PrimalItemWeapon_EternalSpyglass_C"],
-                [0.05, "PrimalItem_WeaponSickle_AEStone_C"],
-                [0.05, "PrimalItem_WeaponStoneHatchet_AE_C"],
-                [0.05, "PrimalItem_WeaponStonePick_AE_C"],
-                [0.05, "PrimalItem_WeaponBola_AETranq_C"],
-                [0.05, None],
-                [1, None],
-            ]
-        },
-        qty=dict(min=1, max=2),
-        qty_pow=dict(min=1, max=2, pow=3),
-    )
-
-    result = _format_json(test_data, pretty=True)
-    print(result)
-    parsed = json.loads(result)  # validate it still parses
