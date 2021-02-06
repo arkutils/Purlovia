@@ -84,6 +84,20 @@ def test_array_bools():
     assert prop([False] * 14) == '[\n\t' + 'false, '*13 + '\n\tfalse\n]'
 
 
+def test_array_nulls():
+    # One-line
+    assert prop([None]) == '[ null ]'
+    assert prop([None, None]) == '[ null, null ]'
+
+    # We do not want nulls in stat arrays to be combined
+    assert prop([
+        [1200, 0.1, 0.1, 0, 0.15],
+        None,
+        None,
+        [170, 0.02, 0.04, 0, 0],
+    ]) == '[\n\t[ 1200, 0.1, 0.1, 0, 0.15 ],\n\tnull,\n\tnull,\n\t[ 170, 0.02, 0.04, 0, 0 ]\n]'
+
+
 def test_item_weights():
     assert prop([0.05, "PrimalItem_WeaponBola_AETranq_C"]) == '[ 0.05, "PrimalItem_WeaponBola_AETranq_C" ]'
     assert prop([0.05, None]) == '[ 0.05, null ]'

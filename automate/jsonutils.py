@@ -101,13 +101,13 @@ def _calculate_digest(values: Dict[str, Any]) -> Tuple[Optional[str], str]:
     return (version, digest)
 
 
-NUMBER_RE = r'[+-]?\d+(\.\d+)?([eE][-+]?\d+)?|null|true|false'
+NUMBER_RE = r'[+-]?\d+(\.\d+)?([eE][-+]?\d+)?|true|false'
 
 # Join 2-line color (name, [r,g,b,e]) data onto one line
 JOIN_COLORS_REGEX = re.compile(r"\[\n\s+([\w\" ]+),\n\s+(.{,90})\n\s+\]")
 
 # Reduce 2-12 numbers in an array onto a single line
-JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)(' + NUMBER_RE + r'),(?:\n\s+(?:' + NUMBER_RE + r'|"[^"\n\t]*"),?){1,12}')
+JOIN_MULTIPLE_NUMBERS_REGEX = re.compile(r'(\n\s+)(' + NUMBER_RE + r'),(?:\n\s+(?:' + NUMBER_RE + r'|null|"[^"\n\t]*"),?){1,12}')
 
 # Reduce short arrays of strings onto a single line
 JOIN_MULTIPLE_STRINGS_REGEX = re.compile(r'\[((?:\n\s+".{1,30}",?\s*$){1,4})\n\s+\]', re.MULTILINE)
