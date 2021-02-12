@@ -281,7 +281,7 @@ class WyvernNest(Actor):
 
 
 class ChargeNode(Actor):
-    ...
+    isHyper: bool = Field(False, title="Is a hyper-charge node?")
 
 
 class GasVein(Actor):
