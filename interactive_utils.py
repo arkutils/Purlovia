@@ -3,6 +3,7 @@ from typing import Any
 
 # pylint: disable=import-outside-toplevel,global-statement,import-error
 
+#%% Run this cell first to use VSCode's interactive mode
 is_interactive = bool(getattr(sys, 'ps1', sys.flags.interactive))
 pprint = None
 pretty = None
@@ -40,8 +41,8 @@ def configure_ipython_width():
         return
 
     # Plain python shell
-    from pprint import pprint as opprint
     from pprint import pformat as opretty
+    from pprint import pprint as opprint
 
     if is_interactive:
         print("Wrapping pprint with terminal width:", w)
@@ -58,3 +59,5 @@ def configure_ipython_width():
 
 configure_ipython_width()
 del configure_ipython_width
+
+# %%

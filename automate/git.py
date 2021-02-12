@@ -89,7 +89,7 @@ class GitManager:
             logger.info('(pull/reset skipped by reset)')
         elif self.config.git.UseReset:
             logger.info('Performing hard reset to remote HEAD')
-            self.git.fetch()
+            self.git.fetch('--tags', '--force')
             self.git.reset('--hard', 'origin/' + self.config.git.Branch)
             self.git.clean('-dfq')
         else:

@@ -1,5 +1,6 @@
 import argparse
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
 from typing import Any, Optional, Tuple
@@ -119,6 +120,7 @@ def collect_data(asset: UAsset) -> Tuple[str, Any]:
     return (filename, data)
 
 
+@contextmanager
 def manage_output_file(filename: str):
     # Work out where to save it
     if args.output:
@@ -129,10 +131,13 @@ def manage_output_file(filename: str):
         path = Path('-')
 
     if path == Path('-'):
-        return sys.stdout
+        yield sys.stdout
+        return
 
-    handle = open(path, 'wt', newline='\n', encoding='utf8')
-    return handle
+    with open(path, 'wt', newline='\n', encoding='utf8') as handle:
+        yield handle
+
+    return
 
 
 def main():
@@ -146,8 +151,8 @@ def main():
     asset = collect_asset(args.assetname)
     filename, data = collect_data(asset)
     json = _format_json(data, pretty=True)
-    handle = manage_output_file(filename)
-    handle.write(json)
+    with manage_output_file(filename) as handle:
+        handle.write(json)
 
 
 if __name__ == '__main__':
