@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional, cast
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
-from ue.gathering import gather_properties
 from ue.hierarchy import get_parent_class
 from ue.properties import FloatProperty, IntProperty, ObjectProperty
 from ue.proxy import UEProxyStructure
@@ -12,7 +11,7 @@ from utils.log import get_logger
 from .flags import gather_flags
 from .items.cooking import CookingIngredientData, convert_cooking_values
 from .items.crafting import CraftingData, RepairData, convert_crafting_values
-from .items.durability import DurabilityData, convert_durability_values
+from .items.durability import DurabilityData
 from .items.egg import EggData, convert_egg_values
 from .items.status import StatEffectData, convert_status_effect
 
@@ -28,16 +27,11 @@ OUTPUT_FLAGS = (
 )
 
 
-class SpoilageData(ExportModel):
-    time: Optional[FloatProperty] = Field(..., title="Time to spoil")
-    product: Optional[str] = Field(..., title="Resulting spoilage product")
-
-
 class Item(ExportModel):
-    name: Optional[str] = Field(None, title="Descriptive name")
+    name: Optional[str] = Field(..., title="Descriptive name")
     description: Optional[str] = Field(None, title="Description of the item")
     bp: str = Field(..., title="Full blueprint path")
-    parent: Optional[str] = Field(None, title="Full blueprint path to the parent class of this item")
+    parent: Optional[str] = Field(None, title="Full path to the parent class of this item")
     icon: Optional[str] = Field(
         None,
         title="Full blueprint path to the icon",
@@ -55,7 +49,8 @@ class Item(ExportModel):
     )
     weight: Optional[FloatProperty] = Field(None, title="Weight of a single unit")
     stackSize: Optional[IntProperty] = Field(None, title="Stack size")
-    spoilage: Optional[SpoilageData]
+    spoilsIn: Optional[FloatProperty] = Field(None, title="Spoilage time")
+    spoilsTo: Optional[str] = Field(None, title="Item produced when spoiled")
     durability: Optional[DurabilityData]
     crafting: Optional[CraftingData]
     repair: Optional[RepairData]
@@ -69,10 +64,7 @@ class Item(ExportModel):
         title="Weapon blueprint path",
         description="Can be looked up in weapons.json.",
     )
-    statEffects: Optional[Dict[str, StatEffectData]] = Field(
-        None,
-        title="Stat effects when consumed",
-    )
+    statEffects: Optional[Dict[str, StatEffectData]] = Field(None, title="Stat effects when consumed")
     egg: Optional[EggData]
     cooking: Optional[CookingIngredientData]
 
@@ -102,17 +94,12 @@ class ItemsStage(JsonHierarchyExportStage):
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         item: PrimalItem = cast(PrimalItem, proxy)
-        item_name = item.get('DescriptiveNameBase', fallback=None)
 
         out = Item(
-            name=str(item_name) if item_name else None,
+            name=get_item_name(item),
             bp=item.get_source().fullname,
         )
         out.parent = get_parent_class(out.bp)
-
-        # The game adds the Skin suffix to the item's name if bIsItemSkin is true.
-        if item.bIsItemSkin[0] and out.name:
-            out.name += ' Skin'
 
         # Export minimal data if the item is likely a base class
         if is_item_base_class(item):
@@ -140,12 +127,11 @@ class ItemsStage(JsonHierarchyExportStage):
 
             # Export spoilage info
             if item.has_override('SpoilingTime') or item.has_override('SpoilingItem'):
-                out.spoilage = SpoilageData(
-                    time=item.SpoilingTime[0],
-                    product=_safe_get_bp_from_object(item.get('SpoilingItem', fallback=None)),
-                )
+                out.spoilsIn = item.SpoilingTime[0]
+                out.spoilsTo = _safe_get_bp_from_object(item.get('SpoilingItem', fallback=None))
 
             # Export durability info if the mechanic is enabled
+            # BROKEN, requires struct property gathering
             # if bool(item.bUseItemDurability[0]):
             #    out.durability = convert_durability_values(item)
 
@@ -241,3 +227,19 @@ def _safe_get_bp_from_object(obj: Optional[ObjectProperty]) -> Optional[str]:
     if not obj or not obj.value or not obj.value.value:
         return None
     return obj.value.value.fullname
+
+
+def get_item_name(item: PrimalItem) -> Optional[str]:
+    item_name = item.get('DescriptiveNameBase', fallback=None)
+    if not item_name:
+        return None
+
+    out = str(item_name)
+
+    # The game adds the Skin suffix to the item's name if bIsItemSkin is true. This only, however, happens when the
+    # item does not generate its name at runtime through scripts - where it's probably safer for us to export the
+    # CDO name.
+    if item.bIsItemSkin[0] and not item.bUseBPGetItemName[0]:
+        out += ' Skin'
+
+    return out

@@ -5,17 +5,17 @@ from ue.properties import FloatProperty
 
 
 class StatEffectData(ExportModel):
-    value: Optional[FloatProperty] = Field(..., title="")
-    useItemQuality: bool = Field(False, title="")
-    descriptionIndex: Optional[int] = Field(..., title="")
+    value: FloatProperty = Field(..., title="Stat value to gain")
+    useItemQuality: bool = Field(False, title="Whether item quality is used")
+    descriptionIndex: int = Field(..., title="")
     pctOf: Optional[str] = Field(None, title="")
     pctAbsRange: Optional[Tuple[FloatProperty, FloatProperty]] = Field(None, title="")
     setValue: bool = Field(False, title="")
     setAddValue: bool = Field(False, title="")
-    forceUseOnDino: bool = Field(False, title="")
-    allowWhenFull: bool = Field(True, title="")
-    qualityMult: float = Field(1.0, title="")
-    duration: Optional[Union[float, FloatProperty]] = Field(0, title="")
+    forceUseOnDino: bool = Field(False, title="Whether can be used on dinos")
+    allowWhenFull: bool = Field(True, title="Whether allowed when stat is full")
+    qualityMult: float = Field(1.0, title="Item quality effect (addition)")
+    duration: Union[float, FloatProperty] = Field(0, title="Effect duration")
 
 
 def convert_status_effect(entry) -> Tuple[str, StatEffectData]:

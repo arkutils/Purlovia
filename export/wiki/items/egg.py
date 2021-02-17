@@ -9,8 +9,8 @@ logger = get_logger(__name__)
 
 
 class EggData(ExportModel):
-    dinoClass: Optional[str] = Field(..., title="Dino to be spawned")
-    temperature: Optional[Tuple[FloatProperty, FloatProperty]] = Field(False, title="Hatching temperature range")
+    dinoClass: str = Field(..., title="Dino to be spawned")
+    temperature: Tuple[FloatProperty, FloatProperty] = Field(..., title="Hatching temperature range")
 
 
 def convert_egg_values(item: PrimalItem) -> Optional[EggData]:

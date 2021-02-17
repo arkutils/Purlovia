@@ -1,38 +1,42 @@
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
-from ue.properties import FloatProperty, IntProperty
+from ue.properties import FloatProperty, IntProperty, StructProperty
 
 
 class RecipeIngredient(ExportModel):
-    exact: Optional[bool] = Field(..., title="Are child classes accepted?")
-    qty: Optional[FloatProperty] = Field(
+    exact: bool = Field(True, title="Are child classes accepted?")
+    qty: Union[float, FloatProperty] = Field(
         ...,
         title="Required quantity",
         description="Scales with blueprint quality",
     )
-    type: Optional[str] = Field(..., title="Item blueprint")
+    type: str = Field(..., title="Item blueprint")
 
 
 class CraftingData(ExportModel):
-    xp: Optional[FloatProperty] = Field(..., title="XP granted per item crafted")
-    bpCraftTime: Optional[FloatProperty] = Field(..., title="Time to craft a blueprint")
-    minLevelReq: Optional[IntProperty] = Field(..., title="Required player level")
+    xp: FloatProperty = Field(..., title="XP granted per item crafted")
+    time: FloatProperty = Field(..., title="Time to craft a blueprint")
+    levelReq: IntProperty = Field(..., title="Required player level")
     productCount: int = Field(..., title="Number of products")
-    skillQualityMult: Tuple[FloatProperty,
-                            FloatProperty] = Field(..., title="Min and max multipliers of Crafting Skill's effect on quality")
-    recipe: List[Optional[RecipeIngredient]] = Field(..., title="Required ingredients")
+    skillQualityMult: Tuple[FloatProperty, FloatProperty] = Field(
+        ...,
+        title="Min and max multipliers of Crafting Skill's effect on quality",
+    )
+    recipe: List[RecipeIngredient] = Field(..., title="Required ingredients")
 
 
 class RepairData(ExportModel):
-    xp: Optional[FloatProperty] = Field(..., title="XP granted per item repaired")
-    time: Optional[FloatProperty] = Field(..., title="Time to repair an item")
-    resourceMult: Optional[FloatProperty] = Field(..., title="Ingredient count multiplier")
-    recipe: Optional[List[RecipeIngredient]] = Field(None, title="Required ingredients override")
+    xp: FloatProperty = Field(..., title="XP granted per item repaired")
+    time: FloatProperty = Field(..., title="Time to repair an item")
+    recipe: List[RecipeIngredient] = Field(
+        [],
+        title="Required ingredients, if different from crafting",
+    )
 
 
-def convert_recipe_entry(entry) -> RecipeIngredient:
+def convert_recipe_entry(entry: Dict[str, Any]) -> Optional[RecipeIngredient]:
     type_value = entry['ResourceItemType'].value
     type_value = type_value and type_value.value
     if not type_value:
@@ -43,6 +47,14 @@ def convert_recipe_entry(entry) -> RecipeIngredient:
         qty=entry['BaseResourceRequirement'],
         type=str(type_value.name),
     )
+
+
+def convert_recipe_entries(entries: List[StructProperty]) -> Iterable[RecipeIngredient]:
+    # Game skips entries where the resource class is null.
+    for entry in entries:
+        converted = convert_recipe_entry(entry.as_dict())
+        if converted:
+            yield converted
 
 
 def convert_crafting_values(item: PrimalItem) -> Tuple[Optional[CraftingData], Optional[RepairData]]:
@@ -60,28 +72,46 @@ def convert_crafting_values(item: PrimalItem) -> Tuple[Optional[CraftingData], O
 
     crafting = CraftingData(
         xp=item.BaseCraftingXP[0],
-        bpCraftTime=item.BlueprintTimeToCraft[0],
-        minLevelReq=item.CraftingMinLevelRequirement[0],
+        time=item.BlueprintTimeToCraft[0],
+        levelReq=item.CraftingMinLevelRequirement[0],
         productCount=int(product_count),
         skillQualityMult=(item.CraftingSkillQualityMultiplierMin[0], item.CraftingSkillQualityMultiplierMax[0]),
-        recipe=[convert_recipe_entry(entry.as_dict()) for entry in recipe.values],
+        recipe=list(convert_recipe_entries(recipe.values)),
     )
 
-    # Do not export crafting info if recipe consists only of nulls
-    if not all(crafting.recipe):
+    # Do not export crafting info if recipe consists only of nulls.
+    if not crafting.recipe:
         return None, None
 
     # Durability repair info
     repair = None
-    if bool(item.bAllowRepair[0]) and bool(item.bUseItemDurability[0]):
+    # TODO: bad check, needs proper item durability export
+    if bool(item.bAllowRepair[0]) and bool(item.bUseItemDurability[0]) and bool(item.bUseItemStats[0]):
         repair = RepairData(
             xp=item.BaseRepairingXP[0],
             time=item.TimeForFullRepair[0],
-            resourceMult=item.RepairResourceRequirementMultiplier[0],
+            recipe=[],
         )
+
         if item.bOverrideRepairingRequirements[0]:
             recipe = item.get('OverrideRepairingRequirements', 0, None)
-            if recipe and recipe.values:
-                repair.recipe = [convert_recipe_entry(entry.as_dict()) for entry in recipe.values]
+            if not recipe or not recipe.values:
+                # Override to no ingredients, skip repair.
+                repair = None
+            else:
+                # Convert the repair requirements list.
+                repair.recipe = list(convert_recipe_entries(recipe.values))
+
+                # Do not export repair info if the overrides lead to no valid ingredients
+                if not repair.recipe:
+                    repair = None
+        else:
+            # Copy crafting ingredients and scale their quantities by the repair multiplier.
+            qty_mult = item.RepairResourceRequirementMultiplier[0]
+            if qty_mult != 1.0:
+                for ingredient in crafting.recipe:
+                    ingredient_copy = ingredient.copy()
+                    ingredient_copy.qty = ingredient_copy.qty * qty_mult
+                    repair.recipe.append(ingredient_copy)
 
     return crafting, repair

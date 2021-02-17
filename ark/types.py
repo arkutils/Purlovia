@@ -289,6 +289,7 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     bIsCookingIngredient = uebools(False)
     bPreventCheatGive = uebools(False)
     bAllowRepair = uebools(True)
+    bUseItemStats = uebools(False)
     bDurabilityRequirementIgnoredInWater = uebools(False)
     bUseBPGetItemName = uebools(False)
     BaseCraftingXP = uefloats(2.0)
