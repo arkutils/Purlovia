@@ -204,7 +204,7 @@ mods:
         classname_variant_parts:
             Alpha: true
 
-    111111111: # PrimitivePlus
+    CrystalIsles:
         include_in_stages: # Maps required for the Wiki
             wiki.maps: true
             wiki.spawn_groups: true
