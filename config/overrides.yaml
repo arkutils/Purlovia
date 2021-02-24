@@ -7,6 +7,15 @@ defaults:
     # True to leave this species out of the exported data files (e.g. for baseclasses)
     skip_export: false
 
+    # Modify extraction stages to include this element in
+    include_in_stages:
+        asb: true
+        wiki: true
+        wiki.maps: false
+        wiki.spawn_groups: false
+        wiki.biome_maps: false
+        wiki.spawn_maps: false
+
     # Parts of a classname that will be added as a variant, matching _Variant or Variant_
     classname_variant_parts:
         InitialBuryOnly: true
@@ -117,6 +126,15 @@ sanity_checks:
 # Override settings on a per-mod basis
 mods:
     '': # Core-only
+        include_in_stages:
+            '': true # Enable all roots
+
+            # Re-enable deselected stages
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         classname_variant_parts:
             TekCave: true
             TheCenter: true
@@ -186,22 +204,53 @@ mods:
         classname_variant_parts:
             Alpha: true
 
+    CrystalIsles:
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
     839162288: # Primal Fear
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         color_regions:
             useless_name_regexes:
                 pf_groups: '(Toxic|Alpha|Electric|Golds?|Blacks?)\d*'
 
     1356703358: # Primal Fear Noxious
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         color_regions:
             useless_name_regexes:
                 pfn_groups: '(Toxic|Alpha)\d*'
 
     1681125667: # Primal Fear Extinction Expansion
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         classname_variant_parts:
             Child: true
             Tamed: true
 
     899987403: # Primal Fear Bosses
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         classname_variant_parts:
             Baby: true
             Child: true
@@ -232,6 +281,12 @@ mods:
             Tranq: true
 
     893735676: # Ark Eternal
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
         classname_variant_parts:
             NoHarvest: true
 
@@ -243,6 +298,27 @@ mods:
     1821554891: # Purlovia Test Mod
         add_variants:
             Test Only: true
+
+    1445395055: # Ark Additions: Domination Rex
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
+    1522327484: # ARK Additions: The Collection!
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
+
+    1787443195: # The Chasm - Additional Creatures
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            wiki.biome_maps: true
+            wiki.spawn_maps: true
 
 
 # Override settings on a per-map basis
