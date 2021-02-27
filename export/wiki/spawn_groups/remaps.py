@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from automate.hierarchy_exporter import ExportModel, Field
 from ue.asset import UAsset
@@ -8,11 +8,11 @@ __all__ = ['convert_npc_remaps']
 
 
 class ClassRemap(ExportModel):
-    fromBP: str = Field(..., alias='from')
+    from_bp: str = Field(alias="from")
     to: Optional[str] = None
 
 
-def convert_npc_remaps(pgd: UAsset):
+def convert_npc_remaps(pgd: UAsset) -> List[ClassRemap]:
     assert pgd.default_export
 
     export_data = pgd.default_export.properties
@@ -29,14 +29,11 @@ def convert_npc_remaps(pgd: UAsset):
     for entry in remaps:
         d = entry.as_dict()
         v = ClassRemap(
-            fromBP=sanitise_output(d.get('FromClass', None)),  # type:ignore
+            from_bp=sanitise_output(d.get('FromClass', None)),
             to=sanitise_output(d.get('ToClass', None)),
         )
 
-        if v.fromBP:
+        if v.from_bp:
             out.append(v)
-
-    if not out:
-        return None
 
     return out
