@@ -2,29 +2,41 @@ from typing import Optional
 
 from automate.hierarchy_exporter import ExportModel, Field
 from ue.asset import UAsset
+from ue.utils import sanitise_output
 
 __all__ = ['convert_npc_remaps']
 
 
-class DinoRemap(ExportModel):
+class ClassRemap(ExportModel):
     fromBP: str = Field(..., alias='from')
     to: Optional[str] = None
 
 
 def convert_npc_remaps(pgd: UAsset):
     assert pgd.default_export
-    all_values = []
+
     export_data = pgd.default_export.properties
-    d = export_data.get_property('Remap_NPC', fallback=None)
-    if not d:
+    npcs = export_data.get_property('Remap_NPC', fallback=None)
+    containers = export_data.get_property('Remap_NPCSpawnEntries', fallback=None)
+    remaps = []
+
+    if npcs:
+        remaps += npcs.values
+    if containers:
+        remaps += containers.values
+
+    out = []
+    for entry in remaps:
+        d = entry.as_dict()
+        v = ClassRemap(
+            fromBP=sanitise_output(d.get('FromClass', None)),
+            to=sanitise_output(d.get('ToClass', None)),
+        )
+
+        if v.fromBP:
+            out.append(v)
+
+    if not out:
         return None
 
-    for entry in d.values:
-        de = entry.as_dict()
-        v = {
-            'from': de['FromClass'],
-            'to': de['ToClass'],
-        }
-        all_values.append(v)
-
-    return all_values
+    return out

@@ -1,11 +1,11 @@
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.proxy import UEProxyStructure
 
 from .spawn_groups.additions import RuntimeGroupAddition, segregate_container_additions
-from .spawn_groups.remaps import DinoRemap, convert_npc_remaps
+from .spawn_groups.remaps import ClassRemap, convert_npc_remaps
 from .spawn_groups.structs import NpcGroup, NpcLimit, WeighedClassSwap, \
     convert_class_swaps, convert_group_entry, convert_limit_entries
 from .types import NPCSpawnEntriesContainer
@@ -23,10 +23,10 @@ class NpcGroupsContainer(ExportModel):
 
 
 class SpawnGroupsExportModel(ExportFileModel):
-    spawngroups: List[NpcGroupsContainer]
-    classSwaps: List[WeighedClassSwap]
-    externalGroupChanges: List[RuntimeGroupAddition]
-    dinoRemaps: List[DinoRemap]
+    containers: List[NpcGroupsContainer]
+    randomSwaps: List[WeighedClassSwap]
+    extraGroups: List[RuntimeGroupAddition]
+    remaps: List[ClassRemap]
 
     class Config:
         title = "NPC spawning groups data for the Wiki"
@@ -37,7 +37,7 @@ class SpawnGroupStage(JsonHierarchyExportStage):
         return 'spawn_groups'
 
     def get_field(self) -> str:
-        return 'spawngroups'
+        return 'containers'
 
     def get_use_pretty(self) -> bool:
         return bool(self.manager.config.export_wiki.PrettyJson)
@@ -69,16 +69,16 @@ class SpawnGroupStage(JsonHierarchyExportStage):
     def _get_pgd_data(self, pgd: UAsset) -> Dict[str, Any]:
         v: Dict[str, Any] = dict()
 
-        class_swaps = list(convert_class_swaps(pgd))
+        class_swaps = convert_class_swaps(pgd)
         ext_group_changes = segregate_container_additions(pgd)
         npc_remaps = convert_npc_remaps(pgd)
 
         if class_swaps:
-            v['classSwaps'] = class_swaps
+            v['randomSwaps'] = class_swaps
         if ext_group_changes:
-            v['externalGroupChanges'] = ext_group_changes
+            v['extraGroups'] = ext_group_changes
         if npc_remaps:
-            v['dinoRemaps'] = npc_remaps
+            v['remaps'] = npc_remaps
 
         return v
 

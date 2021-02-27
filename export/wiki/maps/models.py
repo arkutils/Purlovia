@@ -56,8 +56,7 @@ class WeighedBox(ExportModel):
 class WeighedClassSwap(ExportModel):
     from_class: Optional[ObjectPath] = Field(alias="from")
     exact: bool = Field(False, title="Match class exactly")
-    to: List[Optional[ObjectPath]]
-    weights: List[FloatProperty]
+    to: List[Tuple[float, ObjectPath]]
     during: str = Field('None', title="Event the rule is active in")
 
 

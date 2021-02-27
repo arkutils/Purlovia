@@ -1,8 +1,9 @@
-from typing import Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from automate.hierarchy_exporter import ExportModel, Field
 from export.wiki.maps.models import WeighedClassSwap
 from ue.asset import UAsset
+from ue.properties import ArrayProperty
 from ue.utils import sanitise_output
 
 __all__ = [
@@ -16,11 +17,23 @@ __all__ = [
 ]
 
 
-def convert_single_class_swap(d) -> WeighedClassSwap:
+def _zip_swap_outputs(d: Dict[str, Any]) -> List[Tuple[float, Optional[str]]]:
+    npcs: ArrayProperty = d['ToClasses']
+    weights = d['Weights'].values
+
+    for index, kls in enumerate(npcs.values):
+        # Get weight of this class. Defaults to 1 if array is too short.
+        weight = float(weights[index]) if index < len(weights) else 1.0
+        yield (weight, sanitise_output(kls))
+
+
+def convert_single_class_swap(d: Dict[str, Any]) -> Optional[WeighedClassSwap]:
     result = WeighedClassSwap(from_class=sanitise_output(d['FromClass']),
                               exact=bool(d.get('bExactMatch', True)),
-                              to=sanitise_output(d['ToClasses']),
-                              weights=d['Weights'].values)
+                              to=list(_zip_swap_outputs(d)))
+
+    if not result.from_class:
+        return None
 
     if d['ActiveEvent'] and d['ActiveEvent'].value and d['ActiveEvent'].value.value:
         # Assigning "None" here is safe as it is the field default and therefore omitted
@@ -29,15 +42,20 @@ def convert_single_class_swap(d) -> WeighedClassSwap:
     return result
 
 
-def convert_class_swaps(pgd: UAsset) -> Iterable[WeighedClassSwap]:
+def convert_class_swaps(pgd: UAsset) -> Optional[List[WeighedClassSwap]]:
     assert pgd.default_export
     export_data = pgd.default_export.properties
     d = export_data.get_property('GlobalNPCRandomSpawnClassWeights', fallback=None)
     if not d:
         return None
 
+    out = []
     for entry in d.values:
-        yield convert_single_class_swap(entry.as_dict())
+        v = convert_single_class_swap(entry.as_dict())
+        if v:
+            out.append(v)
+
+    return out
 
 
 class Vector(ExportModel):
@@ -56,7 +74,7 @@ class NpcGroup(ExportModel):
     name: str
     weight: float
     species: List[NpcEntry]
-    classSwaps: Optional[List[WeighedClassSwap]]
+    randomSwaps: List[WeighedClassSwap] = []
 
 
 class NpcLimit(ExportModel):
@@ -70,6 +88,7 @@ def convert_group_entry(struct) -> NpcGroup:
         name=str(d['AnEntryName']),
         weight=d['EntryWeight'],
         species=list(),
+        randomSwaps=[],
     )
 
     # Export zipped NPC entries
@@ -85,16 +104,27 @@ def convert_group_entry(struct) -> NpcGroup:
 
     # Export local random class swaps if any exist
     swaps = d['NPCRandomSpawnClassWeights'].values
-    if swaps:
-        out.classSwaps = [convert_single_class_swap(entry.as_dict()) for entry in swaps]
+    for entry in swaps:
+        rule = convert_single_class_swap(entry.as_dict())
+        if rule:
+            out.randomSwaps.append(rule)
 
     return out
 
 
 def convert_limit_entries(array) -> Iterable[NpcLimit]:
+    already_found = set()
+
     for entry in array:
         d = entry.as_dict()
         npc_class = sanitise_output(d['NPCClass'])
+        mult = d['MaxPercentageOfDesiredNumToAllow']
 
-        if npc_class:
-            yield NpcLimit(bp=npc_class, mult=d['MaxPercentageOfDesiredNumToAllow'])
+        # We've already seen this class so this rule does not matter in context of this container, skip it.
+        if npc_class in already_found:
+            continue
+
+        # Only yield if the NPC class isn't a null and the max multiplier isn't 1.0.
+        if npc_class and mult != 1.0:
+            already_found.add(npc_class)
+            yield NpcLimit(bp=npc_class, mult=mult)

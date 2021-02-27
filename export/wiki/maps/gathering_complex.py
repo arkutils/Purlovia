@@ -93,7 +93,9 @@ class WorldSettingsExport(MapGathererBase):
     def _convert_class_swaps(cls, settings: PrimalWorldSettings) -> Iterable[models.WeighedClassSwap]:
         if 'NPCRandomSpawnClassWeights' in settings:
             for struct in settings.NPCRandomSpawnClassWeights[0].values:
-                yield convert_single_class_swap(struct.as_dict())
+                out = convert_single_class_swap(struct.as_dict())
+                if out:
+                    yield out
 
 
 class TradeListExport(MapGathererBase):
