@@ -29,7 +29,7 @@ def convert_npc_remaps(pgd: UAsset):
     for entry in remaps:
         d = entry.as_dict()
         v = ClassRemap(
-            fromBP=sanitise_output(d.get('FromClass', None)),
+            fromBP=sanitise_output(d.get('FromClass', None)),  # type:ignore
             to=sanitise_output(d.get('ToClass', None)),
         )
 

@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 
-def _zip_swap_outputs(d: Dict[str, Any]) -> List[Tuple[float, Optional[str]]]:
+def _zip_swap_outputs(d: Dict[str, Any]) -> Iterable[Tuple[float, Optional[str]]]:
     npcs: ArrayProperty = d['ToClasses']
     weights = d['Weights'].values
 
