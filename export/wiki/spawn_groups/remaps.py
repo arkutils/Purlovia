@@ -1,15 +1,10 @@
-from typing import List, Optional
+from typing import List
 
-from automate.hierarchy_exporter import ExportModel, Field
+from export.wiki.models import ClassRemap
 from ue.asset import UAsset
 from ue.utils import sanitise_output
 
 __all__ = ['convert_npc_remaps']
-
-
-class ClassRemap(ExportModel):
-    from_bp: str = Field(alias="from")
-    to: Optional[str] = None
 
 
 def convert_npc_remaps(pgd: UAsset) -> List[ClassRemap]:

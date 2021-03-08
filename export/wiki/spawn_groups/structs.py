@@ -1,7 +1,7 @@
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from automate.hierarchy_exporter import ExportModel, Field
-from export.wiki.maps.models import WeighedClassSwap
+from export.wiki.models import Vector, WeighedClassSwap
 from ue.asset import UAsset
 from ue.properties import ArrayProperty
 from ue.utils import sanitise_output
@@ -20,10 +20,11 @@ __all__ = [
 def _zip_swap_outputs(d: Dict[str, Any]) -> Iterable[Tuple[float, Optional[str]]]:
     npcs: ArrayProperty = d['ToClasses']
     weights = d['Weights'].values
+    num_weights = len(weights)
 
     for index, kls in enumerate(npcs.values):
         # Get weight of this class. Defaults to 1 if array is too short.
-        weight = float(weights[index]) if index < len(weights) else 1.0
+        weight = float(weights[index]) if index < num_weights else 1.0
         yield (weight, sanitise_output(kls))
 
 
@@ -58,12 +59,6 @@ def convert_class_swaps(pgd: UAsset) -> Optional[List[WeighedClassSwap]]:
     return out
 
 
-class Vector(ExportModel):
-    x: float
-    y: float
-    z: float
-
-
 class NpcEntry(ExportModel):
     chance: float
     bp: Optional[str]
@@ -94,11 +89,14 @@ def convert_group_entry(struct) -> NpcGroup:
     # Export zipped NPC entries
     chances = d['NPCsToSpawnPercentageChance'].values
     offsets = d['NPCsSpawnOffsets'].values
+    num_chances = len(chances)
+    num_offsets = len(offsets)
+
     for index, kls in enumerate(d['NPCsToSpawn'].values):
         npc = NpcEntry(
-            chance=chances[index] if index < len(chances) else 1,
+            chance=chances[index] if index < num_chances else 1,
             bp=sanitise_output(kls),
-            offset=sanitise_output(offsets[index] if index < len(offsets) else Vector(x=0, y=0, z=0)),
+            offset=sanitise_output(offsets[index] if index < num_offsets else Vector(x=0, y=0, z=0)),
         )
         out.species.append(npc)
 

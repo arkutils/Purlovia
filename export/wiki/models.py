@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Optional, Tuple, Union
 
 from automate.hierarchy_exporter import ExportModel, Field
 from ue.properties import FloatProperty, IntProperty
@@ -9,16 +9,36 @@ __all__ = [
     'DecayTime',
 ]
 
+FloatLike = Union[FloatProperty, IntProperty, float, int]
+
+
+class ClassRemap(ExportModel):
+    from_bp: str = Field(alias="from")
+    to: Optional[str] = None
+
+
+class Vector(ExportModel):
+    x: FloatLike
+    y: FloatLike
+    z: FloatLike
+
+
+class WeighedClassSwap(ExportModel):
+    from_class: Optional[str] = Field(alias="from")
+    exact: bool = Field(False, title="Match class exactly")
+    to: List[Tuple[float, Optional[str]]]
+    during: str = Field('None', title="Event the rule is active in")
+
 
 class MinMaxRange(ExportModel):
-    min: Union[FloatProperty, IntProperty, float]
-    max: Union[FloatProperty, IntProperty, float]
+    min: FloatLike
+    max: FloatLike
 
 
 class MinMaxPowerRange(ExportModel):
-    min: Union[FloatProperty, IntProperty, float]
-    max: Union[FloatProperty, IntProperty, float]
-    pow: Union[FloatProperty, IntProperty, float] = Field(
+    min: FloatLike
+    max: FloatLike
+    pow: FloatLike = Field(
         ...,
         title="Power",
         description="Affects the power curve used to select a value in the range",
