@@ -122,8 +122,11 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
         species['variants'] = tuple(sorted(variants))
 
     # Stat data
-    normal_stats = gather_stat_data(dcsc_props, dcsc_props, ARK_STAT_INDEXES)
-    alt_stats = gather_stat_data(dcsc_alt_props, dcsc_props, ARK_STAT_INDEXES)
+    is_flyer = bool(char_props.bIsFlyerDino[0])
+    if is_flyer:
+        species['isFlyer'] = True
+    normal_stats = gather_stat_data(dcsc_props, dcsc_props, is_flyer, ARK_STAT_INDEXES)
+    alt_stats = gather_stat_data(dcsc_alt_props, dcsc_props, is_flyer, ARK_STAT_INDEXES)
     alt_stats = reduce_alt_stats(normal_stats, alt_stats)
     species['fullStatsRaw'] = normal_stats
     if alt_stats:
@@ -192,7 +195,6 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
         species['boneDamageAdjusters'] = dmg_mults
 
     # Misc data
-    noSpeedImprint: bool = (dcsc_props.DinoMaxStatAddMultiplierImprinting[9] == 0)
     usesOxyWild = dcsc_props.bCanSuffocate[0]
     usesOxyTamed = True if usesOxyWild else dcsc_props.bCanSuffocateIfTamed[0]
     forceOxy = dcsc_props.bForceGainOxygen[0]
@@ -209,8 +211,6 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
             displayed_stats |= (1 << i)
 
     species['TamedBaseHealthMultiplier'] = cf(TBHM)
-    species['NoImprintingForSpeed'] = noSpeedImprint
-    species['doesNotUseOxygen'] = doesntUseOxygen
     species['displayedStats'] = displayed_stats
 
     stat_name_overrides = get_stat_name_overrides(dcsc_props)
