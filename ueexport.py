@@ -137,6 +137,8 @@ def manage_output_file(filename: str):
     with open(path, 'wt', newline='\n', encoding='utf8') as handle:
         yield handle
 
+    print("Output saved as: " + str(path))
+
     return
 
 
