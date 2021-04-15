@@ -295,10 +295,8 @@ class AssetLoader:
         if parts and parts[0].lower() == 'content':
             parts[0] = 'Game'
 
-        # print(parts)
         result = '/' + '/'.join(parts)
 
-        # print(result)
         return result
 
     def wipe_cache(self) -> None:
@@ -307,7 +305,7 @@ class AssetLoader:
     def wipe_cache_with_prefix(self, prefix: str) -> None:
         self.cache.wipe(prefix)
 
-    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset') -> str:
+    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset', check_exists=False) -> Optional[Path]:
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
         parts = name.strip('/').split('/')
@@ -323,11 +321,23 @@ class AssetLoader:
         if parts and parts[0].lower() == 'game':
             parts[0] = 'Content'
 
-        fullname = os.path.join(self.asset_path, *parts)
         if not partial:
-            fullname += ext
+            parts[-1] += ext
 
-        return fullname
+        # Check and return if it exists as-is
+        fullpath = Path(self.asset_path, *parts)
+        if not check_exists:
+            return fullpath
+
+        if partial and fullpath.is_dir():
+            return fullpath
+        if not partial and fullpath.is_file():
+            return fullpath
+
+        # Check for case-insensitive match
+        foundPath = find_caseinsensitive_path(self.asset_path, *parts)
+
+        return foundPath
 
     def get_mod_name(self, assetname: str) -> Optional[str]:
         assert assetname is not None
@@ -435,9 +445,9 @@ class AssetLoader:
         name = self.clean_asset_name(name)
         mem = None
         for ext in ('.uasset', '.umap'):
-            filename = self.convert_asset_name_to_path(name, ext=ext)
-            if Path(filename).is_file():
-                mem = load_file_into_memory(filename)
+            path = self.convert_asset_name_to_path(name, ext=ext)
+            if path and path.is_file():
+                mem = load_file_into_memory(path)
                 return (mem, ext)
 
         raise AssetNotFound(name)
@@ -515,6 +525,48 @@ class AssetLoader:
             self.cache.add(assetname, asset)
 
         return asset
+
+
+def find_caseinsensitive_path(base: Path, *parts: str) -> Optional[Path]:
+    if not parts:
+        return base
+
+    current: Optional[Path] = base
+    for part in parts:
+        if not current:
+            return None
+        current = current / part
+        current = find_caseinsensitive_path_match(current)
+    return current
+
+
+PATH_NO_MATCH = Path('THERE_IS_NO_SUCH_FILE')
+path_match_cache: Dict[Path, Optional[Path]] = dict()
+
+
+def find_caseinsensitive_path_match(path: Path) -> Optional[Path]:
+    '''
+    Find a match for the given path by matching its last element case-insensitively.
+    '''
+    cached = path_match_cache.get(path, PATH_NO_MATCH)
+    if cached is not PATH_NO_MATCH:
+        return cached
+
+    logger.debug(f"Uncached case-insensitive search: {path}")
+
+    if path.exists():
+        path_match_cache[path] = path
+        return path
+
+    parent: Path = path.parent
+    name = path.name.lower()
+    found: Path
+    for found in parent.iterdir():
+        if found.name.lower() == name:
+            path_match_cache[path] = found
+            return found
+
+    return None
 
 
 def load_file_into_memory(filename):

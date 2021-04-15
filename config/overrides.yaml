@@ -818,6 +818,13 @@ species:
                 3: "Spikes and Claws"
                 4: "Beak and Plates"
                 5: "Body Accent"
+    /Game/PrimalEarth/Dinos/Pachyrhinosaurus/Pachyrhino_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                2: "Spikes and Horns"
+                4: "Back"
+                5: "Face, Legs, and Underside"
     /Game/PrimalEarth/Dinos/Para/Para_Character_BP:
         color_regions:
             region_names:
