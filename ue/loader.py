@@ -305,7 +305,7 @@ class AssetLoader:
     def wipe_cache_with_prefix(self, prefix: str) -> None:
         self.cache.wipe(prefix)
 
-    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset', check_exists=False) -> Optional[Path]:
+    def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset', check_exists=True) -> Optional[Path]:
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
         parts = name.strip('/').split('/')
