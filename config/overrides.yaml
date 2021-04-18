@@ -960,6 +960,9 @@ species:
         color_regions:
             region_names:
                 0: "Body"
+                1: null
+                2: null
+                3: null
                 4: "Horns"
                 5: "Hooves and Eye Regions"
     /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP:
