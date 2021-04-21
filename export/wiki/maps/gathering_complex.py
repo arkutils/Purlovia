@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, Optional, Set, Type, Union, cast
 from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
-from export.wiki.stage_spawn_groups import convert_single_class_swap
+from export.wiki.spawn_groups.structs import convert_single_class_swap
 from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
     MissionDispatcher_MultiUsePylon, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
@@ -93,7 +93,9 @@ class WorldSettingsExport(MapGathererBase):
     def _convert_class_swaps(cls, settings: PrimalWorldSettings) -> Iterable[models.WeighedClassSwap]:
         if 'NPCRandomSpawnClassWeights' in settings:
             for struct in settings.NPCRandomSpawnClassWeights[0].values:
-                yield convert_single_class_swap(struct.as_dict())
+                out = convert_single_class_swap(struct.as_dict())
+                if out:
+                    yield out
 
 
 class TradeListExport(MapGathererBase):
@@ -213,8 +215,9 @@ class NPCZoneManagerExport(MapGathererBase):
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
         # Counting regions
-        for location in data['locations']:
-            convert_box_bounds_for_export(world, location)
+        if 'locations' in data:
+            for location in data['locations']:
+                convert_box_bounds_for_export(world, location)
         # Spawn regions
         if 'spawnLocations' in data:
             for location in data['spawnLocations']:

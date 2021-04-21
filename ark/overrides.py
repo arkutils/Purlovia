@@ -120,7 +120,7 @@ class OverrideSettings(BaseModel):
     svgs: MapBoundariesSettings = Field(
         MapBoundariesSettings(),
         title="SVGs",
-        description="SVG map genration boundaries",
+        description="SVG map generation boundaries",
     )
 
 

@@ -223,6 +223,12 @@ class PrimalStructurePowerNode(UEProxyStructure, uetype=CHARGE_NODE_CLS):
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
+class PrimalStructurePowerNode_Damaged(
+        PrimalStructurePowerNode,
+        uetype='/Game/Aberration/Structures/PowerNode/PrimalStructurePowerNode_Damaged.PrimalStructurePowerNode_Damaged_C'):
+    ...
+
+
 class WildPlantSpeciesZ(UEProxyStructure, uetype=WILD_PLANT_SPECIES_Z_CLS):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
