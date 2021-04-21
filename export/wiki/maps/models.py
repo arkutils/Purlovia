@@ -1,15 +1,16 @@
 from typing import List, Optional, Tuple, Union
 
 from automate.hierarchy_exporter import ExportModel, Field
-from export.wiki.models import MinMaxRange
+from export.wiki.models import FloatLike, MinMaxRange, Vector, WeighedClassSwap
 from ue.properties import BoolProperty, FloatProperty, IntProperty, StringProperty
 
 __all__ = [
     # Common
     'ObjectPath',
-    'Location',
     'Box',
     'WeighedBox',
+    'Location',
+    # Re-exports
     'WeighedClassSwap',
     # Export Models
     'Actor',
@@ -29,13 +30,9 @@ __all__ = [
 # Common Structure Models
 
 ObjectPath = Optional[str]
-FloatLike = Union[FloatProperty, float, int]
 
 
-class Location(ExportModel):
-    x: FloatLike
-    y: FloatLike
-    z: FloatLike
+class Location(Vector):
     lat: Optional[float]
     long: Optional[float]
 
@@ -51,15 +48,6 @@ class WeighedBox(ExportModel):
     start: Location
     center: Location
     end: Location
-
-
-class WeighedClassSwap(ExportModel):
-    # TODO: Possibly move into export.wiki.models after spawn_groups are moved
-    from_class: Optional[ObjectPath] = Field(alias='from')
-    exact: bool = False
-    to: List[Optional[ObjectPath]]
-    weights: List[FloatProperty]
-    during: str = 'None'
 
 
 # Export Models
@@ -282,7 +270,7 @@ class WyvernNest(Actor):
 
 
 class ChargeNode(Actor):
-    ...
+    isHyper: bool = Field(False, title="Is a hyper-charge node?")
 
 
 class GasVein(Actor):

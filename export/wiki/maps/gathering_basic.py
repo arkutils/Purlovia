@@ -1,8 +1,9 @@
 from typing import Any, Dict, Optional, Set, Type, cast
 
 from automate.hierarchy_exporter import ExportModel
-from export.wiki.types import CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, OilVein, OilVentGen1, PlayerStart, \
-    PointOfInterestBP, PointOfInterestListGen1, PoisonTree, PrimalStructurePowerNode, WaterVein, WildPlantSpeciesZ
+from export.wiki.types import CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, \
+    OilVein, OilVentGen1, PlayerStart, PointOfInterestBP, PointOfInterestListGen1, PoisonTree, \
+    PrimalStructurePowerNode, PrimalStructurePowerNode_Damaged, WaterVein, WildPlantSpeciesZ
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
@@ -172,6 +173,18 @@ class ChargeNodeExport(BaseActorExport):
     CLASSES = {PrimalStructurePowerNode.get_ue_type()}
     MODEL = models.ChargeNode
 
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        node: PrimalStructurePowerNode = cast(PrimalStructurePowerNode, proxy)
+        location = get_actor_location_vector(node)
+
+        return models.ChargeNode(
+            isHyper=isinstance(node, PrimalStructurePowerNode_Damaged),
+            x=location.x,
+            y=location.y,
+            z=location.z,
+        )
+
 
 class WildPlantSpeciesZExport(BaseActorExport):
     CLASSES = {WildPlantSpeciesZ.get_ue_type()}
@@ -189,7 +202,11 @@ class WyvernNests(BaseActorListExport):
 
 
 class IceWyvernNests(BaseActorListExport):
-    TAGS = {'IceNestSpawns'}
+    TAGS = {
+        'IceNestSpawns',
+        # 1679826889 Caballus
+        'DragonIceNestSpawns'
+    }
     MODEL = models.IceWyvernNest
 
 
