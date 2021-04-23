@@ -132,7 +132,7 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
     return bool(variants & skip_variants)
 
 
-def is_creature_tameable(species: PrimalDinoCharacter, variants: List[str], overrides: OverrideSettings) -> bool:
+def is_creature_tameable(species: PrimalDinoCharacter, variants: Set[str], overrides: OverrideSettings) -> bool:
     if overrides.is_tameable is not None:
         return overrides.is_tameable
 
@@ -145,7 +145,7 @@ def is_creature_tameable(species: PrimalDinoCharacter, variants: List[str], over
 
     violent = species.bCanBeTorpid[0] and not species.bPreventSleepingTame[0]
     nonviolent = species.bSupportWakingTame[0]
-    return violent or nonviolent
+    return violent or bool(nonviolent)
 
 
 class SpeciesStage(JsonHierarchyExportStage):
