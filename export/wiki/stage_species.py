@@ -132,11 +132,15 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
     return bool(variants & skip_variants)
 
 
-def is_creature_tameable(species: PrimalDinoCharacter, overrides: OverrideSettings) -> bool:
-    if overrides.is_tameable != None:
+def is_creature_tameable(species: PrimalDinoCharacter, variants: List[str], overrides: OverrideSettings) -> bool:
+    if overrides.is_tameable is not None:
         return overrides.is_tameable
 
-    if not bool(species.bCanBeTamed[0]):
+    if not species.bCanBeTamed[0]:
+        return False
+
+    # Taming is forcefully disabled on these dinos by the mission controller.
+    if 'Mission' in variants or 'VR' in variants:
         return False
 
     violent = species.bCanBeTorpid[0] and not species.bPreventSleepingTame[0]
@@ -198,7 +202,7 @@ class SpeciesStage(JsonHierarchyExportStage):
             out.variants = tuple(sorted(variants))
 
         out.flags = gather_flags(species, OUTPUT_FLAGS)
-        if is_creature_tameable(species, overrides):
+        if is_creature_tameable(species, variants, overrides):
             out.flags.append('isTameable')
 
         out.levelCaps = convert_level_data(species, dcsc)

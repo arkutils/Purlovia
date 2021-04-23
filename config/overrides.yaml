@@ -1373,6 +1373,13 @@ species:
             CrystalIsles: true
             Mega: true
 
+    # Tameability overrides for wiki.species
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
+        is_tameable: false
+
+    /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
+        is_tameable: false
+
 
 
     # Mod-specific overrides

@@ -117,7 +117,7 @@ class OverrideSettings(BaseModel):
     )
     is_tameable: Optional[bool] = Field(
         None,
-        description="If true, wiki.species will be forced to emit a tameable flag.",
+        description="If not null, overrides whether wiki.species emits a tameable flag for the species.",
     )
 
     # Maps
