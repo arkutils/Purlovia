@@ -115,6 +115,10 @@ class OverrideSettings(BaseModel):
         dict(),
         description="Mapping from old to new species blueprint paths",
     )
+    is_tameable: Optional[bool] = Field(
+        None,
+        description="If not null, overrides whether wiki.species emits a tameable flag for the species.",
+    )
 
     # Maps
     svgs: MapBoundariesSettings = Field(

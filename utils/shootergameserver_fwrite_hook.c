@@ -27,6 +27,7 @@
 
 static int (*__purlovia__real_open)(const char *pathname, int mode) = NULL;
 static ssize_t (*__purlovia__real_write)(int fd, const char *buf, size_t count) = NULL;
+static int (*__purlovia__real_opendir)(const char *pathname) = NULL;
 
 static int __purlovia__write_count = 0;
 static bool __purlovia__symbols_loaded = 0;
@@ -42,6 +43,7 @@ void __purlovia__ensure_symbols()
     {
         __purlovia__real_open = dlsym(RTLD_NEXT, "open");
         __purlovia__real_write = dlsym(RTLD_NEXT, "write");
+        __purlovia__real_opendir = dlsym(RTLD_NEXT, "opendir");
 
         __purlovia__symbols_loaded = 1;
     }
@@ -55,7 +57,8 @@ char *__purlovia__strnstr(const char *s1, const char *s2, size_t len)
     l2 = strlen(s2);
     if (!l2)
         return (char *)s1;
-    while (len >= l2) {
+    while (len >= l2)
+    {
         len--;
         if (!memcmp(s1, s2, l2))
             return (char *)s1;
@@ -75,9 +78,11 @@ ssize_t write(int fd, const char *buf, size_t count)
         if (count > 135 && count < 166)
         {
             const char *start = __purlovia__strnstr(buf, TEXT_TO_SEARCH_FOR, 166);
-            if (start != NULL) {
+            if (start != NULL)
+            {
                 const char* end = __purlovia__strnstr(start, "\n", 32);
-                if (end != NULL) {
+                if (end != NULL)
+                {
                     /* Print version to stdout */
                     __purlovia__real_write(1, start, end - start + 1);
 
@@ -89,7 +94,8 @@ ssize_t write(int fd, const char *buf, size_t count)
 
         /* Bail after a fixed number of monitored writes without match */
         __purlovia__write_count += 1;
-        if (__purlovia__write_count > WRITE_LIMIT) {
+        if (__purlovia__write_count > WRITE_LIMIT)
+        {
             /* Exit with 255 to indicate failure to Purlovia */
             _Exit(0xFF);
         }
@@ -105,13 +111,42 @@ int open(const char *pathname, int mode)
     __purlovia__ensure_symbols();
 
     /* Search for matching text */
-	const char *start = __purlovia__strnstr(pathname, PATH_TO_INTERRUPT_ON, 162);
-	if (start != NULL) {
-	    /* Send a keyboard interrupt signal to self, so UE can flush the log buffer */
-	    __purlovia__monitor_writes = true;
-	    kill(getpid(), SIGINT);
-	}
+    const char *start = __purlovia__strnstr(pathname, PATH_TO_INTERRUPT_ON, 162);
+    if (start != NULL)
+    {
+        /* Send a keyboard interrupt signal to self, so UE can flush the log buffer */
+        __purlovia__monitor_writes = true;
+        kill(getpid(), SIGINT);
+    }
 
-	/* Continue as normal */
-	return __purlovia__real_open(pathname, mode);
+    /* Continue as normal */
+    return __purlovia__real_open(pathname, mode);
+}
+
+
+int opendir(const char *pathname)
+{
+    __purlovia__ensure_symbols();
+
+    /* The game opens a lot of directories repeatedly when scanning for/opening files,
+       extending the time it takes for us to get the version in certain environments,
+       like Hyper-V virtual machines with game data mounted as a shared folder
+       (primarily WSL 2 and Docker on Windows), and the impatient Purlovia rightfully
+       kills the server. This hook makes the server think the scanned directories
+       cannot be opened (by returning an invalid handle). */
+
+    /* Engine localization data */
+    if (__purlovia__strnstr(pathname, "Engine/Content/Localization", 200) != NULL)
+    {
+        return 0;
+    }
+
+    /* Content directory */
+    if (__purlovia__strnstr(pathname, "game/ShooterGame/Content/", 200) != NULL)
+    {
+        return 0;
+    }
+
+    /* Continue as normal */
+    return __purlovia__real_opendir(pathname);
 }
