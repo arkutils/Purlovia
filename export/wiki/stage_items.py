@@ -11,7 +11,7 @@ from utils.log import get_logger
 from .flags import gather_flags
 from .items.cooking import CookingIngredientData, convert_cooking_values
 from .items.crafting import CraftingData, RepairData, convert_crafting_values
-from .items.durability import DurabilityData
+from .items.durability import convert_durability_values
 from .items.egg import EggData, convert_egg_values
 from .items.status import StatEffectData, convert_status_effect
 
@@ -51,7 +51,7 @@ class Item(ExportModel):
     stackSize: Optional[IntProperty] = Field(None, title="Stack size")
     spoilsIn: Optional[FloatProperty] = Field(None, title="Spoilage time")
     spoilsTo: Optional[str] = Field(None, title="Item produced when spoiled")
-    durability: Optional[DurabilityData]
+    durability: Optional[float] = Field(None, title="Durability units (at 100% quality)")
     crafting: Optional[CraftingData]
     repair: Optional[RepairData]
     structure: Optional[str] = Field(
@@ -131,12 +131,10 @@ class ItemsStage(JsonHierarchyExportStage):
                 out.spoilsTo = _safe_get_bp_from_object(item.get('SpoilingItem', fallback=None))
 
             # Export durability info if the mechanic is enabled
-            # BROKEN, requires struct property gathering
-            # if bool(item.bUseItemDurability[0]):
-            #    out.durability = convert_durability_values(item)
+            out.durability = convert_durability_values(item)
 
             # Export crafting info
-            out.crafting, out.repair = convert_crafting_values(item)
+            out.crafting, out.repair = convert_crafting_values(item, has_durability=out.durability is not None)
 
             # Export string references to the structure or weapon templates (if any), which can then be looked up in
             # a separate file, without having this export grow in size too much.

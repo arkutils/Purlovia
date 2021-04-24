@@ -1,11 +1,16 @@
+from typing import Optional
+
 from ark.types import PrimalItem
-from automate.hierarchy_exporter import ExportModel, Field
-from ue.properties import FloatProperty
+
+from .poc_stat_gathering import STAT_DURABILITY, gather_item_stat
 
 
-class DurabilityData(ExportModel):
-    min: FloatProperty = Field(..., title="Minimum number of units")
+def convert_durability_values(item: PrimalItem) -> Optional[float]:
+    if not item.bUseItemDurability[0] or not item.bUseItemStats[0]:
+        return None
 
+    statinfo = gather_item_stat(item, STAT_DURABILITY)
+    if not statinfo['bUsed']:
+        return None
 
-def convert_durability_values(item: PrimalItem) -> DurabilityData:
-    return DurabilityData(min=item.MinItemDurability[0], )
+    return statinfo['InitialValueConstant']

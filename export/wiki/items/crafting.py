@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
 from ue.properties import FloatProperty, IntProperty, StructProperty
+from ue.utils import clean_float
 
 
 class RecipeIngredient(ExportModel):
@@ -57,7 +58,8 @@ def convert_recipe_entries(entries: List[StructProperty]) -> Iterable[RecipeIngr
             yield converted
 
 
-def convert_crafting_values(item: PrimalItem) -> Tuple[Optional[CraftingData], Optional[RepairData]]:
+def convert_crafting_values(item: PrimalItem,
+                            has_durability: bool = False) -> Tuple[Optional[CraftingData], Optional[RepairData]]:
     recipe = item.get('BaseCraftingResourceRequirements', 0, None)
     if not recipe:
         return None, None
@@ -85,8 +87,7 @@ def convert_crafting_values(item: PrimalItem) -> Tuple[Optional[CraftingData], O
 
     # Durability repair info
     repair = None
-    # TODO: bad check, needs proper item durability export
-    if bool(item.bAllowRepair[0]) and bool(item.bUseItemDurability[0]) and bool(item.bUseItemStats[0]):
+    if item.bAllowRepair[0] and has_durability:
         repair = RepairData(
             xp=item.BaseRepairingXP[0],
             time=item.TimeForFullRepair[0],
@@ -111,7 +112,7 @@ def convert_crafting_values(item: PrimalItem) -> Tuple[Optional[CraftingData], O
             if qty_mult != 1.0:
                 for ingredient in crafting.recipe:
                     ingredient_copy = ingredient.copy()
-                    ingredient_copy.qty = ingredient_copy.qty * qty_mult
+                    ingredient_copy.qty = clean_float(ingredient_copy.qty * qty_mult)
                     repair.recipe.append(ingredient_copy)
 
     return crafting, repair
