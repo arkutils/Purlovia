@@ -8,6 +8,9 @@ DEFAULTS = {
     # DevKit Verified
     'bUsed': False,
     'InitialValueConstant': 0,
+    'StateModifierScale': 1,
+    'DefaultModifierValue': 0,
+    'AbsoluteMaxValue': 0,
 }
 
 STAT_GENERIC_QUALITY = 0

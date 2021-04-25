@@ -13,4 +13,11 @@ def convert_durability_values(item: PrimalItem) -> Optional[float]:
     if not statinfo['bUsed']:
         return None
 
-    return statinfo['InitialValueConstant']
+    # Enough for the base value.
+    out = statinfo['InitialValueConstant']
+
+    maxv = statinfo['AbsoluteMaxValue']
+    if maxv != 0 and out > maxv:
+        out = statinfo['AbsoluteMaxValue']
+
+    return out
