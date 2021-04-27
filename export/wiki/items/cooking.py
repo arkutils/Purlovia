@@ -1,20 +1,22 @@
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
 
+from export.wiki.models import FloatLike
+
 
 class CookingIngredientData(ExportModel):
-    health: float = Field(0, title="Health increased per item")
-    stamina: float = Field(0, title="Stamina increased per item")
-    food: float = Field(0, title="Food increased per item")
-    weight: float = Field(0, title="Weight increased per item")
-    water: float = Field(0, title="Water increased per item in a drink")
+    health: FloatLike = Field(0, description="Health increased per item")
+    stamina: FloatLike = Field(0, description="Stamina increased per item")
+    food: FloatLike = Field(0, description="Food increased per item")
+    weight: FloatLike = Field(0, description="Weight increased per item")
+    water: FloatLike = Field(0, description="Water increased per item in a drink")
 
 
 def convert_cooking_values(item: PrimalItem) -> CookingIngredientData:
     return CookingIngredientData(
-        health=float(item.Ingredient_HealthIncreasePerQuantity[0]),
-        stamina=float(item.Ingredient_StaminaIncreasePerQuantity[0]),
-        food=float(item.Ingredient_FoodIncreasePerQuantity[0]),
-        weight=float(item.Ingredient_WeightIncreasePerQuantity[0]),
-        water=float(item.Ingredient_WaterIncreasePerQuantity[0]),
+        health=item.Ingredient_HealthIncreasePerQuantity[0],
+        stamina=item.Ingredient_StaminaIncreasePerQuantity[0],
+        food=item.Ingredient_FoodIncreasePerQuantity[0],
+        weight=item.Ingredient_WeightIncreasePerQuantity[0],
+        water=item.Ingredient_WaterIncreasePerQuantity[0],
     )

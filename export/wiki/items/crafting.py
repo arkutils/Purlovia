@@ -2,35 +2,33 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
+from export.wiki.models import FloatLike
 from ue.properties import FloatProperty, IntProperty, StructProperty
 from ue.utils import clean_float
 
 
 class RecipeIngredient(ExportModel):
-    exact: bool = Field(True, title="Are child classes accepted?")
-    qty: Union[float, FloatProperty] = Field(
-        ...,
-        title="Required quantity",
-        description="Scales with blueprint quality",
-    )
-    type: str = Field(..., title="Item blueprint")
+    exact: bool = Field(True, description="If true, child classes can be used instead")
+    qty: FloatLike = Field(..., title="Base quantity")
+    type: str = Field(..., title="Item class name")
 
 
 class CraftingData(ExportModel):
-    xp: FloatProperty = Field(..., title="XP granted per item crafted")
-    time: FloatProperty = Field(..., title="Time to craft a blueprint")
+    xp: FloatProperty = Field(..., description="XP granted per item crafted")
+    time: FloatProperty = Field(..., description="Time it takes to craft a blueprint")
     levelReq: IntProperty = Field(..., title="Required player level")
-    productCount: int = Field(..., title="Number of products")
+    productCount: int = Field(
+        ..., description="If zero, the item is likely given via scripts or triggers a specific action (like boss summoners)")
     skillQualityMult: Tuple[FloatProperty, FloatProperty] = Field(
         ...,
-        title="Min and max multipliers of Crafting Skill's effect on quality",
+        description="Min and max multipliers of Crafting Skill's effect on quality",
     )
-    recipe: List[RecipeIngredient] = Field(..., title="Required ingredients")
+    recipe: List[RecipeIngredient] = Field(...)
 
 
 class RepairData(ExportModel):
-    xp: FloatProperty = Field(..., title="XP granted per item repaired")
-    time: FloatProperty = Field(..., title="Time to repair an item")
+    xp: FloatProperty = Field(..., description="XP granted per item repaired")
+    time: FloatProperty = Field(..., description="Time to repair an item")
     recipe: List[RecipeIngredient] = Field(
         [],
         title="Required ingredients, if different from crafting",
@@ -62,7 +60,7 @@ def convert_crafting_values(item: PrimalItem,
                             has_durability: bool = False) -> Tuple[Optional[CraftingData], Optional[RepairData]]:
     recipe = item.get('BaseCraftingResourceRequirements', 0, None)
     if not recipe:
-        return None, None
+        return (None, None)
 
     # Crafted item number
     if item.bCraftDontActuallyGiveItem[0]:
@@ -83,7 +81,7 @@ def convert_crafting_values(item: PrimalItem,
 
     # Do not export crafting info if recipe consists only of nulls.
     if not crafting.recipe:
-        return None, None
+        return (None, None)
 
     # Durability repair info
     repair = None
@@ -115,4 +113,4 @@ def convert_crafting_values(item: PrimalItem,
                     ingredient_copy.qty = clean_float(ingredient_copy.qty * qty_mult)
                     repair.recipe.append(ingredient_copy)
 
-    return crafting, repair
+    return (crafting, repair)

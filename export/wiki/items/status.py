@@ -1,21 +1,22 @@
-from typing import Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
+from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
+from export.wiki.models import FloatLike
 from ue.properties import FloatProperty
 
 
 class StatEffectData(ExportModel):
-    value: FloatProperty = Field(..., title="Stat value to gain")
-    useItemQuality: bool = Field(False, title="Whether item quality is used")
-    descriptionIndex: int = Field(..., title="")
-    pctOf: Optional[str] = Field(None, title="")
-    pctAbsRange: Optional[Tuple[FloatProperty, FloatProperty]] = Field(None, title="")
-    setValue: bool = Field(False, title="")
-    setAddValue: bool = Field(False, title="")
-    forceUseOnDino: bool = Field(False, title="Whether can be used on dinos")
-    allowWhenFull: bool = Field(True, title="Whether allowed when stat is full")
-    qualityMult: float = Field(1.0, title="Item quality effect (addition)")
-    duration: Union[float, FloatProperty] = Field(0, title="Effect duration")
+    value: FloatProperty = Field(..., description="Stat value to set/add")
+    useItemQuality: bool = Field(False, description="Whether item quality is used")
+    pctOf: Optional[str] = Field(None, description="If set, this effect's value is a percentage of current/max stat value.")
+    pctAbsRange: Optional[Tuple[FloatProperty, FloatProperty]] = None
+    setValue: bool = Field(False, description="Whether the current stat value is overriden by this effect's value.")
+    setAddValue: bool = Field(False, description="Whether this effect's is instantly added to current stat value.")
+    forceUseOnDino: bool = Field(False, description="Whether can be used on dinos")
+    allowWhenFull: bool = Field(True, description="Whether allowed when stat is full")
+    qualityMult: float = Field(1.0, description="Item quality effect (addition)")
+    duration: FloatLike = Field(0, title="Effect duration")
 
 
 def convert_status_effect(entry) -> Tuple[str, StatEffectData]:
@@ -24,7 +25,6 @@ def convert_status_effect(entry) -> Tuple[str, StatEffectData]:
     result = StatEffectData(
         value=d['BaseAmountToAdd'],
         useItemQuality=bool(d['bUseItemQuality']),
-        descriptionIndex=d['StatusValueModifierDescriptionIndex'],
         setValue=bool(d['bSetValue']),
         setAddValue=bool(d['bSetAdditionalValue']),
         forceUseOnDino=bool(d['bForceUseStatOnDinos']),
@@ -58,3 +58,17 @@ def convert_status_effect(entry) -> Tuple[str, StatEffectData]:
             result.duration = duration
 
     return (stat_name, result)
+
+
+def convert_status_effects(item: PrimalItem) -> Dict[str, StatEffectData]:
+    # Behavior verified 26/04/2021.
+    status_effects = item.UseItemAddCharacterStatusValues[0]
+    out = dict()
+
+    # Only first ever entry for a stat is used.
+    for entry in status_effects.values:
+        stat, effect = convert_status_effect(entry)
+        if stat not in out:
+            out[stat] = effect
+
+    return out

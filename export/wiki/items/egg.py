@@ -15,10 +15,10 @@ class EggData(ExportModel):
 
 def convert_egg_values(item: PrimalItem) -> Optional[EggData]:
     dino_class = item.get('EggDinoClassToSpawn', 0, None)
-    if not dino_class:
+    if not dino_class or not dino_class.value or not dino_class.value.value:
         return None
 
     return EggData(
-        dinoClass=str(dino_class),
+        dinoClass=dino_class.value.value.format_for_json(),
         temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0]),
     )

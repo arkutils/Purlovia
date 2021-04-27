@@ -13,7 +13,7 @@ from .items.cooking import CookingIngredientData, convert_cooking_values
 from .items.crafting import CraftingData, RepairData, convert_crafting_values
 from .items.durability import convert_durability_values
 from .items.egg import EggData, convert_egg_values
-from .items.status import StatEffectData, convert_status_effect
+from .items.status import StatEffectData, convert_status_effects
 
 __all__ = [
     'ItemsStage',
@@ -28,16 +28,16 @@ OUTPUT_FLAGS = (
 
 
 class Item(ExportModel):
-    name: Optional[str] = Field(..., title="Descriptive name")
-    description: Optional[str] = Field(None, title="Description of the item")
-    bp: str = Field(..., title="Full blueprint path")
-    parent: Optional[str] = Field(None, title="Full path to the parent class of this item")
+    name: Optional[str]
+    description: Optional[str] = None
+    bp: str = Field(..., title="Blueprint path")
+    parent: Optional[str] = Field(None, description="Full path to the parent class of this item")
     icon: Optional[str] = Field(
         None,
-        title="Full blueprint path to the icon",
+        title="Icon blueprint path",
         description="This is either a texture or a material instance",
     )
-    type: Optional[str] = Field(None, description="")
+    type: Optional[str] = None
     flags: Optional[List[str]] = Field(
         list(),
         description="Relevant boolean flags that are True for this item",
@@ -45,13 +45,13 @@ class Item(ExportModel):
     folders: List[str] = Field(
         [],
         title="Crafting station folder",
-        description="This is the folder in a crafting station where this item's blueprint is shown.",
+        description="These are the folders in a crafting station where this item's blueprint is shown.",
     )
     weight: Optional[FloatProperty] = Field(None, title="Weight of a single unit")
-    stackSize: Optional[IntProperty] = Field(None, title="Stack size")
+    stackSize: Optional[IntProperty] = None
     spoilsIn: Optional[FloatProperty] = Field(None, title="Spoilage time")
-    spoilsTo: Optional[str] = Field(None, title="Item produced when spoiled")
-    durability: Optional[float] = Field(None, title="Durability units (at 100% quality)")
+    spoilsTo: Optional[str] = Field(None, title="Spoilage product")
+    durability: Optional[float] = Field(None, title="Durability units", description="At 100% quality")
     crafting: Optional[CraftingData]
     repair: Optional[RepairData]
     structure: Optional[str] = Field(
@@ -64,7 +64,7 @@ class Item(ExportModel):
         title="Weapon blueprint path",
         description="Can be looked up in weapons.json.",
     )
-    statEffects: Optional[Dict[str, StatEffectData]] = Field(None, title="Stat effects when consumed")
+    statEffects: Optional[Dict[str, StatEffectData]] = Field(None, description="Stat changes caused by consumption of the item")
     egg: Optional[EggData]
     cooking: Optional[CookingIngredientData]
 
@@ -145,8 +145,7 @@ class ItemsStage(JsonHierarchyExportStage):
 
             # Export status effect info when item is consumed
             if item.has_override('UseItemAddCharacterStatusValues'):
-                status_effects = item.UseItemAddCharacterStatusValues[0]
-                out.statEffects = dict(convert_status_effect(entry) for entry in status_effects.values)
+                out.statEffects = convert_status_effects(item)
 
             # Export egg info
             if item.bIsEgg[0]:

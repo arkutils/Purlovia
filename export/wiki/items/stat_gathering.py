@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict
 
 from ark.types import PrimalItem
@@ -13,14 +14,16 @@ DEFAULTS = {
     'AbsoluteMaxValue': 0,
 }
 
-STAT_GENERIC_QUALITY = 0
-STAT_ARMOR = 1
-STAT_DURABILITY = 2
-STAT_DAMAGE_PERCENT = 3
-STAT_CLIP_AMMO = 4
-STAT_HYPO_INSULATION = 5
-STAT_WEIGHT = 6
-STAT_HYPER_INSULATION = 7
+
+class Stat(Enum):
+    GenericQuality = 0
+    Armor = 1
+    Durability = 2
+    DamagePercent = 3
+    ClipAmmo = 4
+    HypoInsulation = 5
+    Weight = 6
+    HyperInsulation = 7
 
 
 def _gather_props_from_export(export: ExportTableItem, index: int, output: Dict[str, Any]):
@@ -32,10 +35,11 @@ def _gather_props_from_export(export: ExportTableItem, index: int, output: Dict[
         output[key] = value
 
 
-def gather_item_stat(item: PrimalItem, index: int) -> Dict[str, Any]:
+def gather_item_stat(item: PrimalItem, index: Stat) -> Dict[str, Any]:
     leaf_export = item.get_source()
     loader = leaf_export.asset.loader
-    output = dict(**DEFAULTS)
+    output = dict(DEFAULTS)
+    ark_index = index.value
 
     # Make sure this is always the default export, and not e.g. default class.
     leaf_export = leaf_export.asset.default_export
@@ -45,11 +49,11 @@ def gather_item_stat(item: PrimalItem, index: int) -> Dict[str, Any]:
         if not kls.startswith('/Game'):
             continue
 
+        # Load the asset and get its default export (the CDO).
+        # find_parent_classes gives us merely a list of parent classes, and not "parent" CDOs.
         asset = loader[kls]
         super_export = asset.default_export
 
-        _gather_props_from_export(super_export, index, output)
-
-    _gather_props_from_export(leaf_export, index, output)
+        _gather_props_from_export(super_export, ark_index, output)
 
     return output
