@@ -32,37 +32,28 @@ class Item(ExportModel):
     description: Optional[str] = None
     bp: str = Field(..., title="Blueprint path")
     parent: Optional[str] = Field(None, description="Full path to the parent class of this item")
-    icon: Optional[str] = Field(
-        None,
-        title="Icon blueprint path",
-        description="This is either a texture or a material instance",
-    )
+    icon: Optional[str] = Field(None, description="Blueprint path pointing to either a texture or material instance.")
     type: Optional[str] = None
-    flags: Optional[List[str]] = Field(
-        list(),
-        description="Relevant boolean flags that are True for this item",
-    )
+    flags: Optional[List[str]] = Field(list(), description="Relevant boolean flags that are True for this item")
     folders: List[str] = Field(
         [],
         title="Crafting station folder",
         description="These are the folders in a crafting station where this item's blueprint is shown.",
     )
-    weight: Optional[FloatProperty] = Field(None, title="Weight of a single unit")
+    weight: Optional[FloatProperty] = Field(None, description="Weight of a single item")
     stackSize: Optional[IntProperty] = None
-    spoilsIn: Optional[FloatProperty] = Field(None, title="Spoilage time")
-    spoilsTo: Optional[str] = Field(None, title="Spoilage product")
-    durability: Optional[float] = Field(None, title="Durability units", description="At 100% quality")
+    spoilsIn: Optional[FloatProperty] = Field(None, description="Spoilage time in seconds")
+    spoilsTo: Optional[str] = Field(None, description="Blueprint path of the spoilage product")
+    durability: Optional[float] = Field(None, description="Durability at 100% quality")
     crafting: Optional[CraftingData]
     repair: Optional[RepairData]
     structure: Optional[str] = Field(
         None,
-        title="Structure blueprint path",
-        description="Can be looked up in structures.json.",
+        description="Blueprint path of the structure created by this item (can by looked up in structures.json).",
     )
     weapon: Optional[str] = Field(
         None,
-        title="Weapon blueprint path",
-        description="Can be looked up in weapons.json.",
+        description="Blueprint path of the weapon created by this item (can by looked up in weapons.json).",
     )
     statEffects: Optional[Dict[str, StatEffectData]] = Field(None, description="Stat changes caused by consumption of the item")
     egg: Optional[EggData]

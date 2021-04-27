@@ -2,13 +2,13 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
-from export.wiki.models import FloatLike
+from export.wiki.models import FloatLike, MinMaxRange
 from ue.properties import FloatProperty, IntProperty, StructProperty
 from ue.utils import clean_float
 
 
 class RecipeIngredient(ExportModel):
-    exact: bool = Field(True, description="If true, child classes can be used instead")
+    exact: bool = Field(False, description="If true, child classes cannot be used in place")
     qty: FloatLike = Field(..., title="Base quantity")
     type: str = Field(..., title="Item class name")
 
@@ -18,21 +18,17 @@ class CraftingData(ExportModel):
     time: FloatProperty = Field(..., description="Time it takes to craft a blueprint")
     levelReq: IntProperty = Field(..., title="Required player level")
     productCount: int = Field(
-        ..., description="If zero, the item is likely given via scripts or triggers a specific action (like boss summoners)")
-    skillQualityMult: Tuple[FloatProperty, FloatProperty] = Field(
         ...,
-        description="Min and max multipliers of Crafting Skill's effect on quality",
+        description="If zero, the item is likely given via scripts or triggers a specific action (like boss summoners)",
     )
+    skillQualityMult: MinMaxRange = Field(..., description="Min and max multipliers of Crafting Skill's effect on quality")
     recipe: List[RecipeIngredient] = Field(...)
 
 
 class RepairData(ExportModel):
     xp: FloatProperty = Field(..., description="XP granted per item repaired")
     time: FloatProperty = Field(..., description="Time to repair an item")
-    recipe: List[RecipeIngredient] = Field(
-        [],
-        title="Required ingredients, if different from crafting",
-    )
+    recipe: List[RecipeIngredient] = Field([], description="Required ingredients, if different from crafting")
 
 
 def convert_recipe_entry(entry: Dict[str, Any]) -> Optional[RecipeIngredient]:
@@ -75,7 +71,8 @@ def convert_crafting_values(item: PrimalItem,
         time=item.BlueprintTimeToCraft[0],
         levelReq=item.CraftingMinLevelRequirement[0],
         productCount=int(product_count),
-        skillQualityMult=(item.CraftingSkillQualityMultiplierMin[0], item.CraftingSkillQualityMultiplierMax[0]),
+        skillQualityMult=MinMaxRange(min=item.CraftingSkillQualityMultiplierMin[0],
+                                     max=item.CraftingSkillQualityMultiplierMax[0]),
         recipe=list(convert_recipe_entries(recipe.values)),
     )
 

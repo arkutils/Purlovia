@@ -1,16 +1,16 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
-from ue.properties import FloatProperty
+from export.wiki.models import MinMaxRange
 from utils.log import get_logger
 
 logger = get_logger(__name__)
 
 
 class EggData(ExportModel):
-    dinoClass: str = Field(..., title="Dino to be spawned")
-    temperature: Tuple[FloatProperty, FloatProperty] = Field(..., title="Hatching temperature range")
+    dinoClass: str = Field(..., description="Dino to be spawned")
+    temperature: MinMaxRange = Field(..., description="Hatching temperature range")
 
 
 def convert_egg_values(item: PrimalItem) -> Optional[EggData]:
@@ -20,5 +20,5 @@ def convert_egg_values(item: PrimalItem) -> Optional[EggData]:
 
     return EggData(
         dinoClass=dino_class.value.value.format_for_json(),
-        temperature=(item.EggMinTemperature[0], item.EggMaxTemperature[0]),
+        temperature=MinMaxRange(min=item.EggMinTemperature[0], max=item.EggMaxTemperature[0]),
     )
