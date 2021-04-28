@@ -55,7 +55,7 @@ class Item(ExportModel):
         None,
         description="Blueprint path of the weapon created by this item (can by looked up in weapons.json).",
     )
-    statEffects: Optional[Dict[str, StatEffectData]] = Field(None, description="Stat changes caused by consumption of the item")
+    statEffects: Optional[List[StatEffectData]] = Field(None, description="Stat changes caused by consumption of the item")
     egg: Optional[EggData]
     cooking: Optional[CookingIngredientData]
 

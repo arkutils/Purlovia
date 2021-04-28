@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple
+from typing import List, Optional
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
@@ -8,6 +8,7 @@ from ue.utils import clean_float
 
 
 class StatEffectData(ExportModel):
+    stat: str
     value: FloatProperty = Field(..., description="Stat value to set/add")
     useItemQuality: bool = Field(False, description="Whether item quality is used")
     pctOf: Optional[str] = Field(None, description="If set, this effect's value is a percentage of current/max stat value.")
@@ -20,10 +21,11 @@ class StatEffectData(ExportModel):
     duration: FloatLike = Field(0, description="Effect duration in seconds")
 
 
-def convert_status_effect(entry) -> Tuple[str, StatEffectData]:
+def convert_status_effect(entry) -> StatEffectData:
     d = entry.as_dict()
     stat_name = d['StatusValueType'].get_enum_value_name().lower()
     result = StatEffectData(
+        stat=stat_name,
         value=d['BaseAmountToAdd'],
         useItemQuality=bool(d['bUseItemQuality']),
         setValue=bool(d['bSetValue']),
@@ -58,18 +60,21 @@ def convert_status_effect(entry) -> Tuple[str, StatEffectData]:
             duration = clean_float(duration)
             result.duration = duration
 
-    return (stat_name, result)
+    return result
 
 
-def convert_status_effects(item: PrimalItem) -> Dict[str, StatEffectData]:
-    # Behavior verified 26/04/2021.
+def convert_status_effects(item: PrimalItem) -> List[StatEffectData]:
+    # TODO: Game bug.
+    # Behavior verified 2021/04/26 and 2021/04/28.
+    # Modifiers with bUseItemQuality set to true seem to copy the value of the first modifier
+    # for the same stat.
+    # This is not implemented below and currently requires extra caution when reviewing data.
+
     status_effects = item.UseItemAddCharacterStatusValues[0]
-    out = dict()
+    out = list()
 
-    # Only first ever entry for a stat is used.
     for entry in status_effects.values:
-        stat, effect = convert_status_effect(entry)
-        if stat not in out:
-            out[stat] = effect
+        effect = convert_status_effect(entry)
+        out.append(effect)
 
     return out
