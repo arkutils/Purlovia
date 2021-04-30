@@ -138,3 +138,19 @@ def is_item_base_class(item: PrimalItem) -> bool:
     if not item_name or (not icon_texture and not icon_material):
         return True
     return False
+
+
+def get_item_name(item: PrimalItem) -> Optional[str]:
+    item_name = item.get('DescriptiveNameBase', fallback=None)
+    if not item_name:
+        return None
+
+    out = str(item_name)
+
+    # The game adds the Skin suffix to the item's name if bIsItemSkin is true. This only, however, happens when the
+    # item does not generate its name at runtime through scripts - where it's probably safer for us to export the
+    # CDO name.
+    if item.bIsItemSkin[0] and not item.bUseBPGetItemName[0]:
+        out += ' Skin'
+
+    return out
