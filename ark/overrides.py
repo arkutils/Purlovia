@@ -132,6 +132,7 @@ class SanityCheckSettings(BaseModel):
     min_species: Dict[str, int] = dict()
     min_items: Dict[str, int] = dict()
     min_maps: Dict[str, int] = dict()
+    ignore_maps: List[str] = list()
 
 
 class OverridesFile(BaseModel):
