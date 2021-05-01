@@ -2,7 +2,7 @@ from typing import Dict, Iterable, Iterator, List, Set
 
 import ue.hierarchy
 from ark.mod import get_core_mods
-from ark.overrides import get_overrides_for_map
+from ark.overrides import get_overrides, get_overrides_for_map
 from config import get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 from ue.loader import AssetLoader
@@ -27,7 +27,14 @@ def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]
             levels[assetpath] = set()
         levels[assetpath].add(assetname)
 
-    return {path: list(sorted(names)) for path, names in levels.items()}
+    ignored_for_sanity = get_overrides().sanity_checks.ignore_maps
+
+    out = dict()
+    for path, names in levels.items():
+        if path not in ignored_for_sanity:
+            out[path] = list(sorted(names))
+
+    return out
 
 
 class LevelDiscoverer:

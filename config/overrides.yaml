@@ -122,6 +122,12 @@ sanity_checks:
         '/Game/Mods/Ragnarok': 266 # 268 at last check
         '/Game/Mods/Valguero': 146 # 148 at last check
 
+    # Map folders that will be ignored from the extraction
+    # if any levels are found directly inside.
+    ignore_maps:
+        - '/Game/Maps'
+        - '/Game/Mods'
+
 
 # Override settings on a per-mod basis
 mods:
