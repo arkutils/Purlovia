@@ -282,6 +282,7 @@ class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):
 class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     # DevKit Verified
     bIsEgg = uebools(False)
+    bIsItemSkin = uebools(False)
     bSupportDragOntoOtherItem = uebools(False)
     bUseItemDurability = uebools(True)
     bOverrideRepairingRequirements = uebools(False)
@@ -289,6 +290,7 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     bPreventCheatGive = uebools(False)
     bAllowRepair = uebools(True)
     bDurabilityRequirementIgnoredInWater = uebools(False)
+    bUseBPGetItemName = uebools(False)
     BaseCraftingXP = uefloats(2.0)
     BaseRepairingXP = uefloats(2.0)
     BaseItemWeight = uefloats(0.5)
