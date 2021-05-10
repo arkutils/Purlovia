@@ -521,6 +521,8 @@ species:
         descriptive_name: Polar Purlovia
     /Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP_Aberrant:
         descriptive_name: Aberrant Coelacanth # fixes in-game typo
+    /Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP_VDay_Aberrant:
+        descriptive_name: Aberrant Coelacanth # fixes in-game typo
 
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
