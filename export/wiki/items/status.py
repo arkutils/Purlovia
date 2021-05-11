@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
@@ -64,11 +64,7 @@ def convert_status_effect(entry) -> StatEffectData:
 
 
 def convert_status_effects(item: PrimalItem) -> List[StatEffectData]:
-    # TODO: Game bug.
     # Behavior verified 2021/04/26 and 2021/04/28.
-    # Modifiers with bUseItemQuality set to true seem to copy the value of the first modifier
-    # for the same stat.
-    # This is not implemented below and currently requires extra caution when reviewing data.
 
     status_effects = item.UseItemAddCharacterStatusValues[0]
     out = list()
@@ -76,5 +72,13 @@ def convert_status_effects(item: PrimalItem) -> List[StatEffectData]:
     for entry in status_effects.values:
         effect = convert_status_effect(entry)
         out.append(effect)
+
+    # Modifiers with bUseItemQuality set to true seem to copy the value of the first modifier
+    # for the same stat.
+    value_bases: Dict[str, FloatProperty] = dict()
+
+    for effect in out:
+        if effect.useItemQuality:
+            effect.value = value_bases.setdefault(effect.stat, effect.value)
 
     return out

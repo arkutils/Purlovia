@@ -215,19 +215,3 @@ def _safe_get_bp_from_object(obj: Optional[ObjectProperty]) -> Optional[str]:
     if not obj or not obj.value or not obj.value.value:
         return None
     return obj.value.value.fullname
-
-
-def get_item_name(item: PrimalItem) -> Optional[str]:
-    item_name = item.get('DescriptiveNameBase', fallback=None)
-    if not item_name:
-        return None
-
-    out = str(item_name)
-
-    # The game adds the Skin suffix to the item's name if bIsItemSkin is true. This only, however, happens when the
-    # item does not generate its name at runtime through scripts - where it's probably safer for us to export the
-    # CDO name.
-    if item.bIsItemSkin[0] and not item.bUseBPGetItemName[0]:
-        out += ' Skin'
-
-    return out
