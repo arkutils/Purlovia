@@ -11,17 +11,17 @@ pytest = "~=6.1.2"
 pytest-cov = "*"
 pytest-mock = "*"
 pylint = "~=2.6.0"
-mypy = "!=0.812"
+mypy = "~=0.812"
 pygments = "~=2.4"
 guppy3 = "~=3.0.8"
 pre-commit = "~=2.8.1"
+flake8 = "~=3.8.2"
 
 [packages]
 requests = "~=2.24.0"
 pydantic = "~=1.7.3"
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
-flake8 = "~=3.8.2"
 
 [requires]
 python_version = "3.7"
