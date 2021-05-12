@@ -43,6 +43,7 @@ __all__ = [
     'MissionType_Escort',
     'MissionType_Retrieve',
     'MissionType',
+    'HierarchicalInstancedStaticMeshComponent',
 ]
 
 
@@ -514,5 +515,11 @@ class TekCloningChamber(UEProxyStructure, uetype='/Game/PrimalEarth/Structures/T
     CloneBaseElementCostGlobalMultiplier = uefloats(2500.0)
     CloneElementCostPerLevelGlobalMultiplier = uefloats(5500.0)
     CloningTimePerElementShard = uefloats(7.0)
+
+    # DevKit Unverified
+
+class HierarchicalInstancedStaticMeshComponent(UEProxyStructure, uetype='/Script/Engine.HierarchicalInstancedStaticMeshComponent'):
+    # DevKit Verified
+    AttachedComponentClass: Mapping[int, ObjectProperty] # = None
 
     # DevKit Unverified
