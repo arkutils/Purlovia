@@ -43,6 +43,7 @@ __all__ = [
     'MissionType_Escort',
     'MissionType_Retrieve',
     'MissionType',
+    'HierarchicalInstancedStaticMeshComponent',
 ]
 
 
@@ -540,3 +541,11 @@ class MutagenSpawnerManager(
 class Carniflora(UEProxyStructure, uetype='/Game/Genesis2/Structures/VenusFlyTrap/VenusFlyTrap_BP.VenusFlyTrap_BP_C'):
     # No properties we can assume type for.
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
+class HierarchicalInstancedStaticMeshComponent(UEProxyStructure,
+                                               uetype='/Script/Engine.HierarchicalInstancedStaticMeshComponent'):
+    # DevKit Verified
+    AttachedComponentClass: Mapping[int, ObjectProperty]  # = None
+
+    # DevKit Unverified

@@ -14,6 +14,7 @@ from .gathering_base import MapGathererBase, PersistentLevel
 from .gathering_basic import BASIC_GATHERERS
 from .gathering_complex import COMPLEX_GATHERERS, WorldSettingsExport
 from .models import WorldSettings
+from .resources import ResourceNodesByType, collect_harvestable_resources
 
 logger = get_logger(__name__)
 
@@ -28,10 +29,12 @@ ALL_GATHERERS = COMPLEX_GATHERERS + BASIC_GATHERERS
 
 class World(PersistentLevel):
     data: Dict[Type[MapGathererBase], List[Dict[str, Any]]]
+    resource_nodes: ResourceNodesByType
 
     def __init__(self, main_assetname: Optional[str]):
         self.persistent_level = main_assetname
         self.data = defaultdict(list)
+        self.resource_nodes = defaultdict(list)
 
     def ingest_level(self, level: UAsset):
         assert level.assetname
@@ -48,6 +51,16 @@ class World(PersistentLevel):
 
         # Go through each export and, if valuable, gather data from it.
         for export in level.exports:
+            # Raw harvestable resources aren't exported to Obelisk nor as a JSON.
+            # If this is a foliage actor, branch off to a dedicated unit.
+            if str(export.klass.value.name) == 'HierarchicalInstancedStaticMeshComponent':
+                try:
+                    collect_harvestable_resources(export, self.resource_nodes)
+                except Exception:
+                    logger.warning(f'Gathering harvestables failed for export "{export.name}" in {assetname}', exc_info=True)
+                continue
+
+            # Find a gathering class for this export.
             gatherer = find_gatherer_for_export(export)
             if not gatherer:
                 continue
@@ -62,11 +75,13 @@ class World(PersistentLevel):
             # Add fragment to data lists
             if data:
                 if isinstance(data, GeneratorType):
+                    # Helper class returned a generator - move each piece if not null.
                     data_fragments: list = sanitise_output(list(data))
                     for fragment in data_fragments:
                         if fragment:
                             self.data[gatherer].append(fragment)
                 else:
+                    # Single piece.
                     fragment = sanitise_output(data)
                     self.data[gatherer].append(fragment)
 
@@ -74,6 +89,9 @@ class World(PersistentLevel):
         loader.cache.remove(assetname)
 
     def bind_settings(self) -> bool:
+        '''
+        Finds persistent level's world settings and sets the 'settings' field to them.
+        '''
         all_pws = self.data[WorldSettingsExport]
         if not all_pws:
             return False
@@ -97,12 +115,14 @@ class World(PersistentLevel):
                 gatherer.before_saving(self, fragment)
 
     def construct_export_files(self):
+        # Create a look-up map of model type to data.
         by_model = dict()
         for gatherer, data in self.data.items():
             model_type = gatherer.get_model_type()
             if model_type:
                 by_model[model_type] = data
 
+        # Pack gathered data into file model-compatible dicts.
         for name, model_info in EXPORTS.items():
             file_model, format_version = model_info
 
@@ -116,22 +136,31 @@ class World(PersistentLevel):
                     output[field_name] = data
 
             if output:
+                # Add format and persistent level fields.
                 wrapped = dict(
                     format=format_version,
                     persistentLevel=self.persistent_level,
                 )
                 wrapped.update(output)
+
+                # Yield the dict for the export stage to save.
                 yield (name, wrapped)
             else:
+                # No data was gathered. Do not export anything.
                 yield (name, None)
 
 
 def find_gatherer_for_export(export: ExportTableItem) -> Optional[Type[MapGathererBase]]:
+    '''
+    Finds a data gathering helper for an export.
+    '''
+    # Retrieve parents if possible. Skip export otherwise.
     try:
         parents = set(find_parent_classes(export, include_self=True))
     except (AssetLoadException, MissingParent):
         return None
 
+    # Find a helper that can accept the export.
     for helper in ALL_GATHERERS:
         if parents & helper.get_ue_types():
             if helper.do_early_checks(export):
