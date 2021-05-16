@@ -7,9 +7,10 @@
         ".vscode/.ropeproject": true,
     },
 
-    "python.jediEnabled": false,
-    "python.languageServer": "Microsoft",
     "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.languageServer": "Pylance",
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.typeCheckingMode": "off",
 
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
