@@ -80,6 +80,11 @@ class Node(Generic[T]):
         self._nodes.append(node)
         return node
 
+    def __contains__(self, data: Union[T, Node[T]]):
+        if isinstance(data, Node):
+            return data in self._nodes
+        return any(node.data is data for node in self._nodes)
+
     def __repr__(self):
         return f'{self.__class__.__name__}({self._data!r})'
 

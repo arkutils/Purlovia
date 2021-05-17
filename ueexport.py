@@ -53,7 +53,7 @@ def collect_asset(assetname: str) -> UAsset:
         arkman.ensureSteamCmd()
         arkman.ensureGameUpdated()
         arkman.ensureModsUpdated(config.mods)
-        initialise_hierarchy(arkman, config)
+        initialise_hierarchy(arkman)
 
     loader = arkman.getLoader()
     # config = get_global_config()

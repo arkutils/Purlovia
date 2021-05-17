@@ -64,7 +64,7 @@ def run():
     arkman.ensureGameUpdated()
     arkman.ensureModsUpdated(config.mods)
 
-    initialise_hierarchy(arkman, config)
+    initialise_hierarchy(arkman)
 
     for result in find_matches():
         output_result(result)

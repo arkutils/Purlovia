@@ -5,23 +5,28 @@ Utilities for easy cache file usage.
 import hashlib
 import json
 import pickle
-import tempfile
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar, Union
 
 from utils.log import get_logger
 
 logger = get_logger(__name__)
 
+TKey = TypeVar('TKey')
+TResult = TypeVar('TResult')
 
-def cache_data(key: object, filename: str, generator_fn: Callable[[object], object], force_regenerate=False):
+
+def cache_data(key: TKey,
+               filename: Union[str, Path],
+               generator_fn: Callable[[TKey], TResult],
+               force_regenerate=False) -> TResult:
     '''
     Manage cacheable data.
     Will return cached data if it exists and its hash matches that of the given key, else will call the generator
     function, save it to a cache file and return the result.
 
     `key` is a JSON-serialisable object specifying any versions needed to uniquely identify the data.
-    `filename` is a name to use for the temp file. If it includes a '/' it will not be prefixed by tempdir.
+    `filename` is a name to use for the temp file.
     `generator_fn` is a (usually slow) function to generate the data that would otherwise be cached.
     This function will be passed the `key` object.
     `force_regenerate` to ignore existing cached data and always regerenate it.
@@ -30,7 +35,7 @@ def cache_data(key: object, filename: str, generator_fn: Callable[[object], obje
         key = { 'version': 1, 'lastModified': 34785643526 }
         data = cached_data(key, 'filename', generate_the_data)
     '''
-    basepath: Path = Path(filename) if '/' in filename else Path(tempfile.gettempdir()) / filename
+    basepath: Path = Path(filename)
     data_filename = basepath.with_suffix('.pickle')
     hash_filename = basepath.with_suffix('.hash')
     key_hash = _hash_from_object(key)

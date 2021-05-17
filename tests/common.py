@@ -45,8 +45,8 @@ def fixture_loader(arkman: ArkSteamManager) -> AssetLoader:
 
 
 @pytest.fixture(name='hierarchy', scope='module')
-def fixture_hierarchy(arkman: ArkSteamManager, config: ConfigFile):
-    initialise_hierarchy(arkman, config)
+def fixture_hierarchy(arkman: ArkSteamManager):
+    initialise_hierarchy(arkman)
 
 
 @pytest.fixture(name='internal_hierarchy', scope='module')
