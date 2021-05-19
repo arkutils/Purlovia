@@ -14,6 +14,7 @@ from utils.log import get_logger
 from .flags import gather_flags
 from .species.attacks import AttackData, gather_attack_data
 from .species.cloning import CloningData, gather_cloning_data
+from .species.death import DeathData, gather_death_data
 from .species.movement import MovementModes, StaminaRates, gather_movement_data
 from .species.xp import LevelData, convert_level_data
 
@@ -118,6 +119,7 @@ class Species(ExportModel):
     movementD: Optional[MovementModes] = Field(None, title="Movement (domesticated)")
     staminaRates: Optional[StaminaRates]
     attack: Optional[AttackData]
+    death: DeathData = DeathData()
 
 
 class SpeciesExportModel(ExportFileModel):
@@ -219,6 +221,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         out.staminaRates = movement.staminaRates
 
         out.attack = gather_attack_data(species)
+        out.death = gather_death_data(species)
 
         return out
 
