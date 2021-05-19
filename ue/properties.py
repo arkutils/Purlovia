@@ -571,7 +571,7 @@ class ObjectProperty(UEBase):
         self._newField('value', ObjectIndex(self))
 
     def format_for_json(self):
-        return self.value
+        return self.value.format_for_json()
 
     def __bool__(self):
         return bool(self.value)
