@@ -265,12 +265,17 @@ class ContextAwareCacheWrapper(CacheManager):
 
 
 class AssetLoader:
-    def __init__(self, modresolver: ModResolver, assetpath='.', cache_manager: CacheManager = None):
+    def __init__(self,
+                 modresolver: ModResolver,
+                 assetpath='.',
+                 cache_manager: CacheManager = None,
+                 rewrites: Dict[str, str] = dict()):
         self.cache: CacheManager = cache_manager or ContextAwareCacheWrapper(UsageBasedCacheManager())
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
+        self.rewrites = rewrites
 
         self.max_memory = 0
         self.max_cache = 0
@@ -308,6 +313,11 @@ class AssetLoader:
     def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset', check_exists=True) -> Optional[Path]:
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
+
+        # Handle any asset path rewrites
+        if self.rewrites:
+            name = self.rewrites.get(name, name)
+
         parts = name.strip('/').split('/')
 
         # Convert mod names to numbers

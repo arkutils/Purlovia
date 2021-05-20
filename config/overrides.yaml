@@ -1394,3 +1394,10 @@ species:
     /Game/Mods/NoUntameables/Lightbug/Lightbug_Character_BaseBP_Tameable:
         remove_variants:
             Base: true
+
+
+rewrites:
+    assets:
+        # Fix mismatched case for Unka_BP_Base (incorrect in mod)
+        /Game/Mods/CI_Dinos/Crystal_Dragons/Unka/Unka_BP_Base:
+            /Game/Mods/CI_Dinos/Crystal_Dragons/unka/Unka_BP_Base

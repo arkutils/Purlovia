@@ -7,6 +7,7 @@
 			"title": "Defaults",
 			"default": {
 				"skip_export": false,
+				"include_in_stages": {},
 				"descriptive_name": null,
 				"add_variants": {},
 				"remove_variants": {},
@@ -26,6 +27,7 @@
 					"region_names": {}
 				},
 				"species_remaps": {},
+				"is_tameable": null,
 				"svgs": {
 					"border_top": 7.2,
 					"border_left": 7.2,
@@ -68,11 +70,23 @@
 			"default": {
 				"min_species": {},
 				"min_items": {},
-				"min_maps": {}
+				"min_maps": {},
+				"ignore_maps": []
 			},
 			"allOf": [
 				{
 					"$ref": "#/definitions/SanityCheckSettings"
+				}
+			]
+		},
+		"rewrites": {
+			"title": "Rewrites",
+			"default": {
+				"assets": {}
+			},
+			"allOf": [
+				{
+					"$ref": "#/definitions/RewriteSettings"
 				}
 			]
 		}
@@ -159,6 +173,14 @@
 					"description": "Set to true to leave this data out of the exported data files",
 					"default": false,
 					"type": "boolean"
+				},
+				"include_in_stages": {
+					"title": "Include In Stages",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "boolean"
+					}
 				},
 				"descriptive_name": {
 					"title": "Descriptive Name",
@@ -299,9 +321,14 @@
 						"type": "string"
 					}
 				},
+				"is_tameable": {
+					"title": "Is Tameable",
+					"description": "If not null, overrides whether wiki.species emits a tameable flag for the species.",
+					"type": "boolean"
+				},
 				"svgs": {
 					"title": "SVGs",
-					"description": "SVG map genration boundaries",
+					"description": "SVG map generation boundaries",
 					"default": {
 						"border_top": 7.2,
 						"border_left": 7.2,
@@ -342,6 +369,28 @@
 					"type": "object",
 					"additionalProperties": {
 						"type": "integer"
+					}
+				},
+				"ignore_maps": {
+					"title": "Ignore Maps",
+					"default": [],
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"RewriteSettings": {
+			"title": "RewriteSettings",
+			"type": "object",
+			"properties": {
+				"assets": {
+					"title": "Assets",
+					"default": {},
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
 					}
 				}
 			}
