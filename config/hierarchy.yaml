@@ -24,6 +24,10 @@
             - '/Script/AIModule.BTTask_BlueprintBase':
                 - '/Script/AIModule.BTTask_BlueprintBase_New'
 - '/Script/Engine.Actor':
+    - '/Script/ShooterGame.MissionType'
+    - '/Script/ShooterGame.SkyBoxLoader'
+    - '/Script/ShooterGame.BaseBoxTrigger':
+        - '/Script/ShooterGame.MissionTrigger'
     - '/Script/Engine.Brush':
         - '/Script/Engine.Volume':
             - '/Script/Engine.PostProcessVolume':
@@ -69,7 +73,8 @@
         - '/Script/ShooterGame.MatineeActorManager'
         - '/Script/ShooterGame.NPCZoneManager'
         - '/Script/ShooterGame.PrimalStructurePlacer'
-        - '/Script/ShooterGame.CustomActorList'
+        - '/Script/ShooterGame.CustomActorList':
+            - '/Script/ShooterGame.PointOfInterestActor'
     - '/Script/Engine.LevelScriptActor'
     - '/Script/Engine.MatineeActor'
     - '/Script/Engine.Note'
@@ -94,7 +99,8 @@
         - '/Script/ShooterGame.SaveGameActorTickable'
     - '/Script/Engine.StaticMeshActor'
     - '/Script/Engine.SkeletalMeshActor'
-    - '/Script/Engine.SplineActor'
+    - '/Script/Engine.SplineActor':
+        - '/Script/ShooterGame.MissionSpline'
     - '/Script/Engine.ReflectionCapture':
         - '/Script/Engine.BoxReflectionCapture'
         - '/Script/Engine.PlaneReflectionCapture'
@@ -103,6 +109,7 @@
     - '/Script/Engine.PlayerStart'
     - '/Script/ShooterGame.BiomeZoneSettings'
     - '/Script/ShooterGame.DroppedItem': # Done
+        - '/Script/ShooterGame.DroppedItemMission'
         - '/Script/ShooterGame.DroppedItemEgg'
         - '/Script/ShooterGame.DroppedItemLowQuality':
             - '/Script/ShooterGame.DroppedItemTorch'
@@ -170,7 +177,9 @@
     - '/Script/ShooterGame.TargetArea'
     - '/Script/ShooterGame.TerrainActor'
 - '/Script/Engine.ActorComponent':
+    - '/Script/ShooterGame.BeamWeaponComponent'
     - '/Script/Engine.SceneComponent':
+        - '/Script/Engine.AudioComponent'
         - '/Script/Engine.PrimitiveComponent':
             - '/Script/Engine.MeshComponent':
                 - '/Script/Engine.SkinnedMeshComponent':
@@ -379,17 +388,13 @@
                 - '/Script/ShooterGame.DyeRegionButtonWidget'
 - '/Script/Engine.World'
 - '/Script/Engine.StaticMesh'
+- '/Script/Engine.SaveGame'
+- '/Script/ShooterGame.HexagonTradableOption'
+- '/Script/ShooterGame.PrimalStaticData':
+    - '/Script/ShooterGame.PrimalStaticData_MissionCompanionData'
+    - '/Script/ShooterGame.PrimalStaticData_MissionCompanionReactionData'
+- '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
+- '/Script/CoreUObject.Interface'
 
 # Unknown, need placing
 - '/Engine/Transient.REINST_ElementWall_Horde_C_8303'
-- '/Script/CoreUObject.Interface'
-- '/Script/ShooterGame.PrimalWorldSettingsEventOverrides'
-- '/Script/ShooterGame.MissionType'
-- '/Script/ShooterGame.PointOfInterestManagerList'
-- '/Script/ShooterGame.PointOfInterestActor'
-- '/Script/Engine.AudioComponent'
-- '/Script/ShooterGame.HexagonTradableOption'
-- '/Script/ShooterGame.SkyBoxLoader'
-- '/Script/ShooterGame.PrimalStaticData_MissionCompanionData'
-- '/Script/ShooterGame.DroppedItemMission'
-- '/Script/ShooterGame.BeamWeaponComponent'
