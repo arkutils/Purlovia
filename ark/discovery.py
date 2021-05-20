@@ -103,19 +103,20 @@ def _process_leftover_relations(entries: Dict[str, Set[str]]):
 
 def _gather_relations(arkman: ArkSteamManager, basepath: Path):
     relations: List[Tuple[str, str]]  # list of (name, parent)
+    exclusions = arkman.config.optimisation.SearchIgnore
 
     basepath.mkdir(parents=True, exist_ok=True)
 
     # Scan core (or read cache)
     cachefile = basepath / 'core'
-    version_key = dict(format=FORMAT_VERSION, game_buildid=arkman.getGameBuildId())
+    version_key = dict(format=FORMAT_VERSION, game_buildid=arkman.getGameBuildId(), exclusions=exclusions)
     relations = cache_data(version_key, cachefile, lambda _: _scan_core(arkman))
 
     # Scan /Game/Mods/<modid> for each installed mod (or read cache)
     for modid in get_managed_mods():
         cachefile = basepath / f'mod-{modid}'
         mod_version = arkman.getModData(modid)['version']  # type:ignore
-        version_key = dict(format=FORMAT_VERSION, mod_version=mod_version)
+        version_key = dict(format=FORMAT_VERSION, mod_version=mod_version, exclusions=exclusions)
         mod_relations = cache_data(version_key, cachefile, lambda _: _scan_mod(modid, arkman))
         relations.extend(mod_relations)
 
