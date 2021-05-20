@@ -26,6 +26,7 @@
 - '/Script/Engine.Actor':
     - '/Script/ShooterGame.MissionType'
     - '/Script/ShooterGame.SkyBoxLoader'
+    - '/Script/ShooterGame.PointOfInterestActor'
     - '/Script/ShooterGame.BaseBoxTrigger':
         - '/Script/ShooterGame.MissionTrigger'
     - '/Script/Engine.Brush':
@@ -74,7 +75,7 @@
         - '/Script/ShooterGame.NPCZoneManager'
         - '/Script/ShooterGame.PrimalStructurePlacer'
         - '/Script/ShooterGame.CustomActorList':
-            - '/Script/ShooterGame.PointOfInterestActor'
+            - '/Script/ShooterGame.PointOfInterestManagerList'
     - '/Script/Engine.LevelScriptActor'
     - '/Script/Engine.MatineeActor'
     - '/Script/Engine.Note'
