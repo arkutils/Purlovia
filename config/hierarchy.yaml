@@ -43,7 +43,9 @@
     - '/Script/Engine.Emitter':
         - '/Script/ShooterGame.SupplyCrateSpawningSettings'
         - '/Script/ShooterGame.PrimalEmitterSpawnable':
-            - '/Script/ShooterGame.PrimalBuff'
+            - '/Script/ShooterGame.PrimalBuff':
+                - '/Script/ShooterGame.PrimalBuff_Companion'
+                - '/Script/ShooterGame.PrimalBuff_Grappled'
     - '/Script/Engine.HierarchicalInstancedStaticMeshActor'
     - '/Script/Engine.HUD':
         - '/Script/ShooterGame.ShooterHUD'
@@ -386,3 +388,8 @@
 - '/Script/ShooterGame.PointOfInterestManagerList'
 - '/Script/ShooterGame.PointOfInterestActor'
 - '/Script/Engine.AudioComponent'
+- '/Script/ShooterGame.HexagonTradableOption'
+- '/Script/ShooterGame.SkyBoxLoader'
+- '/Script/ShooterGame.PrimalStaticData_MissionCompanionData'
+- '/Script/ShooterGame.DroppedItemMission'
+- '/Script/ShooterGame.BeamWeaponComponent'
