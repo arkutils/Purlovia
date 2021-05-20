@@ -1,3 +1,4 @@
+from math import isinf
 from typing import Optional
 
 from ue.base import UEBase
@@ -105,6 +106,8 @@ def clean_float(value):
     '''Round to 7 significant figures. Should be used for outputting all single-precision float data.'''
     if value is None:
         return None
+    if isinf(value):
+        return value
     value = float(format(value, '.7g'))
     int_value = int(value)
     if value == int_value:
@@ -117,6 +120,8 @@ def clean_double(value):
     '''Round to 9 significant figures. Should be used for outputting all double-precision float data.'''
     if value is None:
         return None
+    if isinf(value):
+        return value
     value = float(format(value, '.9g'))
     int_value = int(value)
     if value == int_value:
