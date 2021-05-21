@@ -5,7 +5,7 @@ from pydantic import BaseModel, Extra
 
 from utils.name_convert import snake_to_kebab
 
-from .util_types import IniStringList, ModIdAccess
+from .util_types import IniStringList, ModAliases, ModIdAccess
 
 
 class SettingsSection(BaseModel):
@@ -115,6 +115,7 @@ class ConfigFile(BaseModel):
     display_sections: bool = False
 
     official_mods: ModIdAccess = ModIdAccess(dict())
+    combine_mods: ModAliases = ModAliases(dict())
     mods: Tuple[str, ...] = tuple()
     extract_mods: Optional[Tuple[str, ...]] = None
     extract_maps: Optional[Tuple[str, ...]] = None
