@@ -15,11 +15,14 @@ logger = get_logger(__name__)
 TKey = TypeVar('TKey')
 TResult = TypeVar('TResult')
 
+PICKLE_PROTOCOL = 4
+
 
 def cache_data(key: TKey,
                filename: Union[str, Path],
                generator_fn: Callable[[TKey], TResult],
-               force_regenerate=False) -> TResult:
+               force_regenerate=False,
+               pickle_protocol=PICKLE_PROTOCOL) -> TResult:
     '''
     Manage cacheable data.
     Will return cached data if it exists and its hash matches that of the given key, else will call the generator
@@ -75,7 +78,7 @@ def cache_data(key: TKey,
 
     try:
         with open(data_filename, 'wb') as f_data:
-            pickle.dump(data, f_data, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(data, f_data, protocol=pickle_protocol)
     except IOError:
         logger.exception(f'Unable to save cached data in {hash_filename}')
 
