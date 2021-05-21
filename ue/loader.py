@@ -275,7 +275,8 @@ class AssetLoader:
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
-        self.rewrites = rewrites
+        self.rewrites_to_path = rewrites
+        self.rewrites_to_asset = {v: k for k, v in rewrites.items()}
 
         self.max_memory = 0
         self.max_cache = 0
@@ -315,8 +316,7 @@ class AssetLoader:
         name = self.clean_asset_name(name)
 
         # Handle any asset path rewrites
-        if self.rewrites:
-            name = self.rewrites.get(name, name)
+        name = self.rewrites_to_path.get(name, name)
 
         parts = name.strip('/').split('/')
 
@@ -380,7 +380,8 @@ class AssetLoader:
                         toppath='/',
                         exclude: Union[str, Iterable[str]] = None,
                         extension: Union[str, Iterable[str]] = '.uasset',
-                        return_extension=False):
+                        return_extension=False,
+                        invert=False):
 
         excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
         extensions: Tuple[str, ...] = tuple((extension, )) if isinstance(extension, str) else tuple(extension or ())
@@ -397,19 +398,25 @@ class AssetLoader:
                     continue
 
                 match = re.match(regex, name)
-                if not match:
-                    continue
-
                 partialpath = str(Path(fullpath).relative_to(self.asset_path).with_suffix(''))
                 assetname = self.clean_asset_name(partialpath)
+                assetname = self.rewrites_to_asset.get(assetname, assetname)
+                result = (assetname, ext) if return_extension else assetname
+
+                if not match:
+                    if invert:
+                        yield result
+                    else:
+                        continue
 
                 if any(re.match(exclude, assetname) for exclude in excludes):
-                    continue
+                    if invert:
+                        yield result
+                    else:
+                        continue
 
-                if return_extension:
-                    yield (assetname, ext)
-                else:
-                    yield assetname
+                if not invert:
+                    yield result
 
     def load_related(self, obj: UEBase) -> UAsset:
         if isinstance(obj, Property):
