@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, cast
 
+from ark.overrides import get_overrides_for_item
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
@@ -85,6 +86,13 @@ class ItemsStage(JsonHierarchyExportStage):
 
     def extract(self, proxy: UEProxyStructure) -> Any:
         item: PrimalItem = cast(PrimalItem, proxy)
+
+        asset: UAsset = proxy.get_source().asset
+        assert asset.assetname and asset.default_class
+        modid: Optional[str] = self.manager.loader.get_mod_id(asset.assetname)
+        overrides = get_overrides_for_item(asset.assetname, modid)
+        if overrides.skip_export:
+            return None
 
         out = Item(
             name=get_item_name(item),

@@ -392,6 +392,10 @@ maps:
             border_bottom: 87
 
 
+# Override settings on a per-item basis
+items: {}
+
+
 # Override settings on a per-species basis
 species:
     # Things that aren't really species

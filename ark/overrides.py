@@ -143,6 +143,7 @@ class OverridesFile(BaseModel):
     '''Purlovia data overrides file'''
     defaults: OverrideSettings = OverrideSettings()
     mods: Dict[str, OverrideSettings] = dict()
+    items: Dict[str, OverrideSettings] = dict()
     species: Dict[str, OverrideSettings] = dict()
     maps: Dict[str, OverrideSettings] = dict()
 
@@ -205,6 +206,22 @@ def get_overrides_for_mod(modid: str) -> OverrideSettings:
     modid = modid or ''
     settings: Dict[str, Any] = dict()
     nested_update(settings, _get_overrides_for_mod_dict(modid))
+    return OverrideSettings(**settings)
+
+
+@lru_cache(maxsize=100)
+def _get_overrides_for_item_dict(item: str, modid: str) -> Dict:
+    modid = modid or ''
+    config_file = get_overrides()
+    settings: Dict[str, Any] = dict()
+    nested_update(settings, _get_overrides_for_mod_dict(modid))
+    nested_update(settings, config_file.items.get(item, OverrideSettings()).dict(exclude_unset=True))
+    return settings
+
+
+@lru_cache(maxsize=1024)
+def get_overrides_for_item(item: str, modid: str) -> OverrideSettings:
+    settings = _get_overrides_for_item_dict(item, modid)
     return OverrideSettings(**settings)
 
 
