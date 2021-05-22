@@ -7,6 +7,7 @@ __all__ = [
     'MinMaxRange',
     'MinMaxPowerRange',
     'DecayTime',
+    'ItemChancePair',
 ]
 
 FloatLike = Union[FloatProperty, IntProperty, float, int]
@@ -48,3 +49,8 @@ class MinMaxPowerRange(ExportModel):
 class DecayTime(ExportModel):
     start: FloatProperty
     interval: FloatProperty
+
+
+class ItemChancePair(ExportModel):
+    chance: float = Field(..., description="Chance this item will be selected, in an inclusive range from 0 to 1.")
+    item: str

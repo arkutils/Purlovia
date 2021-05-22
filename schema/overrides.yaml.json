@@ -49,6 +49,14 @@
 				"$ref": "#/definitions/OverrideSettings"
 			}
 		},
+		"items": {
+			"title": "Items",
+			"default": {},
+			"type": "object",
+			"additionalProperties": {
+				"$ref": "#/definitions/OverrideSettings"
+			}
+		},
 		"species": {
 			"title": "Species",
 			"default": {},

@@ -1,7 +1,7 @@
 from itertools import repeat
 from typing import Mapping
 
-from ue.properties import ArrayProperty, LinearColor, ObjectProperty
+from ue.properties import ArrayProperty, LinearColor, ObjectProperty, StructProperty
 from ue.proxy import LazyReference, ProxyComponent, UEProxyStructure, uebools, uebytes, uefloats, ueints, uestrings
 
 STAT_COUNT = 12
@@ -264,6 +264,13 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # Experience
     OverrideDinoMaxExperiencePoints = uefloats(0)
     DestroyTamesOverLevelClampOffset = ueints(0)
+
+    # Death Loot
+    DeathGivesDossierIndex = ueints(-1)
+    KillXPBase = uefloats(2.0)
+    DeathInventoryChanceToUse = uefloats(0.0)
+    DeathInventoryTemplates: Mapping[int, StructProperty]  # = {Weights: [], AssociatedObjects: []}
+    DeathGiveEngramClasses: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
 
