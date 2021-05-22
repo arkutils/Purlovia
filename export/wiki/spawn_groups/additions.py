@@ -14,14 +14,14 @@ __all__ = [
 
 
 class RuntimeGroupAddition(ExportModel):
-    bp: Optional[str] = Field(...)
+    bp: str = Field(...)
     entries: List[NpcGroup] = list()
     limits: List[NpcLimit] = list()
 
 
 def _merge_changes(dc: Dict[str, List[RuntimeGroupAddition]]) -> List[RuntimeGroupAddition]:
     vs = []
-    for klass_name, changes in dc.items():
+    for _, changes in dc.items():
         if len(changes) == 1:
             vs.append(changes[0])
             continue
@@ -67,7 +67,6 @@ def segregate_container_additions(pgd: UAsset) -> Optional[List[RuntimeGroupAddi
             continue
 
         # Append to the fragment list
-        klass_name = klass.format_for_json()
-        changes[klass_name].append(out)
+        changes[out.bp].append(out)
 
     return _merge_changes(changes)
