@@ -21,7 +21,7 @@ def teardown_function():
 
 def get_cached_data(key, _simple_data_fn, mocker: MockFixture, name='data', force=False):
     data_fn_mock = mocker.Mock(wraps=_simple_data_fn, name='_simple_data_fn')
-    result = cache_data(key, PREFIX + '_' + name, data_fn_mock, force_regenerate=force)
+    result = cache_data(key, TMP / (PREFIX+'_'+name), data_fn_mock, force_regenerate=force)
     return (result, data_fn_mock.call_count)
 
 

@@ -409,7 +409,7 @@ species:
         skip_export: true
 
     # Primitive Plus
-    /Game/Mods/PrimitivePlus/ShooterGame/Content/Mods/PrimitivePlusMod/Blueprints/VehicleBP_RowBoat_BP:
+    /Game/Mods/PrimitivePlusMod/Blueprints/VehicleBP_RowBoat_BP:
         skip_export: true
 
     # Gaia
@@ -1394,3 +1394,17 @@ species:
     /Game/Mods/NoUntameables/Lightbug/Lightbug_Character_BaseBP_Tameable:
         remove_variants:
             Base: true
+
+
+# Rewrites convert in-game asset references to on-disk asset paths
+rewrites:
+    assets:
+        # Remap the internal parts of PrimitivePlus
+        /Game/Mods/APS/:
+            /Game/Mods/PrimitivePlus/ShooterGame/Content/Mods/APS/
+        /Game/Mods/PrimitivePlusMod/:
+            /Game/Mods/PrimitivePlus/ShooterGame/Content/Mods/PrimitivePlusMod/
+
+        # Fix mismatched case for Unka_BP_Base (incorrect in mod)
+        /Game/Mods/CI_Dinos/Crystal_Dragons/Unka/:
+            /Game/Mods/CI_Dinos/Crystal_Dragons/unka/

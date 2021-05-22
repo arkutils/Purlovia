@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from itertools import islice
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Set, Tuple, Union
 
 import psutil  # type: ignore
 
@@ -265,12 +265,24 @@ class ContextAwareCacheWrapper(CacheManager):
 
 
 class AssetLoader:
-    def __init__(self, modresolver: ModResolver, assetpath='.', cache_manager: CacheManager = None):
+    def __init__(self,
+                 modresolver: ModResolver,
+                 assetpath='.',
+                 cache_manager: CacheManager = None,
+                 rewrites: Dict[str, str] = dict(),
+                 mod_aliases: Dict[str, Set[str]] = dict()):
         self.cache: CacheManager = cache_manager or ContextAwareCacheWrapper(UsageBasedCacheManager())
         self.asset_path = Path(assetpath)
         self.absolute_asset_path = self.asset_path.absolute().resolve()  # need both absolute and resolve here
         self.modresolver = modresolver
         self.modresolver.initialise()
+        self.rewrites_to_path = rewrites
+        self.rewrites_to_asset = {v: k for k, v in rewrites.items()}
+        self.mod_to_aliases = mod_aliases
+        self.alias_to_mods: Dict[str, str] = dict()
+        for mod_tag, aliases in mod_aliases.items():
+            for alias in aliases:
+                self.alias_to_mods[alias] = mod_tag
 
         self.max_memory = 0
         self.max_cache = 0
@@ -308,6 +320,13 @@ class AssetLoader:
     def convert_asset_name_to_path(self, name: str, partial=False, ext='.uasset', check_exists=True) -> Optional[Path]:
         '''Get the filename from which an asset can be loaded.'''
         name = self.clean_asset_name(name)
+
+        # Handle any asset path rewrites
+        for prefix_from, prefix_to in self.rewrites_to_path.items():
+            if name.startswith(prefix_from):
+                name = prefix_to + name[len(prefix_from):]
+                break
+
         parts = name.strip('/').split('/')
 
         # Convert mod names to numbers
@@ -348,8 +367,11 @@ class AssetLoader:
         if parts[0].lower() != 'game' or parts[1].lower() != 'mods':
             return None
         mod: Optional[str] = parts[2]
-        if mod and mod.isnumeric():
-            mod = self.modresolver.get_name_from_id(mod)
+        if mod:
+            if mod.isnumeric():
+                mod = self.modresolver.get_name_from_id(mod)
+            else:
+                mod = self.alias_to_mods.get(mod, mod)
         return mod
 
     def get_mod_id(self, assetname: str) -> Optional[str]:
@@ -362,7 +384,7 @@ class AssetLoader:
             return None
         mod: Optional[str] = parts[2]
         if mod and not mod.isnumeric():
-            mod = self.modresolver.get_id_from_name(mod)
+            mod = self.modresolver.get_id_from_name(self.alias_to_mods.get(mod, mod))
         return mod
 
     def find_assetnames(self,
@@ -370,7 +392,8 @@ class AssetLoader:
                         toppath='/',
                         exclude: Union[str, Iterable[str]] = None,
                         extension: Union[str, Iterable[str]] = '.uasset',
-                        return_extension=False):
+                        return_extension=False,
+                        invert=False):
 
         excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
         extensions: Tuple[str, ...] = tuple((extension, )) if isinstance(extension, str) else tuple(extension or ())
@@ -387,19 +410,31 @@ class AssetLoader:
                     continue
 
                 match = re.match(regex, name)
-                if not match:
-                    continue
-
                 partialpath = str(Path(fullpath).relative_to(self.asset_path).with_suffix(''))
                 assetname = self.clean_asset_name(partialpath)
 
-                if any(re.match(exclude, assetname) for exclude in excludes):
-                    continue
+                # Handle any asset path rewrites
+                for prefix_from, prefix_to in self.rewrites_to_asset.items():
+                    if assetname.startswith(prefix_from):
+                        assetname = prefix_to + assetname[len(prefix_from):]
+                        break
 
-                if return_extension:
-                    yield (assetname, ext)
-                else:
-                    yield assetname
+                result = (assetname, ext) if return_extension else assetname
+
+                if not match:
+                    if invert:
+                        yield result
+                    else:
+                        continue
+
+                if any(re.match(exclude, assetname) for exclude in excludes):
+                    if invert:
+                        yield result
+                    else:
+                        continue
+
+                if not invert:
+                    yield result
 
     def load_related(self, obj: UEBase) -> UAsset:
         if isinstance(obj, Property):

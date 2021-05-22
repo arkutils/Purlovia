@@ -89,7 +89,7 @@ def run(config: ConfigFile):
         git.before_exports()
 
         # Initialise the asset hierarchy, scanning everything
-        ark.discovery.initialise_hierarchy(arkman, config)
+        ark.discovery.initialise_hierarchy(arkman)
 
         # Handle exporting
         exporter = ExportManager(arkman, git, config)

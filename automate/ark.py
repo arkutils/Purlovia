@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional, Sequence, Set, Union
 
 import requests
 
+from ark.overrides import get_overrides
 from config import ConfigFile, get_global_config
 from ue.loader import AssetLoader, ModNotFound, ModResolver
 from utils.log import get_logger
@@ -61,8 +62,10 @@ class ArkSteamManager:
 
     def createLoader(self) -> AssetLoader:
         '''Create an asset loader pointing at the managed game install.'''
+        rewrites = get_overrides().rewrites.assets or dict()
+        mod_aliases = self.config.combine_mods.src_to_aliases
         modresolver = ManagedModResolver(self)
-        loader = AssetLoader(modresolver, self.asset_path)
+        loader = AssetLoader(modresolver, self.asset_path, rewrites=rewrites, mod_aliases=mod_aliases)
         return loader
 
     def getInstalledMods(self) -> Optional[Dict[str, Dict]]:

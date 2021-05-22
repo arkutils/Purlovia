@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
-from ark.mod import get_core_mods, get_separate_mods
+from ark.mod import get_aliases_for_mod, get_core_mods, get_separate_mods
 from ark.overrides import get_overrides_for_mod
 from automate.ark import ArkSteamManager
 from config import ConfigFile, get_global_config
@@ -293,8 +293,15 @@ class ExportManager:
         Classes that have a 'Default__' counterpart are excluded from the output.
         By default the results are sorted by class fullname.
         '''
-        # Work out the base path for this mod
-        mod_path = self.loader.clean_asset_name(f'/Game/Mods/{modid}') + '/'
+        # Look for other mods that should be combined
+        mod_tag = self.loader.get_mod_name(f'/Game/Mods/{modid}/')
+        if not mod_tag:
+            raise ValueError("Mod not found: " + modid)
+        mod_tags: Set[str] = get_aliases_for_mod(mod_tag)
+        mod_tags |= {mod_tag}
+
+        # Work out the base path for these mods
+        mod_paths = tuple(self.loader.clean_asset_name(f'/Game/Mods/{id}') + '/' for id in mod_tags)
 
         # Gather classes of this type in the mod
         classes: Set[str] = set()
@@ -302,10 +309,10 @@ class ExportManager:
             if filter and not filter(cls_name):
                 continue
 
-            if not cls_name.startswith(mod_path):
-                continue
-
-            classes.add(cls_name)
+            for mod_path in mod_paths:
+                if cls_name.startswith(mod_path):
+                    classes.add(cls_name)
+                    break
 
         # The rest of the work is shared
         yield from self._iterate_exports(classes, sort)

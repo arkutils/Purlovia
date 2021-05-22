@@ -135,6 +135,10 @@ class SanityCheckSettings(BaseModel):
     ignore_maps: List[str] = list()
 
 
+class RewriteSettings(BaseModel):
+    assets: Dict[str, str] = dict()
+
+
 class OverridesFile(BaseModel):
     '''Purlovia data overrides file'''
     defaults: OverrideSettings = OverrideSettings()
@@ -143,6 +147,7 @@ class OverridesFile(BaseModel):
     maps: Dict[str, OverrideSettings] = dict()
 
     sanity_checks: SanityCheckSettings = SanityCheckSettings()
+    rewrites: RewriteSettings = RewriteSettings()
 
     class Config:
         title = 'Purlovia Overrides'

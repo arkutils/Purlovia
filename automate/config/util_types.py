@@ -1,4 +1,4 @@
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Set
 
 __all__ = [
     'IniStringList',
@@ -54,3 +54,24 @@ class ModIdAccess:
 
     def tag_from_id(self, modid: str):
         return self.ids_to_tags.get(modid.lower(), None)
+
+
+class ModAliases:
+    '''Provide bi-directional access to alias <-> modid.'''
+    alias_to_src: Dict[str, str]
+    src_to_aliases: Dict[str, Set[str]]
+
+    def __init__(self, source: Dict[str, str]):
+        self.alias_to_src = dict(source)
+        self.src_to_aliases = dict()
+        for alias, src in source.items():
+            aliases = self.src_to_aliases.setdefault(src, set())
+            aliases.add(alias)
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value):
+        return value
