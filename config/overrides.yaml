@@ -326,6 +326,11 @@ mods:
             wiki.biome_maps: true
             wiki.spawn_maps: true
 
+    1999447172: # Super Structures
+        include_in_stages: # disable anything species-related
+            asb: false
+            wiki.species: false
+
 
 # Override settings on a per-map basis
 maps:
