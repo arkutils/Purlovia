@@ -427,33 +427,47 @@ species:
 
     # These will not be exported as they are only baseclasses
     /Game/Aberration/Boss/Rockwell/Rockwell_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Aberration/Boss/RockwellTentacle/RockwellTentacle_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Extinction/Dinos/Corrupt/Raptor/BabyRaptor_Character_BP_Corrupt:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndBoss_Character:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossDragon/EndBossDragon_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossGorilla/EndBossGorilla_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossSpider/EndBossSpiderL_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Genesis/Dinos/EelBoss/EelBoss_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Genesis/Dinos/EelBoss/EelMinion_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Gorilla/Gorilla_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Spider-Large/SpiderL_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/ScorchedEarth/Dinos/Manticore/Manticore_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
 
     # Manual variant modifications
     /Game/Aberration/Dinos/Lightbug/Lightbug_Character_BaseBP:
@@ -1359,7 +1373,8 @@ species:
 
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
-        skip_export: true
+        add_variants:
+            Base: true
 
     /Game/PrimalEarth/Dinos/Griffin/Griffin_Character_BP:
         add_variants:
