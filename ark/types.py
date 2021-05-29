@@ -290,6 +290,7 @@ class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):
 
     ColorDefinitions: Mapping[int, ArrayProperty]  # = []
     MasterDyeList: Mapping[int, ArrayProperty]  # = []
+    ExplorerNoteEntries: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
 

@@ -12,6 +12,7 @@ from export.asb.root import ASBRoot
 from export.maps.root import WikiMapsRoot
 from export.sanity.root import SanityRoot
 from export.wiki.root import WikiRoot
+from export.wiki_nonpublic.root import WikiNonPublicRoot
 from utils.log import get_logger
 
 from .ark import ArkSteamManager
@@ -33,6 +34,7 @@ ROOT_TYPES = (
     SanityRoot,
     ASBRoot,
     WikiRoot,
+    WikiNonPublicRoot,
     WikiMapsRoot,
 )
 
