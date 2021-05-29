@@ -37,6 +37,12 @@ defaults:
     pathname_variant_parts:
         NoOverspawn: true
 
+    # Variants picked up from flags
+    variants_from_flags:
+        bIsBossDino: Boss
+        bIsCorrupted: Corrupted
+        bIsVehicle: Vehicle
+
     # Rename these variants, if present
     variant_renames:
         Med: Medium
@@ -53,6 +59,7 @@ defaults:
     # If these variants are found, the object will not be exported for ASB
     variants_to_skip_export_asb:
         InitialBuryOnly: true
+        Vehicle: true
 
     # If these variants are found, remove the given part of the descriptive name
     variants_to_remove_name_parts:
@@ -404,26 +411,9 @@ items: {}
 # Override settings on a per-species basis
 species:
     # Things that aren't really species
-    /Game/PrimalEarth/Items/Raft/MotorRaft_BP:
-        skip_export: true
-    /Game/PrimalEarth/Items/Raft/Raft_BP:
-        skip_export: true
-    /Game/PrimalEarth/Vehicles/VH_Buggy/Blueprint/VH_Buggy:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Race/TekHoverSkiff_Character_BP_Race:
-        skip_export: true
-    /Game/Genesis/Dinos/TEKHoverSkiff/TekHoverSkiff_Character_BP:
-        skip_export: true
-    /Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP:
-        skip_export: true
-
-    # Primitive Plus
-    /Game/Mods/PrimitivePlusMod/Blueprints/VehicleBP_RowBoat_BP:
-        skip_export: true
-
-    # Gaia
-    /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
-        skip_export: true
+    # /Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP:
+    #     add_variants:
+    #         Vehicle: true
 
     # These will not be exported as they are only baseclasses
     /Game/Aberration/Boss/Rockwell/Rockwell_Character_BP:

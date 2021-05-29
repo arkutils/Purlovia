@@ -76,6 +76,10 @@ class OverrideSettings(BaseModel):
         dict(),
         description="Explicitly remove variants from this entity, in for dict form `variant: true`",
     )
+    variants_from_flags: Dict[str, Union[str, List[str]]] = Field(
+        dict(),
+        description="Variants that will be added if the given UE flag field is present and true",
+    )
     variant_renames: Dict[str, Union[str, List[str]]] = Field(
         dict(),
         description="Rename these variants, if present, in the dict form `fromname: toname`",

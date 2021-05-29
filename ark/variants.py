@@ -58,11 +58,11 @@ def adjust_name_from_variants(name: str, variants: set, overrides: OverrideSetti
 def get_variants_from_species(char: PrimalDinoCharacter, overrides: OverrideSettings) -> Set[str]:
     variants: Set[str] = set()
 
-    # Handle basic features
-    if char.bIsBossDino[0]:
-        variants.add('Boss')
-    if char.bIsCorrupted[0]:
-        variants.add('Corrupted')
+    # Handle flags
+    for flag, target in overrides.variants_from_flags.items():
+        if char.get(flag, 0, fallback=False):
+            for label in target if isinstance(target, list) else [target]:
+                variants.add(label)
 
     # Search for variants in the descriptive name using supplied regexes
     descriptive_name = str(char.DescriptiveName[0] or '')
