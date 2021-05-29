@@ -107,7 +107,7 @@ class Species(ExportModel):
         description="Relevant boolean flags that are True for this species",
     )
 
-    levelCaps: Optional[LevelData]
+    leveling: LevelData = LevelData()
     cloning: Optional[CloningData] = Field(
         None,
         description="Full cost is determined by Ceil(costBase + costLevel x CharacterLevel). " +
@@ -158,7 +158,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "2"
+        return "3"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()
@@ -207,7 +207,8 @@ class SpeciesStage(JsonHierarchyExportStage):
         if is_creature_tameable(species, variants, overrides):
             out.flags.append('isTameable')
 
-        out.levelCaps = convert_level_data(species, dcsc)
+        if not species.bIsBossDino[0]:
+            out.leveling = convert_level_data(species, dcsc)
         out.cloning = gather_cloning_data(species)
 
         out.falling = FallingData(

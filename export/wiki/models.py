@@ -10,6 +10,7 @@ __all__ = [
     'ItemChancePair',
 ]
 
+IntLike = Union[IntProperty, int]
 FloatLike = Union[FloatProperty, IntProperty, float, int]
 
 
@@ -32,6 +33,12 @@ class WeighedClassSwap(ExportModel):
 
 
 class MinMaxRange(ExportModel):
+    min: FloatLike
+    max: FloatLike
+
+
+class MinMaxChanceRange(ExportModel):
+    chance: float
     min: FloatLike
     max: FloatLike
 

@@ -1,9 +1,11 @@
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from ark.types import COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field
-from ue.properties import FloatProperty, IntProperty, PropertyTable
+from export.wiki.models import FloatLike, IntLike, MinMaxChanceRange
+from ue.properties import PropertyTable
+from ue.utils import clean_float
 
 
 class LevelExperienceRampType(Enum):
@@ -19,29 +21,34 @@ class LevelExperienceRampType(Enum):
     MAX = 4
 
 
+OFFICIAL_SERVER_MAX_TAME_LEVEL = 450
+
+
 class LevelData(ExportModel):
-    ramp: str = Field(
+    wildOverride: Optional[IntLike] = None
+    wildLevelTable: List[MinMaxChanceRange] = [
+        MinMaxChanceRange(chance=0.5405405, min=1.0, max=5.0),  # weight = 1.0
+        MinMaxChanceRange(chance=0.2702703, min=6.0, max=12.0),  # weight = 0.5
+        MinMaxChanceRange(chance=0.1351351, min=13.0, max=20.0),  # weight = 0.25
+        MinMaxChanceRange(chance=0.05405405, min=21.0, max=30.0),  # weight = 0.1
+    ]
+
+    experienceRamp: str = Field(
         'DinoEasy',
         description="Name of ramp that describes amount of experience needed to progress.",
     )
-    maxExperience: Optional[FloatProperty]
-    maxLevels: Optional[int] = Field(
-        None,
-        title="Max Level Ups",
+    maxExperience: FloatLike = 3550010
+    maxTameLevels: int = Field(
+        73,
         description="Max amount of level ups this species can have at default server settings.",
     )
-    capOffset: Optional[IntProperty] = Field(
-        None,
-        title="Tame Level Cap Offset",
-        description=
-        "Number of extra levels (above normal cap) this species can gain when tamed without getting destroyed by validation",
+    officialCap: IntLike = Field(
+        OFFICIAL_SERVER_MAX_TAME_LEVEL,
+        description="Max allowed level this species can have before getting destroyed on official servers.",
     )
 
 
-def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> Optional[LevelData]:
-    if bool(species.bIsBossDino[0]):
-        return None
-
+def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> LevelData:
     pgd_asset = species.get_source().asset.loader[COREMEDIA_PGD_PKG]
     assert pgd_asset.default_export
     pgd: PropertyTable = pgd_asset.default_export.properties
@@ -58,24 +65,52 @@ def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusCo
     # Export ramp type and find one from PGD
     ramp_type = dcsc.LevelExperienceRampType[0].get_enum_value_name()
     if ramp_type != LevelExperienceRampType.DinoEasy.name:
-        result.ramp = ramp_type
+        result.experienceRamp = ramp_type
 
+    # Calculate max levels out of max XP.
     ramp_id = LevelExperienceRampType[ramp_type].value
     ramp_prop = pgd.get_property('LevelExperienceRamps', index=ramp_id, fallback=None)
     if not ramp_prop:
-        # No ramp (MAX).
-        result.maxLevels = 0
+        # No ramp (MAX). Tame level ups not possible.
+        result.maxTameLevels = 0
     else:
         ramp = ramp_prop.values[0].value
         # Find highest level using a vanilla ramp
         for index, threshold in enumerate(ramp.values):
             if result.maxExperience >= threshold:
-                result.maxLevels = index + 1
+                result.maxTameLevels = index + 1
             else:
                 break
 
-    # Level cap offset
+    # Official servers' level cap
     if species.has_override('DestroyTamesOverLevelClampOffset'):
-        result.capOffset = species.DestroyTamesOverLevelClampOffset[0]
+        result.officialCap = OFFICIAL_SERVER_MAX_TAME_LEVEL + species.DestroyTamesOverLevelClampOffset[0]
+
+    # Wild spawn levels
+    if species.bUseFixedSpawnLevel[0]:
+        # Forced base level. Does not scale with difficulty.
+        result.wildOverride = species.AbsoluteBaseLevel[0]
+    else:
+        # Weighed level range table.
+        level_weights = species.get('DinoBaseLevelWeightEntries', fallback=None)
+        out_level_table = list()
+
+        if level_weights and level_weights.values:
+            weight_sum = 0
+            entries = list()
+            final_mult = species.FinalNPCLevelMultiplier[0]
+
+            # Gather the data into a temporary list, with weight and range.
+            for entry in level_weights:
+                d = entry.as_dict()
+                entries.append((d['EntryWeight'], d['BaseLevelMinRange'] * final_mult, d['BaseLevelMaxRange'] * final_mult))
+                weight_sum += d['EntryWeight']
+
+            # Pack gathered data into MinMaxChanceRanges with calculated chances. The properties cannot be modified through INI
+            # configs.
+            for weight, min_lvl, max_lvl in entries:
+                out_level_table.append(MinMaxChanceRange(chance=clean_float(weight / weight_sum), min=min_lvl, max=max_lvl))
+
+        result.wildLevelTable = out_level_table
 
     return result
