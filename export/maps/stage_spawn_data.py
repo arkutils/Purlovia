@@ -9,7 +9,7 @@ from ue.hierarchy import find_sub_classes
 from utils.log import get_logger
 
 from .common import order_growing
-from .spawn_maps.consts import MERGED_DINOS
+from .spawns_consts import MERGED_DINOS
 from .stage_base import JsonProcessingStage, ModType
 
 logger = get_logger(__name__)

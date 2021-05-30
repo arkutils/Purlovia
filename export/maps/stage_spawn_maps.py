@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from utils.log import get_logger
 
 from .common import SVGBoundaries, get_svg_bounds_for_map, order_growing, remove_unicode_control_chars
-from .spawn_maps.consts import SVG_SIZE
+from .spawns_consts import SVG_SIZE
 from .stage_base import JsonProcessingStage, ModType
 
 logger = get_logger(__name__)
@@ -92,8 +92,13 @@ class ProcessSpawnMapsStage(JsonProcessingStage):
                     if self.manager.loader.get_mod_id(creature_bp) != modid:
                         continue
 
+                # Check if creature is tameable according to wiki.species. Output a warning if it can't be found.
+                is_tameable = species_tamability.get(creature_bp, None)
+                if is_tameable is None:
+                    is_tameable = True
+                    logger.warning(f'Species encountered when generating maps but missing from wiki.species: {creature_bp}')
+
                 # Generate the SVG.
-                is_tameable = species_tamability.get(creature_bp, True)
                 bounds = get_svg_bounds_for_map(mapdata[name]['level'])
                 svg_contents = self._build_svg(bounds, creature_bp, zones, is_tameable)
 

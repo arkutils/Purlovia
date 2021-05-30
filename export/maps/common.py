@@ -5,7 +5,7 @@ from typing import Tuple
 
 from ark.overrides import get_overrides_for_map
 
-from .spawn_maps.consts import SVG_SIZE
+from .spawns_consts import SVG_SIZE
 
 SVGBoundaries = namedtuple('SVGBoundaries', ('size', 'border_top', 'border_left', 'coord_width', 'coord_height'))
 
