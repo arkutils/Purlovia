@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from ark.types import COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field
-from export.wiki.models import FloatLike, IntLike, MinMaxChanceRange
+from export.wiki.models import BoolLike, FloatLike, IntLike, MinMaxChanceRange
 from ue.properties import PropertyTable
 from ue.utils import clean_float
 
@@ -21,11 +21,12 @@ class LevelExperienceRampType(Enum):
     MAX = 4
 
 
-OFFICIAL_SERVER_MAX_TAME_LEVEL = 450
-
-
 class LevelData(ExportModel):
-    wildOverride: Optional[IntLike] = None
+    wildForcedLevel: Optional[IntLike] = Field(None, description="A value here means the spawns will not respect difficulty.")
+    ignoresLevelModifiers: BoolLike = Field(
+        False,
+        description="Forced level will also not be influenced by spawner's level scaling or other settings on the species.",
+    )
     wildLevelTable: List[MinMaxChanceRange] = [
         MinMaxChanceRange(chance=0.5405405, min=1.0, max=5.0),  # weight = 1.0
         MinMaxChanceRange(chance=0.2702703, min=6.0, max=12.0),  # weight = 0.5
@@ -33,7 +34,7 @@ class LevelData(ExportModel):
         MinMaxChanceRange(chance=0.05405405, min=21.0, max=30.0),  # weight = 0.1
     ]
 
-    experienceRamp: str = Field(
+    xpRamp: str = Field(
         'DinoEasy',
         description="Name of ramp that describes amount of experience needed to progress.",
     )
@@ -42,9 +43,11 @@ class LevelData(ExportModel):
         73,
         description="Max amount of level ups this species can have at default server settings.",
     )
-    officialCap: IntLike = Field(
-        OFFICIAL_SERVER_MAX_TAME_LEVEL,
-        description="Max allowed level this species can have before getting destroyed on official servers.",
+    levelCapOffset: IntLike = Field(
+        0,
+        description=
+        "Extra levels this species can have before getting destroyed on servers with the DestroyTamesOverLevelClamp setting "
+        "enabled.",
     )
 
 
@@ -65,7 +68,7 @@ def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusCo
     # Export ramp type and find one from PGD
     ramp_type = dcsc.LevelExperienceRampType[0].get_enum_value_name()
     if ramp_type != LevelExperienceRampType.DinoEasy.name:
-        result.experienceRamp = ramp_type
+        result.xpRamp = ramp_type
 
     # Calculate max levels out of max XP.
     ramp_id = LevelExperienceRampType[ramp_type].value
@@ -84,12 +87,19 @@ def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusCo
 
     # Official servers' level cap
     if species.has_override('DestroyTamesOverLevelClampOffset'):
-        result.officialCap = OFFICIAL_SERVER_MAX_TAME_LEVEL + species.DestroyTamesOverLevelClampOffset[0]
+        result.levelCapOffset = species.DestroyTamesOverLevelClampOffset[0]
 
     # Wild spawn levels
-    if species.bUseFixedSpawnLevel[0]:
+    base_level_override = species.AbsoluteBaseLevel[0]
+    fixed_level = species.bUseFixedSpawnLevel[0]
+    if base_level_override != 0 or fixed_level:
         # Forced base level. Does not scale with difficulty.
-        result.wildOverride = species.AbsoluteBaseLevel[0]
+        result.wildForcedLevel = base_level_override or 1
+        result.ignoresLevelModifiers = fixed_level
+
+        # If level modifiers are enabled, multiply the level by final level multiplier.
+        if not fixed_level:
+            result.wildForcedLevel *= species.FinalNPCLevelMultiplier[0]
     else:
         # Weighed level range table.
         level_weights = species.get('DinoBaseLevelWeightEntries', fallback=None)

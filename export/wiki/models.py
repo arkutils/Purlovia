@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Union
 
 from automate.hierarchy_exporter import ExportModel, Field
-from ue.properties import FloatProperty, IntProperty
+from ue.properties import BoolProperty, FloatProperty, IntProperty
 
 __all__ = [
     'MinMaxRange',
@@ -10,6 +10,7 @@ __all__ = [
     'ItemChancePair',
 ]
 
+BoolLike = Union[BoolProperty, bool]
 IntLike = Union[IntProperty, int]
 FloatLike = Union[FloatProperty, IntProperty, float, int]
 

@@ -268,7 +268,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     OverrideDinoMaxExperiencePoints = uefloats(0)
     DestroyTamesOverLevelClampOffset = ueints(0)
     bUseFixedSpawnLevel = uebools(False)
-    AbsoluteBaseLevel = ueints(-1)
+    AbsoluteBaseLevel = ueints(0)
     FinalNPCLevelMultiplier = uefloats(1.0)
     DinoBaseLevelWeightEntries: Mapping[int, ArrayProperty]  # = []
 
