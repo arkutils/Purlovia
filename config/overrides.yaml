@@ -1409,6 +1409,17 @@ species:
         remove_variants:
             Base: true
 
+    # Creatures misdetected as base classes though they have wild spawns
+    /Game/Mods/Primal_Fear/Dinos/Chaos/Wyverns/Chaos/WyvernGuardian_Character_BP_Base_Child_Chaos_Tamed:
+        remove_variants:
+            Base: true
+    /Game/Mods/AE/Dinos/Elemental/Dimorph/Lightning/Dimorph_Character_BP_Base_AE_Lightning:
+        remove_variants:
+            Base: true
+    /Game/Mods/AE/Dinos/Elemental/Dimorph/Fire/Dimorph_Character_BP_Base_AE_Fire:
+        remove_variants:
+            Base: true
+
 
 # Rewrites convert in-game asset references to on-disk asset paths
 rewrites:
