@@ -1,14 +1,13 @@
 import shutil
 from collections import namedtuple
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, Optional
 
-from ark.mod import get_official_mods
-from ark.overrides import get_overrides_for_map
+from ark.overrides import get_overrides_for_map, get_overrides_for_mod
 from utils.log import get_logger
 
 from .common import SVGBoundaries, remove_unicode_control_chars
-from .spawn_maps.game_mod import merge_game_mod_groups
+from .spawn_maps.game_mod import apply_remaps, is_custom_map, merge_game_mod_groups
 from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
 from .spawn_maps.svg import generate_svg_map
 from .spawn_maps.swaps import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
@@ -29,159 +28,145 @@ class ProcessSpawnMapsStage(ProcessingStage):
         return "spawn_maps"
 
     def extract_core(self, _: Path):
-        # Find data of maps with NPC spawns
-        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in self.wiki_path.glob('*/npc_spawns.json')]
-
-        # Load ASB and spawning group data
-        data_asb = self._load_asb(None)
-        data_groups, data_swaps = self._get_spawning_groups(None)
-        if not data_asb or not data_groups:
-            logger.debug('Data required by the processor is missing or invalid. Skipping.')
-            return
-
-        self._process_all_maps(maps, self.wiki_path, data_asb, data_groups, data_swaps, None)
+        self.get_data_and_generate(None)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
         assert mod_data
-        mod_type = int(mod_data.get('type', 1))
-        if mod_type == 2 or modid in get_official_mods():
-            self._map_mod_generate_svgs(modid, mod_data['name'])
-        elif mod_type == 1:
-            self._game_mod_generate_svgs(modid, mod_data['name'])
-
-    def _load_asb(self, modid: Optional[str]):
-        path = self.asb_path
         if modid:
-            mod_data = self.manager.arkman.getModData(modid)
-            assert mod_data
-            path = (path / f'{modid}-{mod_data["name"]}.json')
+            overrides = get_overrides_for_mod(modid)
+            if overrides.skip_spawn_maps:
+                return
+
+        self.get_data_and_generate(mod_data)
+
+    def load_asb(self, modid: Optional[str]):
+        if modid:
+            path = (self.asb_path / f'{self.get_mod_subroot_name(modid)}.json')
         else:
-            path = (path / 'values.json')
+            path = (self.asb_path / 'values.json')
         return self.load_json_file(path)
 
-    def _load_spawning_groups(self, modid: Optional[str]):
-        path = self.wiki_path
+    def load_spawning_groups(self, modid: Optional[str]):
         if modid:
-            mod_data = self.manager.arkman.getModData(modid)
-            assert mod_data
-            path = (path / f'{modid}-{mod_data["name"]}/spawn_groups.json')
+            path = (self.wiki_path / self.get_mod_subroot_name(modid) / 'spawn_groups.json')
         else:
-            path = (path / 'spawn_groups.json')
+            path = (self.wiki_path / 'spawn_groups.json')
         return self.load_json_file(path)
 
-    def _get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):
-        core_data = self._load_spawning_groups(None)
+    def get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):
+        core_data = self.load_spawning_groups(None)
         if not core_data:
             return None, None
         swaps = core_data['classSwaps']
 
+        # Load data from separated official mods
+        for official_mod in self.manager.config.settings.SeparateOfficialMods:
+            core_data_2 = self.load_spawning_groups(official_mod)
+            if core_data_2:
+                core_data['spawngroups'] += core_data_2['spawngroups']
+
         # Load mod data and merge it with core
         if modid:
-            mod_data = self._load_spawning_groups(modid)
+            mod_data = self.load_spawning_groups(modid)
             if not mod_data:
+                # No data exists.
                 return None, None
+            # Join group container lists
             mod_data['spawngroups'] += core_data['spawngroups']
 
             if is_game_mod:
+                swaps = mod_data.get('classSwaps', [])
+                # Join group mods with core groups
                 if 'externalGroupChanges' in mod_data:
                     merge_game_mod_groups(mod_data['spawngroups'], mod_data['externalGroupChanges'])
-                swaps = mod_data.get('classSwaps', [])
 
             data = mod_data
         else:
+            # Not a mod.
             data = core_data
 
         # Do all the insanity now and fix up the groups
         fix_up_groups(data['spawngroups'])
         apply_ideal_grouplevel_swaps(data['spawngroups'])
         inflate_swap_rules(swaps)
+        apply_remaps(data['spawngroups'], data.get('dinoRemaps', None))
         # Global class swaps will be applied during freq calculations
 
         return data['spawngroups'], swaps
 
-    def _map_mod_generate_svgs(self, modid: str, mod_name: str):
-        # Find data of maps with NPC spawns
-        root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_name}')
-        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in root_wiki_mod_dir.glob('*/npc_spawns.json')]
+    def get_data_and_generate(self, mod: Optional[Dict[str, Any]]):
+        modid = mod['id'] if mod else None
+        is_a_map = not mod or is_custom_map(mod)
 
-        # Load and merge ASB data
-        data_asb_core = self._load_asb(None)
-        data_asb_mod = self._load_asb(modid)
-        if not data_asb_core or not data_asb_mod:
-            logger.debug('Data required by the processor is missing or invalid. Skipping.')
-            return
-        data_asb_mod['species'] += data_asb_core['species']
+        if not mod:
+            # Core
+            asb = self.load_asb(None)
+            spgroups, klsswaps = self.get_spawning_groups(None)
+        elif is_a_map:
+            # Custom map or separate map
+            asb = self.load_asb(None)
+            asbmod = self.load_asb(modid)
+            if asbmod:
+                asb['species'] += asbmod['species']
+            spgroups, klsswaps = self.get_spawning_groups(modid)
+        else:
+            # Game mod
+            asb = self.load_asb(modid)
+            spgroups, klsswaps = self.get_spawning_groups(modid, is_game_mod=True)
 
-        # Load and merge spawning group data
-        data_groups, data_swaps = self._get_spawning_groups(modid)
-        if not data_groups:
-            logger.debug('Data required by the processor is missing or invalid. Skipping.')
-            return
-
-        self._process_all_maps(maps, self.wiki_path, data_asb_mod, data_groups, data_swaps, modid)
-
-    def _game_mod_generate_svgs(self, modid: str, _mod_name: str):
-        # Find data of core maps with NPC spawns
-        maps: List[Path] = [path.parent.relative_to(self.wiki_path) for path in self.wiki_path.glob('*/npc_spawns.json')]
-
-        # Load ASB and spawning group data
-        data_asb = self._load_asb(modid)
-        data_groups, data_swaps = self._get_spawning_groups(modid, is_game_mod=True)
-        if not data_asb or not data_groups:
+        # If required data couldn't be loaded, skip.
+        if not asb or not spgroups:
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        self._process_all_maps(maps, self.wiki_path, data_asb, data_groups, data_swaps, modid)
+        # Find target maps
+        if not mod:
+            # Core
+            maps = self.find_official_maps(True, keyword='npc_spawns')
+        elif is_a_map:
+            # Custom map or separate map
+            maps = self.find_maps(self.wiki_path / self.get_mod_subroot_name(modid))
+        else:
+            # Game mod
+            maps = self.find_official_maps(False, keyword='npc_spawns')
 
-    def _process_all_maps(self, maps: List[Path], base_path: Path, data_asb, data_groups, data_swaps, modid: Optional[str]):
         spawndata = _SpawningData(
-            asb=data_asb,
+            asb=asb,
             # Generate species groups
-            species=generate_dino_mappings(data_asb),
+            species=generate_dino_mappings(asb),
             # Original spawning groups
-            groups=data_groups,
-            global_swaps=data_swaps,
+            groups=spgroups,
+            global_swaps=klsswaps,
         )
 
         for map_path in maps:
-            self._map_process_data(map_path, base_path, spawndata, modid)
+            # Determine base output path
+            output_path = self._get_svg_output_path(map_path, map_path.name, modid)
+
+            # Remove existing directory
+            if output_path.is_dir():
+                shutil.rmtree(output_path)
+
+            # Generate the maps
+            self._map_process_data(map_path, spawndata, output_path)
 
     def _get_svg_output_path(self, data_path: Path, map_name: str, modid: Optional[str]) -> Path:
         if not modid:
             # Core maps
-            #   data/wiki/Map/spawn_maps
-            #   or data_path/spawn_maps
-            return self.output_path / data_path / 'spawn_maps'
+            #   processed/wiki-maps/spawns/Map/
+            return (self.output_path / 'spawns' / map_name)
 
         # Mods
-        mod_data = self.manager.arkman.getModData(modid)
-        assert mod_data
-        mod_type = int(mod_data.get('type', 1))
-        if mod_type == 2:
-            # Custom maps
-            #   data/wiki/Id-Mod/MapName/spawn_maps
-            #   or data_path / spawn_maps
-            return self.output_path / data_path / 'spawn_maps'
+        #   processed/wiki-maps/spawns/Map/Id-Mod/
+        return (self.output_path / 'spawns' / map_name / self.get_mod_subroot_name(modid))
 
-        # mod_type == 1
-        # Game mods
-        #   data/wiki/Id-Mod/spawn_maps/Map
-        #   Data path can't be used as it points at a core map
-        return self.output_path / f'{modid}-{mod_data["name"]}' / 'spawn_maps' / map_name
-
-    def _map_process_data(self, data_path: Path, base_path: Path, spawndata: _SpawningData, modid: Optional[str]):
-        logger.info(f'Processing data of map: {data_path}')
-
-        # Determine base output path
-        output_path = self._get_svg_output_path(data_path, data_path.name, modid)
-        # Remove existing directory
-        if output_path.is_dir():
-            shutil.rmtree(output_path)
+    def _map_process_data(self, data_path: Path, spawndata: _SpawningData, output_path: Path):
+        logger.info(f'Processing data of map: {data_path.name}')
 
         # Load exported data
-        data_map_settings = self.load_json_file(base_path / data_path / 'world_settings.json')
-        data_map_spawns = self.load_json_file(base_path / data_path / 'npc_spawns.json')
+        data_map_settings = self.load_json_file(self.wiki_path / data_path / 'world_settings.json')
+        data_map_spawns = self.load_json_file(self.wiki_path / data_path / 'npc_spawns.json')
         if not data_map_settings or not data_map_spawns:
             logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return

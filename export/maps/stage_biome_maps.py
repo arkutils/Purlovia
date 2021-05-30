@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from ark.mod import get_official_mods
 from ark.overrides import get_overrides_for_map
@@ -22,10 +22,10 @@ class ProcessBiomeMapsStage(ProcessingStage):
 
     def extract_core(self, _: Path):
         # Find data of maps with biomes
-        map_set: List[Path] = [path.parent.relative_to(self.wiki_path) for path in self.wiki_path.glob('*/biomes.json')]
+        map_set = self.find_official_maps(True, keyword='biomes')
 
         for data_path in map_set:
-            self._process(self.wiki_path / data_path, self.output_path / data_path, None)
+            self._process(self.wiki_path / data_path, None)
 
     def extract_mod(self, _: Path, modid: str):
         mod_data = self.manager.arkman.getModData(modid)
@@ -35,13 +35,22 @@ class ProcessBiomeMapsStage(ProcessingStage):
             return
 
         # Find data of maps with biomes
-        root_wiki_mod_dir = Path(self.wiki_path / f'{modid}-{mod_data["name"]}')
-        map_set: List[Path] = [path.parent.relative_to(self.wiki_path) for path in root_wiki_mod_dir.glob('*/biomes.json')]
+        map_set = self.find_maps(modid, keyword='biomes')
 
         for data_path in map_set:
-            self._process(self.wiki_path / data_path, self.output_path / data_path, modid)
+            self._process(self.wiki_path / data_path, modid)
 
-    def _process(self, in_path: Path, out_path: Path, modid: Optional[str]):
+    def _get_svg_output_path(self, map_name: str, modid: Optional[str]) -> Path:
+        if not modid:
+            # Core maps
+            #   processed/wiki-maps/regions/Map.svg
+            return (self.output_path / 'regions' / map_name).with_suffix('.svg')
+
+        # Mods
+        #   processed/wiki-maps/regions/Id-Mod.svg
+        return (self.output_path / 'regions' / self.get_mod_subroot_name(modid)).with_suffix('.svg')
+
+    def _process(self, in_path: Path, modid: Optional[str]):
         map_name = in_path.name
         logger.info(f'Processing data of map: {map_name}')
 
@@ -60,8 +69,9 @@ class ProcessBiomeMapsStage(ProcessingStage):
             coord_width=config.border_right - config.border_left,
             coord_height=config.border_bottom - config.border_top,
         )
+
         svg = generate_svg_map(bounds, map_name, data_map_settings['worldSettings'], data_biomes, modid is not None)
-        filename = Path(out_path / f'Regions_{map_name}.svg')
+        filename = self._get_svg_output_path(map_name, modid)
         if svg:
             self.save_raw_file(svg, filename)
         elif filename.is_file():

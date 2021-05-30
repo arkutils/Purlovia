@@ -4,6 +4,7 @@ from typing import Optional
 from automate.exporter import ExportRoot
 
 from .stage_biome_maps import ProcessBiomeMapsStage
+from .stage_spawn_data import GenerateSelfContainedSpawnDataStage
 
 # from .stage_spawn_maps import ProcessSpawnMapsStage
 
@@ -33,6 +34,6 @@ class WikiMapsRoot(ExportRoot):
 
         self.stages = [
             ProcessBiomeMapsStage(),
-            # Disabled temporarily, until spawning groups are migrated to models and this stage is updated accordingly.
+            GenerateSelfContainedSpawnDataStage(),
             # ProcessSpawnMapsStage(),
         ]

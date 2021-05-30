@@ -74,15 +74,14 @@ def _generate_biome_rects(bounds: SVGBoundaries, world_settings, biome):
 
 
 def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, follow_mod_convention):
-    svg_output = (f'''<svg xmlns="http://www.w3.org/2000/svg"
-    width="{bounds.size}" height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}"
-    style="position: absolute; width:100%; height:100%;">
-<defs>
-    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
-        <feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0"/>
-        <feGaussianBlur stdDeviation="10" />
-    </filter>
-</defs>\n''')
+    svg_output = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{bounds.size}" height="{bounds.size}" '
+                  f'viewBox="0 0 {bounds.size} {bounds.size}" style="position: absolute; width:100%; height:100%;">\n'
+                  '<defs>\n'
+                  '<filter id="blur" x="-30%" y="-30%" width="160%" height="160%">'
+                  '<feColorMatrix type="matrix" values="1 0 0 1 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.7 0" />'
+                  '<feGaussianBlur stdDeviation="10" />'
+                  '</filter>\n'
+                  '</defs>\n')
 
     # Remove invalid biome entries
     valid_biomes = filter_biomes(biomes)
@@ -109,16 +108,13 @@ def generate_svg_map(bounds: SVGBoundaries, map_name, world_settings, biomes, fo
 
     # Create svg
     for biome in valid_biomes:
-        svg_output += f'''<a href="/{make_biome_link(world_settings['name'], biome['name'], follow_mod_convention)}" class="svgRegion">
-    <g filter="url(#blur)">'''
-
+        biome_link = make_biome_link(world_settings["name"], biome["name"], follow_mod_convention)
+        svg_output += f'<a href="/{biome_link}" class="svgRegion">'
+        svg_output += '<g filter="url(#blur)">\n'
         svg_output += _generate_biome_rects(bounds, world_settings, biome)
-
-        svg_output += f'''
-    </g>
-    <text x="{round(textX)}" y="{round(textY)}">{html.escape(biome['name'], quote=True)}</text>
-</a>
-'''
+        svg_output += '</g>\n'
+        svg_output += f'<text x="{round(textX)}" y="{round(textY)}">{html.escape(biome["name"], quote=True)}</text>'
+        svg_output += '</a>\n'
 
     # End of svg
     svg_output += '</svg>'
