@@ -5,8 +5,7 @@ from automate.exporter import ExportRoot
 
 from .stage_biome_maps import ProcessBiomeMapsStage
 from .stage_spawn_data import GenerateSelfContainedSpawnDataStage
-
-# from .stage_spawn_maps import ProcessSpawnMapsStage
+from .stage_spawn_maps import ProcessSpawnMapsStage
 
 __all__ = [
     'WikiMapsRoot',
@@ -35,5 +34,5 @@ class WikiMapsRoot(ExportRoot):
         self.stages = [
             ProcessBiomeMapsStage(),
             GenerateSelfContainedSpawnDataStage(),
-            # ProcessSpawnMapsStage(),
+            ProcessSpawnMapsStage(),
         ]

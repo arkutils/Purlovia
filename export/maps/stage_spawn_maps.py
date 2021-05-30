@@ -1,18 +1,13 @@
-import shutil
-from collections import namedtuple
+from collections import defaultdict
+from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from ark.overrides import get_overrides_for_map, get_overrides_for_mod
 from utils.log import get_logger
 
-from .common import SVGBoundaries, remove_unicode_control_chars
-from .spawn_maps.game_mod import apply_remaps, is_custom_map, merge_game_mod_groups
-from .spawn_maps.species import calculate_blueprint_freqs, determine_tamability, generate_dino_mappings
-from .spawn_maps.svg import generate_svg_map
-from .spawn_maps.swaps import apply_ideal_global_swaps, apply_ideal_grouplevel_swaps, \
-    copy_spawn_groups, fix_up_groups, inflate_swap_rules
-from .stage_base import ProcessingStage
+from .common import SVGBoundaries, get_svg_bounds_for_map, order_growing, remove_unicode_control_chars
+from .spawn_maps.consts import SVG_SIZE
+from .stage_base import JsonProcessingStage, ModType
 
 logger = get_logger(__name__)
 
@@ -20,204 +15,261 @@ __all__ = [
     'ProcessSpawnMapsStage',
 ]
 
-_SpawningData = namedtuple('_SpawningData', ('asb', 'species', 'groups', 'global_swaps'))
+SVG_CSS = '''
+    <style>
+        .spawningMap-very-common { fill: #0F0; }
+        .spawningMap-common { fill: #B2FF00; }
+        .spawningMap-uncommon { fill: #FF0; }
+        .spawningMap-very-uncommon { fill: #FC0; }
+        .spawningMap-rare { fill: #F60; }
+        .spawningMap-very-rare { fill: #F00; }
+        .spawning-map-point { stroke:black; stroke-width:1; }
+    </style>'''
+SVG_FILTER_UNTAMEABLE = '''
+    <pattern id="pattern-untameable" width="10" height="10" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">
+        <rect width="4" height="10" fill="black"></rect>
+    </pattern>'''
+SVG_FILTER_CAVE = '''
+    <filter id="groupStroke">
+        <feFlood result="outsideColor" flood-color="black"/>
+        <feMorphology in="SourceAlpha" operator="dilate" radius="2"/>
+        <feComposite result="strokeoutline1" in="outsideColor" operator="in"/>
+        <feComposite result="strokeoutline2" in="strokeoutline1" in2="SourceAlpha" operator="out"/>
+        <feGaussianBlur in="strokeoutline2" result="strokeblur" stdDeviation="1"/>
+    </filter>'''
+
+# These CSS class names are also defined on the ARK Wiki (https://ark.fandom.com/wiki/MediaWiki:Common.css)
+# and thus shouldn't be renamed here.
+CSS_RARITY_CLASSES = [
+    'spawningMap-very-rare', 'spawningMap-rare', 'spawningMap-very-uncommon', 'spawningMap-uncommon', 'spawningMap-common',
+    'spawningMap-very-common'
+]
+POINT_RADIUS = max(SVG_SIZE / 150, 2) * 2
 
 
-class ProcessSpawnMapsStage(ProcessingStage):
+class ProcessSpawnMapsStage(JsonProcessingStage):
     def get_name(self) -> str:
         return "spawn_maps"
 
-    def extract_core(self, _: Path):
-        self.get_data_and_generate(None)
+    def get_files_to_load(self, modid: Optional[str]) -> List[str]:
+        return ['species']
 
-    def extract_mod(self, _: Path, modid: str):
-        mod_data = self.manager.arkman.getModData(modid)
-        assert mod_data
-        if modid:
-            overrides = get_overrides_for_mod(modid)
-            if overrides.skip_spawn_maps:
-                return
+    def process(self, base_path: Path, modid: Optional[str], modtype: Optional[ModType], data: Dict[str, List[Any]]):
+        # Ensure all bare minimum data is available
+        assert data['species']
 
-        self.get_data_and_generate(mod_data)
-
-    def load_asb(self, modid: Optional[str]):
-        if modid:
-            path = (self.asb_path / f'{self.get_mod_subroot_name(modid)}.json')
+        # Discover maps
+        if not modid or modtype == ModType.GameMod:
+            map_names = list(self.find_maps(None, keyword='npc_spawns'))
+        elif modtype == ModType.CustomMap:
+            map_names = list(self.find_maps(modid, keyword='npc_spawns'))
         else:
-            path = (self.asb_path / 'values.json')
-        return self.load_json_file(path)
-
-    def load_spawning_groups(self, modid: Optional[str]):
-        if modid:
-            path = (self.wiki_path / self.get_mod_subroot_name(modid) / 'spawn_groups.json')
-        else:
-            path = (self.wiki_path / 'spawn_groups.json')
-        return self.load_json_file(path)
-
-    def get_spawning_groups(self, modid: Optional[str], is_game_mod: bool = False):
-        core_data = self.load_spawning_groups(None)
-        if not core_data:
-            return None, None
-        swaps = core_data['classSwaps']
-
-        # Load data from separated official mods
-        for official_mod in self.manager.config.settings.SeparateOfficialMods:
-            core_data_2 = self.load_spawning_groups(official_mod)
-            if core_data_2:
-                core_data['spawngroups'] += core_data_2['spawngroups']
-
-        # Load mod data and merge it with core
-        if modid:
-            mod_data = self.load_spawning_groups(modid)
-            if not mod_data:
-                # No data exists.
-                return None, None
-            # Join group container lists
-            mod_data['spawngroups'] += core_data['spawngroups']
-
-            if is_game_mod:
-                swaps = mod_data.get('classSwaps', [])
-                # Join group mods with core groups
-                if 'externalGroupChanges' in mod_data:
-                    merge_game_mod_groups(mod_data['spawngroups'], mod_data['externalGroupChanges'])
-
-            data = mod_data
-        else:
-            # Not a mod.
-            data = core_data
-
-        # Do all the insanity now and fix up the groups
-        fix_up_groups(data['spawngroups'])
-        apply_ideal_grouplevel_swaps(data['spawngroups'])
-        inflate_swap_rules(swaps)
-        apply_remaps(data['spawngroups'], data.get('dinoRemaps', None))
-        # Global class swaps will be applied during freq calculations
-
-        return data['spawngroups'], swaps
-
-    def get_data_and_generate(self, mod: Optional[Dict[str, Any]]):
-        modid = mod['id'] if mod else None
-        is_a_map = not mod or is_custom_map(mod)
-
-        if not mod:
-            # Core
-            asb = self.load_asb(None)
-            spgroups, klsswaps = self.get_spawning_groups(None)
-        elif is_a_map:
-            # Custom map or separate map
-            asb = self.load_asb(None)
-            asbmod = self.load_asb(modid)
-            if asbmod:
-                asb['species'] += asbmod['species']
-            spgroups, klsswaps = self.get_spawning_groups(modid)
-        else:
-            # Game mod
-            asb = self.load_asb(modid)
-            spgroups, klsswaps = self.get_spawning_groups(modid, is_game_mod=True)
-
-        # If required data couldn't be loaded, skip.
-        if not asb or not spgroups:
-            logger.debug('Data required by the processor is missing or invalid. Skipping.')
             return
 
-        # Find target maps
-        if not mod:
-            # Core
-            maps = self.find_official_maps(True, keyword='npc_spawns')
-        elif is_a_map:
-            # Custom map or separate map
-            maps = self.find_maps(self.wiki_path / self.get_mod_subroot_name(modid))
-        else:
-            # Game mod
-            maps = self.find_official_maps(False, keyword='npc_spawns')
+        # Load map data
+        mapdata: Dict[str, Dict[str, Any]] = dict()
+        for name in map_names:
+            expath = base_path / name / 'stage1.json'
+            mapdata[name] = self.load_json_file(expath)
 
-        spawndata = _SpawningData(
-            asb=asb,
-            # Generate species groups
-            species=generate_dino_mappings(asb),
-            # Original spawning groups
-            groups=spgroups,
-            global_swaps=klsswaps,
-        )
+        # Create a tamability lookup table.
+        species_tamability: Dict[str, bool] = dict()
+        for moddata in data['species']:
+            for creature in moddata['species']:
+                species_tamability[creature['bp']] = 'isTameable' in creature.get('flags', ())
 
-        for map_path in maps:
-            # Determine base output path
-            output_path = self._get_svg_output_path(map_path, map_path.name, modid)
+        # Iterate over the maps and generate all SVGs.
+        for name in map_names:
+            logger.info(f'Generating spawn maps for {name}')
 
-            # Remove existing directory
-            if output_path.is_dir():
-                shutil.rmtree(output_path)
+            # Gather locations for each creature.
+            zones_by_creature = self._gather_locations_of_species(mapdata[name])
 
-            # Generate the maps
-            self._map_process_data(map_path, spawndata, output_path)
+            # Create output.
+            for creature_bp, zones in zones_by_creature.items():
+                # Skip creature if this is a game mod and the creature isn't coming from it.
+                if modid and modtype == ModType.GameMod:
+                    if self.manager.loader.get_mod_id(creature_bp) != modid:
+                        continue
 
-    def _get_svg_output_path(self, data_path: Path, map_name: str, modid: Optional[str]) -> Path:
-        if not modid:
-            # Core maps
-            #   processed/wiki-maps/spawns/Map/
-            return (self.output_path / 'spawns' / map_name)
+                # Generate the SVG.
+                is_tameable = species_tamability.get(creature_bp, True)
+                bounds = get_svg_bounds_for_map(mapdata[name]['level'])
+                svg_contents = self._build_svg(bounds, creature_bp, zones, is_tameable)
 
-        # Mods
-        #   processed/wiki-maps/spawns/Map/Id-Mod/
-        return (self.output_path / 'spawns' / map_name / self.get_mod_subroot_name(modid))
+                # Write to disk.
+                if svg_contents:
+                    filepath = base_path / name / self._get_filename_for_species(creature_bp)
+                    self.save_raw_file(svg_contents, filepath)
 
-    def _map_process_data(self, data_path: Path, spawndata: _SpawningData, output_path: Path):
-        logger.info(f'Processing data of map: {data_path.name}')
+    def _gather_locations_of_species(self, spawns: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+        # Collect the zone controllers.
+        zones: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 
-        # Load exported data
-        data_map_settings = self.load_json_file(self.wiki_path / data_path / 'world_settings.json')
-        data_map_spawns = self.load_json_file(self.wiki_path / data_path / 'npc_spawns.json')
-        if not data_map_settings or not data_map_spawns:
-            logger.debug('Data required by the processor is missing or invalid. Skipping.')
-            return
+        for zone in spawns['zones']:
+            for creature_bp in zone['creatures'].keys():
+                zones[creature_bp].append(zone)
 
-        # Initialize bound structure for this map
-        bounds = _get_svg_bounds_for_map(data_map_settings['persistentLevel'])
+        return zones
 
-        # Copy spawning groups data
-        allows_global_swaps = 'onlyEventGlobalSwaps' not in data_map_settings['worldSettings']
-        spawngroups = copy_spawn_groups(spawndata.groups)
+    def _get_filename_for_species(self, bp: str) -> str:
+        class_name = bp[bp.index('.') + 1:]
+        class_name = remove_unicode_control_chars(class_name)
 
-        # Apply world-level random dino class swaps
-        map_swaps = data_map_settings['worldSettings'].get('randomNPCClassWeights', [])
-        inflate_swap_rules(map_swaps)
-        apply_ideal_global_swaps(spawngroups, map_swaps)
-
-        # Apply global swaps if allowed
-        apply_ideal_global_swaps(spawngroups, spawndata.global_swaps, only_events=not allows_global_swaps)
-
-        # Generate maps for every species
-        for export_class, blueprints in spawndata.species.items():
-            untameable = not determine_tamability(spawndata.asb, export_class)
-
-            # The rarity is arbitrarily divided in 6 groups from "very rare" (0) to "very common" (5)
-            freqs = calculate_blueprint_freqs(spawngroups, [], blueprints)
-
-            svg = generate_svg_map(bounds, freqs, data_map_spawns, untameable)
-            if svg:
-                filepath = output_path / self._make_filename_for_export(export_class)
-                self.save_raw_file(svg, filepath)
-
-    def _make_filename_for_export(self, blueprint_path):
-        clean_bp_name = blueprint_path.rsplit('.')[-1]
-        if clean_bp_name.endswith('_C'):
-            clean_bp_name = clean_bp_name[:-2]
-        clean_bp_name = remove_unicode_control_chars(clean_bp_name)
-
-        modid = self.manager.loader.get_mod_id(blueprint_path)
+        modid = self.manager.loader.get_mod_id(bp)
         if modid:
-            clean_bp_name += f'_({modid})'
+            return f'{modid}/{class_name}.svg'
+        return f'core/{class_name}.svg'
 
-        return f'Spawning_{clean_bp_name}.svg'
+    def _build_svg(self, bounds: SVGBoundaries, creature: str, zones: List[Dict[str, Any]], is_tameable: bool) -> Optional[str]:
+        boxes = defaultdict(list)
+        points = defaultdict(list)
+        needs_untameable_overlay_setup = False
+        needs_cave_overlay_setup = False
 
+        # Construct shapes
+        for zone in zones:
+            rarity = zone['creatures'][creature]
 
-def _get_svg_bounds_for_map(persistent_level: str) -> SVGBoundaries:
-    config = get_overrides_for_map(persistent_level, None).svgs
-    bounds = SVGBoundaries(
-        size=300,
-        border_top=config.border_top,
-        border_left=config.border_left,
-        coord_width=config.border_right - config.border_left,
-        coord_height=config.border_bottom - config.border_top,
-    )
-    return bounds
+            spawn_points = zone['points']
+            if spawn_points:
+                # Build circles for each point
+                for point in spawn_points:
+                    x: float = round((point['long'] - bounds.border_left) * bounds.size / bounds.coord_width)
+                    y: float = round((point['lat'] - bounds.border_top) * bounds.size / bounds.coord_height)
+
+                    if x < 0 or y < 0 or x > bounds.size or y > bounds.size:
+                        # Out of bounds, skip
+                        continue
+
+                    # Clamp the coords
+                    x = min(bounds.size, max(0, x))
+                    y = min(bounds.size, max(0, y))
+                    points[rarity].append((x, y))
+
+                continue
+
+            spawn_locations = zone['locations']
+            if spawn_locations:
+                # Determine if overlays will have to be generated
+                is_untameable = zone['untameable'] or not is_tameable
+                is_cave = zone['cave']
+
+                # Build a rectangular shape for each location
+                for region in spawn_locations:
+                    # Make sure the order is right
+                    start_x, end_x = order_growing(region['start']['long'], region['end']['long'])
+                    start_y, end_y = order_growing(region['start']['lat'], region['end']['lat'])
+
+                    # Add a small border to avoid gaps
+                    start_x = round((start_x - bounds.border_left) * bounds.size / bounds.coord_width) - 3
+                    end_x = round((end_x - bounds.border_left) * bounds.size / bounds.coord_width) + 3
+                    start_y = round((start_y - bounds.border_top) * bounds.size / bounds.coord_height) - 3
+                    end_y = round((end_y - bounds.border_top) * bounds.size / bounds.coord_height) + 3
+
+                    # Clamp the values
+                    start_x = min(bounds.size, max(0, start_x))
+                    end_x = min(bounds.size, max(0, end_x))
+                    start_y = min(bounds.size, max(0, start_y))
+                    end_y = min(bounds.size, max(0, end_y))
+
+                    # Calculate box width and height
+                    w = end_x - start_x
+                    h = end_y - start_y
+
+                    # Skip the box if height or width are zero
+                    if w == 0 or h == 0:
+                        continue
+
+                    boxes[rarity].append((start_x, w, start_y, h, is_untameable, is_cave))
+
+                    # Build untameability and cave overlays if needed
+                    if is_untameable:
+                        needs_untameable_overlay_setup = True
+                    if is_cave:
+                        needs_cave_overlay_setup = True
+
+        # Skip if there's no shapes.
+        if not boxes and not points:
+            return None
+
+        # Create a buffer and add the header.
+        buffer = StringIO()
+        buffer.write('<?xml version="1.0" encoding="utf-8"?>\n')
+        buffer.write(f'<svg xmlns="http://www.w3.org/2000/svg" width="{bounds.size}" ')
+        buffer.write(f'height="{bounds.size}" viewBox="0 0 {bounds.size} {bounds.size}" ')
+        buffer.write('class="creatureMap" style="position:absolute;">\n<defs>')
+
+        buffer.write(f'''
+    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="{round(bounds.size / 100)}" />
+    </filter>''')
+        buffer.write(SVG_CSS)
+
+        # Add required patterns/filters for overlays
+        if needs_untameable_overlay_setup:
+            buffer.write(SVG_FILTER_UNTAMEABLE)
+
+        if needs_cave_overlay_setup:
+            buffer.write(SVG_FILTER_CAVE)
+
+        buffer.write('\n</defs>')
+
+        # Output boxes and their overlays.
+        if boxes:
+            # Setup secondary buffers if overlays are to be written
+            untameable_buffer = None
+            cave_buffer = None
+            if needs_untameable_overlay_setup:
+                untameable_buffer = StringIO()
+            if needs_cave_overlay_setup:
+                cave_buffer = StringIO()
+
+            # Write rarity rectangles.
+            buffer.write('\n<g filter="url(#blur)" opacity="0.7">')
+            for rarity, info in boxes.items():
+                buffer.write(f'\n    <g class="{CSS_RARITY_CLASSES[rarity]}">')
+
+                for x, w, y, h, is_untameable, is_cave in info:
+                    # XYWH rect.
+                    rect = f'''
+        <rect x="{x}" y="{y}" width="{w}" height="{h}" />'''
+                    buffer.write(rect)
+
+                    # Write to relevant overlays.
+                    if is_untameable and untameable_buffer:
+                        untameable_buffer.write(rect)
+                    if is_cave and cave_buffer:
+                        cave_buffer.write(rect)
+
+                buffer.write('\n    </g>')
+            buffer.write('</g>')
+
+            # Output overlays.
+            if untameable_buffer:
+                buffer.write('\n<g fill="url(#pattern-untameable)" opacity="0.3">')
+                buffer.write(untameable_buffer.getvalue())
+                buffer.write('\n</g>')
+            if cave_buffer:
+                buffer.write('\n<g filter="url(#groupStroke)" opacity="0.8">')
+                buffer.write(cave_buffer.getvalue())
+                buffer.write('\n</g>')
+
+        # Output points.
+        if boxes:
+            buffer.write('\n<g class="spawning-map-point" opacity="0.8">')
+            for rarity, coords in points.items():
+                # Rarity group.
+                buffer.write(f'\n    <g class="{CSS_RARITY_CLASSES[rarity]}">')
+
+                for x, y in coords:
+                    # XY circle.
+                    buffer.write(f'''
+        <circle cx="{x}" cy="{y}" r="{POINT_RADIUS}" />''')
+
+                buffer.write('\n    </g>')
+            buffer.write('</g>')
+
+        # Return the contents.
+        buffer.write('\n</svg>')
+        return buffer.getvalue()
