@@ -192,6 +192,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bIsWaterDino = uebools(False)
     bPreventCloning = uebools(False)
     bPreventEnteringWater = uebools(False)
+    bDieIfLeftWater = uebools(False)
     bPreventImmobilization = uebools(False)
     bPreventMating = uebools(False)
     bPreventSleepingTame = uebools(False)

@@ -49,6 +49,7 @@ OUTPUT_FLAGS = (
     'bPreventCharacterBasing',
     'bPreventEnteringWater',
     'bPreventNeuter',
+    'bDieIfLeftWater',
 
     # Other related stuff not included:
     # bCanRun/Jump/Walk/Crouch/etc - covered with the movement speed section
