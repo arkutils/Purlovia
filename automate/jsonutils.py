@@ -131,6 +131,7 @@ JOIN_LINE_FIELDS = (
     'base|crouch|sprint',
     'min|max',
     'min|max|pow',
+    'chance|min|max',
     'qty|type',
     'exact|qty|type',
     'stat|value|useItemQuality',

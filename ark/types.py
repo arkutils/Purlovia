@@ -18,9 +18,12 @@ PRIMAL_ITEM_DYE_CLS = '/Script/ShooterGame.PrimalItem_Dye'
 PRIMAL_DINO_SETTINGS_CLS = '/Script/ShooterGame.PrimalDinoSettings'
 SHOOTER_CHR_MOVEMENT_CLS = '/Script/ShooterGame.ShooterCharacterMovement'
 PRIMAL_COLOR_SET_CLS = '/Script/ShooterGame.PrimalColorSet'
+PRIMAL_RAFT_CLS = '/Script/ShooterGame.PrimalRaft'
+PRIMAL_WHEELED_VEHICLE_CLS = '/Script/ShooterGame.PrimalWheeledVehicleCharacter'
 
 DCSC_CLS = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP.DinoCharacterStatusComponent_BP_C'
 DINO_CHR_CLS = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP.Dino_Character_BP_C'
+CRUISE_MISSILE_CLS = '/Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP.TekCruiseMissile_Character_BP_C'
 
 COREMEDIA_PGD_PKG = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
 
@@ -189,6 +192,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bIsWaterDino = uebools(False)
     bPreventCloning = uebools(False)
     bPreventEnteringWater = uebools(False)
+    bDieIfLeftWater = uebools(False)
     bPreventImmobilization = uebools(False)
     bPreventMating = uebools(False)
     bPreventSleepingTame = uebools(False)
@@ -264,6 +268,10 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # Experience
     OverrideDinoMaxExperiencePoints = uefloats(0)
     DestroyTamesOverLevelClampOffset = ueints(0)
+    bUseFixedSpawnLevel = uebools(False)
+    AbsoluteBaseLevel = ueints(0)
+    FinalNPCLevelMultiplier = uefloats(1.0)
+    DinoBaseLevelWeightEntries: Mapping[int, ArrayProperty]  # = []
 
     # Death Loot
     DeathGivesDossierIndex = ueints(-1)
@@ -371,3 +379,18 @@ class PrimalDinoSettings(UEProxyStructure, uetype=PRIMAL_DINO_SETTINGS_CLS):
     DinoFoodTypeImage: Mapping[int, ObjectProperty]  # = None
 
     # DevKit Unverified
+
+
+class PrimalRaft(PrimalDinoCharacter, uetype=PRIMAL_RAFT_CLS):
+    # DevKit Verified
+    bIsVehicle = uebools(True)
+
+
+class PrimalWheeledVehicleCharacter(PrimalDinoCharacter, uetype=PRIMAL_WHEELED_VEHICLE_CLS):
+    # DevKit Verified
+    bIsVehicle = uebools(True)
+
+
+class TekCruiseMissile(PrimalDinoCharacter, uetype=CRUISE_MISSILE_CLS):
+    # DevKit Verified
+    bIsVehicle = uebools(True)

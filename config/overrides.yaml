@@ -37,6 +37,12 @@ defaults:
     pathname_variant_parts:
         NoOverspawn: true
 
+    # Variants picked up from flags
+    variants_from_flags:
+        bIsBossDino: Boss
+        bIsCorrupted: Corrupted
+        bIsVehicle: Vehicle
+
     # Rename these variants, if present
     variant_renames:
         Med: Medium
@@ -53,6 +59,7 @@ defaults:
     # If these variants are found, the object will not be exported for ASB
     variants_to_skip_export_asb:
         InitialBuryOnly: true
+        Vehicle: true
 
     # If these variants are found, remove the given part of the descriptive name
     variants_to_remove_name_parts:
@@ -404,56 +411,53 @@ items: {}
 # Override settings on a per-species basis
 species:
     # Things that aren't really species
-    /Game/PrimalEarth/Items/Raft/MotorRaft_BP:
-        skip_export: true
-    /Game/PrimalEarth/Items/Raft/Raft_BP:
-        skip_export: true
-    /Game/PrimalEarth/Vehicles/VH_Buggy/Blueprint/VH_Buggy:
-        skip_export: true
-    /Game/Genesis/Dinos/MissionVariants/Race/TekHoverSkiff_Character_BP_Race:
-        skip_export: true
-    /Game/Genesis/Dinos/TEKHoverSkiff/TekHoverSkiff_Character_BP:
-        skip_export: true
-    /Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP:
-        skip_export: true
-
-    # Primitive Plus
-    /Game/Mods/PrimitivePlusMod/Blueprints/VehicleBP_RowBoat_BP:
-        skip_export: true
-
-    # Gaia
-    /Game/Mods/Gaia/Structures/Boat/GaiaRaft_BP:
-        skip_export: true
+    # /Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP:
+    #     add_variants:
+    #         Vehicle: true
 
     # These will not be exported as they are only baseclasses
     /Game/Aberration/Boss/Rockwell/Rockwell_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Aberration/Boss/RockwellTentacle/RockwellTentacle_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Extinction/Dinos/Corrupt/Raptor/BabyRaptor_Character_BP_Corrupt:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndBoss_Character:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossDragon/EndBossDragon_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossGorilla/EndBossGorilla_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/EndGame/Dinos/Endboss/EndbossSpider/EndBossSpiderL_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Genesis/Dinos/EelBoss/EelBoss_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/Genesis/Dinos/EelBoss/EelMinion_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Gorilla/Gorilla_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/PrimalEarth/Dinos/Spider-Large/SpiderL_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
     /Game/ScorchedEarth/Dinos/Manticore/Manticore_Character_BP:
-        skip_export: true
+        add_variants:
+            Base: true
 
     # Manual variant modifications
     /Game/Aberration/Dinos/Lightbug/Lightbug_Character_BaseBP:
@@ -1359,7 +1363,8 @@ species:
 
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
-        skip_export: true
+        add_variants:
+            Base: true
 
     /Game/PrimalEarth/Dinos/Griffin/Griffin_Character_BP:
         add_variants:
@@ -1401,6 +1406,17 @@ species:
 
     # Mod-specific overrides
     /Game/Mods/NoUntameables/Lightbug/Lightbug_Character_BaseBP_Tameable:
+        remove_variants:
+            Base: true
+
+    # Creatures misdetected as base classes though they have wild spawns
+    /Game/Mods/Primal_Fear/Dinos/Chaos/Wyverns/Chaos/WyvernGuardian_Character_BP_Base_Child_Chaos_Tamed:
+        remove_variants:
+            Base: true
+    /Game/Mods/AE/Dinos/Elemental/Dimorph/Lightning/Dimorph_Character_BP_Base_AE_Lightning:
+        remove_variants:
+            Base: true
+    /Game/Mods/AE/Dinos/Elemental/Dimorph/Fire/Dimorph_Character_BP_Base_AE_Fire:
         remove_variants:
             Base: true
 
