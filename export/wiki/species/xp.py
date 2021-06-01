@@ -119,7 +119,10 @@ def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusCo
             # Pack gathered data into MinMaxChanceRanges with calculated chances. The properties cannot be modified through INI
             # configs.
             for weight, min_lvl, max_lvl in entries:
-                out_level_table.append(MinMaxChanceRange(chance=clean_float(weight / weight_sum), min=min_lvl, max=max_lvl))
+                out_level_table.append(
+                    MinMaxChanceRange(chance=clean_float(weight / weight_sum),
+                                      min=clean_float(min_lvl),
+                                      max=clean_float(max_lvl)))
 
         result.wildLevelTable = out_level_table
 
