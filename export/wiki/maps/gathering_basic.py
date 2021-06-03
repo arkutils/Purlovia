@@ -65,6 +65,10 @@ class BaseActorListExport(MapGathererBase):
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
         actors: CustomActorList = cast(CustomActorList, proxy)
+
+        if 'ActorList' not in actors:
+            return
+
         for entry in actors.ActorList[0].values:
             if not entry.value.value:
                 continue
