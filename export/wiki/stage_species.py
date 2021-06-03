@@ -159,7 +159,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         return bool(self.manager.config.export_wiki.PrettyJson)
 
     def get_format_version(self):
-        return "3"
+        return "4"
 
     def get_ue_type(self):
         return PrimalDinoCharacter.get_ue_type()

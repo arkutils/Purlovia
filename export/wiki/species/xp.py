@@ -38,9 +38,9 @@ class LevelData(ExportModel):
         'DinoEasy',
         description="Name of ramp that describes amount of experience needed to progress.",
     )
-    maxExperience: FloatLike = 3550010
+    maxExperience: FloatLike = 22213970
     maxTameLevels: int = Field(
-        73,
+        88,
         description="Max amount of level ups this species can have at default server settings.",
     )
     levelCapOffset: IntLike = Field(
