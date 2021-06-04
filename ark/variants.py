@@ -29,6 +29,12 @@ def _gather_mission_variants(bp: str, variants: Set[str]):
         variants.add(match[1])
         variants.add('Mission')
 
+    # Genesis2 style
+    match = re.search(r'/ModularMission/(\w+?)/', bp)
+    if match:
+        variants.add(match[1])
+        variants.add('Mission')
+
 
 def _gather_biome_variants(bp: str, variants: Set[str]):
     '''Decode Genesis-like biome variants.'''

@@ -173,9 +173,12 @@ mods:
 
         pathname_variant_components:
             Genesis: true
+            Genesis2: true
             Aberration: true
             Extinction: true
             ScorchedEarth: true
+
+            SummonedDinos: true
 
         name_variants:
             "^Alpha ": Mega
@@ -191,6 +194,8 @@ mods:
             Corrupt: Corrupted
             VR: [ VR, Minion ]
             TekCave: [ TekCave, Cave ]
+            SummonedDinos: Summoned
+            FinalBattleAlt: FinalBattle
 
         species_remaps:
             # Valguero Ice Wyvern -> Ragnarok Ice Wyvern
