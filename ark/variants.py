@@ -40,7 +40,7 @@ def _gather_biome_variants(bp: str, variants: Set[str]):
     '''Decode Genesis-like biome variants.'''
 
     # Normal form
-    match = re.search(r'/BiomeVariants/(\w+?)_', bp)
+    match = re.search(r'/BiomeVariants/([^_\/.]+?)_(?!Character)', bp)
     if match:
         variants.add(match[1])
         return
