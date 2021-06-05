@@ -44,6 +44,8 @@ EXPLORER_NOTE_TYPE_MAP = {
     10: 'The One Who Waits',
     11: 'Santiago',
     12: 'HLN-A',
+    13: 'Nida',
+    14: 'Gabriel',
 }
 
 GAME_VO_LANGUAGES = ('en', 'de', 'es', 'fe', 'it', 'jp', 'pt', 'ru', 'zh')
