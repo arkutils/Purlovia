@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 from ..common import remove_unicode_control_chars
 
-LINK_SAFE_CHARS = '()'
+LINK_SAFE_CHARS = '~()*!.\'/'
 
 
 def make_biome_link(map_name: str, biome_name: str, is_mod: bool) -> str:
@@ -15,8 +15,8 @@ def make_biome_link(map_name: str, biome_name: str, is_mod: bool) -> str:
     if is_mod:
         map_name = quote(map_name, safe=LINK_SAFE_CHARS)
         biome_name = quote(biome_name, safe=LINK_SAFE_CHARS)
-        return f'Mod:{map_name}/{biome_name}'
-    return quote(f'{biome_name}_({map_name})', safe=LINK_SAFE_CHARS)
+        return f'/wiki/Mod:{map_name}/{biome_name}'
+    return quote(f'/wiki/{biome_name}_({map_name})', safe=LINK_SAFE_CHARS).replace(' ', '_')
 
 
 def translate_coord(x, shift, multiplier):
