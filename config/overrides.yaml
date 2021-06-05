@@ -1407,6 +1407,18 @@ species:
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
         is_tameable: false
 
+    /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Large/Shapeshifter_Large_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Small/Shapeshifter_Small_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis2/Dinos/SpaceDolphin/SpaceDolphin_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis2/Dinos/TekStrider/TekStrider_Character_BP:
+        is_tameable: true
+
 
 
     # Mod-specific overrides
