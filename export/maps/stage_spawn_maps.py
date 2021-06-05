@@ -261,7 +261,7 @@ class ProcessSpawnMapsStage(JsonProcessingStage):
                 buffer.write('\n</g>')
 
         # Output points.
-        if boxes:
+        if points:
             buffer.write('\n<g class="spawning-map-point" opacity="0.8">')
             for rarity, coords in points.items():
                 # Rarity group.
