@@ -338,6 +338,12 @@ class MissionDispatcher_MultiUsePylon(
     RootComponent: Mapping[int, ObjectProperty]
 
 
+class MissionDispatcher_FinalBattle(
+        MissionDispatcher,
+        uetype='/Game/Genesis2/Missions/MissionDispatcher_Gen2_FinalBattle.MissionDispatcher_Gen2_FinalBattle_C'):
+    ...
+
+
 class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
     # DevKit Verified
     SpawnPointRegion = ueints(-1)

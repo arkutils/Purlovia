@@ -232,6 +232,10 @@ class MissionDispatcher(ExportModel):
         description=
         "List of missions that can be activated at this dispatcher. If null, any mission can be activated (like on Genesis 2).",
     )
+    isRockwellBattle: bool = Field(
+        False,
+        description="Whether the dispatcher is used to activate the Rockwell Prime boss battle of Genesis 2.",
+    )
 
     x: FloatProperty
     y: FloatProperty

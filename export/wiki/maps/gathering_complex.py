@@ -5,8 +5,9 @@ from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.spawn_groups.structs import convert_single_class_swap
-from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, MissionDispatcher, \
-    MissionDispatcher_MultiUsePylon, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
+    MissionDispatcher, MissionDispatcher_FinalBattle, MissionDispatcher_MultiUsePylon, NPCZoneManager, \
+    PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.properties import ArrayProperty, ObjectProperty, StringProperty
@@ -446,11 +447,17 @@ class MissionDispatcherExport(MapGathererBase):
         location = get_actor_location_vector(dispatcher)
         out = models.MissionDispatcher(x=location.x, y=location.y, z=location.z)
 
+        # Genesis 1 has dispatchers that only allow specific missions.
         if isinstance(dispatcher, MissionDispatcher_MultiUsePylon):
             dispatcher_gen1 = cast(MissionDispatcher_MultiUsePylon, dispatcher)
             type_id = dispatcher_gen1.MissionTypeIndex[0].value
             out.type_ = cls.MISSION_TYPE_MAP.get(type_id, type_id)
             out.missions = sanitise_output(dispatcher_gen1.MissionTypes[0].values)
+
+        # Export a flag in case this dispatcher is used to start the Rockwell Prime fight.
+        # Allows for easier identification.
+        if isinstance(dispatcher, MissionDispatcher_FinalBattle):
+            out.isRockwellBattle = True
 
         return out
 
