@@ -60,7 +60,7 @@ class ProcessSpawnMapsStage(JsonProcessingStage):
 
         # Discover maps
         if not modid or modtype == ModType.GameMod:
-            map_names = list(self.find_maps(None, keyword='npc_spawns'))
+            map_names = list(self.find_maps(None, keyword='npc_spawns', include_official_mods=modtype == ModType.GameMod))
         elif modtype == ModType.CustomMap:
             map_names = list(self.find_maps(modid, keyword='npc_spawns'))
         else:
@@ -68,7 +68,7 @@ class ProcessSpawnMapsStage(JsonProcessingStage):
 
         # Load map data
         mapdata: Dict[str, Dict[str, Any]] = dict()
-        for name in map_names:
+        for name, _ in map_names:
             expath = base_path / name / 'stage1.json'
             mapdata[name] = self.load_json_file(expath)
 
@@ -79,7 +79,10 @@ class ProcessSpawnMapsStage(JsonProcessingStage):
                 species_tamability[creature['bp']] = 'isTameable' in creature.get('flags', ())
 
         # Iterate over the maps and generate all SVGs.
-        for name in map_names:
+        for name, _ in map_names:
+            if not mapdata[name]:
+                continue
+
             logger.info(f'Generating spawn maps for {name}')
 
             # Gather locations for each creature.

@@ -32,19 +32,17 @@ class GenerateSelfContainedSpawnDataStage(JsonProcessingStage):
 
         # Discover maps
         if not modid or modtype == ModType.GameMod:
-            map_names = list(self.find_maps(None, keyword='npc_spawns'))
-            base_map_path = self.wiki_path
+            map_names = list(self.find_maps(None, keyword='npc_spawns', include_official_mods=modtype == ModType.GameMod))
         elif modtype == ModType.CustomMap:
             map_names = list(self.find_maps(modid, keyword='npc_spawns'))
-            base_map_path = self.wiki_path / self.get_mod_subroot_name(modid)
         else:
             return
 
         # Load map data
         mapdata: Dict[str, Dict[str, Any]] = defaultdict(dict)
-        for name in map_names:
-            wsfile = (base_map_path / name / 'world_settings').with_suffix('.json')
-            npcfile = (base_map_path / name / 'npc_spawns').with_suffix('.json')
+        for name, map_path in map_names:
+            wsfile = (self.wiki_path / map_path / 'world_settings').with_suffix('.json')
+            npcfile = (self.wiki_path / map_path / 'npc_spawns').with_suffix('.json')
             mapdata[name]['world_settings'] = self.load_json_file(wsfile)
             mapdata[name]['npc_spawns'] = self.load_json_file(npcfile)
 
@@ -52,7 +50,11 @@ class GenerateSelfContainedSpawnDataStage(JsonProcessingStage):
         fullbaked, halfbaked = self._expand_spawning_groups_data(data['spawn_groups'])
 
         # Generate a file per map.
-        for name in map_names:
+        for name, _ in map_names:
+            # If official mod or map, only export current map.
+            if modid and modid in self.manager.config.settings.SeparateOfficialMods and name != modid:
+                continue
+
             logger.info(f'Expanding spawn data for {name}')
 
             # Scan NPC zones for used containers.

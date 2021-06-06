@@ -24,7 +24,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
         # Find data of maps with biomes
         map_set = self.find_official_maps(True, keyword='biomes')
 
-        for data_path in map_set:
+        for _name, data_path in map_set:
             self._process(self.wiki_path / data_path, None)
 
     def extract_mod(self, _: Path, modid: str):
@@ -37,7 +37,7 @@ class ProcessBiomeMapsStage(ProcessingStage):
         # Find data of maps with biomes
         map_set = self.find_maps(modid, keyword='biomes')
 
-        for data_path in map_set:
+        for _name, data_path in map_set:
             self._process(self.wiki_path / data_path, modid)
 
     def _get_svg_output_path(self, map_name: str, modid: Optional[str]) -> Path:

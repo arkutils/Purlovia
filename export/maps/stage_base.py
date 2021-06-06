@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from automate.exporter import ExportManager, ExportRoot, ExportStage
 from utils.log import get_logger
@@ -63,15 +63,21 @@ class ProcessingStage(ExportStage, metaclass=ABCMeta):  # pylint: disable=abstra
         with open(path, 'wt', newline='\n', encoding='utf-8') as f:
             f.write(content)
 
-    def find_maps(self, modid: Optional[str], keyword='world_settings') -> List[str]:
+    def find_maps(self, modid: Optional[str], keyword='world_settings', include_official_mods=False) -> List[Tuple[str, Path]]:
         '''Returns a list of maps in specific path of the output directory.'''
         path_to_query = self.wiki_path
         if modid:
             path_to_query /= self.get_mod_subroot_name(modid)
 
-        return [path.parent.relative_to(self.wiki_path).name for path in path_to_query.glob(f'*/{keyword}.json')]
+        out = [(path.parent.name, path.parent.relative_to(self.wiki_path)) for path in path_to_query.glob(f'*/{keyword}.json')]
 
-    def find_official_maps(self, only_core=False, keyword='world_settings') -> List[str]:
+        if include_official_mods:
+            for official_mod in self.manager.config.settings.SeparateOfficialMods:
+                out += self.find_maps(official_mod, keyword=keyword, include_official_mods=False)
+
+        return out
+
+    def find_official_maps(self, only_core=False, keyword='world_settings') -> List[Tuple[str, Path]]:
         '''Returns a list of official maps in the output directory.'''
         results = self.find_maps(None, keyword)
 
