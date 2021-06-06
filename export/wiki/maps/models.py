@@ -114,6 +114,7 @@ class WorldSettings(ExportModel):
         ...,
         description="Preview textures of the map. Weapon refers to the map player can hold.",
     )
+    learnableEngrams: List[str] = Field([])
     # Spawn Settings
     onlyEventGlobalSwaps: bool = Field(
         False,

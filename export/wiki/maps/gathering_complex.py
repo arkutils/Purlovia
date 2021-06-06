@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, Iterable, Optional, Set, Type, Union, cast
+from typing import Any, Dict, Iterable, List, Optional, Set, Type, Union, cast
 
 from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
@@ -24,6 +24,17 @@ __all__ = (
     'COMPLEX_GATHERERS',
     'WorldSettingsExport',
 )
+
+# There's two separate engram groups for Gen1 and Gen2, but only the first one
+_ENGRAM_GROUP_FRIENDLY_NAMES = [
+    'Base Game',
+    'Scorched Earth',
+    'Tek',
+    'Unavailable',
+    'Aberration',
+    'Extinction',
+    'Genesis',
+]
 
 
 class WorldSettingsExport(MapGathererBase):
@@ -76,6 +87,7 @@ class WorldSettingsExport(MapGathererBase):
                 big=sanitise_output(settings.get('OverrideUIMapTextureFilled', 0, None)),
                 small=sanitise_output(settings.get('OverrideUIMapTextureSmall', 0, None)),
             ),
+            learnableEngrams=cls._convert_engrams_bit_mask(settings.ValidEngramGroupsBitMask[0].value),
             # Spawns
             onlyEventGlobalSwaps=bool(settings.bPreventGlobalNonEventSpawnOverrides[0]),
             randomNPCClassWeights=list(cls._convert_class_swaps(settings)),
@@ -98,6 +110,15 @@ class WorldSettingsExport(MapGathererBase):
                 out = convert_single_class_swap(struct.as_dict())
                 if out:
                     yield out
+
+    @classmethod
+    def _convert_engrams_bit_mask(cls, bitmask: int) -> List[str]:
+        out = []
+        for index, name in enumerate(_ENGRAM_GROUP_FRIENDLY_NAMES):
+            val = 1 << (index + 1)
+            if bitmask & val == val:
+                out.append(name)
+        return out
 
 
 class TradeListExport(MapGathererBase):

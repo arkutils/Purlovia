@@ -141,11 +141,12 @@ class EngramsStage(JsonHierarchyExportStage):
 _ENGRAM_GROUP_MAP = {
     'ARK_PRIME': 'Base Game',
     'ARK_SCORCHEDEARTH': 'Scorched Earth',
-    'ARK_TEK': 'TEK',
+    'ARK_TEK': 'Tek',
     'ARK_UNLEARNED': 'Unavailable',
     'ARK_ABERRATION': 'Aberration',
     'ARK_EXTINCTION': 'Extinction',
-    'ARK_GENESIS': 'Genesis',
+    'ARK_GENESIS': 'Genesis 1',
+    'ARK_GEN2': 'Genesis 2',
 }
 
 
