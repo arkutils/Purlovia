@@ -5,7 +5,7 @@ from automate.hierarchy_exporter import ExportModel
 from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.spawn_groups.structs import convert_single_class_swap
-from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
+from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, MissionDispatcher, \
     MissionDispatcher_MultiUsePylon, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
@@ -419,7 +419,7 @@ class RadiationZoneExport(MapGathererBase):
         convert_box_bounds_for_export(world, data)
 
 
-class MissionDispatcher(MapGathererBase):
+class MissionDispatcherExport(MapGathererBase):
     MISSION_TYPE_MAP = {
         0: 'BossFight',
         1: 'Escort',
@@ -434,7 +434,7 @@ class MissionDispatcher(MapGathererBase):
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
-        return {MissionDispatcher_MultiUsePylon.get_ue_type()}
+        return {MissionDispatcher.get_ue_type()}
 
     @classmethod
     def get_model_type(cls) -> Optional[Type[ExportModel]]:
@@ -442,15 +442,17 @@ class MissionDispatcher(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        dispatcher: MissionDispatcher_MultiUsePylon = cast(MissionDispatcher_MultiUsePylon, proxy)
-        type_id = dispatcher.MissionTypeIndex[0].value
+        dispatcher: MissionDispatcher = cast(MissionDispatcher, proxy)
         location = get_actor_location_vector(dispatcher)
+        out = models.MissionDispatcher(x=location.x, y=location.y, z=location.z)
 
-        return models.MissionDispatcher(type_=cls.MISSION_TYPE_MAP.get(type_id, type_id),
-                                        missions=sanitise_output(dispatcher.MissionTypes[0].values),
-                                        x=location.x,
-                                        y=location.y,
-                                        z=location.z)
+        if isinstance(dispatcher, MissionDispatcher_MultiUsePylon):
+            dispatcher_gen1 = cast(MissionDispatcher_MultiUsePylon, dispatcher)
+            type_id = dispatcher_gen1.MissionTypeIndex[0].value
+            out.type_ = cls.MISSION_TYPE_MAP.get(type_id, type_id)
+            out.missions = sanitise_output(dispatcher_gen1.MissionTypes[0].values)
+
+        return out
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
@@ -493,5 +495,5 @@ COMPLEX_GATHERERS = [
     RadiationZoneExport,
     # Genesis
     TradeListExport,
-    MissionDispatcher,
+    MissionDispatcherExport,
 ]

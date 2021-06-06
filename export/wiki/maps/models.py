@@ -220,11 +220,18 @@ class PlayerSpawn(ExportModel):
 
 
 class MissionDispatcher(ExportModel):
-    type_: Union[str, int] = Field(
+    type_: Optional[Union[str, int]] = Field(
+        None,
         alias="type",
-        description="Friendly mission type name, or internal ID if unknown.",
+        description=
+        "Friendly mission type name, or internal ID if unknown, if the dispatcher is restricted to a single type (like on "
+        "Genesis 1)",
     )
-    missions: List[ObjectPath]
+    missions: Optional[List[ObjectPath]] = Field(
+        None,
+        description=
+        "List of missions that can be activated at this dispatcher. If null, any mission can be activated (like on Genesis 2).",
+    )
 
     x: FloatProperty
     y: FloatProperty

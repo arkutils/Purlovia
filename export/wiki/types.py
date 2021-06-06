@@ -323,8 +323,12 @@ class DayCycleManager_Gen1(UEProxyStructure, uetype='/Script/ShooterGame.DayCycl
     GenesisTradableOptions: Mapping[int, ArrayProperty]
 
 
+class MissionDispatcher(UEProxyStructure, uetype='/Script/ShooterGame.MissionDispatcher'):
+    RootComponent: Mapping[int, ObjectProperty]
+
+
 class MissionDispatcher_MultiUsePylon(
-        UEProxyStructure, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
+        MissionDispatcher, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
     # DevKit Verified
     MissionTypeIndex = ueints(0)
 
