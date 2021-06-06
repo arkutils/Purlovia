@@ -197,6 +197,9 @@ mods:
             SummonedDinos: Summoned
             FinalBattleAlt: FinalBattle
 
+        remove_variants:
+            Gen2: true
+
         species_remaps:
             # Valguero Ice Wyvern -> Ragnarok Ice Wyvern
             '/Game/Mods/Valguero/Assets/Dinos/IceWyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice': '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Wyvern/Ice_Wyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice'
@@ -1406,6 +1409,18 @@ species:
 
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
         is_tameable: false
+
+    /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Large/Shapeshifter_Large_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Small/Shapeshifter_Small_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis2/Dinos/SpaceDolphin/SpaceDolphin_Character_BP:
+        is_tameable: true
+
+    /Game/Genesis2/Dinos/TekStrider/TekStrider_Character_BP:
+        is_tameable: true
 
 
 
