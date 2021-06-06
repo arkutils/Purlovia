@@ -197,6 +197,9 @@ mods:
             SummonedDinos: Summoned
             FinalBattleAlt: FinalBattle
 
+        remove_variants:
+            Gen2: true
+
         species_remaps:
             # Valguero Ice Wyvern -> Ragnarok Ice Wyvern
             '/Game/Mods/Valguero/Assets/Dinos/IceWyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice': '/Game/Mods/Ragnarok/Custom_Assets/Dinos/Wyvern/Ice_Wyvern/Ragnarok_Wyvern_Override_Ice.Ragnarok_Wyvern_Override_Ice'
