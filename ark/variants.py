@@ -12,11 +12,11 @@ __all__ = [
 ]
 
 
-def _gather_mission_variants(bp: str, variants: Set[str]):
+def _gather_mission_variants(assetname: str, variants: Set[str]):
     '''Decode Genesis-like mission variants, which contain mission type and optional biome type.'''
 
     # Both mission type and biome type
-    match = re.search(r'/MissionVariants/(\w+?)/(\w+?)/', bp)
+    match = re.search(r'/MissionVariants/(\w+?)/(\w+?)/', assetname)
     if match:
         variants.add(match[1])
         variants.add(match[2])
@@ -24,29 +24,34 @@ def _gather_mission_variants(bp: str, variants: Set[str]):
         return
 
     # Just mission type
-    match = re.search(r'/MissionVariants/(\w+?)/', bp)
+    match = re.search(r'/MissionVariants/(\w+?)/', assetname)
     if match:
         variants.add(match[1])
         variants.add('Mission')
 
     # Genesis2 style
-    match = re.search(r'/ModularMission/(\w+?)/', bp)
+    match = re.search(r'/ModularMission/(\w+?)/', assetname)
     if match:
         variants.add(match[1])
         variants.add('Mission')
 
 
-def _gather_biome_variants(bp: str, variants: Set[str]):
+def _gather_biome_variants(assetname: str, variants: Set[str]):
     '''Decode Genesis-like biome variants.'''
 
-    # Normal form
-    match = re.search(r'/BiomeVariants/([^_\/.]+?)_(?!Character)', bp)
+    # Gen 1 normal form
+    match = re.search(r'/Genesis/.*/BiomeVariants/(\w+?)_', assetname)
     if match:
         variants.add(match[1])
         return
 
-    # Messy form
-    match = re.search(r'/BiomeVariants/(?P<name>[^/_.]+)\w*/(?P=name)', bp)
+    # Gen 1 messy form
+    match = re.search(r'/Genesis/.*?/BiomeVariants/(?P<name>[^/_.]+)\w*/(?P=name)', assetname)
+    if match:
+        variants.add(match['name'])
+
+    # Gen 2 form
+    match = re.search(r'/Genesis2/.*?/BiomeVariants/.+_(?P<name>[^/_.]+)$', assetname)
     if match:
         variants.add(match['name'])
 
