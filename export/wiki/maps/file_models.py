@@ -43,7 +43,7 @@ class Actors(MapExportFileModel):
     wyvernNests: List[models.WyvernNest] = []
     # Ragnarok
     iceWyvernNests: List[models.IceWyvernNest] = []
-    # Genesis Part 1
+    # Genesis: Part 1
     oilVents: List[models.OilVent] = []
     lunarOxygenVents: List[models.LunarOxygenVent] = []
     # Aberration
@@ -53,10 +53,13 @@ class Actors(MapExportFileModel):
     drakeNests: List[models.DrakeNest] = []
     # Valguero
     deinonychusNests: List[models.DeinonychusNest] = []
-    # Genesis Part 1
+    # Genesis: Part 1
     glitches: List[models.Glitch] = []
     magmasaurNests: List[models.MagmasaurNest] = []
-    poisonTrees: List[models.PoisonTree]
+    poisonTrees: List[models.PoisonTree] = []
+    # Genesis: Part 2
+    mutagenBulbs: List[models.MutagenBulb] = []
+    carniflora: List[models.Carniflora] = []
 
 
 class Missions(MapExportFileModel):

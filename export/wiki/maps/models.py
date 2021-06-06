@@ -318,3 +318,11 @@ class MagmasaurNest(Actor):
 
 class PoisonTree(Actor):
     ...
+
+
+class MutagenBulb(Actor):
+    ...
+
+
+class Carniflora(Actor):
+    ...

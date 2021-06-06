@@ -6,8 +6,8 @@ from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.spawn_groups.structs import convert_single_class_swap
 from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
-    MissionDispatcher, MissionDispatcher_FinalBattle, MissionDispatcher_MultiUsePylon, NPCZoneManager, \
-    PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+    MissionDispatcher, MissionDispatcher_FinalBattle, MissionDispatcher_MultiUsePylon, \
+    MutagenSpawnerManager, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.properties import ArrayProperty, ObjectProperty, StringProperty
@@ -491,6 +491,38 @@ class ExplorerNoteExport(MapGathererBase):
         convert_location_for_export(world, data)
 
 
+class MutagenBulbExport(MapGathererBase):
+    @classmethod
+    def get_ue_types(cls) -> Set[str]:
+        return {MutagenSpawnerManager.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.MutagenBulb
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        manager: MutagenSpawnerManager = cast(MutagenSpawnerManager, proxy)
+
+        if 'Spawners' not in manager:
+            return None
+
+        for entry in manager.Spawners[0].values:
+            if not entry.value.value:
+                continue
+
+            location = get_actor_location_vector(entry.value.value)
+            yield models.MutagenBulb(
+                x=location.x,
+                y=location.y,
+                z=location.z,
+            )
+
+    @classmethod
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
+        convert_location_for_export(world, data)
+
+
 COMPLEX_GATHERERS = [
     # Core
     WorldSettingsExport,
@@ -500,7 +532,9 @@ COMPLEX_GATHERERS = [
     LootCrateSpawnExport,
     # Aberration
     RadiationZoneExport,
-    # Genesis
+    # Genesis: Part 1
     TradeListExport,
     MissionDispatcherExport,
+    # Genesis: Part 2
+    MutagenBulbExport,
 ]
