@@ -281,6 +281,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     DeathGiveEngramClasses: Mapping[int, ArrayProperty]  # = []
 
     # DevKit Unverified
+    bUsesGender = uebools(True)
 
 
 class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):

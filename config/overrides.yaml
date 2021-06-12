@@ -157,6 +157,7 @@ mods:
             Alpha: true
             Beta: true
             Gamma: true
+            Ghost: true
 
             # Genesis variants
             Bog: true
