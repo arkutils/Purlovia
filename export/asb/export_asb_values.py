@@ -155,6 +155,9 @@ def values_for_species(asset: UAsset, proxy: PrimalDinoCharacter) -> Optional[Di
     if immobilization_data is not None:
         species['immobilizedBy'] = immobilization_data
 
+    if not char_props.bUsesGender[0]:
+        species['noGender'] = True
+
     # Breeding data
     if char_props.bCanHaveBaby[0]:  # TODO: Consider always including this data
         breeding_data = None
