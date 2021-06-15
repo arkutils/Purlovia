@@ -192,8 +192,6 @@ class SpeciesStage(JsonHierarchyExportStage):
             if should_skip_from_variants(variants, overrides):
                 return None
 
-            name = adjust_name_from_variants(name, variants, overrides)
-
         out = Species(bp=asset.default_class.fullname)
         out.name = name
         out.dinoNameTag = species.DinoNameTag[0]
