@@ -287,6 +287,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
 
     # DevKit Unverified
     bUsesGender = uebools(True)
+    MutagenBaseCost = uefloats(-1)
 
 
 class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):

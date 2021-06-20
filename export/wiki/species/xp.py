@@ -1,4 +1,5 @@
 from enum import Enum
+from math import ceil
 from typing import List, Optional
 
 from ark.types import COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
@@ -49,6 +50,7 @@ class LevelData(ExportModel):
         "Extra levels this species can have before getting destroyed on servers with the DestroyTamesOverLevelClamp setting "
         "enabled.",
     )
+    mutagenCost: int = Field(0, description="Amount of Mutagen needed to use it on this dino.")
 
 
 def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> LevelData:
@@ -125,5 +127,22 @@ def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusCo
                                       max=clean_float(max_lvl)))
 
         result.wildLevelTable = out_level_table
+
+    # Calculate required amount of Mutagen needed to use it.
+    # Formula extracted from PrimalItemConsumable_Mutagen_C's scripts
+    # Vultures cannot use Mutagen as it can't enter their inventories.
+    # IsRobot and IsVehicle banned from Mutagen in v329.51.
+    if species.DinoNameTag[0] != 'Vulture' and not species.bIsRobot[0] and not species.bIsVehicle[0]:
+        mutagen_base = species.MutagenBaseCost[0]
+        if mutagen_base <= 0:
+            mutagen_base = species.CloneBaseElementCost[0]
+        if mutagen_base > 0:
+            cost = 1 + 99*mutagen_base
+
+            # Round up 0.5 to conform with in-game calculations.
+            if (cost % 1) >= 0.5:
+                result.mutagenCost = ceil(cost)
+            else:
+                result.mutagenCost = round(cost)
 
     return result
