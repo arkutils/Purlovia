@@ -86,6 +86,8 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
     if char_props.bIsCorrupted[0]:
         return colors
 
+    region_name: Optional[str]
+
     # Export a list of color names for each region
     for i in range(NUM_REGIONS):
         prevent_region = char_props.PreventColorizationRegions[i]
@@ -98,7 +100,7 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
             if i in settings.region_names:
                 color['name'] = settings.region_names[i]
         elif i not in colorset_props.ColorSetDefinitions:
-            color['name'] = None
+            color['name'] = settings.region_names.get(i, None)
         else:
             color_set_defs: Dict[str, UEBase] = colorset_props.ColorSetDefinitions[i].as_dict()
 
@@ -106,7 +108,7 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
                 for color_name in color_set_defs['ColorEntryNames'].values:
                     color_names.add(str(color_name))
 
-            region_name: Optional[str] = str(color_set_defs.get('RegionName', settings.default_name)).strip()
+            region_name = str(color_set_defs.get('RegionName', settings.default_name)).strip()
 
             if region_name and any_regexes_match(settings.nullify_name_regexes, region_name):
                 # Null-out this region if it matches NULLABLE_REGION_COLORS exactly
