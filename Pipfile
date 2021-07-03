@@ -18,7 +18,7 @@ pre-commit = "~=2.8.1"
 flake8 = "~=3.8.2"
 
 [packages]
-requests = "~=2.24.0"
+requests = "~=2.25.1"
 pydantic = "~=1.7.4"
 pyyaml = "~=5.3"
 psutil = "~=5.6.6"
