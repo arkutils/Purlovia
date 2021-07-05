@@ -35,6 +35,12 @@ def _gather_mission_variants(assetname: str, variants: Set[str]):
         variants.add(match[1])
         variants.add('Mission')
 
+    # Genesis 2 Hunt variants
+    match = re.search(r'/Missions/(?!ModularMission)(\w+?)/', assetname)
+    if match:
+        variants.add(match[1])
+        variants.add('Mission')
+
 
 def _gather_biome_variants(assetname: str, variants: Set[str]):
     '''Decode Genesis-like biome variants.'''
