@@ -30,7 +30,7 @@ def _gather_mission_variants(assetname: str, variants: Set[str]):
         variants.add('Mission')
 
     # Genesis2 style
-    match = re.search(r'/ModularMission/(\w+?)/', assetname)
+    match = re.search(r'/Missions(?:/ModularMission)?/(\w+?)/', assetname)
     if match:
         variants.add(match[1])
         variants.add('Mission')

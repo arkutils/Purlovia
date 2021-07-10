@@ -6,7 +6,7 @@ This project aims to give developers the tools they need to extract data from th
 
 **NOTE: This tool is for developers and will not be useful to end-users.**
 
-While still in development, it aims to:
+While the project will be in perpetual development, it aims to:
 
 * Automate extraction of species information for [ArkSmartBreeding](https://github.com/cadon/ARKStatsExtractor/)
 * Automate extraction of other information for [the Ark wiki](https://ark.gamepedia.com/)
@@ -25,11 +25,21 @@ Covering:
 
 *This project does not contain assets from Ark. It installs and updates them via regular Steam tools.*
 
+### Requirements
+
+* Git
+* Python 3.7 (probably compatible with later but untested)
+* pipenv
+
 ### Getting Started
 
 1. Make sure you have the [Obelisk](https://github.com/arkutils/Obelisk) git repo cloned to `output`
+   ```sh
+   git clone https://github.com/arkutils/Obelisk.git output
+   ```
 
 2. Create virtualenv and install the required packages (needs Python 3.7):
+    (suggest setting PIPENV_VENV_IN_PROJECT to 1)
 
    ```sh
    pipenv sync   # add --dev to install dev-related dependencies
