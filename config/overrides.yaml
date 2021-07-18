@@ -1410,22 +1410,22 @@ species:
 
     # Tameability overrides for wiki.species
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
-        is_tameable: false
+        taming_method: none
 
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP_Male:
-        is_tameable: false
+        taming_method: none
 
     /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Large/Shapeshifter_Large_Character_BP:
-        is_tameable: true
+        taming_method: none
 
     /Game/Genesis/Dinos/Shapeshifter/Shapeshifter_Small/Shapeshifter_Small_Character_BP:
-        is_tameable: true
+        taming_method: awake
 
     /Game/Genesis2/Dinos/SpaceDolphin/SpaceDolphin_Character_BP:
-        is_tameable: true
+        taming_method: awake
 
     /Game/Genesis2/Dinos/TekStrider/TekStrider_Character_BP:
-        is_tameable: true
+        taming_method: awake
 
 
 

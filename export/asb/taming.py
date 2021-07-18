@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 
+from ark.overrides import OverrideSettings, TamingMethod
 from ark.types import PrimalDinoCharacter, PrimalDinoStatusComponent
 from ue.utils import clean_double as cd
 from ue.utils import clean_float as cf
@@ -9,7 +10,9 @@ __all__ = [
 ]
 
 
-def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent) -> Dict[str, Any]:
+def gather_taming_data(char_props: PrimalDinoCharacter,
+                       dcsc_props: PrimalDinoStatusComponent,
+                       overrides: OverrideSettings) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()
 
     # Currently unable to gather the foods list
@@ -17,10 +20,15 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
     favorite_kibble: Optional[str] = None
     special_food_values: Optional[List[Dict[str, Dict[str, List[int]]]]] = None
 
-    can_tame = char_props.bCanBeTamed[0]
-    can_knockout = char_props.bCanBeTorpid[0]
-    data['nonViolent'] = char_props.bSupportWakingTame[0] and can_tame
-    data['violent'] = not char_props.bPreventSleepingTame[0] and can_tame and can_knockout
+    if overrides.taming_method:
+        can_tame = overrides.taming_method != TamingMethod.none
+        data['nonViolent'] = overrides.taming_method == TamingMethod.awake
+        data['violent'] = overrides.taming_method == TamingMethod.knockout
+    else:
+        can_tame = char_props.bCanBeTamed[0]
+        can_knockout = char_props.bCanBeTorpid[0]
+        data['nonViolent'] = char_props.bSupportWakingTame[0] and can_tame
+        data['violent'] = not char_props.bPreventSleepingTame[0] and can_tame and can_knockout
 
     if can_tame or True:
         data['tamingIneffectiveness'] = cf(char_props.TameIneffectivenessByAffinity[0].rounded_value)

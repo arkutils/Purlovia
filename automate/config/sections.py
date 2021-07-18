@@ -5,7 +5,7 @@ from pydantic import BaseModel, Extra
 
 from utils.name_convert import snake_to_kebab
 
-from .util_types import IniStringList, ModAliases, ModIdAccess
+from .util_types import IniStringList, ModAliases, ModIdAccess, TamingMethod
 
 
 class SettingsSection(BaseModel):

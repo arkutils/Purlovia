@@ -1,6 +1,7 @@
 import re
 from collections.abc import MutableMapping as Map
 from copy import deepcopy
+from enum import Enum
 from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Optional, Union
 
@@ -44,6 +45,12 @@ class ColorRegionSettings(BaseModel):
         dict(),
         description="Override individual region names, in for dict form `region_num: \"name\"`",
     )
+
+
+class TamingMethod(str, Enum):
+    none = 'no'
+    knockout = 'knockout'
+    awake = 'awake'
 
 
 class MapBoundariesSettings(BaseModel):
@@ -119,9 +126,9 @@ class OverrideSettings(BaseModel):
         dict(),
         description="Mapping from old to new species blueprint paths",
     )
-    is_tameable: Optional[bool] = Field(
+    taming_method: Optional[TamingMethod] = Field(
         None,
-        description="If not null, overrides whether wiki.species emits a tameable flag for the species.",
+        description="Overrides the taming method of the species.",
     )
 
     # Maps
