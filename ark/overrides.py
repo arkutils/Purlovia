@@ -48,9 +48,9 @@ class ColorRegionSettings(BaseModel):
 
 
 class TamingMethod(str, Enum):
-    none = 'no'
-    knockout = 'knockout'
+    none = 'none'
     awake = 'awake'
+    knockout = 'knockout'
 
 
 class MapBoundariesSettings(BaseModel):

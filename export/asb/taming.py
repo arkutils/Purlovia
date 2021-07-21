@@ -10,8 +10,7 @@ __all__ = [
 ]
 
 
-def gather_taming_data(char_props: PrimalDinoCharacter,
-                       dcsc_props: PrimalDinoStatusComponent,
+def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoStatusComponent,
                        overrides: OverrideSettings) -> Dict[str, Any]:
     data: Dict[str, Any] = dict()
 
@@ -25,7 +24,7 @@ def gather_taming_data(char_props: PrimalDinoCharacter,
         data['nonViolent'] = overrides.taming_method == TamingMethod.awake
         data['violent'] = overrides.taming_method == TamingMethod.knockout
     else:
-        can_tame = char_props.bCanBeTamed[0]
+        can_tame = bool(char_props.bCanBeTamed[0])
         can_knockout = char_props.bCanBeTorpid[0]
         data['nonViolent'] = char_props.bSupportWakingTame[0] and can_tame
         data['violent'] = not char_props.bPreventSleepingTame[0] and can_tame and can_knockout
