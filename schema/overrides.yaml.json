@@ -28,7 +28,7 @@
 					"region_names": {}
 				},
 				"species_remaps": {},
-				"is_tameable": null,
+				"taming_method": null,
 				"svgs": {
 					"border_top": 7.2,
 					"border_left": 7.2,
@@ -144,6 +144,16 @@
 					}
 				}
 			}
+		},
+		"TamingMethod": {
+			"title": "TamingMethod",
+			"description": "An enumeration.",
+			"enum": [
+				"none",
+				"awake",
+				"knockout"
+			],
+			"type": "string"
 		},
 		"MapBoundariesSettings": {
 			"title": "MapBoundariesSettings",
@@ -349,10 +359,13 @@
 						"type": "string"
 					}
 				},
-				"is_tameable": {
-					"title": "Is Tameable",
-					"description": "If not null, overrides whether wiki.species emits a tameable flag for the species.",
-					"type": "boolean"
+				"taming_method": {
+					"description": "Overrides the taming method of the species.",
+					"allOf": [
+						{
+							"$ref": "#/definitions/TamingMethod"
+						}
+					]
 				},
 				"svgs": {
 					"title": "SVGs",
