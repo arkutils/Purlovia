@@ -1343,6 +1343,10 @@ species:
             region_names:
                 1: null
                 3: null # texture artifact, not visible
+    /Game/Extinction/Dinos/Owl/Owl_Character_BP:
+        color_regions:
+            region_names:
+                3: "Face patterns" # probably texture artifact, but clear pattern on dark background
     /Game/Genesis/Dinos/BiomeVariants/Snow_Yutyrannus/Snow_Yutyrannus_Character_BP:
         color_regions:
             region_names:
