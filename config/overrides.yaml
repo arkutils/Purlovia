@@ -1107,6 +1107,11 @@ species:
         color_regions:
             region_names:
                 3: "Body Highlights"
+    /Game/Genesis2/Dinos/BiomeVariants/Procoptodon_Character_BP_Eden:
+        color_regions:
+            region_names:
+                2: null # Not visible
+                3: null # Only visible when boosted 10000x around claws
     /Game/ScorchedEarth/Dinos/Camelsaurus/camelsaurus_Character_BP:
         color_regions:
             region_names:
