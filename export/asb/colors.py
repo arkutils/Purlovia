@@ -120,7 +120,7 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
                 # Region name is useless, replace with the default_name
                 region_name = settings.default_name
 
-            if region_name and i in settings.region_names:
+            if i in settings.region_names:
                 # There's a specific override for this region
                 region_name = settings.region_names[i]
 
