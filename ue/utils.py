@@ -109,7 +109,13 @@ def clean_float(value):
     if isinf(value):
         return value
     value = float(format(value, '.7g'))
-    int_value = int(value)
+    try:
+        int_value = int(value)
+    except OverflowError:
+        return value
+    except ValueError:
+        return value
+
     if value == int_value:
         return int_value
     else:
@@ -123,7 +129,13 @@ def clean_double(value):
     if isinf(value):
         return value
     value = float(format(value, '.9g'))
-    int_value = int(value)
+    try:
+        int_value = int(value)
+    except OverflowError:
+        return value
+    except ValueError:
+        return value
+
     if value == int_value:
         return int_value
     else:
