@@ -108,22 +108,6 @@ class MapStage(ExportStage):
         # Prepare modeled data for saving
         world.convert_for_export()
 
-        # Save harvestables if any were collected
-        if world.resource_nodes:
-            output_path = (base_path / '..' / relative_path).with_suffix('.csv')
-            data = world.resource_nodes
-
-            with output_path.open('wt') as fp:
-                fp.write('ResourceType,Lat,Long,Z,Cave?\n')
-                for resource_type, nodes in data.items():
-                    for x, y, z, is_likely_cave in nodes:
-                        lat, long = get_latlong_from_location(world, x, y)
-                        lat = clean_float(lat)
-                        long = clean_float(long)
-                        z = clean_float(z)
-
-                        fp.write(f'{resource_type},{lat},{long},{z},{1 if is_likely_cave else 0}\n')
-
         # Save modeled data.
         pretty_json = self.manager.config.export_wiki.PrettyJson
         if pretty_json is None:
@@ -156,6 +140,21 @@ class MapStage(ExportStage):
 
             # Save if the data changed
             save_json_if_changed(output, (base_path / output_path), pretty_json)
+
+        # Save harvestables if any were collected
+        if world.resource_nodes:
+            output_path = (base_path / relative_path / relative_path).with_suffix('.csv')
+            data = world.resource_nodes
+
+            with output_path.open('wt') as fp:
+                fp.write('ResourceType,Lat,Long,Z,Cave?\n')
+                for resource_type, nodes in data.items():
+                    for x, y, z, is_likely_cave in nodes:
+                        lat, long = get_latlong_from_location(world, x, y)
+                        lat = clean_float(lat)
+                        long = clean_float(long)
+                        z = clean_float(z)
+                        fp.write(f'{resource_type},{lat},{long},{z},{1 if is_likely_cave else 0}\n')
 
     def _get_schema_file_path(self, file_name: str) -> PurePosixPath:
         return PurePosixPath('.schema') / f'maps_{file_name}.json'

@@ -40,6 +40,7 @@ HARVEST_COMPONENT_MAPPING = {
     'EX_GemFertileHarvestComponent_Light_C': 'gem-green',
     'GemGreenHarvestComponent_C': 'gem-green',
     'GemBioLumHarvestComponent_C': 'gem-blue',
+    'GemBioLumHarvestComponent_Light_C': 'gem-blue',
     'GemBlueHarvestComponent_C': 'gem-blue',
     'GemElementHarvestComponent_C': 'gem-red',
     'GemDrakeTrenchHarvestComponent_Light_C': 'gem-red',
@@ -87,6 +88,9 @@ HARVEST_COMPONENT_MAPPING = {
     'AmbergrisHarvestComponent_C': 'ambergris',
     # Mutagel
     'MutagelHarvestComponent_C': 'mutagel',
+    # Fjordur
+    'Fjo_CrystalHarvestComponent_C': 'crystal',
+    'SeaSaltHarvestComponent_C': 'salt',
 }
 
 LEVEL_NAME_EXTRA_SUFFIX = {
@@ -140,6 +144,7 @@ def collect_harvestable_resources(export: ExportTableItem, out: ResourceNodesByT
     component_name = str(component.value.value.name)
     resource_type = HARVEST_COMPONENT_MAPPING.get(component_name, None)
     if not resource_type:
+        logger.debug(f'Resource type unknown: {component_name}')
         return
 
     # Add a suffix to the resource type depending on level (Genesis 2 rotations)

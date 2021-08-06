@@ -67,7 +67,7 @@ class BaseActorListExport(MapGathererBase):
         actors: CustomActorList = cast(CustomActorList, proxy)
 
         if 'ActorList' not in actors:
-            return
+            return None
 
         for entry in actors.ActorList[0].values:
             if not entry.value.value:
