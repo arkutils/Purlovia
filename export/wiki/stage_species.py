@@ -118,6 +118,7 @@ class Species(ExportModel):
     falling: Optional[FallingData]
     movementW: Optional[MovementModes] = Field(None, title="Movement (wild)")
     movementD: Optional[MovementModes] = Field(None, title="Movement (domesticated)")
+    movementR: Optional[MovementModes] = Field(None, title="Movement (ridden)")
     staminaRates: Optional[StaminaRates]
     attack: Optional[AttackData]
     death: DeathData = DeathData()
@@ -220,6 +221,7 @@ class SpeciesStage(JsonHierarchyExportStage):
         movement = gather_movement_data(species, dcsc)
         out.movementW = movement.movementW
         out.movementD = movement.movementD
+        out.movementR = movement.movementR
         out.staminaRates = movement.staminaRates
 
         out.attack = gather_attack_data(species)

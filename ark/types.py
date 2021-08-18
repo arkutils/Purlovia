@@ -173,6 +173,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     CharacterMovement = ProxyComponent[ShooterCharacterMovement]()
 
     # Flags
+    bAllowRiding = uebools(False)
     bAllowCarryFlyerDinos = uebools(False)
     bAllowFlyerLandedRider = uebools(False)
     bAllowRunningWhileSwimming = uebools(False)
@@ -256,6 +257,10 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     ScaleExtraRunningMultiplierMin = uefloats(0.0)
     ScaleExtraRunningMultiplierSpeed = uefloats(0.0)
     ScaleExtraRunningSpeedModifier = uebools(False)
+
+    RiderMaxSpeedModifier = uefloats(1.0)
+    RiderExtraMaxSpeedModifier = uefloats(1.0)
+    RiderMaxRunSpeedModifier = uefloats(1.0)
 
     DefaultLandMovementMode = uebytes(('EMovementMode', 'MOVE_Walking'))
     SubmergedWaterMovementMode = uebytes(('EMovementMode', 'MOVE_Swimming'))
