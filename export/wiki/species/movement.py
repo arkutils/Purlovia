@@ -25,6 +25,7 @@ class StaminaRates(ExportModel):
 class MovementIntermediate(ExportModel):
     movementW: Optional[MovementModes]
     movementD: Optional[MovementModes]
+    movementR: Optional[MovementModes]
     staminaRates: Optional[StaminaRates]
 
 
@@ -59,6 +60,16 @@ def gather_movement_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatus
     result.movementD = _gather_speeds(species, species.ExtraTamedSpeedMultiplier[0], True)
     result.staminaRates = _gather_stamina(dcsc, result.movementW)
 
+    rider_main_differs = species.RiderMaxSpeedModifier[0] != 1
+    rider_extra_differs = species.RiderExtraMaxSpeedModifier[0] != 1
+    rider_sprint_differs = species.RiderMaxRunSpeedModifier[0] != 1
+    if species.bAllowRiding[0] and (rider_main_differs or rider_extra_differs or rider_sprint_differs):
+        result.movementR = MovementModes(
+            walk=_calculate_ridden_speeds(species, result.movementD.walk),
+            swim=_calculate_ridden_speeds(species, result.movementD.swim),
+            fly=_calculate_ridden_speeds(species, result.movementD.fly),
+        )
+
     return result
 
 
@@ -85,15 +96,32 @@ def _calculate_sprint_speed(species: PrimalDinoCharacter, base: Union[float, Flo
     return speed
 
 
+def _clean_value(v: float) -> Union[float, int]:
+    v = round(v, 1)
+    if v == int(v):
+        v = int(v)
+    return v
+
+
+def _calculate_ridden_speeds(species: PrimalDinoCharacter, dom: Optional[SpeedData]) -> Optional[SpeedData]:
+    if not dom:
+        return None
+
+    def _get_component(base: float) -> float:
+        return _clean_value(base * species.RiderMaxSpeedModifier[0] * species.RiderExtraMaxSpeedModifier[0])
+
+    return SpeedData(
+        base=_get_component(dom.base),
+        crouch=_get_component(dom.crouch) if dom.crouch else None,
+        sprint=_get_component(dom.sprint * species.RiderMaxRunSpeedModifier[0]) if dom.sprint else None,
+    )
+
+
 def _gather_speeds(species: PrimalDinoCharacter, staticMult: FloatProperty, tamed) -> MovementModes:
     result = MovementModes()
 
     def mult(v):
-        v = v * staticMult
-        v = round(v, 1)
-        if v == int(v):
-            v = int(v)
-        return v
+        return _clean_value(v * staticMult)
 
     cm: ShooterCharacterMovement = species.CharacterMovement[0]
     nav_props_struct = cm.get('NavAgentProps', fallback=None)

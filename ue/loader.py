@@ -540,8 +540,11 @@ class AssetLoader:
 
         leafname = assetname.split('/')[-1]
 
+        # Check only exports with no namespace (top-level ones)
+        top_exports = [export for export in asset.exports.values if str(export.namespace) == 'None']
+
         # Look for a BP-style Default__<assetname> export
-        exports = [export for export in asset.exports.values if str(export.name).startswith('Default__')]
+        exports = [export for export in top_exports if str(export.name).startswith('Default__')]
         if len(exports) > 1:
             logger.warning(f'Found more than one Default__ entry in {assetname}!')
         asset.default_export = exports[0] if exports else None
@@ -549,8 +552,8 @@ class AssetLoader:
             asset.default_class = asset.default_export.klass.value
 
         if not asset.default_export:
-            # Fall back to an export named the same as the asset
-            exports = [export for export in asset.exports.values if str(export.name).lower() == leafname.lower()]
+            # Fall back to an export named the same as the asset with no namespace
+            exports = [export for export in top_exports if str(export.name).lower() == leafname.lower()]
             if len(exports) > 1:
                 logger.warning(f'Found more than <assetname> export in {assetname}!')
             else:
