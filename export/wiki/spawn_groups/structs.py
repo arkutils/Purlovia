@@ -61,7 +61,7 @@ def convert_class_swaps(pgd: UAsset) -> Optional[List[WeighedClassSwap]]:
 
 class NpcEntry(ExportModel):
     chance: float
-    bp: Optional[str]
+    bp: str
     offset: Vector = Vector(x=0, y=0, z=0)
 
 
@@ -93,12 +93,17 @@ def convert_group_entry(struct) -> NpcGroup:
     num_offsets = len(offsets)
 
     for index, kls in enumerate(d['NPCsToSpawn'].values):
-        npc = NpcEntry(
-            chance=chances[index] if index < num_chances else 1,
-            bp=sanitise_output(kls),
-            offset=sanitise_output(offsets[index] if index < num_offsets else Vector(x=0, y=0, z=0)),
-        )
-        out.species.append(npc)
+        # Ensure the NPC class is not null.
+        # The bp field was marked as optional before, but it left dead entries with only a chance.
+        # Since we know more about NPC spawning now, and AE 893735676 has shipped a very dirty update
+        # around Sep 10th, 2021, skip those entries entirely.
+        if kls and kls.value and kls.value.value:
+            npc = NpcEntry(
+                chance=chances[index] if index < num_chances else 1,
+                bp=sanitise_output(kls),
+                offset=sanitise_output(offsets[index] if index < num_offsets else Vector(x=0, y=0, z=0)),
+            )
+            out.species.append(npc)
 
     # Export local random class swaps if any exist
     swaps = d['NPCRandomSpawnClassWeights'].values
