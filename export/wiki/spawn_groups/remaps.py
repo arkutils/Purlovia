@@ -23,12 +23,18 @@ def convert_npc_remaps(pgd: UAsset) -> List[ClassRemap]:
     out = []
     for entry in remaps:
         d = entry.as_dict()
+
+        # Get the class-to-remap and ensure it is a valid reference.
+        # Skip otherwise, as nulls cannot be spawned.
+        from_class = d.get('FromClass', None)
+        if not from_class:
+            continue
+
+        # Push the remap to the output list.
         v = ClassRemap(
-            from_bp=sanitise_output(d.get('FromClass', None)),
+            from_bp=sanitise_output(from_class),
             to=sanitise_output(d.get('ToClass', None)),
         )
-
-        if v.from_bp:
-            out.append(v)
+        out.append(v)
 
     return out
