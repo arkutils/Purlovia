@@ -203,6 +203,11 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bUseBabyGestation = uebools(False)
     bUseColorization = uebools(False)
 
+    # Fish Basket taming flags
+    bAllowTrapping = uebools(False)
+    bIsTrapTamed = uebools(False)
+    bPreventWildTrapping = uebools(False)
+
     # General
     CustomTag = uestrings('')  # NameProperty (Default: None)
     DescriptiveName = uestrings('')  # StringProperty (Default: 'PrimalCharacter')

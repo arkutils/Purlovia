@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Set, Tuple, cast
 
 from ark.gathering import gather_dcsc_properties
-from ark.overrides import OverrideSettings, get_overrides_for_species, TamingMethod
+from ark.overrides import OverrideSettings, TamingMethod, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
 from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
@@ -139,6 +139,10 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
 def is_creature_tameable(species: PrimalDinoCharacter, variants: Set[str], overrides: OverrideSettings) -> bool:
     if overrides.taming_method:
         return overrides.taming_method != TamingMethod.none
+
+    # Properties that control Fish Baskets.
+    if species.bAllowTrapping[0] and not species.bPreventWildTrapping[0] and species.bIsTrapTamed[0]:
+        return True
 
     if not species.bCanBeTamed[0]:
         return False
