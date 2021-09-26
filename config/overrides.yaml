@@ -935,8 +935,8 @@ species:
             region_names:
                 0: "Body Accent"
                 1: "Feather Tips"
-                3: "Body"
-                4: "Feathers"
+                3: "Body and Feathers"
+                4: "Spine"
                 5: "Belly"
     /Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP:
         add_variants:
