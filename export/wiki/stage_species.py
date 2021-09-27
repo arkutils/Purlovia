@@ -1,9 +1,9 @@
 from typing import Any, List, Optional, Set, Tuple, cast
 
 from ark.gathering import gather_dcsc_properties
-from ark.overrides import OverrideSettings, get_overrides_for_species, TamingMethod
+from ark.overrides import OverrideSettings, TamingMethod, get_overrides_for_species
 from ark.types import PrimalDinoCharacter
-from ark.variants import adjust_name_from_variants, get_variants_from_assetname, get_variants_from_species
+from ark.variants import get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
 from ue.asset import UAsset
 from ue.loader import AssetLoadException
@@ -191,8 +191,6 @@ class SpeciesStage(JsonHierarchyExportStage):
         if variants:
             if should_skip_from_variants(variants, overrides):
                 return None
-
-            name = adjust_name_from_variants(name, variants, overrides)
 
         out = Species(bp=asset.default_class.fullname)
         out.name = name
