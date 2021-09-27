@@ -198,10 +198,10 @@ def get_item_name(item: PrimalItem) -> Optional[str]:
 
     out = str(item_name)
 
-    # The game adds the Skin suffix to the item's name if bIsItemSkin is true. This only, however, happens when the
-    # item does not generate its name at runtime through scripts - where it's probably safer for us to export the
-    # CDO name.
-    if item.bIsItemSkin[0] and not item.bUseBPGetItemName[0]:
+    # The game adds the Skin suffix to the item's name if bIsItemSkin is true. This only happens when the name is
+    # not overridden by any other dynamic feature, like scripts or the rarity system (that preseeds quality and
+    # other stats), and it's probably safer for us to export the CDO name in these cases.
+    if item.bIsItemSkin[0] and not item.bUseBPGetItemName[0] and not item.bUseItemStats[0]:
         out += ' Skin'
 
     return out
