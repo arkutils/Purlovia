@@ -1097,6 +1097,10 @@ species:
                 3: null
                 4: "Underside"
                 5: "Horn"
+    /Game/Aberration/Dinos/LanternBird/LanternBird_Character_BP:
+        color_regions:
+            region_names:
+                3: "Lantern"
     /Game/Genesis/Dinos/BiomeVariants/Snow_WoollyRhino/Snow_Rhino_Character_BP:
         color_regions:
             region_names:
