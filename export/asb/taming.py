@@ -16,7 +16,6 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
 
     # Currently unable to gather the foods list
     eats: Optional[List[str]] = None
-    favorite_kibble: Optional[str] = None
     special_food_values: Optional[List[Dict[str, Dict[str, List[int]]]]] = None
 
     if overrides.taming_method:
@@ -45,11 +44,11 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
 
         data['foodConsumptionBase'] = cf(-dcsc_props.BaseFoodConsumptionRate[0].rounded_value)
         data['foodConsumptionMult'] = cf(dcsc_props.ProneWaterFoodConsumptionMultiplier[0].rounded_value)
+        data['babyFoodConsumptionMult'] = cf(dcsc_props.BabyDinoConsumingFoodRateMultiplier[0].rounded_value *
+                                             dcsc_props.ExtraBabyDinoConsumingFoodRateMultiplier[0].rounded_value)
 
         if eats is not None:
             data['eats'] = eats
-        if favorite_kibble is not None:
-            data['favoriteKibble'] = favorite_kibble
         if special_food_values is not None:
             data['specialFoodValues'] = special_food_values
 
