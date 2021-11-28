@@ -545,6 +545,8 @@ species:
         descriptive_name: Aberrant Coelacanth # fixes in-game typo
     /Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP_VDay_Aberrant:
         descriptive_name: Aberrant Coelacanth # fixes in-game typo
+    /Game/PrimalEarth/Dinos/Mosasaurus/Mosa_Character_BP_Cave.Mosa_Character_BP_Cave:
+        descriptive_name: Mosasaurus # consistency (was Mosasaur)
 
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
