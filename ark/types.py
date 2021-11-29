@@ -203,6 +203,11 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     bUseBabyGestation = uebools(False)
     bUseColorization = uebools(False)
 
+    # Fish Basket taming flags
+    bAllowTrapping = uebools(False)
+    bIsTrapTamed = uebools(False)
+    bPreventWildTrapping = uebools(False)
+
     # General
     CustomTag = uestrings('')  # NameProperty (Default: None)
     DescriptiveName = uestrings('')  # StringProperty (Default: 'PrimalCharacter')
@@ -287,6 +292,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
 
     # DevKit Unverified
     bUsesGender = uebools(True)
+    MutagenBaseCost = uefloats(-1)
 
 
 class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):

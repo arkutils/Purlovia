@@ -61,8 +61,10 @@ def convert_crafting_values(item: PrimalItem,
     # Crafted item number
     if item.bCraftDontActuallyGiveItem[0]:
         product_count: Union[int, IntProperty] = 0
-    elif item.CraftingGivesItemQuantityOverride[0].value >= 1:
+    elif item.CraftingGiveItemCount[0] >= 1:
         product_count = item.CraftingGiveItemCount[0]
+    elif item.CraftingGivesItemQuantityOverride[0] >= 1:
+        product_count = item.CraftingGivesItemQuantityOverride[0]
     else:
         product_count = item.ItemQuantity[0]
 

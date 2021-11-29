@@ -323,8 +323,12 @@ class DayCycleManager_Gen1(UEProxyStructure, uetype='/Script/ShooterGame.DayCycl
     GenesisTradableOptions: Mapping[int, ArrayProperty]
 
 
+class MissionDispatcher(UEProxyStructure, uetype='/Script/ShooterGame.MissionDispatcher'):
+    RootComponent: Mapping[int, ObjectProperty]
+
+
 class MissionDispatcher_MultiUsePylon(
-        UEProxyStructure, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
+        MissionDispatcher, uetype='/Game/Genesis/Missions/MissionDispatcher_MultiUsePylon.MissionDispatcher_MultiUsePylon_C'):
     # DevKit Verified
     MissionTypeIndex = ueints(0)
 
@@ -332,6 +336,12 @@ class MissionDispatcher_MultiUsePylon(
 
     MissionTypes: Mapping[int, ArrayProperty]
     RootComponent: Mapping[int, ObjectProperty]
+
+
+class MissionDispatcher_FinalBattle(
+        MissionDispatcher,
+        uetype='/Game/Genesis2/Missions/MissionDispatcher_Gen2_FinalBattle.MissionDispatcher_Gen2_FinalBattle_C'):
+    ...
 
 
 class PlayerStart(UEProxyStructure, uetype='/Script/Engine.PlayerStart'):
@@ -516,3 +526,17 @@ class TekCloningChamber(UEProxyStructure, uetype='/Game/PrimalEarth/Structures/T
     CloningTimePerElementShard = uefloats(7.0)
 
     # DevKit Unverified
+
+
+class MutagenSpawnerManager(
+        UEProxyStructure,
+        uetype='/Game/Genesis2/CoreBlueprints/Environment/Mutagen/MutagenSpawnerManager.MutagenSpawnerManager_C'):
+    # DevKit Verified
+    Spawners: Mapping[int, ArrayProperty]  # = []
+
+    # DevKit Unverified
+
+
+class Carniflora(UEProxyStructure, uetype='/Game/Genesis2/Structures/VenusFlyTrap/VenusFlyTrap_BP.VenusFlyTrap_BP_C'):
+    # No properties we can assume type for.
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent

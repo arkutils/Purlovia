@@ -25,7 +25,8 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
     else:
         can_tame = bool(char_props.bCanBeTamed[0])
         can_knockout = char_props.bCanBeTorpid[0]
-        data['nonViolent'] = char_props.bSupportWakingTame[0] and can_tame
+        can_basket_tame = char_props.bAllowTrapping[0] and not char_props.bPreventWildTrapping[0] and char_props.bIsTrapTamed[0]
+        data['nonViolent'] = (char_props.bSupportWakingTame[0] and can_tame) or can_basket_tame
         data['violent'] = not char_props.bPreventSleepingTame[0] and can_tame and can_knockout
 
     if can_tame or True:

@@ -6,7 +6,8 @@ from export.wiki.consts import DAMAGE_TYPE_RADIATION_PKG
 from export.wiki.models import MinMaxRange
 from export.wiki.spawn_groups.structs import convert_single_class_swap
 from export.wiki.types import BiomeZoneVolume, DayCycleManager_Gen1, ExplorerNote, HexagonTradableOption, \
-    MissionDispatcher_MultiUsePylon, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
+    MissionDispatcher, MissionDispatcher_FinalBattle, MissionDispatcher_MultiUsePylon, \
+    MutagenSpawnerManager, NPCZoneManager, PrimalWorldSettings, SupplyCrateSpawningVolume, TogglePainVolume
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.properties import ArrayProperty, ObjectProperty, StringProperty
@@ -419,7 +420,7 @@ class RadiationZoneExport(MapGathererBase):
         convert_box_bounds_for_export(world, data)
 
 
-class MissionDispatcher(MapGathererBase):
+class MissionDispatcherExport(MapGathererBase):
     MISSION_TYPE_MAP = {
         0: 'BossFight',
         1: 'Escort',
@@ -434,7 +435,7 @@ class MissionDispatcher(MapGathererBase):
 
     @classmethod
     def get_ue_types(cls) -> Set[str]:
-        return {MissionDispatcher_MultiUsePylon.get_ue_type()}
+        return {MissionDispatcher.get_ue_type()}
 
     @classmethod
     def get_model_type(cls) -> Optional[Type[ExportModel]]:
@@ -442,15 +443,23 @@ class MissionDispatcher(MapGathererBase):
 
     @classmethod
     def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
-        dispatcher: MissionDispatcher_MultiUsePylon = cast(MissionDispatcher_MultiUsePylon, proxy)
-        type_id = dispatcher.MissionTypeIndex[0].value
+        dispatcher: MissionDispatcher = cast(MissionDispatcher, proxy)
         location = get_actor_location_vector(dispatcher)
+        out = models.MissionDispatcher(x=location.x, y=location.y, z=location.z)
 
-        return models.MissionDispatcher(type_=cls.MISSION_TYPE_MAP.get(type_id, type_id),
-                                        missions=sanitise_output(dispatcher.MissionTypes[0].values),
-                                        x=location.x,
-                                        y=location.y,
-                                        z=location.z)
+        # Genesis 1 has dispatchers that only allow specific missions.
+        if isinstance(dispatcher, MissionDispatcher_MultiUsePylon):
+            dispatcher_gen1 = cast(MissionDispatcher_MultiUsePylon, dispatcher)
+            type_id = dispatcher_gen1.MissionTypeIndex[0].value
+            out.type_ = cls.MISSION_TYPE_MAP.get(type_id, type_id)
+            out.missions = sanitise_output(dispatcher_gen1.MissionTypes[0].values)
+
+        # Export a flag in case this dispatcher is used to start the Rockwell Prime fight.
+        # Allows for easier identification.
+        if isinstance(dispatcher, MissionDispatcher_FinalBattle):
+            out.isRockwellBattle = True
+
+        return out
 
     @classmethod
     def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
@@ -482,6 +491,38 @@ class ExplorerNoteExport(MapGathererBase):
         convert_location_for_export(world, data)
 
 
+class MutagenBulbExport(MapGathererBase):
+    @classmethod
+    def get_ue_types(cls) -> Set[str]:
+        return {MutagenSpawnerManager.get_ue_type()}
+
+    @classmethod
+    def get_model_type(cls) -> Optional[Type[ExportModel]]:
+        return models.MutagenBulb
+
+    @classmethod
+    def extract(cls, proxy: UEProxyStructure) -> GatheringResult:
+        manager: MutagenSpawnerManager = cast(MutagenSpawnerManager, proxy)
+
+        if 'Spawners' not in manager:
+            return None
+
+        for entry in manager.Spawners[0].values:
+            if not entry.value.value:
+                continue
+
+            location = get_actor_location_vector(entry.value.value)
+            yield models.MutagenBulb(
+                x=location.x,
+                y=location.y,
+                z=location.z,
+            )
+
+    @classmethod
+    def before_saving(cls, world: PersistentLevel, data: Dict[str, Any]):
+        convert_location_for_export(world, data)
+
+
 COMPLEX_GATHERERS = [
     # Core
     WorldSettingsExport,
@@ -491,7 +532,9 @@ COMPLEX_GATHERERS = [
     LootCrateSpawnExport,
     # Aberration
     RadiationZoneExport,
-    # Genesis
+    # Genesis: Part 1
     TradeListExport,
-    MissionDispatcher,
+    MissionDispatcherExport,
+    # Genesis: Part 2
+    MutagenBulbExport,
 ]
