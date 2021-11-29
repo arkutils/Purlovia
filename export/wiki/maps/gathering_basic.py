@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Set, Type, cast
 
 from automate.hierarchy_exporter import ExportModel
-from export.wiki.types import CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, \
+from export.wiki.types import Carniflora, CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, \
     OilVein, OilVentGen1, PlayerStart, PointOfInterestBP, PointOfInterestListGen1, PoisonTree, \
     PrimalStructurePowerNode, PrimalStructurePowerNode_Damaged, WaterVein, WildPlantSpeciesZ
 from ue.asset import ExportTableItem
@@ -229,6 +229,11 @@ class MagmasaurNests(BaseActorListExport):
     MODEL = models.MagmasaurNest
 
 
+class CarnifloraExport(BaseActorExport):
+    CLASSES = {Carniflora.get_ue_type()}
+    MODEL = models.Carniflora
+
+
 BASIC_GATHERERS = [
     # Core
     PlayerSpawnPointExport,
@@ -245,10 +250,12 @@ BASIC_GATHERERS = [
     IceWyvernNests,
     # Valguero
     DeinonychusNests,
-    # Genesis Part 1
+    # Genesis: Part 1
     GlitchExport,
     OilVentExport,
     LunarOxygenVentExport,
     MagmasaurNests,
     PoisonTreeExport,
+    # Genesis: Part 2
+    CarnifloraExport,
 ]

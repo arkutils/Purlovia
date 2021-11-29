@@ -177,6 +177,7 @@
             - '/Script/ShooterGame.PrimalWeaponGrenade'
     - '/Script/ShooterGame.TargetArea'
     - '/Script/ShooterGame.TerrainActor'
+    - '/Script/ShooterGame.MissionDispatcher' # UNVERIFIED
 - '/Script/Engine.ActorComponent':
     - '/Script/ShooterGame.BeamWeaponComponent'
     - '/Script/Engine.SceneComponent':
