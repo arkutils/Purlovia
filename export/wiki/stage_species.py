@@ -136,10 +136,21 @@ def should_skip_from_variants(variants: Set[str], overrides: OverrideSettings) -
     return bool(variants & skip_variants)
 
 
+def is_trappable_with_fish_basket(species: PrimalDinoCharacter) -> bool:
+    # Returns True if the creature can be trapped with a Fish Basket when wild.
+    # Explicit bool cast to avoid a BoolProperty|bool union in return type.
+    return bool(species.bAllowTrapping[0] and not species.bPreventWildTrapping[0])
+
+
 def is_creature_tameable(species: PrimalDinoCharacter, variants: Set[str], overrides: OverrideSettings) -> bool:
     if overrides.taming_method:
         return overrides.taming_method != TamingMethod.none
 
+    # Properties that control Fish Baskets.
+    if is_trappable_with_fish_basket(species) and species.bIsTrapTamed[0]:
+        return True
+
+    # Preemptive check for standard taming methods (like knockout or passive).
     if not species.bCanBeTamed[0]:
         return False
 
@@ -206,6 +217,10 @@ class SpeciesStage(JsonHierarchyExportStage):
         out.flags = gather_flags(species, OUTPUT_FLAGS)
         if is_creature_tameable(species, variants, overrides):
             out.flags.append('isTameable')
+        if is_trappable_with_fish_basket(species):
+            out.flags.append('canBeWildTrappedWithFishBasket')
+        if species.bIsTrapTamed[0]:
+            out.flags.append('canBeTamedWithFishBasket')
 
         if not species.bIsBossDino[0]:
             out.leveling = convert_level_data(species, dcsc)
