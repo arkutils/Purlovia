@@ -1,6 +1,5 @@
 from ark.types import PrimalItem
 from automate.hierarchy_exporter import ExportModel, Field
-
 from export.wiki.models import FloatLike
 
 
