@@ -233,6 +233,14 @@ mods:
             wiki.biome_maps: true
             wiki.spawn_maps: true
 
+    LostIsland:
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            maps.biome_maps: true
+            maps.spawn_data: true
+            maps.spawn_maps: true
+
     839162288: # Primal Fear
         include_in_stages: # Maps required for the Wiki
             wiki.maps: true
