@@ -390,11 +390,13 @@ class AssetLoader:
     def find_assetnames(self,
                         regex,
                         toppath='/',
+                        include: Union[str, Iterable[str]] = None,
                         exclude: Union[str, Iterable[str]] = None,
                         extension: Union[str, Iterable[str]] = '.uasset',
                         return_extension=False,
                         invert=False):
 
+        includes: Tuple[str, ...] = tuple(include, ) if isinstance(include, str) else tuple(include or ())
         excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
         extensions: Tuple[str, ...] = tuple((extension, )) if isinstance(extension, str) else tuple(extension or ())
         extensions = tuple(ext.lower() for ext in extensions)
@@ -427,7 +429,12 @@ class AssetLoader:
                     else:
                         continue
 
-                if any(re.match(exclude, assetname) for exclude in excludes):
+                if any(re.match(include, assetname) for include in includes):
+                    if invert:
+                        continue
+                    else:
+                        yield result
+                elif any(re.match(exclude, assetname) for exclude in excludes):
                     if invert:
                         yield result
                     else:
