@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Callable, Optional
 
 import pytest
@@ -21,6 +23,15 @@ X_DRAGON_CHR = '/Game/Genesis/Dinos/BiomeVariants/Volcano_Dragon/Volcanic_Dragon
 DRAGON_BOSS_CHR = '/Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss.Dragon_Character_BP_Boss_C'
 
 PTM_DCSC_CONFLICT_CHR = '/Game/Mods/1821554891/Dinos/PTM_DCSC_Conflict.PTM_DCSC_Conflict_C'
+
+
+@pytest.fixture(name='tempdir', scope='function')
+def fixture_tempdir():
+    '''
+    Fixture to create a temporary directory for testing, removing it automatically once done.
+    '''
+    with TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
 
 
 @pytest.fixture(name='config', scope='module')
