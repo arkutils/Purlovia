@@ -29,7 +29,7 @@ def test_cached_data_generates_and_stores_data(mocker: MockFixture):
     key = dict(version=1)
     expected_result = _simple_data_fn(key)
 
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='generates_and_stores_data')
     assert result == expected_result
     assert calls == 1
 
@@ -43,12 +43,12 @@ def test_cached_data_fetches_from_cache(mocker: MockFixture):
     expected_result = _simple_data_fn(key)
 
     # Run once, expecting the data to be generated
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='fetches_from_cache')
     assert result == expected_result
     assert calls == 1
 
     # Run again, expecting the data to come from the cache
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='fetches_from_cache')
     assert result == expected_result
     assert calls == 0
 
@@ -58,7 +58,7 @@ def test_cached_data_cache_invalided_on_key_change(mocker: MockFixture):
     expected_result = _simple_data_fn(key)
 
     # Run once, expecting the data to be generated
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='cache_invalided_on_key_change')
     assert result == expected_result
     assert calls == 1
 
@@ -68,7 +68,7 @@ def test_cached_data_cache_invalided_on_key_change(mocker: MockFixture):
     assert expected_result != expected_new_result  # for test validity
 
     # Run again, expecting the data to be generated once again
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='cache_invalided_on_key_change')
     assert result == expected_new_result
     assert calls == 1
 
@@ -78,12 +78,12 @@ def test_cached_data_allow_force_regerenate(mocker: MockFixture):
     expected_result = _simple_data_fn(key)
 
     # Run once, expecting the data to be generated
-    result, calls = get_cached_data(key, _simple_data_fn, mocker)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, name='allow_force_regerenate')
     assert result == expected_result
     assert calls == 1
 
     # Run again with the flag, expecting the data to be generated again
-    result, calls = get_cached_data(key, _simple_data_fn, mocker, force=True)
+    result, calls = get_cached_data(key, _simple_data_fn, mocker, force=True, name='allow_force_regerenate')
     assert result == expected_result
     assert calls == 1
 
