@@ -172,8 +172,7 @@ def _explore_path(path: str,
     loader = arkman.getLoader()
 
     with ue_parsing_context(properties=False, bulk_data=False):
-        asset_iterator = loader.find_assetnames('.*',
-                                                path,
+        asset_iterator = loader.find_assetnames(path,
                                                 include=includes,
                                                 exclude=excludes,
                                                 extension=ue.hierarchy.asset_extensions,

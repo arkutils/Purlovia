@@ -2,20 +2,14 @@ import os.path
 
 from pytest import fixture  # type: ignore
 
-from .loader import AssetLoader, ModResolver
+from tests.common import MockModResolver
 
-
-class DummyLoader(ModResolver):
-    def get_name_from_id(self, modid: str) -> str:
-        raise NotImplementedError
-
-    def get_id_from_name(self, name: str) -> str:
-        raise NotImplementedError
+from .loader import AssetLoader
 
 
 @fixture
 def loader():
-    loader = AssetLoader(DummyLoader(), assetpath='./output')
+    loader = AssetLoader(modresolver=MockModResolver(), assetpath='./output')
     return loader
 
 

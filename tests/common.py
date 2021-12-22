@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 import pytest
 
@@ -7,8 +7,8 @@ from ark.discovery import initialise_hierarchy
 from ark.types import DCSC_CLS
 from automate.ark import ArkSteamManager
 from config import HIERARCHY_FILENAME, ConfigFile, get_global_config
-from ue.asset import ExportTableItem
-from ue.loader import AssetLoader
+from ue.asset import ExportTableItem, UAsset
+from ue.loader import AssetLoader, CacheManager, ModResolver
 
 TEST_PGD_PKG = '/Game/Mods/1821554891/PrimalGameData_BP_PurloviaTEST'
 TEST_PGD_CLS = TEST_PGD_PKG + '.PrimalGameData_BP_PurloviaTEST_C'
@@ -90,3 +90,28 @@ def fixture_scan_and_load(loader: AssetLoader, ark_types):  # pylint: disable=un
 
 
 ScanLoadFn = Callable[[str], ExportTableItem]
+
+
+class MockModResolver(ModResolver):
+    def get_name_from_id(self, modid: str) -> Optional[str]:
+        raise NotImplementedError
+
+    def get_id_from_name(self, modname: str) -> Optional[str]:
+        raise NotImplementedError
+
+
+class MockCacheManager(CacheManager):
+    def lookup(self, name) -> Optional[UAsset]:
+        raise NotImplementedError
+
+    def add(self, name: str, asset: UAsset):
+        raise NotImplementedError
+
+    def remove(self, name: str):
+        raise NotImplementedError
+
+    def wipe(self, prefix: str = ''):
+        raise NotImplementedError
+
+    def get_count(self):
+        raise NotImplementedError

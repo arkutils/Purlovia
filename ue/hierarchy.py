@@ -210,7 +210,7 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
     n = 0
 
     with ue_parsing_context(properties=False):
-        asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
+        asset_iterator = loader.find_assetnames(path, exclude=excludes, extension=asset_extensions, return_extension=True)
         for (assetname, ext) in asset_iterator:
             n += 1
             if verbose and n % 200 == 0:
