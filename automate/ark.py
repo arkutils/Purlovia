@@ -249,7 +249,7 @@ class ArkSteamManager:
 
     def _fetch_mod_title_from_pgd(self, moddata):
         resolver = FixedModResolver({moddata['name']: moddata['id']})
-        loader = AssetLoader(resolver, self.asset_path)
+        loader = AssetLoader(modresolver=resolver, assetpath=self.asset_path)
         pkg = moddata['package']
 
         if pkg:
