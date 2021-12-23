@@ -62,6 +62,11 @@ def handle_exception(logfile: str, loglines=3, config: ConfigFile = get_global_c
     if not config.errors.SendNotifications:
         return
 
+    # Ensure all existing logs are flushed
+    for handler in logger.root.handlers:
+        handler.flush()
+
+    # Grab the last few lines of the log
     log: List[str] = get_log_tail(logfile, loglines)
     exception: List[str] = format_exc()  # type: ignore
 

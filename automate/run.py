@@ -105,6 +105,6 @@ def run(config: ConfigFile):
     except KeyboardInterrupt:
         logger.error("Aborting on Ctrl-C.")
     except:  # pylint: disable=bare-except  # noqa: E722
-        handle_exception(logfile='logs/errors.log', config=config)
+        handle_exception(logfile='logs/debug.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
         sys.exit(1)
