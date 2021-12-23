@@ -37,7 +37,7 @@ def update_manifest(path: Path) -> Optional[Dict[str, Any]]:
 
 def _write_manifest(filename: Path, data: Dict[str, Any]):
     filename.parent.mkdir(parents=True, exist_ok=True)
-    with open(filename, 'w', newline='\n') as f:
+    with open(filename, 'wt', encoding='utf-8', newline='\n') as f:
         content = json.dumps(data, indent='\t')
         content = re.sub(SHRINK_MOD_REGEX, r'{ \1, \2, \3 }', content)
         f.write(content)
@@ -89,7 +89,7 @@ def _generate_manifest(directory: Path, ignores: Sequence[str] = ()) -> Optional
 
 def _collect_info(filename: Path) -> Dict:
     '''Collect any available manifest data about a file (version, format, metadata).'''
-    with open(filename) as f:
+    with open(filename, 'rt', encoding='utf-8') as f:
         data = json.load(f)
 
     info = dict()

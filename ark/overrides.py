@@ -180,7 +180,7 @@ DEFAULT_OVERRIDES = OverridesFile(
 
 @lru_cache()
 def get_overrides() -> OverridesFile:
-    with open(OVERRIDE_FILENAME) as f:
+    with open(OVERRIDE_FILENAME, 'rt', encoding='utf-8') as f:
         raw_data = yaml.safe_load(f)
 
     data = OverridesFile(**raw_data)
@@ -287,6 +287,6 @@ def nested_update(d, v):
 
 
 if __name__ == "__main__":
-    with open('schema/overrides.yaml.json', 'wt') as f:
+    with open('schema/overrides.yaml.json', 'wt', encoding='utf-8') as f:
         schema = OverridesFile.schema_json(indent='\t')
         f.write(schema)

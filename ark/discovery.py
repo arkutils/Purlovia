@@ -91,7 +91,7 @@ def _process_leftover_relations(entries: Dict[str, Set[str]]):
 
     filename = Path(get_global_config().settings.DataDir) / 'hierarchy_skips.txt'
 
-    with open(filename, 'wt') as f:
+    with open(filename, 'wt', encoding='utf-8') as f:
         for parent in sorted(entries.keys()):
             f.write(f'\n{parent}:\n')
             for name in sorted(entries[parent]):

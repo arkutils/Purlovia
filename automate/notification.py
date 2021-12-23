@@ -16,7 +16,7 @@ __all__ = [
 
 def get_log_tail(filename: str, lines: int = 3) -> List[str]:
     buffer: List[str] = []
-    with open(filename, 'rt', buffering=4096) as f:
+    with open(filename, 'rt', encoding='utf-8', buffering=4096) as f:
         for line in f.readlines():
             buffer = buffer[:lines - 1]
             buffer.append(line)

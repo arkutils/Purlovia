@@ -176,7 +176,7 @@ def load_internal_hierarchy(filename: Path):
     `filename` should be a yaml file with a top-level key matching the root name.
     '''
     logger.info('Loading internal UE hierarchy from: %s', filename)
-    with open(filename, 'rt') as f:
+    with open(filename, 'rt', encoding='utf-8') as f:
         hierarchy_config = yaml.safe_load(f)
 
     def walk_hierarchy_yaml(name, content):

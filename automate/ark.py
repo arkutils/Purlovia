@@ -241,7 +241,7 @@ class ArkSteamManager:
             moddata['title'] = self._fetch_mod_title(moddata)
 
             moddata_path = self.mods_path / modid / MODDATA_FILENAME
-            with open(moddata_path, 'w') as f:
+            with open(moddata_path, 'wt', encoding='utf-8') as f:
                 json.dump(moddata, f, indent='\t')
 
             # Save the data so we can refer to it later
@@ -470,7 +470,7 @@ def readModData(asset_path: Path, modid) -> Optional[Dict[str, Any]]:
         logger.debug(f'Couldn\'t find mod data at "{moddata_path}"')
         return None
 
-    with open(moddata_path, 'r') as f:
+    with open(moddata_path, 'rt', encoding='utf-8') as f:
         moddata = json.load(f)
 
     return moddata

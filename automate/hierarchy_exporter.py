@@ -307,5 +307,5 @@ def _calculate_relative_path(origin: PurePosixPath, target: PurePosixPath):
 def _output_schema(model_type: Type[BaseModel], path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     schema = model_type.schema_json(by_alias=True, indent='\t')
-    with open(path, 'wt', encoding='utf8', newline='\n') as f:
+    with open(path, 'wt', encoding='utf-8', newline='\n') as f:
         f.write(schema)
