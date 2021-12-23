@@ -1,4 +1,6 @@
-from typing import Callable
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Callable, Optional
 
 import pytest
 
@@ -7,8 +9,8 @@ from ark.discovery import initialise_hierarchy
 from ark.types import DCSC_CLS
 from automate.ark import ArkSteamManager
 from config import HIERARCHY_FILENAME, ConfigFile, get_global_config
-from ue.asset import ExportTableItem
-from ue.loader import AssetLoader
+from ue.asset import ExportTableItem, UAsset
+from ue.loader import AssetLoader, CacheManager, ModResolver
 
 TEST_PGD_PKG = '/Game/Mods/1821554891/PrimalGameData_BP_PurloviaTEST'
 TEST_PGD_CLS = TEST_PGD_PKG + '.PrimalGameData_BP_PurloviaTEST_C'
@@ -21,6 +23,15 @@ X_DRAGON_CHR = '/Game/Genesis/Dinos/BiomeVariants/Volcano_Dragon/Volcanic_Dragon
 DRAGON_BOSS_CHR = '/Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss.Dragon_Character_BP_Boss_C'
 
 PTM_DCSC_CONFLICT_CHR = '/Game/Mods/1821554891/Dinos/PTM_DCSC_Conflict.PTM_DCSC_Conflict_C'
+
+
+@pytest.fixture(name='tempdir', scope='function')
+def fixture_tempdir():
+    '''
+    Fixture to create a temporary directory for testing, removing it automatically once done.
+    '''
+    with TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
 
 
 @pytest.fixture(name='config', scope='module')
@@ -90,3 +101,28 @@ def fixture_scan_and_load(loader: AssetLoader, ark_types):  # pylint: disable=un
 
 
 ScanLoadFn = Callable[[str], ExportTableItem]
+
+
+class MockModResolver(ModResolver):
+    def get_name_from_id(self, modid: str) -> Optional[str]:
+        raise NotImplementedError
+
+    def get_id_from_name(self, modname: str) -> Optional[str]:
+        raise NotImplementedError
+
+
+class MockCacheManager(CacheManager):
+    def lookup(self, name) -> Optional[UAsset]:
+        raise NotImplementedError
+
+    def add(self, name: str, asset: UAsset):
+        raise NotImplementedError
+
+    def remove(self, name: str):
+        raise NotImplementedError
+
+    def wipe(self, prefix: str = ''):
+        raise NotImplementedError
+
+    def get_count(self):
+        raise NotImplementedError

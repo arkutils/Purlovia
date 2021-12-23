@@ -48,7 +48,7 @@ def should_save_json(values: Dict[str, Any], fullpath: Path) -> Tuple[bool, str]
 
     # Load the existing file
     try:
-        with open(fullpath) as f:
+        with open(fullpath, 'rt', encoding='utf-8') as f:
             existing_data = json.load(f)
     except Exception:  # pylint: disable=broad-except
         # Old file doesn't exist/isn't readable/is corrupt
@@ -187,5 +187,5 @@ def save_as_json(data, filename, pretty=False):
     path = Path(filename).parent
     path.mkdir(parents=True, exist_ok=True)
     json_string = _format_json(data, pretty)
-    with open(filename, 'w', newline='\n') as f:
+    with open(filename, 'wt', newline='\n', encoding='utf-8') as f:
         f.write(json_string)

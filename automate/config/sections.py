@@ -92,6 +92,7 @@ class ProcessingSection(BaseModel):
 
 
 class OptimisationSection(BaseModel):
+    SearchInclude: IniStringList = IniStringList()
     SearchIgnore: IniStringList = IniStringList()
 
     class Config:

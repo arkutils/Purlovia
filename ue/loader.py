@@ -266,6 +266,7 @@ class ContextAwareCacheWrapper(CacheManager):
 
 class AssetLoader:
     def __init__(self,
+                 *,
                  modresolver: ModResolver,
                  assetpath='.',
                  cache_manager: CacheManager = None,
@@ -388,13 +389,15 @@ class AssetLoader:
         return mod
 
     def find_assetnames(self,
-                        regex,
                         toppath='/',
+                        *,
+                        include: Union[str, Iterable[str]] = None,
                         exclude: Union[str, Iterable[str]] = None,
                         extension: Union[str, Iterable[str]] = '.uasset',
                         return_extension=False,
                         invert=False):
 
+        includes: Tuple[str, ...] = tuple(include, ) if isinstance(include, str) else tuple(include or ())
         excludes: Tuple[str, ...] = tuple(exclude, ) if isinstance(exclude, str) else tuple(exclude or ())
         extensions: Tuple[str, ...] = tuple((extension, )) if isinstance(extension, str) else tuple(extension or ())
         extensions = tuple(ext.lower() for ext in extensions)
@@ -409,7 +412,6 @@ class AssetLoader:
                 if ext.lower() not in extensions:
                     continue
 
-                match = re.match(regex, name)
                 partialpath = str(Path(fullpath).relative_to(self.asset_path).with_suffix(''))
                 assetname = self.clean_asset_name(partialpath)
 
@@ -421,19 +423,17 @@ class AssetLoader:
 
                 result = (assetname, ext) if return_extension else assetname
 
-                if not match:
-                    if invert:
-                        yield result
-                    else:
-                        continue
+                # Apply filtering, starting with forced inclusions
+                matched = True
+                if any(re.match(include, assetname) for include in includes):
+                    # ...skip the exclusion test
+                    pass
+                # Then handle exclusions with a lower priority
+                elif any(re.match(exclude, assetname) for exclude in excludes):
+                    matched = False
 
-                if any(re.match(exclude, assetname) for exclude in excludes):
-                    if invert:
-                        yield result
-                    else:
-                        continue
-
-                if not invert:
+                # Yield or skip this entry (force bool because xor behaves differently with non-bools)
+                if matched ^ bool(invert):
                     yield result
 
     def load_related(self, obj: UEBase) -> UAsset:

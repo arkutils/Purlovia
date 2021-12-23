@@ -75,7 +75,7 @@ output_data = [data_from_mod(d) for d in mod_data]
 
 #%% CSV export
 
-with open('livedata/mod_requests.csv', 'wt', newline='') as f:
+with open('livedata/mod_requests.csv', 'wt', newline='', encoding='utf-8') as f:
     csv_writer = csv.writer(f)
     csv_writer.writerow(output_data[0].keys())
     csv_writer.writerows(mod.values() for mod in output_data)

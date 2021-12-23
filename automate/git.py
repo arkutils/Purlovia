@@ -215,7 +215,7 @@ class GitManager:
             if not path.is_file():
                 return f'{filename} removed'
 
-            with open(path) as f:
+            with open(path, 'rt', encoding='utf-8') as f:
                 data = json.load(f)
 
             version = data.get('version', None)

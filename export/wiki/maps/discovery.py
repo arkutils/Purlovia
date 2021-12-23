@@ -3,7 +3,6 @@ from typing import Dict, Iterable, Iterator, List, Set
 import ue.hierarchy
 from ark.mod import get_core_mods
 from ark.overrides import get_overrides, get_overrides_for_map
-from config import get_global_config
 from export.wiki.consts import LEVEL_SCRIPT_ACTOR_CLS, WORLD_CLS
 from ue.loader import AssetLoader
 from ue.utils import get_assetpath_from_assetname
@@ -40,7 +39,6 @@ def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]
 class LevelDiscoverer:
     def __init__(self, loader: AssetLoader):
         self.loader = loader
-        self.global_excludes = tuple(set(get_global_config().optimisation.SearchIgnore))
 
     def discover_vanilla_levels(self) -> Iterator[str]:
         official_mod_prefixes = tuple(f'/Game/Mods/{modid}/' for modid in get_core_mods())

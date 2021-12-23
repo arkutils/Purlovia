@@ -91,7 +91,7 @@ def _process_leftover_relations(entries: Dict[str, Set[str]]):
 
     filename = Path(get_global_config().settings.DataDir) / 'hierarchy_skips.txt'
 
-    with open(filename, 'wt') as f:
+    with open(filename, 'wt', encoding='utf-8') as f:
         for parent in sorted(entries.keys()):
             f.write(f'\n{parent}:\n')
             for name in sorted(entries[parent]):
@@ -103,20 +103,21 @@ def _process_leftover_relations(entries: Dict[str, Set[str]]):
 
 def _gather_relations(arkman: ArkSteamManager, basepath: Path):
     relations: List[Tuple[str, str]]  # list of (name, parent)
+    inclusions = arkman.config.optimisation.SearchInclude
     exclusions = arkman.config.optimisation.SearchIgnore
 
     basepath.mkdir(parents=True, exist_ok=True)
 
     # Scan core (or read cache)
     cachefile = basepath / 'core'
-    version_key = dict(format=FORMAT_VERSION, game_buildid=arkman.getGameBuildId(), exclusions=exclusions)
+    version_key = dict(format=FORMAT_VERSION, game_buildid=arkman.getGameBuildId(), inclusions=inclusions, exclusions=exclusions)
     relations = cache_data(version_key, cachefile, lambda _: _scan_core(arkman))
 
     # Scan /Game/Mods/<modid> for each installed mod (or read cache)
     for modid in get_managed_mods():
         cachefile = basepath / f'mod-{modid}'
         mod_version = arkman.getModData(modid)['version']  # type:ignore
-        version_key = dict(format=FORMAT_VERSION, mod_version=mod_version, exclusions=exclusions)
+        version_key = dict(format=FORMAT_VERSION, mod_version=mod_version, inclusions=inclusions, exclusions=exclusions)
         mod_relations = cache_data(version_key, cachefile, lambda _: _scan_mod(modid, arkman))
         relations.extend(mod_relations)
 
@@ -163,6 +164,7 @@ def _explore_path(path: str,
                   verbose: bool = False) -> Generator[Tuple[str, str], None, None]:
     n = 0
 
+    includes = set(arkman.config.optimisation.SearchInclude)
     mod_excludes = set(arkman.config.optimisation.SearchIgnore)
     core_excludes = set(['/Game/Mods/.*', *arkman.config.optimisation.SearchIgnore])
     excludes = mod_excludes if is_mod else core_excludes
@@ -170,8 +172,8 @@ def _explore_path(path: str,
     loader = arkman.getLoader()
 
     with ue_parsing_context(properties=False, bulk_data=False):
-        asset_iterator = loader.find_assetnames('.*',
-                                                path,
+        asset_iterator = loader.find_assetnames(path,
+                                                include=includes,
                                                 exclude=excludes,
                                                 extension=ue.hierarchy.asset_extensions,
                                                 return_extension=True)

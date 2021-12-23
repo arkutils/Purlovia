@@ -176,7 +176,7 @@ def load_internal_hierarchy(filename: Path):
     `filename` should be a yaml file with a top-level key matching the root name.
     '''
     logger.info('Loading internal UE hierarchy from: %s', filename)
-    with open(filename, 'rt') as f:
+    with open(filename, 'rt', encoding='utf-8') as f:
         hierarchy_config = yaml.safe_load(f)
 
     def walk_hierarchy_yaml(name, content):
@@ -210,7 +210,7 @@ def explore_path(path: str, loader: AssetLoader, excludes: Iterable[str], verbos
     n = 0
 
     with ue_parsing_context(properties=False):
-        asset_iterator = loader.find_assetnames('.*', path, exclude=excludes, extension=asset_extensions, return_extension=True)
+        asset_iterator = loader.find_assetnames(path, exclude=excludes, extension=asset_extensions, return_extension=True)
         for (assetname, ext) in asset_iterator:
             n += 1
             if verbose and n % 200 == 0:

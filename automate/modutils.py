@@ -69,7 +69,7 @@ def readACFFile(filename, outputType=dict):
     current_section = output
     sections = []
 
-    with open(filename) as f:
+    with open(filename, 'rt', encoding='utf-8') as f:
         while True:
             line = f.readline()
             if not line:

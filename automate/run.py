@@ -40,7 +40,7 @@ ROOT_TYPES = (
 def setup_logging(path=LOGGING_FILENAME, level=logging.INFO):
     '''Setup logging configuration.'''
     if os.path.exists(path):
-        with open(path, 'rt') as log_config_file:
+        with open(path, 'rt', encoding='utf-8') as log_config_file:
             config = yaml.safe_load(log_config_file)
             Path('logs').mkdir(parents=True, exist_ok=True)
             logging.config.dictConfig(config)
@@ -105,6 +105,6 @@ def run(config: ConfigFile):
     except KeyboardInterrupt:
         logger.error("Aborting on Ctrl-C.")
     except:  # pylint: disable=bare-except  # noqa: E722
-        handle_exception(logfile='logs/errors.log', config=config)
+        handle_exception(logfile='logs/debug.log', config=config)
         logger.exception('Caught exception during automation run. Aborting.')
         sys.exit(1)

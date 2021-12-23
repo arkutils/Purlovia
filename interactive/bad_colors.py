@@ -7,7 +7,7 @@ from interactive_utils import *  # pylint: disable=wrong-import-order
 import json
 
 #%% Load values JSON
-with open('output/data/asb/values.json', 'rt') as f:
+with open('output/data/asb/values.json', 'rt', encoding='utf-8') as f:
     values = json.load(f)
 
 species = values['species']
