@@ -11,6 +11,11 @@
  *    [2020.03.25-12.28.34:781][  0]Log file open, 03/25/20 13:28:34
  *    [2020.03.25-12.28.34:781][  0]ARK Version: 307.6
  *    [2020.03.25-12.28.34:781][  0]PID: 179890
+ * or the updated:
+ *    [2021.12.23-22.47.33:989][  0]Log file open, 12/23/21 22:47:33
+ *    [2021.12.23-22.47.33:989][  0]New Save Format enabled
+ *    [2021.12.23-22.47.33:989][  0]ARK Version: 341.56
+ *    [2021.12.23-22.47.33:989][  0]PID: 695
  */
 
 #define _GNU_SOURCE 1
@@ -75,9 +80,9 @@ ssize_t write(int fd, const char *buf, size_t count)
     /* Search for matching text */
     if (__purlovia__monitor_writes)
     {
-        if (count > 135 && count < 166)
+        if (count > 135 && count < 300)
         {
-            const char *start = __purlovia__strnstr(buf, TEXT_TO_SEARCH_FOR, 166);
+            const char *start = __purlovia__strnstr(buf, TEXT_TO_SEARCH_FOR, count);
             if (start != NULL)
             {
                 const char* end = __purlovia__strnstr(start, "\n", 32);
