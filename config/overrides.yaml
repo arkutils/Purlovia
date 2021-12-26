@@ -177,6 +177,7 @@ mods:
             Genesis2: true
             Aberration: true
             Extinction: true
+            LostIsland: true
             ScorchedEarth: true
 
             SummonedDinos: true
@@ -473,6 +474,9 @@ species:
         add_variants:
             Base: true
     /Game/ScorchedEarth/Dinos/Manticore/Manticore_Character_BP:
+        add_variants:
+            Base: true
+    /Game/LostIsland/Boss/BossDinopithecus_Character_BP:
         add_variants:
             Base: true
 
@@ -1428,6 +1432,11 @@ species:
         add_variants:
             CrystalIsles: true
             Mega: true
+
+    /Game/Mods/LostIsland/Assets/Dinos/IceWyvern/Ragnarok_Wyvern_Override_Ice:
+        add_variants:
+            LostIsland: true
+            Unused: true
 
     # Tameability overrides for wiki.species
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
