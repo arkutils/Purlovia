@@ -32,7 +32,13 @@ modids = set([
     # Delayed decisions
     '538986229',  # Annunaki Genesis - old but still loved and kind of working
     '916417001',  # MAP: Ebenus Astrum -                                        CHECK for dinos
-    '972887420',  # Jurassic Park Expansion - massive, but updated
+
+    # No
+    # '972887420',   # Jurassic Park Expansion - massive and discontinued
+    # '2205699189',  # Alpha Everything - probably only buffs
+    # '2016338122',  # Shiny! Dinos - uses buffs
+    # '1278441218',  # GunSmoke - this is the map
+    # '1112780816',  # Insects-Plus - discontinued
 
     # Unable to process currently
     # '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
@@ -47,26 +53,55 @@ modids = set([
     '1989252120',  # ARK: Reclamation
     '1169020368',  # Ark Creatures Rebalanced (AG REBORN) 2.0
     '1558114752',  # Dino hybrids & more (Radioactive tag?)
+    '1967035140',  # AramoorePlus
+    '2212177129',  # Sid's Hybrids
+    '1912090921',  # Scratchy Claws' Improved Flyers
+    '1840936777',  # Prometheus
+    '1511268523',  # Gunsmoke Animals
+    '2251437896',  # TheBurningLoop Community Mod
+    '1139775728',  # Confuciusornis
+    '908817184',  # Nightmare Pegasus
+    '2337840412 ',  # RR StarFarmanimals
+    '2360410335 ',  # RR StarExoticAnimals
+    '1783308979',  # Additional Dinos Valguero
+    '1824174926',  # Carnotaurus TLC
+    '1592652278',  # Random Egg Spawner 2.0
+    '710880648',  # DinoOverhaul X
+    '1416912482',  # Bunn3h's extras
+    '2117433951',  # Galvanized Wolf
+    '883957187',  # Wyvern World
+    '2472371628',  # MilicrocaWarriors CommunityMod
+    '1534108504',  # VWSR - Dino Rebalance, Tameable Alphas, Sub Species and More
+    '2003934830',  # Prehistoric Beasts
+    '1852495701',  # Shad's Better Gigas Rebalance
+    '1178308359',  # Shadlos's Tameable Bosses
+    '2447186973',  # Ark Omega
+    '1134797219',  # Breedable Griffins
+    '1838617463',  # Fjordur
 ])
 
 #%% Conversion function
 
 
 def data_from_mod(data):
-    return dict(
-        id=data['publishedfileid'],
-        file_size=data['file_size'],
-        title=data['title'],
-        time_created=datetime.fromtimestamp(int(data['time_created'])),
-        time_updated=datetime.fromtimestamp(int(data['time_updated'])),
-        visibility=data['visibility'],
-        banned=data['banned'] and (data['ban_reason'] or '<unknown ban reason>'),
-        sub_count_current=data['subscriptions'],
-        sub_count_lifetime=data['lifetime_subscriptions'],
-        fave_count_current=data['favorited'],
-        fave_count_lifetime=data['lifetime_favorited'],
-        page_views=data['views'],
-    )
+    try:
+        return dict(
+            id=data['publishedfileid'],
+            file_size=data.get('file_size', 0),
+            title=data['title'],
+            time_created=datetime.fromtimestamp(int(data['time_created'])),
+            time_updated=datetime.fromtimestamp(int(data['time_updated'])),
+            visibility=data['visibility'],
+            banned=data['banned'] and (data['ban_reason'] or '<unknown ban reason>'),
+            sub_count_current=data['subscriptions'],
+            sub_count_lifetime=data['lifetime_subscriptions'],
+            fave_count_current=data['favorited'],
+            fave_count_lifetime=data['lifetime_favorited'],
+            page_views=data['views'],
+        )
+    except KeyError as ex:
+        print(data)
+        raise ex
 
 
 #%% Fetch data for them all

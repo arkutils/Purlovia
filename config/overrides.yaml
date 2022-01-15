@@ -356,6 +356,17 @@ mods:
             asb: false
             wiki.species: false
 
+    2447186973: # Ark Omega
+        classname_variant_parts:
+            Child: true
+            Mega: true
+            Surface: true
+            Male: true
+            Female: true
+
+        variant_renames:
+            Mega: Alpha
+
 
 # Override settings on a per-map basis
 maps:
@@ -1463,6 +1474,49 @@ species:
     /Game/Mods/NoUntameables/Lightbug/Lightbug_Character_BaseBP_Tameable:
         remove_variants:
             Base: true
+
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaBasilisk_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaCarno_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaCrab_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaDeathworm_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaMegalodon_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaRaptor_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaRex_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaWyvern_Character_BP_Fire_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/MegaXenomorph_Character_BP_Male_Surface_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Alpha/Mega_Tusoteuthis_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Megalania_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Megalodon_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Megalosaurus_Character_BP_Child:
+        add_variants:
+            Mega: true
+    /Game/Mods/ArkOmega/Classes/Base/Megatherium_Character_BP_Child:
+        add_variants:
+            Mega: true
 
     # Creatures misdetected as base classes though they have wild spawns
     /Game/Mods/Primal_Fear/Dinos/Chaos/Wyverns/Chaos/WyvernGuardian_Character_BP_Base_Child_Chaos_Tamed:
