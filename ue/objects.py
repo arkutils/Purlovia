@@ -19,6 +19,11 @@ class InstancedStaticMeshComponentObject(UEBase):
         for _ in range(lod_count):
             strip_flags = StripDataFlags(self).deserialise()
 
+            # Light and shadow map references
+            if not strip_flags.is_stripped_for_server():
+                self.stream.offset += 8
+
+            # Vertex colorization data
             if not strip_flags.is_stripped_for_custom(1):
                 has_color_data = self.stream.readBool8()
                 if has_color_data:
@@ -29,8 +34,13 @@ class InstancedStaticMeshComponentObject(UEBase):
                     # Required for client data to be parsed.
                     if color_num > 0 and not color_strip.is_stripped_for_server():
                         self.stream.offset += 4 * color_num
+                        self.stream.offset += 8
 
-        # TODO: extra work is required to handle client assets /here/
+            # Painted vertices (possibly messed up struct size)
+            if not strip_flags.is_stripped_for_editor():
+                paint_count = self.stream.readUInt32()
+                for _ in range(paint_count):
+                    self.stream.offset += 3*4 + 4*4 + 1
 
         # Instances are serialised as a memory dump - UE precedes this with size of the struct for safety (to prevent loading an
         # incompatible asset if the struct layout has changed).
