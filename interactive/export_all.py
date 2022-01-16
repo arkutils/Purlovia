@@ -3,6 +3,9 @@ from interactive.setup import arkman, loader
 from pathlib import Path
 from typing import Set
 
+import amazon.ion.simpleion as ion
+import amazon.ion.symbols as symbols
+
 import ue.hierarchy
 from automate.jsonutils import _format_json
 from ue.context import ue_parsing_context
@@ -21,32 +24,36 @@ format = 'pretty_json'
 if format == 'json':
     ext = '.json'
 
-    def fmt(json, _):
+    def plain_json_fmt(json, _):
         formatted = _format_json(json, pretty=False)
         return formatted.encode('utf8')
+
+    fmt = plain_json_fmt
 elif format == 'pretty_json':
     ext = '.json'
 
-    def fmt(json, _):
+    def pretty_json_fmt(json, _):
         formatted = _format_json(json, pretty=True)
         return formatted.encode('utf8')
+
+    fmt = pretty_json_fmt
 elif format == 'table_ion':
-    import amazon.ion.simpleion as ion
-    import amazon.ion.symbols as symbols
     ext = '.ion'
 
-    def fmt(json, names):
+    def table_ion_fmt(json, names):
         syms = symbols.shared_symbol_table(None, symbols=map(str, names))
         formatted = ion.dumps(json, binary=True, imports=[syms])
         return formatted
+
+    fmt = table_ion_fmt
 elif format == 'ion':
-    import amazon.ion.simpleion as ion
-    import amazon.ion.symbols as symbols
     ext = '.ion'
 
-    def fmt(json, _):
+    def plain_ion_fmt(json, _):
         formatted = ion.dumps(json, binary=True)
         return formatted
+
+    fmt = plain_ion_fmt
 else:
     raise Exception("Format not supported")
 
