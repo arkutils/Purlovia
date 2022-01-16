@@ -72,9 +72,9 @@ def run(config: ConfigFile):
         log_versions()
 
         # Get mod list
-        mods = config.mods
+        mods = tuple(sorted(set(config.mods) | set(config.extract_mods or ())))
 
-        # Update game ad mods
+        # Update game and mods
         arkman = ArkSteamManager(config=config)
         arkman.ensureSteamCmd()
         arkman.ensureGameUpdated()

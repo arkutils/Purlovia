@@ -180,6 +180,13 @@ def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[st
     True
     >>> calculate_mods(('-123',), ('123', '456')) == ('456',)
     True
+    >>> calculate_mods(('+789',), ('123', '456')) == ('789',)
+    True
+
+    >>> calculate_mods(('+123',), ('123', '456'))
+    Traceback (most recent call last):
+    ...
+    ValueError: Add mods are already present in config: 123
 
     >>> calculate_mods(('123',), ('456',))
     Traceback (most recent call last):
@@ -187,6 +194,11 @@ def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[st
     ValueError: Selected mods must be present in config: 123
 
     >>> calculate_mods(('-123', '456'), ())
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot mix selected and deselected mods
+
+    >>> calculate_mods(('-123', '+456'), ())
     Traceback (most recent call last):
     ...
     ValueError: Cannot mix selected and deselected mods
@@ -201,12 +213,21 @@ def calculate_mods(user: Tuple[str, ...], existing: Tuple[str, ...]) -> Tuple[st
     has_negatives = any(modid.startswith('-') for modid in user)
     all_negatives = not any(not modid.startswith('-') for modid in user)
 
-    # No negatives? Just verify all listed mods are present in config
+    # No negatives?
     if not has_negatives:
-        not_present = user_set - existing_set
+        user_set = {modid for modid in user_set if not modid.startswith('+')}
+
+        # Handle mods that should be processed when not in config
+        additions = set(modid.lstrip('+') for modid in user if modid.startswith('+'))
+        present_additions = additions.intersection(existing_set)
+        if present_additions:
+            raise ValueError("Add mods are already present in config: " + ','.join(present_additions))
+
+        not_present = user_set - (existing_set | additions)
         if not_present:
             raise ValueError("Selected mods must be present in config: " + ','.join(not_present))
-        return user
+
+        return tuple(sorted(user_set | additions))
 
     # If any are negative, all entries must be negative
     if not all_negatives:
