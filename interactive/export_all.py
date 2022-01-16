@@ -3,9 +3,6 @@ from interactive.setup import arkman, loader
 from pathlib import Path
 from typing import Set
 
-import amazon.ion.simpleion as ion
-import amazon.ion.symbols as symbols
-
 import ue.hierarchy
 from automate.jsonutils import _format_json
 from ue.context import ue_parsing_context
@@ -16,6 +13,9 @@ root = '/Game/LostIsland/Dinos'
 include_mods = True
 output_dir = Path(r'livedata/assets')
 
+# Requires amazon.ion package for Ion formats
+
+# json/pretty_json/ion/table_ion
 format = 'pretty_json'
 
 if format == 'json':
@@ -25,19 +25,23 @@ if format == 'json':
         formatted = _format_json(json, pretty=False)
         return formatted.encode('utf8')
 elif format == 'pretty_json':
-    ext = '.pretty.json'
+    ext = '.json'
 
     def fmt(json, _):
         formatted = _format_json(json, pretty=True)
         return formatted.encode('utf8')
 elif format == 'table_ion':
-    ext = 'table.ion'
+    import amazon.ion.simpleion as ion
+    import amazon.ion.symbols as symbols
+    ext = '.ion'
 
     def fmt(json, names):
         syms = symbols.shared_symbol_table(None, symbols=map(str, names))
         formatted = ion.dumps(json, binary=True, imports=[syms])
         return formatted
 elif format == 'ion':
+    import amazon.ion.simpleion as ion
+    import amazon.ion.symbols as symbols
     ext = '.ion'
 
     def fmt(json, _):
@@ -68,6 +72,8 @@ def calculate_excludes() -> Set[str]:
 
 
 def do_extract(root: str, excludes: Set[str]):
+    base_dir = output_dir / format
+
     with ue_parsing_context(properties=True, bulk_data=False):
         asset_iterator = loader.find_assetnames(root,
                                                 exclude=excludes,
@@ -85,14 +91,14 @@ def do_extract(root: str, excludes: Set[str]):
 
             total_files += 1
             output_filename = create_filename(assetname, ext)
-            output_path = output_dir / output_filename
+            output_path = base_dir / output_filename
             output_path.parent.mkdir(exist_ok=True, parents=True)
-            print(output_path)
+            print(f'► {output_path}')
 
             if str(output_path.parent) != prev_path:
                 total_dirs += 1
                 prev_path = str(output_path.parent)
-                print(output_path.parent.relative_to(output_dir))
+                print(output_path.parent.relative_to(base_dir))
 
                 if (total_dirs % 100) == 0:
                     show_stats = True
