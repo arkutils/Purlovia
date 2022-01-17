@@ -8,6 +8,7 @@ __all__ = [
 
 class IniStringList(list):
     '''A validated type that converts a newline-separated string list into a proper Python list.'''
+
     @classmethod
     def __get_validators__(cls):
         yield cls.convert

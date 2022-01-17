@@ -164,6 +164,7 @@ def is_creature_tameable(species: PrimalDinoCharacter, variants: Set[str], overr
 
 
 class SpeciesStage(JsonHierarchyExportStage):
+
     def get_name(self) -> str:
         return 'species'
 

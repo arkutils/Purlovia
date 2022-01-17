@@ -56,6 +56,7 @@ class EngramsExportModel(ExportFileModel):
 
 
 class EngramsStage(JsonHierarchyExportStage):
+
     def get_format_version(self) -> str:
         return "2"
 

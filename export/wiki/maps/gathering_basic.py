@@ -96,6 +96,7 @@ class BaseActorListExport(MapGathererBase):
 
 
 class GlitchExport(BaseActorListExport):
+
     @classmethod
     def get_model_type(cls) -> Optional[Type[ExportModel]]:
         return models.Glitch

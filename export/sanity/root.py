@@ -13,6 +13,7 @@ __all__ = [
 
 
 class SanityRoot(ExportRoot):
+
     def get_name(self) -> str:
         return 'sanity'
 

@@ -17,6 +17,7 @@ __all__ = [
 
 
 class ProcessBiomeMapsStage(ProcessingStage):
+
     def get_name(self) -> str:
         return "biome_maps"
 

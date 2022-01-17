@@ -86,6 +86,7 @@ def test_indexed_simple_string_tree():
 
 
 class MyDataType:
+
     def __init__(self, name: str):
         self.name = name
 

@@ -11,6 +11,7 @@ def fixture_xlocal():
 
 
 def test_scoping(xlocal):
+
     def f():
         assert xlocal.x == 3
 

@@ -12,6 +12,7 @@ __all__ = [
 
 
 class CompressedRotatingFileHandler(RotatingFileHandler):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.namer = namer_gz

@@ -69,6 +69,7 @@ class ItemsExportModel(ExportFileModel):
 
 
 class ItemsStage(JsonHierarchyExportStage):
+
     def get_name(self) -> str:
         return "items"
 

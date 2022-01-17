@@ -92,6 +92,7 @@ def fixture_ark_types(loader: AssetLoader, internal_hierarchy):  # pylint: disab
 
 @pytest.fixture(name='scan_and_load', scope='module')
 def fixture_scan_and_load(loader: AssetLoader, ark_types):  # pylint: disable=unused-argument
+
     def _scan_and_load(cls_name: str):
         cls = loader.load_class(cls_name)
         ue.hierarchy.explore_asset(cls.asset.assetname, loader)
@@ -104,6 +105,7 @@ ScanLoadFn = Callable[[str], ExportTableItem]
 
 
 class MockModResolver(ModResolver):
+
     def get_name_from_id(self, modid: str) -> Optional[str]:
         raise NotImplementedError
 
@@ -112,6 +114,7 @@ class MockModResolver(ModResolver):
 
 
 class MockCacheManager(CacheManager):
+
     def lookup(self, name) -> Optional[UAsset]:
         raise NotImplementedError
 

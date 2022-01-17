@@ -34,6 +34,7 @@ class DownloadError(Exception):
 
 
 class ArkSteamManager:
+
     def __init__(self, config: ConfigFile = get_global_config()):
         self.config = config
         self.basepath: Path = Path(config.settings.DataDir).absolute()
@@ -300,6 +301,7 @@ class ArkSteamManager:
 
 class ManagedModResolver(ModResolver):
     '''Mod resolution using managed mod data.'''
+
     def __init__(self, manager):
         super().__init__()
         self.manager = manager
@@ -330,6 +332,7 @@ class ManagedModResolver(ModResolver):
 
 
 class FixedModResolver(ModResolver):
+
     def __init__(self, namesToIds: Dict[str, str]):
         self.namesToIds = namesToIds
         self.idsToNames = dict((v, k) for k, v in namesToIds.items())

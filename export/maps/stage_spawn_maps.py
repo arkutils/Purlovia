@@ -25,6 +25,7 @@ _SpawningData = namedtuple('_SpawningData', ('asb', 'species', 'groups', 'global
 
 
 class ProcessSpawnMapsStage(ProcessingStage):
+
     def get_name(self) -> str:
         return "spawn_maps"
 

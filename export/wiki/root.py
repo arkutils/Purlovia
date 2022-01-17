@@ -19,6 +19,7 @@ __all__ = [
 
 
 class WikiRoot(ExportRoot):
+
     def get_name(self) -> str:
         return 'wiki'
 
