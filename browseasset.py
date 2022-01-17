@@ -76,7 +76,7 @@ def on_tree_open(evt: EventType):
     tree.delete(itemId + '_placeholder')
 
     # Remove placeholdered tag
-    tags = tree.item(itemId)['tags']
+    tags = list(tree.item(itemId, 'tags'))
     tags.remove('placeholdered')
     tree.item(itemId, tags=tags)
 
