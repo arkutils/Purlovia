@@ -11,7 +11,7 @@ jobs:
   check:
     strategy:
       matrix:
-        python_version: ['3.10.1']
+        python_version: ['3.10']
         os: [ubuntu-latest]
 
     name: Lint and test using Python ${{ matrix.python_version }} on ${{ matrix.os }}
