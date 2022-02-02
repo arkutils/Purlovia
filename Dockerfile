@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bullseye
 
 ARG COMMIT=""
 ARG BRANCH=dev
@@ -22,7 +22,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Create /app path and a safe user
 RUN set -ex \
     && apt-get update \
-    && apt-get install --no-install-recommends -y git openssh-client lib32gcc1 \
+    && apt-get install --no-install-recommends -y git openssh-client lib32gcc-s1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/log/* \
     && mkdir -p /app \
