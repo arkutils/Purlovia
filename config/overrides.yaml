@@ -1163,7 +1163,7 @@ species:
                 3: null # unused
                 4: "Wing Membrane and Fins Highlight"
     /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Lightning:
-            color_regions:
+        color_regions:
             region_names:
                 5: "Belly Scales and Wing Patterns"
     /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_ZombieFire:
@@ -1187,37 +1187,37 @@ species:
                 1: "Wings"
                 3: "Wing Highlights"
                 5: "Underbelly and Arms"
-               
+
     # Shad's Atlas Imports creature colour region names
     /Game/Mods/AtlasPort/Critter/AtlasHydra/AHydra_character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Body Shading"
                 1: "Spikes"
                 2: "Scale Highlights"
                 3: "Fins"
                 4: "Underside & Face Highlights"
-                5: "Main Body" 
+                5: "Main Body"
     /Game/Mods/AtlasPort/Critter/Cat/PampasCat_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: "Inner Stripes"
                 3: null # Not visible
                 4: "Belly, Paws, Face Details & Tail Tip"
-                5: "Outer Stripes" 
+                5: "Outer Stripes"
     /Game/Mods/AtlasPort/Critter/Crocodile/ACroc_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: null # Not visible
                 3: null # Not visible
                 4: "Back Highlights"
-                5: "Underbelly"  
+                5: "Underbelly"
     /Game/Mods/AtlasPort/Critter/Crocodile/ACroc_Character_BP_Arcane:
-         color_regions:
+        color_regions:
             region_names:
                 0: null # Not visible
                 1: "Main Body"
@@ -1226,7 +1226,7 @@ species:
                 4: "Emissives"
                 5: null # Not visible
     /Game/Mods/AtlasPort/Critter/Cyclops/ACyclops_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
@@ -1235,7 +1235,7 @@ species:
                 4: "Underside"
                 5: "Back Highlights"
     /Game/Mods/AtlasPort/Critter/Dolphin/ADolphin_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
@@ -1244,7 +1244,7 @@ species:
                 4: "Secondary Stripes"
                 5: "Primary Stripes"
     /Game/Mods/AtlasPort/Critter/GoodWhale/Aegis_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # None, no color generated in colour region
@@ -1253,16 +1253,16 @@ species:
                 4: "Sides"
                 5: "Back"
     /Game/Mods/AtlasPort/Critter/Gorgon/AGorgon_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: "Rattle"
                 3: null # Not visible
                 4: "Body Highlights"
-                5: "Underbelly"         
+                5: "Underbelly"
     /Game/Mods/AtlasPort/Critter/Horse/AHorse_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
@@ -1271,7 +1271,7 @@ species:
                 4: null # Not visible
                 5: null # Not visible
     /Game/Mods/AtlasPort/Critter/Leatherwing/Leatherwing_character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: "Beak"
@@ -1280,7 +1280,7 @@ species:
                 4: "Body Feathers"
                 5: "Body Highlights"
     /Game/Mods/AtlasPort/Critter/Manta/AManta_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
@@ -1289,7 +1289,7 @@ species:
                 4: "Dorsal Stripe & Underbelly"
                 5: "Pattern"
     /Game/Mods/AtlasPort/Critter/MeanWhale/harbinger_character_Bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Underside & Face Highlights"
                 1: "Body Highlights"
@@ -1298,25 +1298,25 @@ species:
                 4: "Main Body"
                 5: "Head Nodes"
     /Game/Mods/AtlasPort/Critter/Naga/Naga_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Underbelly"
                 1: "Hood & Body Accents"
                 2: "Splotch Pattern"
                 3: "Main Body"
                 4: "Side Accents"
-                5: null # Not visible                 
+                5: null # Not visible
     /Game/Mods/AtlasPort/Critter/Naga/Naga_Character_bp_Arcane:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Hood Patch"
                 1: "Spikes"
                 2: "Main Body"
                 3: "Underbelly & Tail"
                 4: null # Not visible
-                5: "Emissive Pattern"    
+                5: "Emissive Pattern"
     /Game/Mods/AtlasPort/Critter/Ostrich/AOstrich_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body Tint"
                 1: "Neck Tint"
@@ -1325,68 +1325,68 @@ species:
                 4: "Head and Sides of Neck"
                 5: "Side and Tail Feather Tint"
     /Game/Mods/AtlasPort/Critter/Rattlesnake/ARattler_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: "Stripes"
                 3: "Side Tint"
                 4: "Underbelly & Face"
-                5: "Stripe Outlines"   
+                5: "Stripe Outlines"
     /Game/Mods/AtlasPort/Critter/Razortooth/Razortooth_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: "Underbelly Highlights"
                 2: "Feather Tips"
                 3: "Arm & Leg Feathers"
                 4: "Underbelly"
-                5: "Body Highlights & Feather Banding"      
+                5: "Body Highlights & Feather Banding"
     /Game/Mods/AtlasPort/Critter/Razortooth/Razortooth_Character_BP_Arcane:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Emissives & Feather Bases"
                 1: "Main Body"
                 2: "Feather Tips & Body Stripes"
                 3: "Limb Feathers & Body Stripes"
                 4: "Underbelly"
-                5: "Feather Banding"                   
+                5: "Feather Banding"
     /Game/Mods/AtlasPort/Critter/Seahorse/Hippocampus_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: "Fin Edging"
                 2: null # Not visible
                 3: "Eyes"
                 4: "Underbelly & Fins"
-                5: "Body Details"      
+                5: "Body Details"
     /Game/Mods/AtlasPort/Critter/Tiger/ATiger_Character_BP:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: null # Not visible
                 3: null # Not visible
                 4: "Body Patterning"
-                5: "Stripes"        
+                5: "Stripes"
     /Game/Mods/AtlasPort/Critter/Tiger/ATiger_Character_BP_Arcane:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Emissives"
                 1: null # Not visible
                 2: "Main Body"
                 3: null # Not visible
                 4: null # Not visible
-                5: "Body Patterning"                  
+                5: "Body Patterning"
     /Game/Mods/AtlasPort/Critter/Tortugar/Tortugar_Character_bp:
-         color_regions:
+        color_regions:
             region_names:
                 0: "Main Body"
                 1: null # Not visible
                 2: "Leg Spots"
                 3: "Shell Spots"
                 4: "Skin Highlights"
-                5: "Body Highlights"                
+                5: "Body Highlights"
 
     # Additional Creatures: Aquaria mod creatures colour region names
     /Game/Mods/Aquaria/FIsh/Tigerfish/GoliathTigerfish_Character_bp:
