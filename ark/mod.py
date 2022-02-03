@@ -30,7 +30,7 @@ def get_managed_mods() -> Iterable[str]:
     config = get_global_config()
     official_mods = set(config.official_mods.ids())
     separate_mods = set(config.settings.SeparateOfficialMods)
-    extract_mods = set(config.mods)
+    extract_mods = set(config.mods) | set(config.extract_mods or ())
     managed_mods = sorted(extract_mods - separate_mods - official_mods, key=_mod_sorter)
     return managed_mods
 
