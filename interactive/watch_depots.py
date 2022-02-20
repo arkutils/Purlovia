@@ -5,7 +5,7 @@ from datetime import datetime
 from subprocess import PIPE, Popen
 from typing import List
 
-import httpx
+import httpx  # type: ignore
 
 # Which depots do we need from each app?
 app_ids = {
