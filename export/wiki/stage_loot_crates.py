@@ -6,8 +6,9 @@ from ue.properties import BoolProperty
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
+from .loot.gathering import decode_item_set, get_loot_sets
+from .loot.models import ItemSet
 from .models import DecayTime, MinMaxPowerRange, MinMaxRange
-from .stage_drops import ItemSet, decode_item_set, get_loot_sets
 
 __all__ = [
     'LootCratesStage',
@@ -59,7 +60,7 @@ class LootCrateExportModel(ExportFileModel):
 class LootCratesStage(JsonHierarchyExportStage):
 
     def get_format_version(self) -> str:
-        return "6"
+        return "7"
 
     def get_name(self) -> str:
         return "loot_crates"

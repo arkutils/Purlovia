@@ -1,6 +1,6 @@
 from typing import Any, Dict, cast
 
-from export.wiki.stage_drops import decode_item_name, decode_item_set
+from export.wiki.loot.gathering import decode_item_name, decode_item_set
 from export.wiki.types import MissionType, MissionType_Hunt
 
 
