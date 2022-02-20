@@ -37,6 +37,8 @@
     "editor.formatOnSaveTimeout": 10000,
 
     "git.ignoreLimitWarning": true,
+    "git.repositoryScanMaxDepth": 0,
+    "git.autoRepositoryDetection": false,
 
     "cSpell.words": [
         "DCSC",

@@ -83,6 +83,7 @@ class DropExportModel(ExportFileModel):
 
 
 class DropsStage(JsonHierarchyExportStage):
+
     def get_format_version(self) -> str:
         return "6"
 

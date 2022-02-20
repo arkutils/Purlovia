@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 
 
 class SpeciesStage(JsonHierarchyExportStage):
+
     def get_name(self):
         return 'species'
 

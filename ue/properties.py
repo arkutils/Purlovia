@@ -206,6 +206,7 @@ class Property(UEBase):
 
 
 class DummyAsset(UEBase):
+
     def __init__(self, **kwargs):  # pylint: disable=super-init-not-called
         for k, v in kwargs.items():
             vars(self).setdefault(k, v)
@@ -578,6 +579,7 @@ class ObjectProperty(UEBase):
 
 
 class StringLikeProperty(UEBase, ABC):
+
     @abstractmethod
     def _deserialise(self, *args):
         ...

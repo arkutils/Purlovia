@@ -23,18 +23,21 @@ def kebab_case(s):
 
 class NullHandler(logging.Handler):
     """Handler that do nothing"""
+
     def emit(self, record):
         """Do nothing"""
 
 
 class GitException(Exception):
     """Exception raised when something went wrong for git"""
+
     def __init__(self, message):
         super(GitException, self).__init__(message)
 
 
 class RawGit(object):
     """Git command wrapper"""
+
     def __init__(self, git_path, encoding="utf-8"):
         """Init a Git wrapper with an instance"""
         self.path = git_path
@@ -63,6 +66,7 @@ class RawGit(object):
 
 class Git(RawGit):
     """Utility class overloading most used functions"""
+
     def __init__(self, git_path, remote=None, quiet=True, bare=False, logger=None):
         """Init the repo or clone the remote if remote is not None."""
         if "~" in git_path:

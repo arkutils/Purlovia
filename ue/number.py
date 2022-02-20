@@ -8,6 +8,7 @@ __all__ = [
 
 
 def make_binary_operators(op):
+
     def fwd(a, b):
         assert a.is_serialised
         if isinstance(b, Number):
@@ -30,6 +31,7 @@ def make_binary_operators(op):
 
 
 def make_binary_operator(op):
+
     def fn(a, b):
         assert a.is_serialised
         if isinstance(b, Number):
@@ -43,6 +45,7 @@ def make_binary_operator(op):
 
 
 def make_operator(op):
+
     def fn(v, *args, **kwargs):
         assert v.is_serialised
         return op(v.value, *args, **kwargs)

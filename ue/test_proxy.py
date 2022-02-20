@@ -10,6 +10,7 @@ from .proxy import UEProxyStructure, get_proxy_for_exact_type, ueints
 
 @pytest.fixture
 def simple_proxy():
+
     class SimpleProxy(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
@@ -26,21 +27,25 @@ def test_define_class_without_uetype():
 
 
 def test_define_empty_class():
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):  # pylint: disable=unused-variable
         pass
 
 
 def test_define_class_with_types():
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):  # pylint: disable=unused-variable
         IntField: Mapping[int, float]
 
 
 def test_define_class_with_data():
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):  # pylint: disable=unused-variable
         IntField = ueints(90032221)
 
 
 def test_define_subclass_without_uetype():
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):  # pylint: disable=unused-variable
         pass
 
@@ -51,6 +56,7 @@ def test_define_subclass_without_uetype():
 
 
 def test_define_subclass():
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):  # pylint: disable=unused-variable
         pass
 
@@ -68,6 +74,7 @@ def test_simple_usage(simple_proxy):
 
 
 def test_has_override(simple_proxy):
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 
@@ -83,6 +90,7 @@ def test_has_override(simple_proxy):
 
 
 def test_unspecified_fields(simple_proxy):
+
     class Proxy1(UEProxyStructure, uetype="DummyType1"):
         IntField = ueints(90032221)
 

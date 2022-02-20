@@ -6,6 +6,7 @@ from export.wiki.types import MissionType, MissionType_Escort, MissionType_Fishi
 
 
 class BaseMissionType(ABC):
+
     @classmethod
     @abstractmethod
     def get_friendly_name(cls) -> str:
@@ -18,6 +19,7 @@ class BaseMissionType(ABC):
 
 
 class Hunt(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'hunt'
@@ -28,6 +30,7 @@ class Hunt(BaseMissionType):
 
 
 class Fishing(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'fishing'
@@ -38,6 +41,7 @@ class Fishing(BaseMissionType):
 
 
 class Gather(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'gather'
@@ -48,6 +52,7 @@ class Gather(BaseMissionType):
 
 
 class Gauntlet(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'gauntlet'
@@ -58,6 +63,7 @@ class Gauntlet(BaseMissionType):
 
 
 class Retrieve(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'retrieval'
@@ -69,6 +75,7 @@ class Retrieve(BaseMissionType):
 
 
 class Escort(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'escort'
@@ -83,6 +90,7 @@ class Escort(BaseMissionType):
 
 
 class Race(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'race'
@@ -93,6 +101,7 @@ class Race(BaseMissionType):
 
 
 class GlitchCounter(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'glitchCounter'
@@ -103,6 +112,7 @@ class GlitchCounter(BaseMissionType):
 
 
 class Sport(BaseMissionType):
+
     @classmethod
     def get_friendly_name(cls) -> str:
         return 'sport'

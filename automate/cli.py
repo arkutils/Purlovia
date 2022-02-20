@@ -33,6 +33,7 @@ def maplist(value: str) -> Tuple[str, ...]:
 
 
 class VerifyModsAction(argparse.Action):  # pylint: disable=too-few-public-methods
+
     def __init__(self, option_strings, dest, nargs=None, mods=None, **kwargs):
         if nargs is not None:
             raise ValueError("nargs not allowed")
@@ -53,6 +54,7 @@ class VerifyModsAction(argparse.Action):  # pylint: disable=too-few-public-metho
 
 
 class VerifySectionsAction(argparse.Action):  # pylint: disable=too-few-public-methods
+
     def __init__(self, option_strings, dest, nargs=None, roots=None, **kwargs):
         if not roots:
             raise ValueError("roots must be set")

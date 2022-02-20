@@ -48,6 +48,7 @@ __all__ = [
 
 
 class Ticker(Thread):
+
     def __init__(self, target_fn, interval=0.5):
         super().__init__()
         self.target_fn = target_fn

@@ -19,6 +19,7 @@ class PersistentLevel(ABC):
 
 
 class MapGathererBase(ABC):
+
     @classmethod
     @abstractmethod
     def get_ue_types(cls) -> Set[str]:

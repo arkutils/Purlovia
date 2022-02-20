@@ -15,15 +15,15 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7"
+        "Programming Language :: Python :: 3.10"
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.10',
     install_requires=[
-        "requests>=2.22.0",
-        "pydantic>=1.4",
+        "requests>=2.27.0",
+        "pydantic>=1.7.4",
         "pyyaml>=5.3",
-        "psutil>=5.6.6,<5.7",
+        "psutil>=5.9.0",
     ],
 )
