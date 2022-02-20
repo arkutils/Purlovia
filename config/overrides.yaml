@@ -30,6 +30,7 @@ defaults:
         Tamed: true
         Base: true
         Rare: true
+        VDay: true
         FORTESTING: true
         Aggressive_DragonBoss: true
 
