@@ -37,27 +37,32 @@ class AssetLoadException(Exception):
 
 
 class ModNotFound(AssetLoadException):
+
     def __init__(self, mod_name: str):
         super().__init__(f'Mod {mod_name} not found')
 
 
 class AssetNotFound(AssetLoadException):
+
     def __init__(self, asset_name: str):
         super().__init__(f'Asset {asset_name} not found')
 
 
 class ExportNotFound(AssetLoadException):
+
     def __init__(self, asset_name: str, export_name: str):
         super().__init__(f'Export {export_name} could not be found in asset {asset_name}')
 
 
 class AssetParseError(AssetLoadException):
+
     def __init__(self, asset_name: str):
         super().__init__(f'Error parsing asset {asset_name}')
 
 
 class ModResolver(ABC):
     '''Abstract class a mod resolver must implement.'''
+
     def initialise(self):
         pass
 
@@ -97,6 +102,7 @@ class IniModResolver(ModResolver):
 
 
 class CacheManager(ABC):
+
     @abstractmethod
     def lookup(self, name) -> Optional[UAsset]:
         raise NotImplementedError
@@ -120,6 +126,7 @@ class CacheManager(ABC):
 
 class DictCacheManager(CacheManager):
     '''A cache manager implementing the old unintelligent mechanism.'''
+
     def __init__(self):
         self.cache: Dict[str, UAsset] = dict()
 
@@ -149,6 +156,7 @@ class UsageBasedCacheManager(CacheManager):
 
     We use the guaranteed ordering of Python dicts to track the most recently used entries.
     '''
+
     def __init__(self, max_count=3000, max_memory=6 * 1024 * 1024 * 1024, keep_count=500):
         self.cache: Dict[str, UAsset] = dict()
         self.max_count = max_count
@@ -235,6 +243,7 @@ class UsageBasedCacheManager(CacheManager):
 
 
 class ContextAwareCacheWrapper(CacheManager):
+
     def __init__(self, submanager: CacheManager):
         self.manager = submanager
 
@@ -265,6 +274,7 @@ class ContextAwareCacheWrapper(CacheManager):
 
 
 class AssetLoader:
+
     def __init__(self,
                  *,
                  modresolver: ModResolver,

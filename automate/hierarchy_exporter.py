@@ -28,6 +28,7 @@ class ModelConfig:
 
 
 class ExportModel(BaseModel):
+
     class Config(ModelConfig):
         ...
 
@@ -73,6 +74,7 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
     An intermediate helper class that performs hierarchy discovery for core/mods,
     calls the user's `extract_class` for each of them and handles saving the results.
     '''
+
     @abstractmethod
     def get_format_version(self) -> str:
         '''Return the a format version identifier.'''

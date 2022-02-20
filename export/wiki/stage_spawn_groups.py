@@ -33,6 +33,7 @@ class SpawnGroupsExportModel(ExportFileModel):
 
 
 class SpawnGroupStage(JsonHierarchyExportStage):
+
     def get_name(self) -> str:
         return 'spawn_groups'
 

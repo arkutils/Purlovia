@@ -13,6 +13,7 @@ __all__ = [
 
 
 class WikiMapsRoot(ExportRoot):
+
     def get_name(self) -> str:
         return 'maps'
 

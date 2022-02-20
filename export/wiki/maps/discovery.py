@@ -37,6 +37,7 @@ def group_levels_by_directory(assetnames: Iterable[str]) -> Dict[str, List[str]]
 
 
 class LevelDiscoverer:
+
     def __init__(self, loader: AssetLoader):
         self.loader = loader
 

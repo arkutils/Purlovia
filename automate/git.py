@@ -18,6 +18,7 @@ MESSAGE_HEADER = "Raptor Claus just dropped some files off"
 
 
 class GitManager:
+
     def __init__(self, config: ConfigFile = None):
         self.config = config or get_global_config()
 

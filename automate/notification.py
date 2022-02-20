@@ -44,7 +44,8 @@ def send_to_discord(log: List[str], exception: List[str] = None, header: str = '
         content = ''.join([header, '```log\n', *log, '```\n'])
     else:
         for n in range(len(exception) - 1):
-            lines = [header, '```log\n', *log, '```\n' '```py\n', *exception[n:], '```\n']
+            lines = [header, '```log\n', *log, '```\n'
+                     '```py\n', *exception[n:], '```\n']
             content = ''.join(lines)
             content = content.replace(base_path, '')
             if len(content) < 1990:

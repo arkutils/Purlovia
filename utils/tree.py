@@ -23,6 +23,7 @@ MISSING = object()
 
 
 class Node(Generic[T]):
+
     def __init__(self, data: T, parent: Optional[Node[T]] = None):
         self._data: T = data
         self._parent: Optional[Node[T]] = parent

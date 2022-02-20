@@ -19,6 +19,7 @@ except ImportError:
 
 class xlocal:
     '''Implementation of an execution local object.'''
+
     def __init__(self, **defaults):
         if any(key.startswith('_') for key in defaults):
             raise AttributeError("Variables cannot start with underscores")
@@ -67,6 +68,7 @@ class xlocal:
 
 
 class WithXLocals:
+
     def __init__(self, the_xlocal, kwargs):
         self._xlocal = the_xlocal
         self._kwargs = kwargs

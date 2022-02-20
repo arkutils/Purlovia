@@ -28,7 +28,7 @@ Covering:
 ### Requirements
 
 * Git
-* Python 3.7 (probably compatible with later but untested)
+* Python 3.10 (probably compatible with later but untested)
 * pipenv
 
 ### Getting Started
@@ -38,11 +38,11 @@ Covering:
    git clone https://github.com/arkutils/Obelisk.git output
    ```
 
-2. Create virtualenv and install the required packages (needs Python 3.7):
-    (suggest setting PIPENV_VENV_IN_PROJECT to 1)
+2. Create virtualenv and install the required packages (needs Python 3.10):
+    (suggest setting PIPENV_VENV_IN_PROJECT to 1 globally or creating an empty `.venv` directory in the project first)
 
    ```sh
-   pipenv sync   # add --dev to install dev-related dependencies
+   pipenv install --deploy --dev
    pipenv shell
    ```
 

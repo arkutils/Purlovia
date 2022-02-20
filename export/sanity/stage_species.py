@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 
 
 class SpeciesStage(ExportStage):
+
     def get_name(self):
         return 'species'
 

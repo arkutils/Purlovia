@@ -57,6 +57,7 @@ class LootCrateExportModel(ExportFileModel):
 
 
 class LootCratesStage(JsonHierarchyExportStage):
+
     def get_format_version(self) -> str:
         return "6"
 

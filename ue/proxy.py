@@ -187,6 +187,7 @@ class EmptyProxy(UEProxyStructure, uetype=''):
 
 class ProxyComponentWrapper(Mapping[int, Tproxy]):
     '''The wrapper that maintains a proxy component's target proxy.'''
+
     def __init__(self, sub_proxy: Tproxy):
         super().__init__()
         self._proxy = sub_proxy
@@ -254,6 +255,7 @@ class ProxyComponent(Mapping[int, Tproxy]):
 
 class LazyReferenceWrapper(Mapping[int, Tproxy]):
     '''The wrapper that evaluates a lazy reference when required.'''
+
     def __init__(self, sub_proxy: Tproxy):
         super().__init__()
         self._proxy = sub_proxy
