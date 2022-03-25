@@ -9,7 +9,7 @@
         "livedata/Steam": true
     },
 
-    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
     "python.languageServer": "Pylance",
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.typeCheckingMode": "off",
