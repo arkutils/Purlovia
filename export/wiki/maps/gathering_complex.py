@@ -113,6 +113,10 @@ class WorldSettingsExport(MapGathererBase):
 
     @classmethod
     def _convert_engrams_bit_mask(cls, bitmask: int) -> List[str]:
+        # Game treats value 0 as all groups enabled
+        if bitmask == 0:
+            return list(_ENGRAM_GROUP_FRIENDLY_NAMES)
+
         out = []
         for index, name in enumerate(_ENGRAM_GROUP_FRIENDLY_NAMES):
             val = 1 << (index + 1)

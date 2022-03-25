@@ -55,9 +55,9 @@ class PrimalWorldSettings(UEProxyStructure, uetype='/Script/ShooterGame.PrimalWo
     LongitudeScale = uefloats(800.0)
     OverrideDifficultyMax = uefloats(5.0)
     bPreventGlobalNonEventSpawnOverrides = uebools(False)
+    ValidEngramGroupsBitMask = ueints(2)
 
     # DevKit Unverified
-    ValidEngramGroupsBitMask = ueints(2)
 
     OverrideWeaponMapTextureEmpty: Mapping[int, ObjectProperty]
     OverrideWeaponMapTextureFilled: Mapping[int, ObjectProperty]
