@@ -51,15 +51,13 @@ def decode_item_entry(entry) -> ItemSetEntry:
     items_iter = (decode_item_name(item) for item in d['Items'].values)
     weights_iter = chain(d['ItemsWeights'].values, repeat(1))
 
-    print(d)
-
     return ItemSetEntry(
         name=d['ItemEntryName'] or None,
         weight=d['EntryWeight'],
         rollOneItemOnly=d.get('bApplyQuantityToSingleItem', False),  # may not be present in old mods
         qty=MinMaxPowerRange(min=d['MinQuantity'], max=d['MaxQuantity'], pow=d['QuantityPower']),
         quality=MinMaxPowerRange(min=d['MinQuality'], max=d['MaxQuality'], pow=d['QualityPower']),
-        bpChance=d['bForceBlueprint'] and 1 or d['ChanceToBeBlueprintOverride'],
+        bpChance=min(0, max(1, d['bForceBlueprint'] and 1 or d['ChanceToBeBlueprintOverride'])),
         grindable=d.get('bForcePreventGrinding', False),  # may not be present in old mods
         statMaxMult=d.get('ItemStatClampsMultiplier', 0) or 1,  # may not be present in old mods
         items=list(zip(weights_iter, items_iter)),

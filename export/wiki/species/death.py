@@ -4,8 +4,8 @@ from typing import List
 from ark.types import PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field
 from export.wiki.inherited_structs import gather_inherited_struct_fields
+from export.wiki.loot.gathering import decode_item_name
 from export.wiki.models import ItemChancePair
-from export.wiki.stage_drops import decode_item_name
 from ue.properties import FloatProperty, IntProperty
 
 
