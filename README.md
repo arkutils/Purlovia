@@ -9,7 +9,7 @@ This project aims to give developers the tools they need to extract data from th
 While the project will be in perpetual development, it aims to:
 
 * Automate extraction of species information for [ArkSmartBreeding](https://github.com/cadon/ARKStatsExtractor/)
-* Automate extraction of other information for [the Ark wiki](https://ark.gamepedia.com/)
+* Automate extraction of other information for [the Ark wiki](https://ark.wiki.gg/)
 * Reach feature parity with the previous closed-source extraction solution that is no longer maintained
 * Handle previously impossible creatures such as the Gacha
 * Extend extraction to handle modded species fully
