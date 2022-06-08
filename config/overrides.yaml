@@ -1189,6 +1189,125 @@ species:
                 3: "Wing Highlights"
                 5: "Underbelly and Arms"
 
+    # Kraken's Better Dinos mod creatures colour region names
+    /Game/Mods/BetterDinosTest/Stygi/BDStygi_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Unknown"
+                2: null
+                3: "Underside Highlights"
+                4: "Unknown"
+                5: "Back & Horns"
+    /Game/Mods/BetterDinosTest/Dilo/Dilo_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Back and Face"
+                2: "Spike Tips"
+                3: "Spine and Spike Base"
+                4: "Frill, Crest and Belly"
+                5: "Legs and Arms"
+    /Game/Mods/BetterDinosTest/Compy/Compy_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: null
+                2: null
+                3: "Feathers"
+                4: "Patterning"
+                5: "Belly"
+    /Game/Mods/BetterDinosTest/Diplo/Diplodocus_Character_BP:
+        color_regions:
+            region_names:
+                0: "Sides, Legs, and Accents"
+                1: "Spines"
+                2: null
+                3: null
+                4: "Back"
+                5: "Underside"
+    /Game/Mods/BetterDinosTest/Doed/Doed_Character_BP:
+        color_regions:
+            region_names:
+                0: "Shell and Plates"
+                1: "Spikes and Claws"
+                2: null
+                3: null
+                4: "Shell Patterning"
+                5: "Underside"
+    /Game/Mods/BetterDinosTest/Oviraptor/Oviraptor_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Crest and Beak"
+                2: null
+                3: "Feathers"
+                4: "Patterning"
+                5: "Belly"
+    /Game/Mods/BetterDinosTest/Pachy/Pachy_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: null
+                2: null
+                3: "Spikes and Claws"
+                4: "Beak and Plates"
+                5: "Body Accent"
+    /Game/Mods/BetterDinosTest/Trike/Trike_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: "Face and Feet"
+                2: null
+                3: "Patterning"
+                4: "Frill"
+                5: "Body Accent"
+    /Game/Mods/BetterDinosTest/Apes/Bigfoot_Character_BP:
+        color_regions:
+            region_names:
+                0: "Fur Mane"
+                1: null
+                2: null
+                3: null
+                4: "Fur Accent"
+                5: "Skins"
+    /Game/Mods/BetterDinosTest/Beetle/DungBeetle_Character_BP:
+        color_regions:
+            region_names:
+                0: "Shell"
+                1: "Legs"
+                2: null
+                3: "Palps and Leg Patterning"
+                4: "Shell Patterning"
+                5: "Underside"
+    /Game/Mods/BetterDinosTest/Deer/Stag_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: null
+                2: "Antlers"
+                3: null
+                4: "Patterning"
+                5: null
+    /Game/Mods/BetterDinosTest/Fish/BDDragonfly_Character_BP.BDDragonfly_Character_BP:
+        color_regions:
+            region_names:
+                0: "Thorax and Sides"
+                1: null
+                2: "Rear Legs"
+                3: "Front Legs"
+                4: "Topside"
+                5: "Underside"
+    /Game/Mods/BetterDinosTest/Pachyrhino/Pachyrhino_Character_BP:
+        color_regions:
+            region_names:
+                0: "Body"
+                1: null
+                2: "Spikes and Horns"
+                3: null
+                4: "Back"
+                5: "Face, Legs, and Underside"
+
     # Shad's Atlas Imports creature colour region names
     /Game/Mods/AtlasPort/Critter/AtlasHydra/AHydra_character_BP:
         color_regions:
