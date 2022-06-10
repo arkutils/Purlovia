@@ -137,7 +137,10 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
             mod_data = self.manager.arkman.getModData(modid)
             assert mod_data
             title = mod_data['title'] or mod_data['name']
-            return dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+            metadata = dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
+            if modid in self.manager.config.official_mods.ids():
+                metadata['mod']['official'] = True
+            return metadata
 
         return dict()
 
