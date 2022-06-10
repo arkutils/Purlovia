@@ -51,7 +51,7 @@ class MapStage(ExportStage):
                 continue
 
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, Path(directory_name), levels)
+            self._extract_and_save(version, path, Path(directory_name), levels, official=True)
 
     def extract_mod(self, path: Path, modid: str):
         '''Perform extraction for mod data.'''
@@ -81,8 +81,10 @@ class MapStage(ExportStage):
             if selectable_maps:
                 persistent = f'{directory}/{selectable_maps[0]}'
 
+            official = modid in self.manager.config.official_mods.ids()
+
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, Path(directory_name), levels, modid, persistent)
+            self._extract_and_save(version, path, Path(directory_name), levels, modid, persistent, official=official)
 
     def _extract_and_save(self,
                           version: str,
@@ -90,7 +92,8 @@ class MapStage(ExportStage):
                           relative_path: Path,
                           levels: List[str],
                           modid: Optional[str] = None,
-                          known_persistent: Optional[str] = None):
+                          known_persistent: Optional[str] = None,
+                          official: bool = False):
         # Do the actual extraction
         world = World(known_persistent)
         for assetname in levels:
@@ -131,6 +134,8 @@ class MapStage(ExportStage):
                 assert mod_data
                 title = mod_data['title'] or mod_data['name']
                 output['mod'] = dict(id=modid, tag=mod_data['name'], title=title)
+                if official:
+                    output['mod']['official'] = True
             output.update(data)
 
             # Save if the data changed
