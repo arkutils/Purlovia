@@ -60,5 +60,5 @@ class DecayTime(ExportModel):
 
 
 class ItemChancePair(ExportModel):
-    chance: float = Field(..., description="Chance this item will be selected, in an inclusive range from 0 to 1.")
+    chance: float = Field(..., description="Chance this item will be selected, in an inclusive range from 0 to 1")
     item: str
