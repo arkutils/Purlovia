@@ -116,6 +116,7 @@ class ConfigFile(BaseModel):
     display_sections: bool = False
 
     official_mods: ModIdAccess = ModIdAccess(dict())
+    expansions: ModIdAccess = ModIdAccess(dict())
     combine_mods: ModAliases = ModAliases(dict())
     mods: Tuple[str, ...] = tuple()
     extract_mods: Optional[Tuple[str, ...]] = None

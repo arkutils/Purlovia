@@ -50,8 +50,10 @@ class MapStage(ExportStage):
             if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
                 continue
 
+            expansion = directory_name in self.manager.config.expansions.tags()
+
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, Path(directory_name), levels, official=True)
+            self._extract_and_save(version, path, Path(directory_name), levels, official=True, expansion=expansion)
 
     def extract_mod(self, path: Path, modid: str):
         '''Perform extraction for mod data.'''
@@ -82,9 +84,17 @@ class MapStage(ExportStage):
                 persistent = f'{directory}/{selectable_maps[0]}'
 
             official = modid in self.manager.config.official_mods.ids()
+            expansion = modid in self.manager.config.expansions.ids()
 
             logger.info(f'Performing extraction from map: {directory}')
-            self._extract_and_save(version, path, Path(directory_name), levels, modid, persistent, official=official)
+            self._extract_and_save(version,
+                                   path,
+                                   Path(directory_name),
+                                   levels,
+                                   modid,
+                                   persistent,
+                                   official=official,
+                                   expansion=expansion)
 
     def _extract_and_save(self,
                           version: str,
@@ -93,7 +103,8 @@ class MapStage(ExportStage):
                           levels: List[str],
                           modid: Optional[str] = None,
                           known_persistent: Optional[str] = None,
-                          official: bool = False):
+                          official: bool = False,
+                          expansion: bool = False):
         # Do the actual extraction
         world = World(known_persistent)
         for assetname in levels:
@@ -136,6 +147,16 @@ class MapStage(ExportStage):
                 output['mod'] = dict(id=modid, tag=mod_data['name'], title=title)
                 if official:
                     output['mod']['official'] = True
+                if expansion:
+                    output['mod']['expansion'] = True
+            else:
+                core_data = dict()
+                if official:
+                    core_data['official'] = True
+                if expansion:
+                    core_data['expansion'] = True
+                if core_data:
+                    output['core'] = core_data
             output.update(data)
 
             # Save if the data changed
