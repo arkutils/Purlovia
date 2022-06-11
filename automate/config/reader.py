@@ -38,6 +38,7 @@ def read_config(filename: Optional[str] = None, config_string: Optional[str] = N
     # Sections that require special handling
     mods = list(parser['mods'].keys())
     official_mods = ModIdAccess(parser['official-mods'], keyed_by_id=False)  # type: ignore  # ConfigParser is terribly typed
+    expansions = ModIdAccess(parser['expansions'], keyed_by_id=False)  # type: ignore  # ConfigParser is terribly typed
     combine_mods = ModAliases(parser['combine-mods'])  # type: ignore  # ConfigParser is terribly typed
 
     # Gather all the simple sections
@@ -51,6 +52,7 @@ def read_config(filename: Optional[str] = None, config_string: Optional[str] = N
     combined_sections = {
         'mods': mods,
         'official-mods': official_mods,
+        'expansions': expansions,
         'combine-mods': combine_mods,
         **simple_sections,
         **export_sections,

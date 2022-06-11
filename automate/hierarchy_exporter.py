@@ -140,6 +140,8 @@ class JsonHierarchyExportStage(ExportStage, metaclass=ABCMeta):
             metadata = dict(mod=dict(id=modid, tag=mod_data['name'], title=title))
             if modid in self.manager.config.official_mods.ids():
                 metadata['mod']['official'] = True
+            if modid in self.manager.config.expansions.ids():
+                metadata['mod']['expansion'] = True
             return metadata
 
         return dict()
