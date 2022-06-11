@@ -159,6 +159,7 @@ mods:
             Beta: true
             Gamma: true
             Ghost: true
+            Skeletal: true
 
             # Genesis variants
             Bog: true
@@ -491,6 +492,22 @@ species:
     /Game/LostIsland/Boss/BossDinopithecus_Character_BP:
         add_variants:
             Base: true
+    /Game/PrimalEarth/Dinos/Rex/BionicRex_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Rex/BionicRex_Character_BP_Malfunctioned_Adolescent:
+        add_variants:
+            Base: true
+    /Game/Genesis/Dinos/Bots/Bot_Character_BP.Bot_Character_BP:
+        add_variants:
+            Base: true
+            Minion: true
+    /Game/PrimalEarth/Dinos/Giganotosaurus/BionicGigant_Character_BP:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Giganotosaurus/BionicGigant_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
 
     # Manual variant modifications
     /Game/Aberration/Dinos/Lightbug/Lightbug_Character_BaseBP:
@@ -556,6 +573,39 @@ species:
     /Game/Extinction/Dinos/KingKaiju/CorruptTumor_Character_BP:
         add_variants:
             Minion: true
+    /Game/PrimalEarth/Dinos/Piranha/Piranha_Character_BP_BreakNet:
+        add_variants:
+            Mission: true
+    /Game/PrimalEarth/Dinos/Piranha/Piranha_Character_BP_IceFishMission:
+        add_variants:
+            Mission: true
+    /Game/Genesis/Dinos/Bots/Bot_WithBow_BP:
+        add_variants:
+            Minion: true
+    /Game/Genesis/Dinos/Bots/Bot_WithSpear_BP:
+        add_variants:
+            Minion: true
+    /Game/Genesis/Dinos/Bots/Bot_WithTekGrenades_BP:
+        add_variants:
+            Minion: true
+    /Game/Genesis/Dinos/Bots/Bot_WithTekRifle_BP:
+        add_variants:
+            Minion: true
+    /Game/Mods/Valguero/Assets/Dinos/SpiderL/SpiderL_VAL_Character_BP:
+        add_variants:
+            Boss: true
+    /Game/PrimalEarth/Dinos/DodoRex/DodoRex_Character_BP:
+        add_variants:
+            Boss: true
+    /Game/PrimalEarth/Dinos/DodoRex/DodoRex_Character_BP_FearEvolved:
+        add_variants:
+            Boss: true
+    /Game/PrimalEarth/Dinos/DodoRex/DodoRex_Character_BP_TurkeyTrials:
+        add_variants:
+            Boss: true
+    /Game/ScorchedEarth/Dinos/DodoWyvern/DodoWyvern_Character_BP:
+        add_variants:
+            Boss: true
 
     # Distinguish between species that share the same names
     /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP:
@@ -570,6 +620,10 @@ species:
         descriptive_name: Aberrant Coelacanth # fixes in-game typo
     /Game/PrimalEarth/Dinos/Coelacanth/Coel_Character_BP_VDay_Aberrant:
         descriptive_name: Aberrant Coelacanth # fixes in-game typo
+    /Game/ScorchedEarth/Dinos/Jerboa/Bone_Jerboa_Character_BP:
+        descriptive_name: Skeletal Jerboa # was just Jerboa
+        add_variants:
+            Skeletal: true
 
     # Human-readable region names
     /Game/PrimalEarth/Dinos/Achatina/Achatina_Character_BP:
