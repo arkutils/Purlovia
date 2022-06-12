@@ -181,6 +181,7 @@ mods:
             Extinction: true
             LostIsland: true
             ScorchedEarth: true
+            Fjordur: true
 
             SummonedDinos: true
 
