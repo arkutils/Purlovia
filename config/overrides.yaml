@@ -159,7 +159,7 @@ mods:
             Beta: true
             Gamma: true
             Ghost: true
-            Skeletal: true
+            Bone: true
 
             # Genesis variants
             Bog: true
@@ -200,6 +200,7 @@ mods:
             TekCave: [ TekCave, Cave ]
             SummonedDinos: Summoned
             FinalBattleAlt: FinalBattle
+            Bone: Skeletal
 
         remove_variants:
             Gen2: true
@@ -506,6 +507,24 @@ species:
         add_variants:
             Base: true
     /Game/PrimalEarth/Dinos/Giganotosaurus/BionicGigant_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Para/BionicPara_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Quetzalcoatlus/BionicQuetz_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Raptor/BionicRaptor_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Stego/BionicStego_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/PrimalEarth/Dinos/Trike/BionicTrike_Character_BP_Malfunctioned:
+        add_variants:
+            Base: true
+    /Game/Extinction/Dinos/Enforcer/Enforcer_Character_BP_Malfunctioned:
         add_variants:
             Base: true
 
