@@ -24,7 +24,8 @@ __all__ = [
     'PlayerSpawn',
     'MissionDispatcher',
     'ExplorerNote',
-    'Glitch'
+    'Glitch',
+    'Rune'
 ]
 
 # Common Structure Models
@@ -325,4 +326,8 @@ class MutagenBulb(Actor):
 
 
 class Carniflora(Actor):
+    ...
+
+
+class Rune(Actor):
     ...

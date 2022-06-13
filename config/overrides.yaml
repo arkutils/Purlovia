@@ -181,6 +181,7 @@ mods:
             Extinction: true
             LostIsland: true
             ScorchedEarth: true
+            Fjordur: true
 
             SummonedDinos: true
 
@@ -238,6 +239,14 @@ mods:
             wiki.spawn_maps: true
 
     LostIsland:
+        include_in_stages: # Maps required for the Wiki
+            wiki.maps: true
+            wiki.spawn_groups: true
+            maps.biome_maps: true
+            maps.spawn_data: true
+            maps.spawn_maps: true
+
+    FjordurOfficial:
         include_in_stages: # Maps required for the Wiki
             wiki.maps: true
             wiki.spawn_groups: true

@@ -1,9 +1,9 @@
 from typing import Any, Dict, Optional, Set, Type, cast
 
 from automate.hierarchy_exporter import ExportModel
-from export.wiki.types import Carniflora, CustomActorList, GasVein, GasVeinGen1, LunarOxygenVentGen1, \
-    OilVein, OilVentGen1, PlayerStart, PointOfInterestBP, PointOfInterestListGen1, PoisonTree, \
-    PrimalStructurePowerNode, PrimalStructurePowerNode_Damaged, WaterVein, WildPlantSpeciesZ
+from export.wiki.types import Carniflora, CustomActorList, ExplorerChest_FjordurRune, GasVein, GasVeinGen1, \
+    LunarOxygenVentGen1, OilVein, OilVentGen1, PlayerStart, PointOfInterestBP, PointOfInterestListGen1, \
+    PoisonTree, PrimalStructurePowerNode, PrimalStructurePowerNode_Damaged, WaterVein, WildPlantSpeciesZ
 from ue.asset import ExportTableItem
 from ue.gathering import gather_properties
 from ue.proxy import UEProxyStructure
@@ -174,6 +174,11 @@ class GasVeinExport(BaseActorExport):
     MODEL = models.GasVein
 
 
+class RuneExport(BaseActorExport):
+    CLASSES = {ExplorerChest_FjordurRune.get_ue_type()}
+    MODEL = models.Rune
+
+
 class ChargeNodeExport(BaseActorExport):
     CLASSES = {PrimalStructurePowerNode.get_ue_type()}
     MODEL = models.ChargeNode
@@ -259,4 +264,6 @@ BASIC_GATHERERS = [
     PoisonTreeExport,
     # Genesis: Part 2
     CarnifloraExport,
+    # Fjordur
+    RuneExport,
 ]

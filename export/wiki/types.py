@@ -250,6 +250,16 @@ class ExplorerNote(UEProxyStructure, uetype=EXPLORER_CHEST_BASE_CLS):
     RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
 
 
+class ExplorerChest_FjordurRune(
+        UEProxyStructure,
+        uetype='/Game/PrimalEarth/CoreBlueprints/ExplorerChest/ExplorerChest_FjordurRune.ExplorerChest_FjordurRune_C'):
+    # DevKit Verified
+
+    # DevKit Unverified
+
+    RootComponent: Mapping[int, ObjectProperty]  # SceneComponent
+
+
 class NPCSpawnEntriesContainer(UEProxyStructure, uetype='/Script/ShooterGame.NPCSpawnEntriesContainer'):
     # DevKit Verified
     MaxDesiredNumEnemiesMultiplier = uefloats(1.0)
