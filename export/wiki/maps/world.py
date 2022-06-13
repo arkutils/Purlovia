@@ -23,7 +23,7 @@ __all__ = [
     'World',
 ]
 
-ALL_GATHERERS = COMPLEX_GATHERERS + BASIC_GATHERERS
+ALL_GATHERERS = BASIC_GATHERERS + COMPLEX_GATHERERS
 
 
 class World(PersistentLevel):

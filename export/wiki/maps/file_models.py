@@ -60,6 +60,8 @@ class Actors(MapExportFileModel):
     # Genesis: Part 2
     mutagenBulbs: List[models.MutagenBulb] = []
     carniflora: List[models.Carniflora] = []
+    # Fjordur
+    runes: List[models.Rune] = []
 
 
 class Missions(MapExportFileModel):
