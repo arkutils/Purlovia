@@ -512,9 +512,6 @@ species:
         add_variants:
             Base: true
             Minion: true
-    /Game/PrimalEarth/Dinos/Giganotosaurus/BionicGigant_Character_BP:
-        add_variants:
-            Base: true
     /Game/PrimalEarth/Dinos/Giganotosaurus/BionicGigant_Character_BP_Malfunctioned:
         add_variants:
             Base: true
