@@ -78,8 +78,11 @@ jobs:
     - name: Publishing live Docker image
       if: github.event_name == 'push' && github.ref == 'refs/heads/live'
       uses: elgohr/Publish-Docker-Github-Action@master
+      env:
+        COMMIT: ${{ env.GITHUB_SHA }}
+        BRANCH: ${{ env.GITHUB_REF }}
       with:
         name: coldino/purlovia:live
-        buildargs: COMMIT=${{ env.GITHUB_SHA }},BRANCH=${{ env.GITHUB_REF }}
+        buildargs: COMMIT,BRANCH
         username: ${{ secrets.DCKR_USR }}
         password: ${{ secrets.DCKR_PSSW }}
