@@ -18,35 +18,20 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout files from Git
+      uses: actions/checkout@v3
       with:
         fetch-depth: 1
+        persist-credentials: false
 
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python_version }}
+        cache: 'pipenv'
 
     - name: Install pipenv
       run: python -m pip install pipenv
-
-    - name: Cache pipenv cache
-      uses: actions/cache@v1
-      with:
-        path: ${{ env.PIPENV_CACHE_DIR }}
-        key: pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
-        restore-keys: |
-          pipenvcache-${{ runner.OS }}-${{ matrix.python_version }}-
-          pipenvcache-${{ runner.OS }}-
-
-    - name: Cache pipenv venv
-      uses: actions/cache@v1
-      with:
-        path: ${{ env.WORKON_HOME }}
-        key: pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-${{ hashFiles('Pipfile.lock') }}
-        restore-keys: |
-          pipenvvenv-${{ runner.OS }}-${{ matrix.python_version }}-
-          pipenvvenv-${{ runner.OS }}-
 
     - name: Create virtualenv and install deps
       run: pipenv install --dev --deploy --python ${{ matrix.python_version }}
@@ -77,7 +62,7 @@ jobs:
 
     - name: Publishing live Docker image
       if: github.event_name == 'push' && github.ref == 'refs/heads/live'
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v4
       env:
         COMMIT: ${{ github.sha }}
         BRANCH: ${{ github.repository }}@${{ github.ref_name }}
