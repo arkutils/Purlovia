@@ -1,4 +1,4 @@
-name: Lint and test
+name: Purlovia on-push Actions
 
 on: [push]
 
@@ -79,8 +79,8 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/live'
       uses: elgohr/Publish-Docker-Github-Action@master
       env:
-        COMMIT: ${{ env.GITHUB_SHA }}
-        BRANCH: ${{ env.GITHUB_REF }}
+        COMMIT: ${{ github.sha }}
+        BRANCH: ${{ github.repository }}@${{ github.ref_name }}
       with:
         name: coldino/purlovia:live
         buildargs: COMMIT,BRANCH
