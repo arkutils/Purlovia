@@ -57,7 +57,7 @@ def decode_item_entry(entry) -> ItemSetEntry:
         rollOneItemOnly=d.get('bApplyQuantityToSingleItem', False),  # may not be present in old mods
         qty=MinMaxPowerRange(min=d['MinQuantity'], max=d['MaxQuantity'], pow=d['QuantityPower']),
         quality=MinMaxPowerRange(min=d['MinQuality'], max=d['MaxQuality'], pow=d['QualityPower']),
-        bpChance=min(0, max(1, d['bForceBlueprint'] and 1 or d['ChanceToBeBlueprintOverride'])),
+        bpChance=max(0, min(1, d['bForceBlueprint'] and 1 or d['ChanceToBeBlueprintOverride'])),
         grindable=d.get('bForcePreventGrinding', False),  # may not be present in old mods
         statMaxMult=d.get('ItemStatClampsMultiplier', 0) or 1,  # may not be present in old mods
         items=list(zip(weights_iter, items_iter)),

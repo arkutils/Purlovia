@@ -70,6 +70,7 @@ def run(config: ConfigFile):
     # Run update then export
     try:
         log_versions()
+        logger.info('Command line: %s', ' '.join(sys.orig_argv))
 
         # Get mod list
         mods = tuple(sorted(set(config.mods) | set(config.extract_mods or ())))
