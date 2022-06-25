@@ -47,7 +47,7 @@ class MapStage(ExportStage):
         maps = group_levels_by_directory(self.discoverer.discover_vanilla_levels())
         for directory, levels in maps.items():
             directory_name = get_leaf_from_assetname(directory)
-            if self.manager.config.extract_maps and directory_name not in self.manager.config.extract_maps:
+            if self.manager.config.extract_maps is not None and directory_name not in self.manager.config.extract_maps:
                 continue
 
             expansion = directory_name in self.manager.config.expansions.tags()
