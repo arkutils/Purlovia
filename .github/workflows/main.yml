@@ -4,8 +4,6 @@ on: [push]
 
 env:
   PIPENV_NOSPIN: 1
-  PIPENV_CACHE_DIR: /tmp/.pip-cache
-  WORKON_HOME: /tmp/pipenv-venvs
 
 jobs:
   check:
