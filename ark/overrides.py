@@ -45,6 +45,10 @@ class ColorRegionSettings(BaseModel):
         dict(),
         description="Override individual region names, in for dict form `region_num: \"name\"`",
     )
+    invisible: Dict[int, Optional[bool]] = Field(
+        dict(),
+        description="Override the visibility of individual regions, in for dict form `region_num: \"visible\"`",
+    )
 
 
 class TamingMethod(str, Enum):

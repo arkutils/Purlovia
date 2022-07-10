@@ -134,6 +134,10 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
                 if region_name and color_names:
                     color['colors'] = sorted(color_names)
 
+        # some color regions are invisible in game
+        if i in settings.invisible and settings.invisible[i]:
+            color['invisible'] = True
+
         if color['name'] is None:
             colors.append(None)
         else:

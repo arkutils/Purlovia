@@ -663,10 +663,11 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
                 4: "Spine"
                 5: "Belly"
+            invisible:
+                1: true
+                2: true
     /Game/PrimalEarth/Dinos/Ammonite/Ammonite_Character:
         color_regions:
             region_names:
@@ -693,11 +694,12 @@ species:
         color_regions:
             region_names:
                 0: "Sides, Tail, Wings and Face"
-                1: null
                 2: "Skin"
-                3: null
                 4: "Top and Wing Tips"
                 5: "Underside and Accents"
+            invisible:
+                1: true
+                3: true
     /Game/PrimalEarth/Dinos/Argentavis/Argent_Character_BP:
         color_regions:
             region_names:
@@ -733,10 +735,11 @@ species:
             region_names:
                 0: "Body"
                 1: "Feet"
-                2: null
-                3: null # texture artifact, barely visible
                 4: "Stripe"
                 5: "Tail"
+            invisible:
+                2: true
+                3: true # texture artifact, barely visible
     /Game/PrimalEarth/Dinos/Bigfoot/Bigfoot_Character_BP:
         color_regions:
             region_names:
@@ -794,19 +797,21 @@ species:
             region_names:
                 0: "Sides, Legs, and Accents"
                 1: "Spines"
-                2: null
-                3: null # texture artifact, barely visible
                 4: "Back"
                 5: "Underside"
+            invisible:
+                2: true
+                3: true # texture artifact, barely visible
     /Game/PrimalEarth/Dinos/Direbear/Direbear_Character_BP:
         color_regions:
             region_names:
                 0: "Back and Head"
-                1: null
-                2: null
-                3: null
-                4: null
                 5: "Belly and Legs"
+            invisible:
+                1: true
+                2: true
+                3: true
+                4: true
     /Game/PrimalEarth/Dinos/Direwolf/Direwolf_Character_BP:
         color_regions:
             region_names:
@@ -883,11 +888,12 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
-                3: null
                 4: "Underside"
                 5: "Spine and Feet"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Genesis/Dinos/Cherufe/Cherufe_Character_BP:
         color_regions:
             region_names:
@@ -905,10 +911,11 @@ species:
             region_names:
                 0: "Body"
                 1: "Spots"
-                2: null
-                3: null
                 4: "Patterning"
-                5: null
+            invisible:
+                2: true
+                3: true
+                5: true
     /Game/PrimalEarth/Dinos/Megalodon/Megalodon_Character_BP:
         color_regions:
             region_names:
@@ -984,9 +991,10 @@ species:
         color_regions:
             region_names:
                 0: "Feathers"
-                1: null
-                3: null
                 5: "Skin and Wind/Tail Tips"
+            invisible:
+                1: true
+                3: true
     /Game/PrimalEarth/Dinos/Phiomia/Phiomia_Character_BP:
         color_regions:
             region_names:
@@ -1004,11 +1012,12 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: null # Unused
-                2: null # Unused
-                3: null # Unused
                 4: "Back Stripes"
                 5: "Inner Ear, Snout, Belly, Appendages"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/PrimalEarth/Dinos/Ptero/Ptero_Character_BP:
         color_regions:
             region_names:
@@ -1046,26 +1055,28 @@ species:
         add_variants:
             Valguero: true
         color_regions:
-            region_names:
-                2: null
+            invisible:
+                2: true
     /Game/PrimalEarth/Dinos/Rex/Rex_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
                 1: "Spine"
-                2: null
-                3: null
                 4: "Back"
                 5: "Belly"
+            invisible:
+                2: true
+                3: true
     /Game/Genesis/Dinos/BiomeVariants/Volcano_Rex/Volcano_Rex_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
                 1: "Spine"
-                2: null
-                3: null
                 4: "Back"
                 5: "Belly"
+            invisible:
+                2: true
+                3: true
     /Game/PrimalEarth/Dinos/Saber/Saber_Character_BP:
         color_regions:
             region_names:
@@ -1100,11 +1111,12 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
-                3: null
                 4: "Horns"
                 5: "Hooves and Eye Regions"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/PrimalEarth/Dinos/Spider-Small/SpiderS_Character_BP:
         color_regions:
             region_names:
@@ -1149,28 +1161,31 @@ species:
             region_names:
                 0: "Body"
                 1: "Wing and Sail Markings"
-                2: null
                 3: "Wings and Sail"
                 4: "Back, Beak and Sail Spines"
                 5: "Sail and Throat"
+            invisible:
+                2: true
     /Game/PrimalEarth/Dinos/TerrorBird/TerrorBird_Character_BP:
         color_regions:
             region_names:
                 0: "Feathers"
-                1: null
-                2: null
-                3: null
                 4: "Belly/Wings Accent"
                 5: "Beak, Skin, Legs"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/PrimalEarth/Dinos/Titanosaur/Titanosaur_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
-                3: null
                 4: "Back"
                 5: "Underside"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/PrimalEarth/Dinos/Toad/Toad_Character_BP:
         color_regions:
             region_names:
@@ -1198,9 +1213,10 @@ species:
             region_names:
                 0: "Skins"
                 1: "Back"
-                3: null
                 4: "Underside"
                 5: "Horn"
+            invisible:
+                3: true
     /Game/Genesis/Dinos/BiomeVariants/Snow_WoollyRhino/Snow_Rhino_Character_BP:
         color_regions:
             region_names:
@@ -1216,18 +1232,19 @@ species:
                 3: "Body Highlights"
     /Game/Genesis2/Dinos/BiomeVariants/Procoptodon_Character_BP_Eden:
         color_regions:
-            region_names:
-                2: null # Not visible
-                3: null # Only visible when boosted 10000x around claws
+            invisible:
+                2: true
+                3: true # Only visible when boosted 10000x around claws
     /Game/ScorchedEarth/Dinos/Camelsaurus/camelsaurus_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
                 1: "Spine"
-                2: null # unused
                 3: "Spikes"
                 4: "Furred Stripes"
                 5: "Underside and Legs"
+            invisible:
+                2: true
     /Game/ScorchedEarth/Dinos/SpineyLizard/SpineyLizard_Character_BP:
         color_regions:
             region_names:
@@ -1240,8 +1257,9 @@ species:
         color_regions:
             region_names:
                 2: "Belly Scales"
-                3: null # unused
                 4: "Wing Membrane and Fins Highlight"
+            invisible:
+                3: true
     /Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Lightning:
         color_regions:
             region_names:
@@ -1274,10 +1292,11 @@ species:
             region_names:
                 0: "Main Body"
                 1: "Unknown"
-                2: null
                 3: "Underside Highlights"
                 4: "Unknown"
                 5: "Back & Horns"
+            invisible:
+                2: true
     /Game/Mods/BetterDinosTest/Dilo/Dilo_Character_BP:
         color_regions:
             region_names:
@@ -1291,101 +1310,112 @@ species:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
                 3: "Feathers"
                 4: "Patterning"
                 5: "Belly"
+            invisible:
+                1: true
+                2: true
     /Game/Mods/BetterDinosTest/Diplo/Diplodocus_Character_BP:
         color_regions:
             region_names:
                 0: "Sides, Legs, and Accents"
                 1: "Spines"
-                2: null
-                3: null
                 4: "Back"
                 5: "Underside"
+            invisible:
+                2: true
+                3: true
     /Game/Mods/BetterDinosTest/Doed/Doed_Character_BP:
         color_regions:
             region_names:
                 0: "Shell and Plates"
                 1: "Spikes and Claws"
-                2: null
-                3: null
                 4: "Shell Patterning"
                 5: "Underside"
+            invisible:
+                2: true
+                3: true
     /Game/Mods/BetterDinosTest/Oviraptor/Oviraptor_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
                 1: "Crest and Beak"
-                2: null
                 3: "Feathers"
                 4: "Patterning"
                 5: "Belly"
+            invisible:
+                2: true
     /Game/Mods/BetterDinosTest/Pachy/Pachy_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
-                2: null
                 3: "Spikes and Claws"
                 4: "Beak and Plates"
                 5: "Body Accent"
+            invisible:
+                1: true
+                2: true
     /Game/Mods/BetterDinosTest/Trike/Trike_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
                 1: "Face and Feet"
-                2: null
                 3: "Patterning"
                 4: "Frill"
                 5: "Body Accent"
+            invisible:
+                2: true
     /Game/Mods/BetterDinosTest/Apes/Bigfoot_Character_BP:
         color_regions:
             region_names:
                 0: "Fur Mane"
-                1: null
-                2: null
-                3: null
                 4: "Fur Accent"
                 5: "Skins"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/BetterDinosTest/Beetle/DungBeetle_Character_BP:
         color_regions:
             region_names:
                 0: "Shell"
                 1: "Legs"
-                2: null
                 3: "Palps and Leg Patterning"
                 4: "Shell Patterning"
                 5: "Underside"
+            invisible:
+                2: true
     /Game/Mods/BetterDinosTest/Deer/Stag_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
                 2: "Antlers"
-                3: null
                 4: "Patterning"
-                5: null
+            invisible:
+                1: true
+                3: true
+                5: true
     /Game/Mods/BetterDinosTest/Fish/BDDragonfly_Character_BP.BDDragonfly_Character_BP:
         color_regions:
             region_names:
                 0: "Thorax and Sides"
-                1: null
                 2: "Rear Legs"
                 3: "Front Legs"
                 4: "Topside"
                 5: "Underside"
+            invisible:
+                1: true
     /Game/Mods/BetterDinosTest/Pachyrhino/Pachyrhino_Character_BP:
         color_regions:
             region_names:
                 0: "Body"
-                1: null
                 2: "Spikes and Horns"
-                3: null
                 4: "Back"
                 5: "Face, Legs, and Underside"
+            invisible:
+                1: true
+                3: true
 
     # Shad's Atlas Imports creature colour region names
     /Game/Mods/AtlasPort/Critter/AtlasHydra/AHydra_character_BP:
@@ -1401,74 +1431,82 @@ species:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Inner Stripes"
-                3: null # Not visible
                 4: "Belly, Paws, Face Details & Tail Tip"
                 5: "Outer Stripes"
+            invisible:
+                1: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Crocodile/ACroc_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
-                2: null # Not visible
-                3: null # Not visible
                 4: "Back Highlights"
                 5: "Underbelly"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Crocodile/ACroc_Character_BP_Arcane:
         color_regions:
             region_names:
-                0: null # Not visible
                 1: "Main Body"
                 2: "Stripes"
                 3: "Underbelly"
                 4: "Emissives"
-                5: null # Not visible
+            invisible:
+                0: true
+                5: true
     /Game/Mods/AtlasPort/Critter/Cyclops/ACyclops_Character_bp:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Spots"
                 3: "Loincloth"
                 4: "Underside"
                 5: "Back Highlights"
+            invisible:
+                1: true
     /Game/Mods/AtlasPort/Critter/Dolphin/ADolphin_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
-                2: null # Not visible
-                3: null # Not visible
                 4: "Secondary Stripes"
                 5: "Primary Stripes"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/GoodWhale/Aegis_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # None, no color generated in colour region
-                2: null # None, no color generated in colour region
-                3: null # None, no color generated in colour region
                 4: "Sides"
                 5: "Back"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Gorgon/AGorgon_Character_bp:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Rattle"
-                3: null # Not visible
                 4: "Body Highlights"
                 5: "Underbelly"
+            invisible:
+                1: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Horse/AHorse_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Mane & Tail"
-                3: null # Not visible
-                4: null # Not visible
-                5: null # Not visible
+            invisible:
+                1: true
+                3: true
+                4: true
+                5: true
     /Game/Mods/AtlasPort/Critter/Leatherwing/Leatherwing_character_bp:
         color_regions:
             region_names:
@@ -1482,20 +1520,22 @@ species:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
-                2: null # Not visible
-                3: null # Not visible
                 4: "Dorsal Stripe & Underbelly"
                 5: "Pattern"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/MeanWhale/harbinger_character_Bp:
         color_regions:
             region_names:
                 0: "Underside & Face Highlights"
                 1: "Body Highlights"
-                2: null # None, no color generated in colour region
-                3: null # None, no color generated in colour region
                 4: "Main Body"
                 5: "Head Nodes"
+            invisible:
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Naga/Naga_Character_bp:
         color_regions:
             region_names:
@@ -1504,7 +1544,8 @@ species:
                 2: "Splotch Pattern"
                 3: "Main Body"
                 4: "Side Accents"
-                5: null # Not visible
+            invisible:
+                5: true
     /Game/Mods/AtlasPort/Critter/Naga/Naga_Character_bp_Arcane:
         color_regions:
             region_names:
@@ -1512,26 +1553,29 @@ species:
                 1: "Spikes"
                 2: "Main Body"
                 3: "Underbelly & Tail"
-                4: null # Not visible
                 5: "Emissive Pattern"
+            invisible:
+                4: true
     /Game/Mods/AtlasPort/Critter/Ostrich/AOstrich_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body Tint"
                 1: "Neck Tint"
                 2: "Back Tint"
-                3: null # Not visible
                 4: "Head and Sides of Neck"
                 5: "Side and Tail Feather Tint"
+            invisible:
+                3: true
     /Game/Mods/AtlasPort/Critter/Rattlesnake/ARattler_Character_bp:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Stripes"
                 3: "Side Tint"
                 4: "Underbelly & Face"
                 5: "Stripe Outlines"
+            invisible:
+                1: true
     /Game/Mods/AtlasPort/Critter/Razortooth/Razortooth_Character_BP:
         color_regions:
             region_names:
@@ -1555,37 +1599,41 @@ species:
             region_names:
                 0: "Main Body"
                 1: "Fin Edging"
-                2: null # Not visible
                 3: "Eyes"
                 4: "Underbelly & Fins"
                 5: "Body Details"
+            invisible:
+                2: true
     /Game/Mods/AtlasPort/Critter/Tiger/ATiger_Character_BP:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
-                2: null # Not visible
-                3: null # Not visible
                 4: "Body Patterning"
                 5: "Stripes"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/AtlasPort/Critter/Tiger/ATiger_Character_BP_Arcane:
         color_regions:
             region_names:
                 0: "Emissives"
-                1: null # Not visible
                 2: "Main Body"
-                3: null # Not visible
-                4: null # Not visible
                 5: "Body Patterning"
+            invisible:
+                1: true
+                3: true
+                4: true
     /Game/Mods/AtlasPort/Critter/Tortugar/Tortugar_Character_bp:
         color_regions:
             region_names:
                 0: "Main Body"
-                1: null # Not visible
                 2: "Leg Spots"
                 3: "Shell Spots"
                 4: "Skin Highlights"
                 5: "Body Highlights"
+            invisible:
+                1: true
 
     # Additional Creatures: Aquaria mod creatures colour region names
     /Game/Mods/Aquaria/FIsh/Tigerfish/GoliathTigerfish_Character_bp:
@@ -1595,17 +1643,19 @@ species:
                 1: "Fins"
                 2: "Lateral Pattern"
                 3: "Fin Bases"
-                4: null # Not visible
                 5: "Main Body"
+            invisible:
+                4: true
     /Game/Mods/Aquaria/FIsh/Protostega/Protostega_Character_bp:
         color_regions:
             region_names:
                 0: "Mid-Shell"
-                1: null # Not visible
                 2: "Outer Shell"
                 3: "Main Body"
                 4: "Body Details"
                 5: "Shell Details"
+            invisible:
+                1: true
     /Game/Mods/Aquaria/FIsh/Protostega/Ocean_Protostega_Character_bp:
         color_regions:
             region_names:
@@ -1620,10 +1670,11 @@ species:
             region_names:
                 0: "Main Body"
                 1: "Lower Beak, Head, Belly Stripes, Flippers, Fluke"
-                2: null # None, no color generated in colour region
                 3: "Upper Beak, Chinstrap"
                 4: "Underside"
-                5: null # None, no color generated in colour region
+            invisible:
+                2: true
+                5: true
 
     # Marnii Wildlife mod creatures colour region names
     /Game/Mods/MarniiModsWildlife/Wildlife/Camel/Camel_MM_Character_BP:
@@ -1631,10 +1682,11 @@ species:
             region_names:
                 0: "Main body"
                 1: "Eyes"
-                2: null # None, no color generated in colour region
-                3: null # None, no color generated in colour region
                 4: "Side markings"
                 5: "Back and neck markings"
+            invisible:
+                2: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/CanisLupus/Wolf_MM_Character_BP:
         color_regions:
             region_names:
@@ -1659,18 +1711,20 @@ species:
                 0: "Main body"
                 1: "Eye tint"
                 2: "Marking accents"
-                3: null # None, no color generated in colour region
                 4: "Belly, feet, facial markings, and tail tip"
                 5: "Marking tint"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Cattle/Cattle_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eyes(F), None(M)"
                 2: "None(F), Horns(M)"
-                3: null # None, no color generated in colour region
                 4: "Unused(F), Leg and body tint(M)"
                 5: "Body pattern(F), Mane"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Chicken/Chicken_character_bp:
         color_regions:
             region_names:
@@ -1684,168 +1738,181 @@ species:
         color_regions:
             region_names:
                 0: "Main body"
-                1: null # Not visible
                 2: "Tusks"
-                3: null # Not visible
                 4: "Markings"
                 5: "Inner ear tint"
+            invisible:
+                1: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/ExoticBird/ExoticBird_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Cere and legs"
                 2: "Eyes"
-                3: null # Not visible
                 4: "Feather accents"
                 5: "Underbelly and marginal coverts"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Frog/Frog_MM_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eyes"
                 2: "Facial markings and stripes"
-                3: null # Not visible
-                4: null # Not visible
                 5: "Back spots and underbelly"
+            invisible:
+                3: true
+                4: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Gecko/Gecko_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
-                1: null # Not visible
                 2: "Stripe accents & Head Stripes"
-                3: null # Not visible
                 4: "Underbelly and toes"
                 5: "Back pattern"
+            invisible:
+                1: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Hare/Hare_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eye tint"
-                2: null # Not visible
-                3: null # Not visible
                 4: "Inner ear"
                 5: "Fur details"
+            invisible:
+                2: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Lions/Lions_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
-                1: null # None, no color generated in colour region
                 2: "Eyes"
                 3: "Not generated, Jaw tint (M)" # No natural colour generated but settargetdinocolor shows up on the model
                 4: "Belly and accents"
                 5: "Unused(F); Mane(M)"
+            invisible:
+                1: true
     /Game/Mods/MarniiModsWildlife/Wildlife/MMOwls/A_Owl_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Not generated, Eyes" # No natural colour generated but settargetdinocolor shows up on the model
                 2: "Feather barring"
-                3: null # None, no color generated in colour region
                 4: "Underbelly, throat, lower face, and underwing coverts"
                 5: "Main wing and back"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/MMOwls/Avesowl_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eyes"
                 2: "Feather barring"
-                3: null # None, no color generated in colour region
                 4: "Underbelly, throat, lower face, and underwing coverts"
                 5: "Main wing and back"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Rats/Rats_MM_Character_BP:
         color_regions:
             region_names:
                 0: "Fur"
-                1: null # Not visible
-                2: null # Not visible
-                3: null # None, no color generated in colour region
                 4: "Skin"
                 5: "Eye tint"
+            invisible:
+                1: true
+                2: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Raven/Raven_MM_Character_BP:
         color_regions:
             region_names:
                 0: "Body, beak, and eyes"
                 1: "Eye pupil"
                 2: "Talons"
-                3: null # Not visible
                 4: "Leg tint"
                 5: "Feather Edging"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Shadowcat/Shadowcat_character_BP:
         color_regions:
             region_names:
                 0: "Main body"
-                1: null # None, no color generated in colour region
                 2: "None, eyes"
-                3: null # Not visible
                 4: "Underbelly and highlights"
                 5: "Stripes"
+            invisible:
+                1: true
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/Snakes/Snake_MM_Character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eyes"
                 2: "Inside stripes"
-                3: null # Not visible
                 4: "Underbelly and face"
                 5: "Outside stripes"
+            invisible:
+                3: true
     /Game/Mods/MarniiModsWildlife/Wildlife/SnowLeopard/Snowleopard_character_BP:
         color_regions:
             region_names:
                 0: "Main body"
                 1: "Eyes"
                 2: "Inside rosettes"
-                3: null # None, no color generated in colour region
                 4: "Underbelly, mane, and toes"
                 5: "Tail tip and rosette tint"
+            invisible:
+                3: true
 
     # Ignore regions present in color set but not the color mask
     /Game/Aberration/Dinos/LanternLizard/LanternLizard_Character_BP:
         color_regions:
-            region_names:
-                1: null
+            invisible:
+                1: true
     /Game/Extinction/Dinos/Gacha/Gacha_Character_BP:
         color_regions:
-            region_names:
-                1: null # texture artifact, not visible
+            invisible:
+                1: true # texture artifact, not visible
     /Game/Extinction/Dinos/GasBag/GasBags_Character_BP:
         color_regions:
-            region_names:
-                1: null
-                3: null # texture artifact, not visible
+            invisible:
+                1: true
+                3: true # texture artifact, not visible
     /Game/Extinction/Dinos/Owl/Owl_Character_BP:
         color_regions:
             region_names:
                 3: "Face patterns" # probably texture artifact, but clear pattern on dark background
     /Game/Genesis/Dinos/BiomeVariants/Snow_Yutyrannus/Snow_Yutyrannus_Character_BP:
         color_regions:
-            region_names:
-                1: null
+            invisible:
+                1: true
     /Game/Genesis/Dinos/BiomeVariants/Bog_Raptor/Bog_Raptor_Character_BP:
         color_regions:
-            region_names:
-                1: null # Covers extremely small area, and is barely visible with default intensity
+            invisible:
+                1: true # Covers extremely small area, and is barely visible with default intensity
     /Game/Genesis/Dinos/BiomeVariants/Volcano_Allosaurus/Volcano_Allo_Character_BP:
         color_regions:
-            region_names:
-                1: null
-                2: null
+            invisible:
+                1: true
+                2: true
     /Game/Mods/Ragnarok/Custom_Assets/Dinos/Wyvern/Ice_Wyvern/Ragnarok_Wyvern_Override_Ice:
         color_regions:
-            region_names:
-                1: null
-                2: null
+            invisible:
+                1: true
+                2: true
     /Game/Aberration/Dinos/Pteroteuthis/Pteroteuthis_Char_BP:
         color_regions:
-            region_names:
-                3: null
+            invisible:
+                3: true
     /Game/Genesis/Dinos/BiomeVariants/Snow_Argentavis/Snow_Argent_Character_BP:
         color_regions:
-            region_names:
-                1: null
+            invisible:
+                1: true
     /Game/Genesis/Dinos/BiomeVariants/Bog_Spino/Bog_Spino_Character_BP:
         color_regions:
-            region_names:
-                1: null
+            invisible:
+                1: true
 
 
     /Game/PrimalEarth/Dinos/Dimorphodon/Dimorph_Character_BP_Aggressive: # Base for Dragon boss minions
