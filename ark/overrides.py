@@ -35,7 +35,7 @@ class ColorRegionSettings(BaseModel):
     )
     nullify_name_regexes: Dict[str, str] = Field(
         dict(),
-        description="Region are nullified if their names wholely match any of these regexes (key names are ignored)",
+        description="Regions are marked invisible if their names wholely match any of these regexes (key names are ignored)",
     )
     useless_name_regexes: Dict[str, str] = Field(
         dict(),
@@ -43,11 +43,8 @@ class ColorRegionSettings(BaseModel):
     )
     region_names: Dict[int, Optional[str]] = Field(
         dict(),
-        description="Override individual region names, in for dict form `region_num: \"name\"`",
-    )
-    invisible: Dict[int, Optional[bool]] = Field(
-        dict(),
-        description="Override the visibility of individual regions, in for dict form `region_num: \"visible\"`",
+        description=
+        "Override individual region names, in dict form `region_num: \"name\"`. Set to `null` to mark the region as invisible.",
     )
 
 

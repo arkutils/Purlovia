@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 
 NUM_REGIONS = 6
 NULLABLE_REGION_COLORS = set(['Red'])
+INVISIBLE_REGION = {"invisible": True}
 
 ColorEntry = Tuple[str, Tuple[float, float, float, float]]
 
@@ -95,52 +96,56 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
         color_names: Set[str] = set()
 
         if prevent_region:
-            color['name'] = None
-        elif not colorset_props:
-            if i in settings.region_names:
-                color['name'] = settings.region_names[i]
-        elif i not in colorset_props.ColorSetDefinitions:
+            # Prevented regions don't receive any more processing
+            colors.append(None)
+            continue
+
+        if not colorset_props or i not in colorset_props.ColorSetDefinitions:
+            # if no colour data is available from the game, only use a name from overrides
             color['name'] = settings.region_names.get(i, None)
         else:
             color_set_defs: Dict[str, UEBase] = colorset_props.ColorSetDefinitions[i].as_dict()
 
+            # Pull out possible colour names for this region
             if 'ColorEntryNames' in color_set_defs:
                 for color_name in color_set_defs['ColorEntryNames'].values:
                     color_names.add(str(color_name))
 
+            # Calculate a region name...
             region_name = str(color_set_defs.get('RegionName', settings.default_name)).strip()
 
+            # Some regions have names indicating they are invalid and only "Red" as a colour
             if region_name and any_regexes_match(settings.nullify_name_regexes, region_name):
                 # Null-out this region if it matches NULLABLE_REGION_COLORS exactly
                 if not color_names or color_names == NULLABLE_REGION_COLORS:
                     region_name = None
                     color_names.clear()
 
+            # Some regions just have useless names
             if region_name and any_regexes_match(settings.useless_name_regexes, region_name):
                 # Region name is useless, replace with the default_name
                 region_name = settings.default_name
 
+            # Allow region names to be overridden
             if i in settings.region_names:
                 # There's a specific override for this region
                 region_name = settings.region_names[i]
 
+            # Capitalise if requested
             if region_name and settings.capitalize:
                 region_name = region_name[0].upper() + region_name[1:]
 
-            if not region_name:
-                color['name'] = None
-            else:
-                color['name'] = region_name
-                if region_name and color_names:
-                    color['colors'] = sorted(color_names)
+            # Construct the object to include
+            color['name'] = region_name
+            if color_names:
+                color['colors'] = sorted(color_names)
 
-        # some color regions are invisible in game
-        if i in settings.invisible and settings.invisible[i]:
-            color['invisible'] = True
-
+        # Work out what to put in the output file
         if color['name'] is None:
-            colors.append(None)
+            # null region name at this point indicates invisible region
+            colors.append(INVISIBLE_REGION)
         else:
+            # include the full info
             colors.append(color)
 
     return colors
