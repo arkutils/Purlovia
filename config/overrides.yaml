@@ -1267,6 +1267,11 @@ species:
                 1: "Wings"
                 3: "Wing Highlights"
                 5: "Underbelly and Arms"
+    /Game/Genesis2/Dinos/MilkGlider/MilkGlider_Character_BP: # Maewing
+        color_regions:
+            region_names:
+                1: "Belly" # the names of region 1 and 4 are switched in the game data
+                4: "Membrane accents"
 
     # Kraken's Better Dinos mod creatures colour region names
     /Game/Mods/BetterDinosTest/Stygi/BDStygi_Character_BP:
