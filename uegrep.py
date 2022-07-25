@@ -7,8 +7,9 @@ from ark.discovery import initialise_hierarchy
 from ark.mod import get_official_mods
 from automate.ark import ArkSteamManager
 from config import get_global_config
-from ue.hierarchy import find_parent_classes, find_sub_classes, iterate_all
+from ue.hierarchy import find_parent_classes, iterate_all, tree
 from utils.log import get_logger
+from utils.tree import Node
 
 # pylint: enable=invalid-name
 
@@ -103,20 +104,22 @@ def find_matches() -> Iterator[str]:
 
 
 def output_result(result: str):
-    indent = '  '
     print(format_result(result))
     if args.subs:
-        for sub_cls_name in find_sub_classes(result):
-            if args.mods is not None:
-                modid = get_modid_from_class_name(sub_cls_name)
-                if modid not in args.mods:
-                    continue
-            print(f'{indent}{format_result(sub_cls_name)}')
+        node = tree[result]
+        display_subs(node, 1)
     if args.parents:
         for i, parent_cls_name in enumerate(find_parent_classes(result)):
             if args.no_script and not parent_cls_name.startswith('/Game'):
                 break
-            print(f'{indent*(i+1)}{format_result(parent_cls_name)}')
+            print(f'{"  "*(i+1)}{format_result(parent_cls_name)}')
+
+
+def display_subs(node: Node[str], level: int):
+    indent = '    ' * level
+    for child in node.nodes:
+        print(f'{indent}{format_result(child.data)}')
+        display_subs(child, level + 1)
 
 
 def main():
