@@ -4,6 +4,7 @@ from logging import WARNING, basicConfig
 from typing import Iterator, Tuple
 
 from ark.discovery import initialise_hierarchy
+from ark.mod import get_official_mods
 from automate.ark import ArkSteamManager
 from config import get_global_config
 from ue.hierarchy import find_parent_classes, find_sub_classes, iterate_all
@@ -17,7 +18,7 @@ EPILOG = '''example: python uegrep.py Dodo_Character_C'''
 
 DESCRIPTION = '''Perform searches in the game asset hierarchy.'''
 
-args: argparse.Namespace
+args: argparse.Namespace = argparse.Namespace()
 
 
 def modlist(value: str) -> Tuple[str, ...]:
@@ -34,6 +35,8 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--regex', '-r', action='store_true', help='allow regex matching')
     parser.add_argument('--ignore-case', '-i', action='store_true', help='ignore case')
+    parser.add_argument('--vanilla', '-v', action='store_true', help='only search core game assets')
+    parser.add_argument('--output-paths', action='store_true', help='output full paths instead of just assets')
 
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('--asset-only', '-a', action='store_true', help='search only asset names (ignore class name)')
@@ -44,11 +47,6 @@ def create_parser() -> argparse.ArgumentParser:
     exclusive.add_argument('--parents', '-p', action='store_true', help='show parents classes of those found')
 
     parser.add_argument('--no-script', '-n', action='store_true', help='restrict parents output to assets only')
-
-    # TODO: Implement me!
-    # exclusive = parser.add_mutually_exclusive_group()
-    # exclusive.add_argument('--mods', action='store', type=modlist, help='override which mods include (comma-separated)')
-    # exclusive.add_argument('--no-mods', action='store_true', help='do not include any mods in the search')
 
     parser.add_argument('searches', metavar='SEARCHES', type=str, nargs='+', help='strings to search for')
 
@@ -66,6 +64,8 @@ def run():
 
     initialise_hierarchy(arkman)
 
+    args.mods = ['', *set(get_official_mods()) - {'111111111'}] if args.vanilla else None
+
     for result in find_matches():
         output_result(result)
 
@@ -80,6 +80,11 @@ def find_matches() -> Iterator[str]:
         regexes = [re.compile(search, flags=re.I if args.ignore_case else 0) for search in searches]
 
     for cls_name in iterate_all():
+        if args.mods is not None:
+            modid = get_modid_from_class_name(cls_name)
+            if modid not in args.mods:
+                continue
+
         if args.class_only:
             name = cls_name[cls_name.rfind('.') + 1:]
         elif args.asset_only:
@@ -93,26 +98,25 @@ def find_matches() -> Iterator[str]:
                     yield cls_name
                     break
         else:
-            if args.ignore_case:
-                name = name.lower()
-
-            for search in searches:
-                if search in name:
-                    yield cls_name
-                    break
+            if do_simple_searches_match(searches, name):
+                yield cls_name
 
 
 def output_result(result: str):
     indent = '  '
-    print(result)
+    print(format_result(result))
     if args.subs:
         for sub_cls_name in find_sub_classes(result):
-            print(f'{indent}{sub_cls_name}')
+            if args.mods is not None:
+                modid = get_modid_from_class_name(sub_cls_name)
+                if modid not in args.mods:
+                    continue
+            print(f'{indent}{format_result(sub_cls_name)}')
     if args.parents:
         for i, parent_cls_name in enumerate(find_parent_classes(result)):
             if args.no_script and not parent_cls_name.startswith('/Game'):
                 break
-            print(f'{indent*(i+1)}{parent_cls_name}')
+            print(f'{indent*(i+1)}{format_result(parent_cls_name)}')
 
 
 def main():
@@ -123,6 +127,41 @@ def main():
         run()
     except Exception:  # pylint: disable=bare-except
         logger.exception('Caught exception. Aborting.')
+
+
+def get_modid_from_class_name(cls_name):
+    parts = cls_name.strip('/').split('/')
+    if len(parts) < 3 or parts[0] != 'Game' or parts[1] != 'Mods':
+        return ''
+    return parts[2]
+
+
+def do_simple_searches_match(searches: list[str], input: str) -> bool:
+    if args.ignore_case:
+        input = input.lower()  # searches are already lowercase
+
+    if args.asset_only:
+        input = input.split('.')[0]
+    elif args.class_only:
+        input = input.split('.')[-1]
+
+    for search in searches:
+        # Bail if any negative match matches
+        if search.startswith('-'):
+            if search[1:] in input:
+                return False
+
+        # Bail if any positive match doesn't match
+        elif search not in input:
+            return False
+
+    return bool(searches)
+
+
+def format_result(result: str) -> str:
+    if args.output_paths or not result.startswith('/Game'):
+        return result
+    return result.split('.')[0]
 
 
 if __name__ == '__main__':
