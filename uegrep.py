@@ -67,7 +67,7 @@ def run():
 
     args.mods = ['', *set(get_official_mods()) - {'111111111'}] if args.vanilla else None
 
-    for result in find_matches():
+    for result in sorted(find_matches()):
         output_result(result)
 
 
@@ -117,7 +117,7 @@ def output_result(result: str):
 
 def display_subs(node: Node[str], level: int):
     indent = '    ' * level
-    for child in node.nodes:
+    for child in sorted(node.nodes, key=lambda n: n.data):
         print(f'{indent}{format_result(child.data)}')
         display_subs(child, level + 1)
 
