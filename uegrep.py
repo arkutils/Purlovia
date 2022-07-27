@@ -118,6 +118,8 @@ def output_result(result: str):
 def display_subs(node: Node[str], level: int):
     indent = '    ' * level
     for child in sorted(node.nodes, key=lambda n: n.data):
+        if get_modid_from_class_name(child.data) not in args.mods:
+            continue
         print(f'{indent}{format_result(child.data)}')
         display_subs(child, level + 1)
 
