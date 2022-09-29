@@ -271,10 +271,10 @@ class LazyReferenceWrapper(Mapping[int, Tproxy]):
     def __getitem__(self, index) -> Tproxy:
         '''Retrieve the associated proxy.'''
         if index != 0:
-            raise ValueError("References can only have index 0")
+            raise KeyError("References can only have index 0")
 
         if not self._target:
-            raise ValueError("Lazy reference has no value")
+            raise KeyError("Lazy reference has no value")
 
         if not self._cache:
             assert self._target.asset and self._target.asset.loader

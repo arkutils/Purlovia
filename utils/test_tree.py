@@ -156,15 +156,6 @@ def test_indexed_simple_string_tree():
     assert repr(found) == "['root', 'a', 'a1', 'b']"
 
 
-class MyDataType:
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}({self.name!r})'
-
-
 def test_typed_node_tree():
     t = Node[MyDataType](MyDataType('root'))
     t.add(MyDataType('a'))
@@ -225,6 +216,7 @@ def test_insert_segment():
 
 
 def test_translate(basic_tree: Node[str]):
+
     def make_new(data: str):
         return "+" + data
 
@@ -237,6 +229,7 @@ def test_translate(basic_tree: Node[str]):
 
 
 def test_translate_filtered(basic_tree: Node[str]):
+
     def make_new_filtered(data: str):
         if data == 'b':
             return None
@@ -251,6 +244,7 @@ def test_translate_filtered(basic_tree: Node[str]):
 
 
 def test_translate_indexed_simple_string(indexed_string_tree: IndexedTree[str]):
+
     def make_new(data: str):
         return "+" + data
 
@@ -270,6 +264,7 @@ def test_translate_indexed_simple_string(indexed_string_tree: IndexedTree[str]):
 
 
 def test_translate_indexed_typed(indexed_typed_tree: IndexedTree[MyDataType]):
+
     def make_new(data: MyDataType) -> TranslatedDataType:
         return TranslatedDataType(title='+' + data.name)
 
@@ -291,6 +286,7 @@ TranslatedDataType('+b'), TranslatedDataType('+b1'), TranslatedDataType('+b2')]"
 
 
 def test_translate_indexed_typed_filtered(indexed_typed_tree: IndexedTree[MyDataType]):
+
     def make_new_filtered(data: MyDataType) -> Optional[TranslatedDataType]:
         if data.name == 'b':
             return None

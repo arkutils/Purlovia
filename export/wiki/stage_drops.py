@@ -39,7 +39,7 @@ class Drop(ExportModel):
     )
     qtyMult: Optional[MinMaxPowerRange] = Field(
         MinMaxPowerRange(min=1, max=1, pow=1),
-        title="Quantity range",
+        title="Quantity range of sets picked",
     )
 
     sets: Optional[List[ItemSet]] = Field(

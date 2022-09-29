@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 from ark.gathering import gather_dcsc_properties
 from ark.overrides import OverrideSettings, TamingMethod, get_overrides_for_species
+from ark.taming_food.datatypes import SpeciesItemOverride
+from ark.taming_food.species import collect_species_data_by_proxy
 from ark.types import PrimalDinoCharacter
 from ark.variants import get_variants_from_assetname, get_variants_from_species
 from automate.hierarchy_exporter import ExportFileModel, ExportModel, Field, JsonHierarchyExportStage
@@ -276,9 +278,9 @@ def _should_skip_species(species: PrimalDinoCharacter, overrides: OverrideSettin
 
 
 def gather_food_data(species: PrimalDinoCharacter):
-    foods = collect_species_data(species)
+    foods = collect_species_data_by_proxy(species)
 
-    def convert(effect: ItemOverride) -> TamingOverride:
+    def convert(effect: SpeciesItemOverride) -> TamingOverride:
         return TamingOverride(
             class_name=effect.bp[effect.bp.rfind('.') + 1:],
             untamed_priority=effect.untamed_priority,

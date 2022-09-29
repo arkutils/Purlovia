@@ -12,7 +12,7 @@ import pytest
 import ark.taming_food.calc
 import ark.taming_food.items
 import ark.taming_food.species
-from ark.taming_food.datatypes import Item, ItemOverride, ItemStatus
+from ark.taming_food.datatypes import Item, SpeciesItemOverride, ItemStatus
 from utils.tree import IndexedTree
 
 from ..common import *

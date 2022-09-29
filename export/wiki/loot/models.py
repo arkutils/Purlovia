@@ -1,3 +1,4 @@
+from atexit import unregister
 from typing import Optional
 
 from automate.hierarchy_exporter import ExportModel, Field
@@ -29,5 +30,5 @@ class ItemSet(ExportModel):
         True,
         description="Each item entry can be picked more than once",
     )
-    qtyScale: MinMaxPowerRange
+    qtyScale: MinMaxPowerRange = Field(description="Number of items")
     entries: list[ItemSetEntry]

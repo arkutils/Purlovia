@@ -23,6 +23,10 @@ PRIMAL_WHEELED_VEHICLE_CLS = '/Script/ShooterGame.PrimalWheeledVehicleCharacter'
 
 DCSC_CLS = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP.DinoCharacterStatusComponent_BP_C'
 DINO_CHR_CLS = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP.Dino_Character_BP_C'
+PRIMAL_ITEM_BASE_CLS = '/Game/PrimalEarth/CoreBlueprints/Items/PrimalItem_Base.PrimalItem_Base_C'
+CONSUMABLE_BASE = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/BaseBPs'
+PRIMAL_ITEM_CONSUMABLE_GENERIC_CLS = f'{CONSUMABLE_BASE}/PrimalItemConsumableGeneric.PrimalItemConsumableGeneric_C'
+PRIMAL_ITEM_CONSUMABLE_EATABLE_CLS = f'{CONSUMABLE_BASE}/PrimalItemConsumableEatable.PrimalItemConsumableEatable_C'
 CRUISE_MISSILE_CLS = '/Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP.TekCruiseMissile_Character_BP_C'
 
 COREMEDIA_PGD_PKG = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
@@ -186,6 +190,9 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
 
     # Components
     CharacterMovement = ProxyComponent[ShooterCharacterMovement]()
+    BabyDinoSettings = LazyReference[PrimalDinoSettings]()
+    AdultDinoSettings = LazyReference[PrimalDinoSettings]()
+    DinoSettingsClass = LazyReference[PrimalDinoSettings]()
 
     # Flags
     bAllowRiding = uebools(False)
@@ -386,26 +393,27 @@ class PrimalItem(UEProxyStructure, uetype=PRIMAL_ITEM_CLS):
     ItemIcon: Mapping[int, ObjectProperty]
 
 
+class PrimalItem_Base(PrimalItem, uetype=PRIMAL_ITEM_BASE_CLS):
+    ...
+
+
+class PrimalItemConsumableGeneric(PrimalItem_Base, uetype=PRIMAL_ITEM_CONSUMABLE_GENERIC_CLS):
+    ...
+
+
+class PrimalItemConsumableEatable(PrimalItemConsumableGeneric, uetype=PRIMAL_ITEM_CONSUMABLE_EATABLE_CLS):
+
+    # DevKit Unverified
+
+    bPreventDinoAutoConsume = uebools(False)
+    bPreventDinoUse = uebools(False)
+
+
 class PrimalItem_Dye(PrimalItem, uetype=PRIMAL_ITEM_DYE_CLS):
     bSupportDragOntoOtherItem = uebools(True)
     # DevKit Verified
     DyeColor: Mapping[int, LinearColor]  # = (0.0, 0.0, 0.0, 0.0)
     DyeUISceneTemplate: Mapping[int, ObjectProperty]  # = None
-
-    # DevKit Unverified
-
-
-class PrimalDinoSettings(UEProxyStructure, uetype=PRIMAL_DINO_SETTINGS_CLS):
-    # DevKit Verified
-    DinoFoodTypeName = uestrings('')
-    TamingAffinityNoFoodDecreasePercentageSpeed = uefloats(0.0075)  # TODO: needs raw data
-    WakingTameDisplayItemName = uebools(False)
-
-    BaseDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
-    ExtraDamageTypeAdjusters: Mapping[int, ArrayProperty]  # = []
-    ExtraFoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
-    FoodEffectivenessMultipliers: Mapping[int, ArrayProperty]  # = []
-    DinoFoodTypeImage: Mapping[int, ObjectProperty]  # = None
 
     # DevKit Unverified
 

@@ -24,6 +24,8 @@ X_DRAGON_CHR = '/Game/Genesis/Dinos/BiomeVariants/Volcano_Dragon/Volcanic_Dragon
 DRAGON_BOSS_CHR = '/Game/PrimalEarth/Dinos/Dragon/Dragon_Character_BP_Boss.Dragon_Character_BP_Boss_C'
 GACHA_CHR = '/Game/Extinction/Dinos/Gacha/Gacha_Character_BP.Gacha_Character_BP_C'
 BLOODSTALKER_CHR = '/Game/Genesis/Dinos/BogSpider/BogSpider_Character_BP.BogSpider_Character_BP_C'
+FIREWYVERN_CHR = '/Game/ScorchedEarth/Dinos/Wyvern/Wyvern_Character_BP_Fire.Wyvern_Character_BP_Fire_C'
+DAEODON_CHR = '/Game/PrimalEarth/Dinos/Daeodon/Daeodon_Character_BP.Daeodon_Character_BP_C'
 
 PTM_DCSC_CONFLICT_CHR = '/Game/Mods/1821554891/Dinos/PTM_DCSC_Conflict.PTM_DCSC_Conflict_C'
 
@@ -31,6 +33,12 @@ BERRY_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/BaseBPs/PrimalI
 BERRYAMAR_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Berry_Amarberry.PrimalItemConsumable_Berry_Amarberry_C'
 BERRYMEJO_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Berry_Mejoberry.PrimalItemConsumable_Berry_Mejoberry_C'
 BERRYNARC_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Berry_Narcoberry.PrimalItemConsumable_Berry_Narcoberry_C'
+
+VEGBASE_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/BaseBPs/PrimalItemConsumable_Veggie_Base.PrimalItemConsumable_Veggie_Base_C'
+VEGCARROT_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Rockarrot.PrimalItemConsumable_Veggie_Rockarrot_C'
+VEGCIT_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Citronal.PrimalItemConsumable_Veggie_Citronal_C'
+VEGCORN_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Longrass.PrimalItemConsumable_Veggie_Longrass_C'
+VEGTAT_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Veggie_Savoroot.PrimalItemConsumable_Veggie_Savoroot_C'
 
 MEATRAW_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawMeat.PrimalItemConsumable_RawMeat_C'
 MEATRAWPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawPrimeMeat.PrimalItemConsumable_RawPrimeMeat_C'
@@ -41,6 +49,14 @@ FISHRAW_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemCon
 FISHRAWPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_RawPrimeMeat_Fish.PrimalItemConsumable_RawPrimeMeat_Fish_C'
 FISHCOOKED_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedMeat_Fish.PrimalItemConsumable_CookedMeat_Fish_C'
 FISHCOOKEDPRIME_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_CookedPrimeMeat_Fish.PrimalItemConsumable_CookedPrimeMeat_Fish_C'
+
+KIBBLEBASE_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base.PrimalItemConsumable_Kibble_Base_C'
+KIBBLEBASIC_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_XSmall.PrimalItemConsumable_Kibble_Base_XSmall_C'
+KIBBLESIMPLE_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Small.PrimalItemConsumable_Kibble_Base_Small_C'
+KIBBLEREGULAR_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Medium.PrimalItemConsumable_Kibble_Base_Medium_C'
+KIBBLESUPERIOR_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Large.PrimalItemConsumable_Kibble_Base_Large_C'
+KIBBLEEXCEPTIONAL_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_XLarge.PrimalItemConsumable_Kibble_Base_XLarge_C'
+KIBBLEEXTRAORDINARY_ITEM = '/Game/PrimalEarth/CoreBlueprints/Items/Consumables/PrimalItemConsumable_Kibble_Base_Special.PrimalItemConsumable_Kibble_Base_Special_C'
 
 
 @pytest.fixture(name='tempdir', scope='function')

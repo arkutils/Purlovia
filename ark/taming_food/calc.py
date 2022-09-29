@@ -3,13 +3,12 @@
 from operator import attrgetter
 from typing import Iterable, Iterator, List, Optional, Set, Tuple
 
-from ue.hierarchy import find_parent_classes
 from ue.loader import AssetLoader
 from ue.tree import is_fullname_an_asset
 from utils.tree import IndexedTree, Node
 
-from .datatypes import Item, ItemOverride, ItemStatEffect, ItemStatus
-from .items import items
+from .datatypes import Item, ItemStatus
+from .food_items import food_items
 from .species import collect_species_data
 
 __all__ = [
@@ -30,7 +29,7 @@ def evaluate_food_for_species(cls_name: str,
     Search for all taming foods relevant to the given species, and their effects.
     '''
     overrides = collect_species_data(cls_name, loader)
-    for item in items.values():
+    for item in food_items.values():
         # Get modid of item and check if we want to include it
         if limit_modids is not None and item.modid not in limit_modids:
             continue
@@ -51,7 +50,7 @@ def _insert_status_node(tree: IndexedTree[ItemStatus], status: ItemStatus):
         raise ValueError("Duplicate entry")
 
     bp = status.bp
-    item_node: Node[Item] = items[bp]
+    item_node: Node[Item] = food_items[bp]
     insert_node: Node[ItemStatus] = Node[ItemStatus](status)
     while True:
         if item_node is item_node.parent or item_node.parent is None:
@@ -77,12 +76,12 @@ def make_eval_simplification_tree(evals: Iterable[Item],
     items with affinity affects given the species evaluation passed in.
     '''
     # Begin with an empty tree
-    status_root = ItemStatus(bp=items.root.data.bp, food=0, affinity=0)
+    status_root = ItemStatus(bp=food_items.root.data.bp, food=0, affinity=0)
     status_tree: IndexedTree[ItemStatus] = IndexedTree[ItemStatus](status_root, attrgetter('bp'))
 
     # Add each item that has taming affinity, with the same structure as the main item tree
     for effect in evals:
-        item: Item = items[effect.bp].data
+        item: Item = food_items[effect.bp].data
         if limit_modids is not None and item.modid not in limit_modids:
             continue
         if effect.affinity.base == 0:
@@ -93,47 +92,11 @@ def make_eval_simplification_tree(evals: Iterable[Item],
     return status_tree
 
 
-def _apply_species_overrides_to_item(item: Item, overrides: List[ItemOverride]) -> Item:
-    '''
-    Apply relevant overrides (from a species/settings) to an item.
-    '''
-    # Don't actually know anything about how this works... so we guess!
-
-    # Try to match the item to all of the overrides in a most-specific-first manner.
-    for cls_name in find_parent_classes(item.bp, include_self=True):
-        for food in overrides:
-            if food.bp == cls_name:
-                return _apply_override_to_item(item, food)
-
-    return item
-
-
-def _apply_override_to_item(item: Item, override: ItemOverride):
-    out = Item(bp=item.bp, name=item.name, modid=item.modid)
-
-    def combine_stat(a: ItemStatEffect, b: float) -> ItemStatEffect:
-        return ItemStatEffect(base=a.base * b, speed=a.speed)
-
-    out.food = combine_stat(item.food, override.mults['food'])
-    out.torpor = combine_stat(item.torpor, override.mults['torpor'])
-
-    out.affinity = ItemStatEffect(base=override.overrides.get('affinity', 0) * override.mults.get('affinity', 1) *
-                                  item.affinity.speed)
-    # TODO: Verify this is how affinity_mult is applied
-    # Pretty sure one of both of these have to behave different if they are zero
-
-    return out
-
-
-def _effect_from_item_status(status: ItemStatus) -> Tuple[float, float]:
-    return (status.food, status.affinity)
-
-
 def _effect_from_item_status_node(node: Node[ItemStatus]) -> Tuple[float, float]:
     return (node.data.food, node.data.affinity)
 
 
-def collapse_full_trees(tree: IndexedTree[ItemStatus], items: IndexedTree[Item] = items):
+def collapse_full_trees(tree: IndexedTree[ItemStatus], items: IndexedTree[Item] = food_items):
     '''
     Reduce trees where possible, removing sub-nodes of a tree if the parent can represent them completely.
     '''
@@ -182,3 +145,11 @@ def flatten_tree(tree: IndexedTree[ItemStatus]) -> List[ItemStatus]:
         result.append(node.data)
 
     return result
+
+
+def _bp_to_clean_class(bp: str):
+    bp = bp[bp.rfind('.') + 1:]
+    bp = bp.replace('PrimalItemConsumable_', '')
+    if bp.endswith('_C'):
+        bp = bp[:-2]
+    return bp
