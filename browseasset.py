@@ -1,6 +1,4 @@
-import os
 import sys
-from pathlib import Path, PurePosixPath
 from tkinter import EventType, Tk, ttk  # type: ignore
 from typing import Any, Dict, Optional
 
@@ -8,6 +6,7 @@ from automate.ark import ArkSteamManager
 from config import get_global_config
 from ue.base import UEBase
 from ue.loader import AssetNotFound
+from ue.paths import find_asset_from_external_path
 
 root: Optional[Tk] = None
 tree: Optional[ttk.Treeview] = None
@@ -167,71 +166,14 @@ def load_asset(assetname):
     add_asset_to_root(asset)
 
 
-def relative_path(path, root):
-    try:
-        return Path(path).relative_to(root)
-    except ValueError:
-        return None
-
-
 def find_asset(assetname, loader):
-    if not assetname:
-        from tkinter import filedialog
-        assetname = filedialog.askopenfilename(title='Select asset file...',
-                                               filetypes=(('uasset files', '*.uasset'), ("All files", "*.*")),
-                                               initialdir=loader.asset_path)
-        assert assetname
-
-    # Attempt to work around MingW hijacking /Game as a root path
-    if assetname.startswith('//'):
-        assetname = assetname[1:]
-    if 'MINGW_PREFIX' in os.environ:
-        mingw_base = Path(os.environ['MINGW_PREFIX']).parent
-        try:
-            path = Path(assetname).relative_to(mingw_base)
-            assetname = str(PurePosixPath(path))
-        except ValueError:
-            pass
-
-    # Try it as-is first
     try:
-        clean_path = loader.clean_asset_name(assetname)
-        asset = loader[clean_path]
-        return asset.assetname
-    except Exception:  # pylint: disable=broad-except
-        pass
+        assetname = find_asset_from_external_path(assetname, loader, True)
+    except AssetNotFound:
+        print(f'Not found: {assetname}', file=sys.stderr)
+        sys.exit(404)
 
-    # Try a combination of possible roots
-    asset_path_options = (
-        Path(assetname),
-        Path(assetname).absolute(),
-        Path(assetname).resolve(),
-    )
-
-    search_paths = (
-        '.',
-        Path(get_global_config().settings.DataDir / 'game/ShooterGame'),
-        loader.asset_path,
-        loader.absolute_asset_path,
-    )
-
-    for asset_path in asset_path_options:
-        for search_path in search_paths:
-            clean_path = relative_path(asset_path, search_path)
-            if not clean_path:
-                continue
-
-            clean_path = clean_path.with_suffix('')
-            assetname = str(PurePosixPath(clean_path))
-
-            try:
-                asset = loader[assetname]
-                return asset.assetname
-            except AssetNotFound:
-                continue
-
-    print(f'Not found: {assetname}', file=sys.stderr)
-    sys.exit(404)
+    return assetname
 
 
 if __name__ == '__main__':

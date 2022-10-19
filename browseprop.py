@@ -5,7 +5,8 @@ from typing import Any, Dict, Optional
 
 import ark.asset
 from automate.ark import ArkSteamManager
-from browseasset import find_asset
+from ue.loader import AssetNotFound
+from ue.paths import find_asset_from_external_path
 from ue.properties import FloatProperty, Property, StructProperty
 
 root: Optional[Tk] = None
@@ -49,6 +50,16 @@ def get_value_as_string(value):
     if value is None:
         return ''
     return str(value)
+
+
+def find_asset(assetname, loader):
+    try:
+        assetname = find_asset_from_external_path(assetname, loader, True)
+    except AssetNotFound:
+        print(f'Not found: {assetname}', file=sys.stderr)
+        sys.exit(404)
+
+    return assetname
 
 
 def load_asset(assetname):

@@ -9,12 +9,13 @@ from ark.discovery import initialise_hierarchy
 from ark.types import PrimalItem
 from automate.ark import ArkSteamManager
 from automate.jsonutils import _format_json
-from browseasset import find_asset
 from config import get_global_config
 from export.wiki.stage_items import get_item_name
 from ue.asset import ExportTableItem, UAsset
 from ue.gathering import gather_properties
 from ue.hierarchy import inherits_from
+from ue.loader import AssetNotFound
+from ue.paths import find_asset_from_external_path
 from ue.proxy import UEProxyStructure
 from ue.utils import sanitise_output
 
@@ -41,6 +42,16 @@ def create_parser() -> argparse.ArgumentParser:
                         help="select single export by name or index (all if not specified)")
 
     return parser
+
+
+def find_asset(assetname, loader):
+    try:
+        assetname = find_asset_from_external_path(assetname, loader)
+    except AssetNotFound:
+        print(f'Not found: {assetname}', file=sys.stderr)
+        sys.exit(404)
+
+    return assetname
 
 
 def collect_asset(assetname: str) -> UAsset:

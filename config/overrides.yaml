@@ -1039,8 +1039,8 @@ species:
             region_names:
                 0: "Body Accent"
                 1: "Feather Tips"
-                3: "Body"
-                4: "Feathers"
+                3: "Body and Feathers"
+                4: "Spine"
                 5: "Belly"
     /Game/PrimalEarth/Dinos/Raptor/Uberraptor/Deinonychus_Character_BP:
         add_variants:
@@ -1201,6 +1201,10 @@ species:
                 3: null
                 4: "Underside"
                 5: "Horn"
+    /Game/Aberration/Dinos/LanternBird/LanternBird_Character_BP:
+        color_regions:
+            region_names:
+                3: "Lantern"
     /Game/Genesis/Dinos/BiomeVariants/Snow_WoollyRhino/Snow_Rhino_Character_BP:
         color_regions:
             region_names:
@@ -1267,6 +1271,11 @@ species:
                 1: "Wings"
                 3: "Wing Highlights"
                 5: "Underbelly and Arms"
+    /Game/Genesis2/Dinos/MilkGlider/MilkGlider_Character_BP: # Maewing
+        color_regions:
+            region_names:
+                1: "Belly" # the names of region 1 and 4 are switched in the game data
+                4: "Membrane accents"
 
     # Kraken's Better Dinos mod creatures colour region names
     /Game/Mods/BetterDinosTest/Stygi/BDStygi_Character_BP:
