@@ -1276,6 +1276,11 @@ species:
             region_names:
                 1: "Belly" # the names of region 1 and 4 are switched in the game data
                 4: "Membrane accents"
+    /Game/Mods/SDinoVariants/Variants/Maewing/S_MilkGlider_Character_BP: # S-Maewing also
+        color_regions:
+            region_names:
+                1: "Belly"
+                4: "Membrane accents"
 
     # Kraken's Better Dinos mod creatures colour region names
     /Game/Mods/BetterDinosTest/Stygi/BDStygi_Character_BP:
