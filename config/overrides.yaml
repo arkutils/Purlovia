@@ -1639,6 +1639,17 @@ species:
                 4: "Underside"
                 5: null # None, no color generated in colour region
 
+    # Prehistoric Beasts mod creatures colour region names
+    /Game/Mods/Beasts/Zuniceratops/BPs/Zuniceratops_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: "Facial Pattern"
+                2: null # Not visible
+                3: "Face"
+                4: "Frill Spots"
+                5: "Body Stripes"
+
     # Marnii Wildlife mod creatures colour region names
     /Game/Mods/MarniiModsWildlife/Wildlife/Camel/Camel_MM_Character_BP:
         color_regions:
