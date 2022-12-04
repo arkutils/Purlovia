@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 from typing import Any, Tuple
 
 from config import ConfigFile, get_global_config
@@ -37,7 +38,7 @@ class VerifyModsAction(argparse.Action):  # pylint: disable=too-few-public-metho
     def __init__(self, option_strings, dest, nargs=None, mods=None, **kwargs):
         if nargs is not None:
             raise ValueError("nargs not allowed")
-        if not mods:
+        if mods is None:
             raise ValueError("mods must be set to a config.mods")
         self.mods = mods
         super().__init__(option_strings, dest, **kwargs)
@@ -96,6 +97,9 @@ def create_parser() -> argparse.ArgumentParser:
                         mods=get_global_config().mods,
                         help='override which mods to export (comma-separated)')
 
+    parser.add_argument('--appid', action='store', type=int, help='override the Steam App ID to use')
+    parser.add_argument('--output-path', action='store', help='override the output path')
+
     parser.add_argument('sections',
                         action=VerifySectionsAction,
                         default=parse_runlist('all'),
@@ -151,6 +155,11 @@ def handle_args(args: Any) -> ConfigFile:
         config.extract_mods = args.mods
     if args.maps is not None:
         config.extract_maps = args.maps
+
+    if args.appid is not None:
+        config.steamcmd.AppId = args.appid
+    if args.output_path is not None:
+        config.settings.OutputPath = Path(args.output_path)
 
     # Git actions
     if args.skip_pull:

@@ -31,6 +31,7 @@ class DevSection(BaseModel):
 
 
 class SteamCmdSection(BaseModel):
+    AppId: int = 376030  # Ark Dedicated Server
     RetryCount: int = 5
     UninstallUnusedMods: bool = True
 
