@@ -33,7 +33,7 @@ class NodeState:
 def initialise_hierarchy(arkman: ArkSteamManager):
     logger.info('Beginning hierarchy discovery')
 
-    path = Path(arkman.config.settings.DataDir) / 'hierarchy'
+    path = Path(arkman.config.settings.DataDir) / f'hierarchy-{arkman.config.steamcmd.AppId}'
     if arkman.config.dev.ClearHierarchyCache:
         logger.info('Removing old hierarchy cached')
         shutil.rmtree(path)
@@ -45,6 +45,9 @@ def initialise_hierarchy(arkman: ArkSteamManager):
     # Parse the relationships into ue.hierarchy.tree
     ue.hierarchy.tree.clear()
     ue.hierarchy.load_internal_hierarchy(Path('config') / 'hierarchy.yaml')
+    app_hierarchy = Path('config') / f'hierarchy-{arkman.config.steamcmd.AppId}.yaml'
+    if app_hierarchy.exists():
+        ue.hierarchy.load_internal_hierarchy(app_hierarchy)
     _populate_tree_from_relations(ue.hierarchy.tree, relations)
 
     logger.info('Hierarchy reconstruction complete')
@@ -135,9 +138,10 @@ def _scan_core(arkman: ArkSteamManager, verbose: bool = False) -> List[Tuple[str
     # Gather all inheritance relationships from core 'mods'
     for modid in get_official_mods():
         modpath = f'/Game/Mods/{modid}/'
-        logger.info(f'Discovering inheritance for: {modpath}')
-        for name, parent in _explore_path(modpath, True, arkman, verbose=verbose):
-            relations.append((name, parent))
+        if Path(arkman.gamedata_path / modpath[6:]).is_dir():
+            logger.info(f'Discovering inheritance for: {modpath}')
+            for name, parent in _explore_path(modpath, True, arkman, verbose=verbose):
+                relations.append((name, parent))
 
     # Make the result stable and repeatable for hashing purposes
     relations.sort()

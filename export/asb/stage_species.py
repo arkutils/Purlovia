@@ -2,9 +2,9 @@ from pathlib import PurePosixPath
 from typing import Any, Dict, Optional, cast
 
 from ark.overrides import get_overrides_for_mod
-from ark.types import COREMEDIA_PGD_PKG, PrimalDinoCharacter
+from ark.types import BASE_PGD_PKG, COREMEDIA_PGD_PKG, PrimalDinoCharacter
 from automate.hierarchy_exporter import JsonHierarchyExportStage
-from ue.loader import AssetLoadException
+from ue.loader import AssetLoadException, AssetNotFound
 from ue.proxy import UEProxyStructure
 from utils.log import get_logger
 
@@ -55,7 +55,11 @@ class SpeciesStage(JsonHierarchyExportStage):
                 output.update(pgd_output)
         else:
             # Return the colours from the main PGD
-            pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
+            try:
+                pgd_asset = self.manager.loader[COREMEDIA_PGD_PKG]
+            except AssetNotFound:
+                # Fall back to the base PGD where there's no COREMEDIA
+                pgd_asset = self.manager.loader[BASE_PGD_PKG]
             pgd_output = values_from_pgd(pgd_asset, require_override=False)
             output.update(pgd_output)
 

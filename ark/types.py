@@ -26,6 +26,7 @@ DINO_CHR_CLS = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP.Dino_Characte
 CRUISE_MISSILE_CLS = '/Game/Genesis/Weapons/CruiseMissile/TekCruiseMissile_Character_BP.TekCruiseMissile_Character_BP_C'
 
 COREMEDIA_PGD_PKG = '/Game/PrimalEarth/CoreBlueprints/COREMEDIA_PrimalGameData_BP'
+BASE_PGD_PKG = '/Game/PrimalEarth/CoreBlueprints/BASE_PrimalGameData_BP'
 
 FLOAT_0_2 = (0.20000000, 'cdcc4c3e')
 FLOAT_1_0 = (1.00000000, '0000803f')

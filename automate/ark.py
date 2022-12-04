@@ -39,8 +39,10 @@ class ArkSteamManager:
         self.config = config
         self.basepath: Path = Path(config.settings.DataDir).absolute()
 
+        self.appid = config.steamcmd.AppId
+
         self.steamcmd_path: Path = self.basepath / 'Steam'
-        self.gamedata_path: Path = self.basepath / 'game'
+        self.gamedata_path: Path = self.basepath / f'app-{self.appid}'
         self.asset_path: Path = self.gamedata_path / 'ShooterGame'
         self.mods_path: Path = self.asset_path / 'Content' / 'Mods'
 
@@ -128,12 +130,12 @@ class ArkSteamManager:
         self.gamedata_path.mkdir(parents=True, exist_ok=True)
 
         if not self.config.settings.SkipInstall:
-            self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+            self.steamcmd.install_gamefiles(self.appid, self.gamedata_path)
         else:
             logger.info('(skipped)')
 
         self.game_version = fetchGameVersion(self.gamedata_path)
-        self.game_buildid = getGameBuildId(self.gamedata_path)
+        self.game_buildid = getGameBuildId(self.gamedata_path, self.config.steamcmd.AppId)
 
     def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]]):
         '''
@@ -434,12 +436,12 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
     return newModVersions
 
 
-def getGameBuildId(game_path: Path) -> str:
+def getGameBuildId(game_path: Path, app_id: str | int) -> str:
     '''
     Collect the buildid of the game from Steam's metadata files.
     This will be updated even if the version number doesn't change.
     '''
-    filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
+    filename: Path = game_path / 'steamapps' / f'appmanifest_{app_id}.acf'
     data = readACFFile(filename)
     buildid = data['AppState']['buildid']
     return buildid
