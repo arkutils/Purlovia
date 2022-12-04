@@ -1,0 +1,31 @@
+sotf:
+    appid: &sotf 445400
+    output_path: output-sotf
+    stages:
+        - asb
+        - wiki.items
+        - wiki.species
+        - wiki.drops
+        - wiki.loot_crates
+    trigger_buildid: true
+    # trigger_frequency: P2D
+    mods: []
+    # maps: (allows all)
+
+
+ark_core_fast:
+    appid: &ark 376030
+    stages:
+        - sanity.species
+        - sanity.items
+        - asb
+        - wiki.items
+        - wiki.species
+        - wiki.drops
+        - wiki.loot_crates
+        - wiki.event_colors
+    trigger_buildid: true
+    # trigger_frequency: PT12H
+    mods: []
+    maps: []
+
