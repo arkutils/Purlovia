@@ -17,6 +17,7 @@ class SettingsSection(BaseModel):
     SkipGit: bool = False
     SkipExtract: bool = False
     SkipInstall: bool = False
+    SkipRunGame: bool = False
 
     class Config:
         extra = Extra.forbid

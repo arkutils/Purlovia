@@ -6,6 +6,7 @@ from automate.config.sections import ConfigFile
 __all__ = [
     'get_global_config',
     'force_reload',
+    'switch_config',
     'ConfigFile',
     'OVERRIDE_FILENAME',
     'LOGGING_FILENAME',
@@ -32,6 +33,12 @@ def force_reload():
     global config  # pylint: disable=global-statement
     config = None
     _ensure_loaded()
+
+
+def switch_config(filename: str):
+    global config  # pylint: disable=global-statement
+    config = read_config(filename)
+    return config
 
 
 def _ensure_loaded():
