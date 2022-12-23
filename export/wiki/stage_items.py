@@ -86,6 +86,13 @@ class ItemsStage(JsonHierarchyExportStage):
         return ItemsExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
+        if self.manager.config.export_wiki.RestrictPath:
+            # Check this asset is within the path restriction
+            goodpath = self.manager.config.export_wiki.RestrictPath
+            assetname = proxy.get_source().asset.assetname
+            if not assetname.startswith(goodpath):
+                return None
+
         item: PrimalItem = cast(PrimalItem, proxy)
 
         asset: UAsset = proxy.get_source().asset

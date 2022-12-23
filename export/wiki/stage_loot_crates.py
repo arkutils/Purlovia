@@ -78,6 +78,13 @@ class LootCratesStage(JsonHierarchyExportStage):
         return LootCrateExportModel
 
     def extract(self, proxy: UEProxyStructure) -> Any:
+        if self.manager.config.export_wiki.RestrictPath:
+            # Check this asset is within the path restriction
+            goodpath = self.manager.config.export_wiki.RestrictPath
+            assetname = proxy.get_source().asset.assetname
+            if not assetname.startswith(goodpath):
+                return None
+
         crate: PrimalStructureItemContainer_SupplyCrate = cast(PrimalStructureItemContainer_SupplyCrate, proxy)
 
         item_sets = get_loot_sets(crate)
