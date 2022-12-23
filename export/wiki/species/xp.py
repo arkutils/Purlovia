@@ -2,9 +2,10 @@ from enum import Enum
 from math import ceil
 from typing import List, Optional
 
-from ark.types import COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
+from ark.types import BASE_PGD_PKG, COREMEDIA_PGD_PKG, DinoCharacterStatusComponent, PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field
 from export.wiki.models import BoolLike, FloatLike, IntLike, MinMaxChanceRange
+from ue.loader import AssetNotFound
 from ue.properties import PropertyTable
 from ue.utils import clean_float
 
@@ -54,7 +55,10 @@ class LevelData(ExportModel):
 
 
 def convert_level_data(species: PrimalDinoCharacter, dcsc: DinoCharacterStatusComponent) -> LevelData:
-    pgd_asset = species.get_source().asset.loader[COREMEDIA_PGD_PKG]
+    try:
+        pgd_asset = species.get_source().asset.loader[COREMEDIA_PGD_PKG]
+    except AssetNotFound:
+        pgd_asset = species.get_source().asset.loader[BASE_PGD_PKG]
     assert pgd_asset.default_export
     pgd: PropertyTable = pgd_asset.default_export.properties
 
