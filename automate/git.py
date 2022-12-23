@@ -177,8 +177,10 @@ class GitManager:
 
     def _set_branch(self):
         branch = self.git.revParse('--abbrev-ref', 'HEAD').strip()
+        logger.info(f'Current Git branch: {branch}')
 
         if branch != self.config.git.Branch:
+            logger.info(f'Checking out branch: {self.config.git.Branch}')
             self.git.checkout(self.config.git.Branch)
 
     def _create_commit_msg(self, relative_path: Path, commit_header: str, msg_fn: Callable[[Path], str]):
@@ -188,6 +190,11 @@ class GitManager:
         status_output = self.git('-c', 'core.quotePath=false', 'status', '-s', '--', str(relative_path))
         filelist = [line[3:].strip() for line in status_output.split('\n')]
         for filename in filelist:
+            if not filename:
+                continue
+            if filename.endswith('/'):
+                lines.append(f'* Add {filename}')
+                continue
             if ' -> ' in filename:
                 filename = filename.split(' -> ')[-1].strip()
             line = msg_fn(filename)

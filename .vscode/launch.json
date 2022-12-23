@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run automate",
+            "name": "Run automate Ark",
             "type": "python",
             "request": "launch",
             "module": "automate",
@@ -16,6 +16,22 @@
                 // "--remove-cache",
                 "--mods", "839162288,895711211",
                 "asb.species",
+            ]
+        },
+        {
+            "name": "Run automate SoTF",
+            "type": "python",
+            "request": "launch",
+            "module": "automate",
+            "console": "integratedTerminal",
+            "args": [
+                "asb.species",
+                "--mods=",
+                "--config-file=config/config-445400.ini",
+                "--skip-install",
+                "--skip-pull",
+                "--skip-push",
+                "--live",
             ]
         },
         {
