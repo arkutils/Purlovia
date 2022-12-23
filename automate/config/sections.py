@@ -63,6 +63,7 @@ class ErrorsSection(BaseModel):
 
 class ExportDefaultsSection(BaseModel):
     PrettyJson: bool = True
+    RestrictPath: Optional[str] = None
 
 
 class ExportSection(ExportDefaultsSection):

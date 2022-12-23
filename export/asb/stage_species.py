@@ -71,6 +71,13 @@ class SpeciesStage(JsonHierarchyExportStage):
         return output
 
     def extract(self, proxy: UEProxyStructure) -> Optional[Dict[str, Any]]:
+        if self.manager.config.export_asb.RestrictPath:
+            # Check this asset is within the path restriction
+            goodpath = self.manager.config.export_asb.RestrictPath
+            assetname = proxy.get_source().asset.assetname
+            if not assetname.startswith(goodpath):
+                return None
+
         char = cast(PrimalDinoCharacter, proxy)
         asset = proxy.get_source().asset
         asset_name = asset.assetname

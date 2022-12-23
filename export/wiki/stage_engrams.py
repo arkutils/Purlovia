@@ -81,7 +81,14 @@ class EngramsStage(JsonHierarchyExportStage):
 
         return None
 
-    def extract(self, proxy: UEProxyStructure) -> Engram:
+    def extract(self, proxy: UEProxyStructure) -> Engram | None:
+        if self.manager.config.export_wiki.RestrictPath:
+            # Check this asset is within the path restriction
+            goodpath = self.manager.config.export_wiki.RestrictPath
+            assetname = proxy.get_source().asset.assetname
+            if not assetname.startswith(goodpath):
+                return None
+
         engram: PrimalEngramEntry = cast(PrimalEngramEntry, proxy)
 
         out = Engram(

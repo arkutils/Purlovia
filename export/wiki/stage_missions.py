@@ -53,6 +53,13 @@ class MissionsStage(JsonHierarchyExportStage):
         return MissionType.get_ue_type()
 
     def extract(self, proxy: UEProxyStructure) -> Any:
+        if self.manager.config.export_wiki.RestrictPath:
+            # Check this asset is within the path restriction
+            goodpath = self.manager.config.export_wiki.RestrictPath
+            assetname = proxy.get_source().asset.assetname
+            if not assetname.startswith(goodpath):
+                return None
+
         mission: MissionType = cast(MissionType, proxy)
 
         v: Dict[str, Any] = dict(
