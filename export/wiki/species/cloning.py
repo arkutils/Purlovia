@@ -13,6 +13,7 @@ from ark.types import PrimalDinoCharacter
 from automate.hierarchy_exporter import ExportModel, Field
 from export.wiki.types import TekCloningChamber
 from ue.gathering import gather_properties
+from ue.loader import AssetNotFound
 
 __all__ = [
     'CloningData',
@@ -70,7 +71,10 @@ def gather_cloning_data(species: PrimalDinoCharacter) -> Optional[CloningData]:
         return None
 
     loader = species.get_source().asset.loader
-    chamber_a = loader[CLONING_CHAMBER_C]
+    try:
+        chamber_a = loader[CLONING_CHAMBER_C]
+    except AssetNotFound:
+        return None
     assert chamber_a.default_export
     chamber = cast(TekCloningChamber, gather_properties(chamber_a.default_export))
 
