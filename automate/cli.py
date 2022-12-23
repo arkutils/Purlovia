@@ -143,6 +143,8 @@ def handle_args(args: Any, parser: argparse.ArgumentParser) -> ConfigFile:
     if args.include_official_mods:
         config.extract_mods = (config.extract_mods or ()) + tuple(config.official_mods.ids())
 
+    logger.info('Extracing mods: %s', ', '.join(config.extract_mods) if config.extract_mods else '(none)')
+
     if args.maps is not None:
         config.extract_maps = args.maps
 
