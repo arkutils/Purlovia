@@ -3,15 +3,23 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 
 
+class Triggers(BaseModel):
+    buildid: None | bool = None
+    frequency: None | timedelta = None
+    manual: bool = True
+
+    class Config:
+        extra = 'forbid'
+
+
 class Run(BaseModel):
     appid: int
-    output_path: str = 'output'
+    config: str
     stages: list[str] = []
     include_official_mods: bool = False
     mods: list[str] = []
     maps: list[str] = []
-    trigger_buildid: None | bool = None
-    trigger_frequency: None | timedelta = None
+    triggers: Triggers = Triggers()
 
     class Config:
         extra = 'forbid'

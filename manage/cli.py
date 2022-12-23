@@ -14,10 +14,9 @@ from .types import ConfigFile
 
 __all__ = ('main', )
 
-logging.basicConfig(force=True, level=logging.DEBUG)
-logger = get_logger(__name__ if __name__ != '__main__' else 'schedule')
+logger = get_logger(__name__)
 
-EPILOG = '''example: python -m manage.schedule [--dry-run] --args="--live"'''
+EPILOG = '''example: python -m manage [--dry-run] --pass=--live --pass=--skip-push'''
 
 DESCRIPTION = '''Run any pending scheduled Purlovia tasks.'''
 
@@ -30,6 +29,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--fake-buildids', help='Provide random fake buildids for app repos', action='store_true')
     parser.add_argument('--list', help='List all available runs', action='store_true')
     parser.add_argument('--config-file', help='Path to the config file', default='config/runs.yaml')
+    parser.add_argument('--pause', help=argparse.SUPPRESS, action='store_true')
 
     return parser
 
@@ -40,6 +40,14 @@ def parse_config(path: str):
 
     config: ConfigFile = ConfigFile.parse_obj(raw_data)
     return config.__root__
+
+
+def setup_logging():
+    logging.basicConfig(force=True, level=logging.DEBUG)
+    logger.info('Starting run manager...')
+    logger.info('Python version: %s', sys.version)
+    logger.info('Python executable: %s', sys.executable)
+    logger.info('Command line: %s', ' '.join(sys.argv))
 
 
 def main():
@@ -53,6 +61,12 @@ def main():
         for name in run_config:
             print(f'  {name}')
         return
+
+    setup_logging()
+
+    if args.pause:
+        print('Pausing before running anything...')
+        input('Press enter to continue...')
 
     cache = load_status_cache()
     collect_trigger_values(run_config, fake_buildids=args.fake_buildids)

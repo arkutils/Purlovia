@@ -27,7 +27,7 @@ already_released = False
 '''True if we have already released the lock'''
 
 
-def set_lock_path(path: str):
+def set_lock_path(path: str) -> None:
     global LOCK_FILE
     if LOCK_FILE is not None:
         raise RuntimeError("Lock path already set")
@@ -45,13 +45,15 @@ def ensure_process_lock():
     if we_claimed_lock:
         return
 
-    logger.info('PID is %s', os.getpid())
+    logger.info('Trying to claim lock file %s for PID %s', LOCK_FILE, os.getpid())
     if not _create_lock():
         logger.debug("Lock already exists - checking if it's stale")
         if _should_retry_lock():
             logger.debug("Lock is stale, retrying")
             if not _create_lock():
                 raise RuntimeError("Failed to claim process lock")
+        else:
+            raise RuntimeError("Failed to claim process lock")
 
     we_claimed_lock = True
 
