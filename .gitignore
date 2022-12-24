@@ -1,5 +1,5 @@
 user.ini
-output/
+output*/
 livedata/
 logs/
 asb_json/
