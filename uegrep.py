@@ -6,7 +6,7 @@ from typing import Iterator, Tuple
 from ark.discovery import initialise_hierarchy
 from ark.mod import get_official_mods
 from automate.ark import ArkSteamManager
-from config import get_global_config
+from config import get_global_config, switch_config
 from ue.hierarchy import find_parent_classes, iterate_all, tree
 from utils.log import get_logger
 from utils.tree import Node
@@ -34,6 +34,7 @@ def modlist(value: str) -> Tuple[str, ...]:
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("uegrep", description=DESCRIPTION, epilog=EPILOG)
 
+    parser.add_argument('--config', type=str, default='config/config.ini', help='config file to use')
     parser.add_argument('--regex', '-r', action='store_true', help='allow regex matching')
     parser.add_argument('--ignore-case', '-i', action='store_true', help='ignore case')
     parser.add_argument('--vanilla', '-v', action='store_true', help='only search core game assets')
@@ -56,6 +57,8 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run():
     config = get_global_config()
+    if args.config:
+        config = switch_config(args.config)
     config.settings.SkipInstall = True
 
     arkman = ArkSteamManager(config=config)
