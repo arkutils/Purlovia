@@ -10,22 +10,28 @@ import httpx  # type: ignore
 # Which depots do we need from each app?
 app_ids = {
     "376030": [
-        ["376031", 'Server: Content'],
+        ["376031", 'Ark Server: Content'],
     ],
     "346110": [
-        ["346111", 'Client Core Content'],
-        ["346114", 'Client: TheCenter'],
-        ["346117", 'Client: Primitive+'],
-        ["375351", 'Client: Scorched Earth'],
-        ["375354", 'Client: Ragnarok'],
-        ["375357", 'Client: Aberration'],
-        ["473851", 'Client: Extinction'],
-        ["473854", 'Client: Valguero'],
-        ["473857", 'Client: Genesis 1&2'],
-        ["1318685", 'Client: Crystal Isles'],
-        ["1691801", 'Client: Lost Island'],
-        ["1887561", 'Client: Fjordur'],
+        ["346111", 'Ark Client Core Content'],
+        ["346114", 'Ark Client: TheCenter'],
+        ["346117", 'Ark Client: Primitive+'],
+        ["375351", 'Ark Client: Scorched Earth'],
+        ["375354", 'Ark Client: Ragnarok'],
+        ["375357", 'Ark Client: Aberration'],
+        ["473851", 'Ark Client: Extinction'],
+        ["473854", 'Ark Client: Valguero'],
+        ["473857", 'Ark Client: Genesis 1&2'],
+        ["1318685", 'Ark Client: Crystal Isles'],
+        ["1691801", 'Ark Client: Lost Island'],
+        ["1887561", 'Ark Client: Fjordur'],
     ],
+    "407530": [
+        ["407531", 'SoTF Client: Content'],
+    ],
+    "445400": [
+        ["445401", 'SoTF Server: Content'],
+    ]
 }
 
 
