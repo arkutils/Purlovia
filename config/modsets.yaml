@@ -1,0 +1,81 @@
+mods:
+    # id: simple name
+    839162288:  "Primal Fear"
+    893735676:  "Ark Eternal"
+    1083349027: "Naj's Speedy Flyers"
+    1090809604: "Pyria"
+    1125442531: "Gaia"
+    1169020368: "Ark Creatures Rebalanced"
+    1270181453: "Additional Aberrant Dinos"
+    1300713111: "Rare Sightings"
+    1356703358: "Primal Fear: Noxious Creatures"
+    1373744537: "Additional Creatures 2"
+    1522327484: "Additions_Pack"
+    1523045986: "Additional Creatures 2: Paranoia!"
+    1565015734: "Krakens Better Dinos"
+    1576299694: "Elemental Ark"
+    1652120435: "Atlas Port"
+    1654255131: "Animals Of Atlas"
+    1675895024: "NoUntameables"
+    1676159020: "Aquaria"
+    1729386191: "Additional Creatures: Bonus Content"
+    1734595558: "Pyria2"
+    1787443195: "The Chasm - Additional Creatures"
+    1984129536: "MTSARK.co.uk Community Mod"
+    1984936918: "MarniiMods: Wildlife"
+    2112724006: "DarkArk"
+    2135314513: "CrystalIsles Dinos"
+    2447186973: "Ark Omega"
+    111111111:  "Primitive Plus"
+    909297874:  "Norwegian Vikings"
+    899987403:  "Primal Fear: Bosses"
+    1405944717: "Project Evolution"
+    2000326197: "ExtraResources"
+    895711211:  "Classic Flyers"
+    729352919:  "Indominus Rex"
+    1821554891: "PurloviaTEST"
+
+
+sets:
+    daily:
+        - 1373744537    # AC2
+        - 893735676     # AE
+        - 1090809604    # Pyria
+        - 1565015734    # BetterDinosTest
+        - 1576299694    # ElementalDinos
+        - 1652120435    # AtlasPort
+        - 839162288     # Primal_Fear
+        - 1125442531    # Gaia
+        - 1734595558    # Pyria2
+        - 1675895024    # NoUntameables
+        - 1676159020    # Aquaria
+        - 2135314513    # CI_Dinos
+        - 1729386191    # BonusDinoMod
+        - 2447186973    # ArkOmega
+        - 1270181453    # AdditionalAberrantDinos
+        - 1984129536    # MTSMod
+        - 2112724006    # DarkArk
+        - 1522327484    # Additions_Pack
+        - 1169020368    # Trex
+
+
+    weekly:
+        - 1984936918    # MarniiModsWildlife
+        - 1300713111    # RareSightings
+        - 1654255131    # AtlasImports
+        - 1523045986    # Paranoia
+        - 1356703358    # Primal_Fear_Noxious_Creatures
+        - 1787443195    # ChasmAdditionalDinos
+        - 111111111     # PrimitivePlus
+        - 909297874     # NorwegianVikings
+        - 899987403     # Primal_Fear_Bosses
+        - 1405944717    # Project_Evolution
+        - 2000326197    # ExtraResources
+        - 895711211     # Classic Flyers
+        - 729352919     # Indominus Rex
+
+
+    manualonly:
+        - 1083349027    # Naj's Speedy Flyers
+        - 909297874     # Norwegian Vikings
+        - 1821554891    # PurloviaTEST

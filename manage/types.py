@@ -17,8 +17,8 @@ class Run(BaseModel):
     config: str
     stages: list[str] = []
     include_official_mods: bool = False
-    mods: list[str] = []
-    maps: list[str] = []
+    mods: list[str] | None = None
+    maps: list[str] | None = None
     triggers: Triggers = Triggers()
 
     class Config:
