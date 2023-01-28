@@ -55,7 +55,7 @@ class SpeciesStage(ExportStage):
             return None
 
         # Disable git push to hopefully avoid damaging commits
-        self.manager.config.git.SkipPush = False
+        self.manager.config.git.SkipPush = True
 
         # Put together a report message
         header = "Species count sanity check failed! (git push disabled):\n"
