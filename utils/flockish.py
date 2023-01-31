@@ -65,7 +65,7 @@ def ensure_process_lock():
 
 
 def _create_lock() -> bool:
-    logger.debug("create_lock: Attempting to create lock file")
+    logger.debug("Attempting to create lock file")
     try:
         with LOCK_FILE.open('xt') as f:
             f.writelines([
@@ -82,7 +82,7 @@ def _create_lock() -> bool:
 
 
 def _read_lock_file() -> tuple[int, int]:
-    logger.debug("read_lock_file: Reading lock file")
+    logger.debug("Reading lock file")
     lines = LOCK_FILE.read_text().strip().splitlines()
     if len(lines) != 2:
         raise ValueError("Lock file is invalid")
@@ -138,21 +138,20 @@ def _release_lock():
     try:
         locked_pid, _ = _read_lock_file()
         if locked_pid != os.getpid():
-            logger.debug("release_lock: Lock is for another process")
+            logger.debug("Lock is for another process")
             raise RuntimeError("Our process lock was stolen while we ran")
     except FileNotFoundError:
-        logger.debug("release_lock: Lock file does not exist, not releasing")
+        logger.debug("Lock file does not exist, not releasing")
         return
 
-    # print("release_lock: Releasing process lock")
     LOCK_FILE.unlink()
-    logger.info("release_lock: Process lock released")
+    logger.info("Process lock released")
     already_released = True
 
 
 def signal_handler(signum: int, frame):
     sig = signal.Signals(signum)
-    logger.warning("Signal handler called with signal", sig.name)
+    logger.warning("Signal handler called with signal %s", sig.name)
     try:
         _release_lock()
     except:  # noqa: E722 bare except is good here as we're in a signal handler
