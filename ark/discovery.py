@@ -138,7 +138,8 @@ def _scan_core(arkman: ArkSteamManager, verbose: bool = False) -> List[Tuple[str
     # Gather all inheritance relationships from core 'mods'
     for modid in get_official_mods():
         modpath = f'/Game/Mods/{modid}/'
-        if Path(arkman.gamedata_path / modpath[6:]).is_dir():
+        dirname = arkman.gamedata_path / 'ShooterGame' / 'Content' / modpath[6:]
+        if dirname and Path(dirname).is_dir():
             logger.info(f'Discovering inheritance for: {modpath}')
             for name, parent in _explore_path(modpath, True, arkman, verbose=verbose):
                 relations.append((name, parent))
