@@ -16,7 +16,7 @@ __all__ = ('main', )
 
 logger = get_logger(__name__)
 
-EPILOG = '''example: python -m manage [--dry-run] --pass=--live --pass=--skip-push'''
+EPILOG = '''example: python -m manage [--dry-run] --pass=--live --pass=--skip-push [names to force]'''
 
 DESCRIPTION = '''Run any pending scheduled Purlovia tasks.'''
 
@@ -29,7 +29,9 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument('--fake-buildids', help='Provide random fake buildids for app repos', action='store_true')
     parser.add_argument('--list', help='List all available runs', action='store_true')
     parser.add_argument('--config-file', help='Path to the config file', default='config/runs.yaml')
+    parser.add_argument('--force', help="Force the listed phases to trigger", action='store_true')
     parser.add_argument('--pause', help=argparse.SUPPRESS, action='store_true')
+    parser.add_argument('names', help='Names of runs to force', nargs='*')
 
     return parser
 
@@ -71,10 +73,15 @@ def main():
     cache = load_status_cache()
     collect_trigger_values(run_config, fake_buildids=args.fake_buildids)
 
+    names_to_run: set(str) | None = set(name.lower() for name in args.names) if args.names else None
+
     for name, run in run_config.items():
+        if names_to_run and name.lower() not in names_to_run:
+            continue
+
         logger.info(f'Testing if `{name}` is triggered...')
 
-        if not should_run(name, run, cache.get(name)):
+        if not args.force and not should_run(name, run, cache.get(name)):
             continue
 
         cmd = generate_run_command(run, args.args)
