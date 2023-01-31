@@ -23,6 +23,7 @@ logger = get_logger(__name__)
 
 config = get_global_config()
 config.settings.SkipInstall = True
+config.settings.SkipGit = True
 # config.mods = tuple('111111111,895711211,839162288'.split(','))
 
 arkman = ArkSteamManager(config=config)
