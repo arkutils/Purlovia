@@ -21,7 +21,7 @@ def generate_run_command(run: Run, args: list[str]) -> list[str]:
         command.append('--include-official-mods')
 
     if run.mods is not None:
-        command.append(f'--mods={",".join(run.mods)}')
+        command.append(f'--mods={",".join(f"+{modid}" for modid in run.mods)}')
 
     if run.maps is not None:
         command.append(f'--maps={",".join(run.maps)}')
