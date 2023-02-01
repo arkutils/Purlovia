@@ -141,7 +141,7 @@ def handle_args(args: Any, parser: argparse.ArgumentParser) -> ConfigFile:
     if mods is not None:
         config.extract_mods = mods
     if args.include_official_mods:
-        config.extract_mods = tuple(set(config.extract_mods or ()) | set(config.official_mods.ids()) & set(config.mods))
+        config.extract_mods = tuple(set(config.extract_mods or ()) | set(config.settings.SeparateOfficialMods))
 
     logger.info('Extracing mods: %s', ', '.join(config.extract_mods) if config.extract_mods else '(none)')
 
