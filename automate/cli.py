@@ -187,7 +187,7 @@ def calculate_mods(user: Iterable[str], existing: Iterable[str]) -> Tuple[str, .
     >>> calculate_mods(('+123',), ('123', '456'))
     Traceback (most recent call last):
     ...
-    ValueError: Add mods are already present in config: 123
+    ValueError: Added mods are already present in config: 123
 
     >>> calculate_mods(('123',), ('456',))
     Traceback (most recent call last):
@@ -208,6 +208,16 @@ def calculate_mods(user: Iterable[str], existing: Iterable[str]) -> Tuple[str, .
     Traceback (most recent call last):
     ...
     ValueError: Deselected mods are not present: 123
+
+    >>> calculate_mods(('+',), ('123',))
+    Traceback (most recent call last):
+    ...
+    ValueError: Empty mod id
+
+    >>> calculate_mods(('-',), ('123',))
+    Traceback (most recent call last):
+    ...
+    ValueError: Empty mod id
     '''
     user_set = set(user)
     existing_set = set(existing)
@@ -220,6 +230,8 @@ def calculate_mods(user: Iterable[str], existing: Iterable[str]) -> Tuple[str, .
 
         # Handle mods that should be processed when not in config
         additions = set(modid.lstrip('+') for modid in user if modid.startswith('+'))
+        if any(True for entry in additions if not entry):
+            raise ValueError("Empty mod id")
         present_additions = additions.intersection(existing_set)
         if present_additions:
             raise ValueError("Added mods are already present in config: " + ','.join(present_additions))
@@ -236,6 +248,8 @@ def calculate_mods(user: Iterable[str], existing: Iterable[str]) -> Tuple[str, .
 
     # Work out which mods to include
     cleaned = set(modid.lstrip('-') for modid in user)
+    if any(True for entry in cleaned if not entry):
+        raise ValueError("Empty mod id")
 
     # Check none were mis-typed
     excess = cleaned - existing_set
