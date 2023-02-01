@@ -1,4 +1,5 @@
 import zlib
+from pathlib import Path
 from typing import Optional
 
 from ue.stream import MemoryStream
@@ -63,39 +64,43 @@ def unpackModFile(src: str, dst: str):
             del uncompressedChunkData
 
 
-def readACFFile(filename, outputType=dict):
+def readACFFile(filename: str | Path, outputType: type = dict):
+    content = Path(filename).read_text(encoding='utf-8')
+    data = parseAcf(content, outputType)
+    return data
+
+
+def parseAcf(data: str, outputType=dict):
     '''Adapted from github.com/leovp/steamfiles (MIT licensed).'''
     output = outputType()
     current_section = output
-    sections = []
+    sections: list[str] = []
 
-    with open(filename, 'rt', encoding='utf-8') as f:
-        while True:
-            line = f.readline()
-            if not line:
-                break
-            line = line.strip()
-            try:
-                key, value = line.split(None, 1)
-                key = key.replace('"', '').lstrip()
-                value = value.replace('"', '').rstrip()
-            except ValueError:
-                if line == '{':
-                    # Initialize the last added section.
-                    current = output
-                    for i in sections[:-1]:
-                        current = current[i]
-                    current[sections[-1]] = outputType()
-                    current_section = current[sections[-1]]
-                elif line == '}':
-                    # Remove the last section from the queue.
-                    sections.pop()
-                else:
-                    # Add a new section to the queue.
-                    sections.append(line.replace('"', ''))
-                continue
+    for line in data.splitlines():
+        if not line:
+            break
+        line = line.strip()
+        try:
+            key, value = line.split(None, 1)
+            key = key.replace('"', '').lstrip()
+            value = value.replace('"', '').rstrip()
+        except ValueError:
+            if line == '{':
+                # Initialize the last added section.
+                current = output
+                for i in sections[:-1]:
+                    current = current[i]
+                current[sections[-1]] = outputType()
+                current_section = current[sections[-1]]
+            elif line == '}':
+                # Remove the last section from the queue.
+                sections.pop()
+            else:
+                # Add a new section to the queue.
+                sections.append(line.replace('"', ''))
+            continue
 
-            current_section[key] = value
+        current_section[key] = value
 
     return output
 
