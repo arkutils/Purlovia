@@ -9,6 +9,8 @@ from pathlib import Path
 
 from utils.log import get_logger
 
+from .modutils import parseAcf
+
 logger = get_logger(__name__)
 
 STCMD_SUCCESS = (0, 6, 7)  # SteamCMD Success return code
@@ -100,7 +102,8 @@ class Steamcmd:
             except SteamcmdException as e:
                 return e
 
-    def _launch_steamcmd(self, params):
+    def _launch_steamcmd(self, params, capture_output=False):
+        params = tuple(params)
         for attempt in range(1, 6):
             # subprocess.run is the modern version of subprocess.call and more flexible
             # capture_output=True silences the process. Output is accessible from proc_ret.stdout
@@ -109,7 +112,7 @@ class Steamcmd:
                 env = dict(os.environ, HOME=str(self.home_path))
             else:
                 env = None
-            proc_ret = subprocess.run(params, capture_output=True, env=env)
+            proc_ret = subprocess.run((self.steamcmd_exe, ) + params, capture_output=True, env=env)
 
             if proc_ret.stderr:
                 logger.debug('SteamCMD stderr:\n%s', proc_ret.stderr)
@@ -128,6 +131,31 @@ class Steamcmd:
             print(proc_ret.stdout)
             print('\n')
             raise SteamcmdException(f'SteamCMD exited with code {proc_ret.returncode} (0x{proc_ret.returncode:X})')
+
+        if capture_output:
+            return proc_ret.stdout.decode('utf-8')
+
+    def get_app_info(self, appids, branch="public"):
+        """
+        Gets app info from steamcmd
+        :param appid: steam app id
+        :return: app info
+        """
+        if isinstance(appids, int):
+            appids = [appids]
+
+        params = [
+            '+login anonymous',
+            '+app_info_update 1',
+        ]
+
+        for appid in appids:
+            params.append(f'+app_info_print {appid}')
+
+        params.append('+quit')
+        output = self._launch_steamcmd(params, capture_output=True)
+        data = parseSteamCmd(output)
+        return data
 
     def install_gamefiles(self, gameid, game_install_dir: Path, user='anonymous', password=None, validate=False):
         """
@@ -148,7 +176,6 @@ class Steamcmd:
         logger.info(f'Installing game {gameid} to {game_dir}{" with validate" if validate else ""}')
 
         steamcmd_params = (
-            str(self.steamcmd_exe),
             '+@sSteamCmdForcePlatformType windows',
             f'+login {user} {password}',
             f'+force_install_dir {game_dir}',
@@ -172,7 +199,6 @@ class Steamcmd:
         logger.info(f'Installing mod {workshop_id} from game {gameid} to {game_dir}')
 
         steamcmd_params = (
-            str(self.steamcmd_exe),
             '+@sSteamCmdForcePlatformType windows',
             f'+login {user} {password}',
             f'+force_install_dir {game_dir}',
@@ -181,6 +207,40 @@ class Steamcmd:
         )
 
         self._launch_steamcmd(steamcmd_params)
+
+
+def parseSteamCmd(data: str):
+    '''
+    Parse the mess that comes out of steamcmd.
+    Returns a merged dictionary of the ACF data found.
+    '''
+    capturedAcf = ''
+    capturedData = {}
+    for line in data.splitlines():
+        if not line:
+            continue
+
+        if not capturedAcf and line.startswith('"'):  # begin capturing acf
+            capturedAcf = line
+            continue
+
+        if line[0] in ' \t{}':  # continue to capture
+            capturedAcf += '\n' + line
+            continue
+
+        # End capturing and process the data
+        new_data = parseAcf(capturedAcf)
+
+        # Merge it with the existing data and continue
+        capturedData.update(new_data)
+        capturedAcf = ''
+
+    # Ensure any trailing data is captured
+    if capturedAcf:
+        new_data = parseAcf(capturedAcf)
+        capturedData.update(new_data)
+
+    return capturedData
 
 
 __all__ = [

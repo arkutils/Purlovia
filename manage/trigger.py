@@ -1,10 +1,10 @@
 from datetime import datetime
 from pathlib import Path
 from random import randint
-
-import requests
+from typing import Iterable
 
 from automate.ark import getGameBuildId
+from automate.steamcmd import Steamcmd
 from utils.log import get_logger
 
 from .types import Run, RunStatus
@@ -26,8 +26,12 @@ def collect_trigger_values(config: dict[str, Run], fake_buildids: bool = False):
 
     used_appids = {run.appid for run in config.values() if run.triggers.buildid}
 
-    for appid in used_appids:
-        last_buildid_by_appid[appid] = randint(900_000, 999_999) if fake_buildids else _get_live_buildid_for_appid(appid)
+    if fake_buildids:
+        for appid in used_appids:
+            last_buildid_by_appid[appid] = randint(900_000, 999_999)
+    else:
+        for appid, buildid in _get_live_buildids_for_appids(used_appids).items():
+            last_buildid_by_appid[appid] = buildid
 
 
 def add_manual_trigger(name: str):
@@ -82,14 +86,11 @@ def update_cache(name: str, run: Run, cache: dict[str, RunStatus]):
         logger.debug('Updated build id for %s to %d', name, used_buildid)
 
 
-def _get_live_buildid_for_appid(appid: int) -> int:
-    # Currently uses steamcmd.net, but could be changed to use our local steamcmd if necessary
-    url = f'https://api.steamcmd.net/v1/info/{appid}'
-    response = requests.get(url)
-    response.raise_for_status()
-    data = response.json()
-    buildid = data['data'][str(appid)]['depots']['branches']['public']['buildid']
-    return int(buildid)
+def _get_live_buildids_for_appids(appids: Iterable[int]) -> dict[int, int]:
+    logger.info('Fetching live buildids from Steam')
+    steamcmd = Steamcmd('livedata/Steam')
+    data = steamcmd.get_app_info(appids)
+    return {int(appid): int(data[str(appid)]['depots']['branches']['public']['buildid']) for appid in appids}
 
 
 def _get_used_buildid_for_appid(appid: int) -> int:
