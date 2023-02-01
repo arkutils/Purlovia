@@ -1,19 +1,28 @@
+# Entries starting with _ are ignored and are used as shortcuts for the others
+_ark: &ark
+    appid: 376030
+    config: config/config.ini
+
+_sotf: &sotf
+    appid: 445400
+    config: config/config-445400.ini
+
+
+
 sotf:
-    appid: &sotf 407530
-    output_path: output-sotf
+    <<: *sotf
     stages:
         - asb
-        - wiki.items
-        - wiki.species
-        - wiki.drops
-        - wiki.loot_crates
-    trigger_buildid: true
+        - wiki
+    triggers:
+        buildid: true
+        frequency: P2D
     mods: []
     # maps: (allows all)
 
 
 ark_core_fast:
-    appid: &ark 376030
+    <<: *ark
     stages:
         - sanity.species
         - sanity.items
@@ -23,30 +32,35 @@ ark_core_fast:
         - wiki.drops
         - wiki.loot_crates
         - wiki.event_colors
-    trigger_buildid: true
+    triggers:
+        buildid: true
+        # frequency: PT12H
+    include_official_mods: true
     mods: []
     maps: []
 
 
 ark_core_full:
-    appid: *ark
+    <<: *ark
     stages:
-        - sanity.maps
+        - sanity
         - asb
         - wiki
-    trigger_buildid: true
+    triggers:
+        buildid: true
     include_official_mods: true
     mods: []
     # maps: (allows all)
 
 
 ark_mods_12h:
-    appid: *ark
+    <<: *ark
     stages:
         - asb.species
         - wiki.species
         - wiki.items
-    trigger_frequency: PT12H
+    triggers:
+        frequency: PT12H
     mods:
         - 1373744537 # AC2
         - 893735676 # AE
@@ -63,12 +77,13 @@ ark_mods_12h:
 
 
 ark_mods_2d:
-    appid: *ark
+    <<: *ark
     stages:
         - asb.species
         - wiki.species
         - wiki.items
-    trigger_frequency: P2D
+    triggers:
+        frequency: P2D
     mods:
         - 1729386191 # BonusDinoMod
         - 2447186973 # ArkOmega
@@ -91,12 +106,13 @@ ark_mods_2d:
 
 
 ark_mods_7d:
-    appid: *ark
+    <<: *ark
     stages:
         - asb.species
         - wiki.species
         - wiki.items
-    trigger_frequency: P7D
+    triggers:
+        frequency: P7D
     mods:
         - 2000326197 # ExtraResources
         - 895711211 # ClassicFlyers
@@ -119,7 +135,7 @@ ark_mods_7d:
 
 ark_mods_manual_only:
     # no auto trigger
-    appid: *ark
+    <<: *ark
     stages:
         - asb.species
         - wiki.species
