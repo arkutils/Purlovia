@@ -40,6 +40,10 @@ def parse_config(path: str):
     with open(path, 'rt') as f:
         raw_data = safe_load(f)
 
+    # Remove any keys that start with an underscore
+    raw_data = {k: v for k, v in raw_data.items() if not k.startswith('_')}
+
+    # Parse and check the config
     config: ConfigFile = ConfigFile.parse_obj(raw_data)
     return config.__root__
 
