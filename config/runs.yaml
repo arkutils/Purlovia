@@ -122,7 +122,6 @@ ark_mods_7d:
         - 1696957410 # MarniimodsTest
         - 919470289 # SSFlyer
         - 2110243671 # GrandHunt
-        - 1768499278 # BalancedJPE
         - 1449927867 # Phoenix
         - 1445395055 # Indominus
         - 1092784125 # Gryphons
@@ -141,8 +140,6 @@ ark_mods_manual_only:
         - wiki.items
     mods:
         - 1785800853 # Behavorial-Expansion
-        - 1606708617 # MysteriousMysteries
-        - 1590726079 # AutoHarvestAnky
         - 1498206270 # SmallDragon
         - 1270132511 # GiantGlowpets
         - 1178308359 # ShadDragon
@@ -158,11 +155,8 @@ ark_mods_manual_only:
         - 1420423699 # ARKaeologyDinos
         - 1206835819 # AncientEarthModCollection
         - 1136390783 # PhoenixBreeding
-        - 1729512589 # Brachiosaurus
-        - 1268749723 # ShadCore
         - 883957187 # WyvernWorld
         - 1824174926 # CarnoTLC
-        - 1821112850 # Iguana
         - 1783308979 # AdditionalDinos_Valguero
         - 1188224480 # OgAlphas
         - 1139775728 # Confuciusornis
