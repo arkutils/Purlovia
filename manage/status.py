@@ -4,7 +4,7 @@ from .types import RunStatus, StatusFile
 
 __all__ = ('load_status_cache', 'save_status_cache')
 
-STATUS_FILE = Path('tmp/run-status.json')
+STATUS_FILE = Path('livedata/manage-status.json')
 STATUS_FILE_TMP = STATUS_FILE.with_suffix('.json.tmp')
 
 
