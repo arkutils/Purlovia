@@ -76,7 +76,7 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
 
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
-    if not colorset_props:
+    if not colorset_props or not colorset_props.ColorSetDefinitions:
         if not settings.region_names:
             return None
 
