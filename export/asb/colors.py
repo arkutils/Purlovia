@@ -64,19 +64,21 @@ def gather_color_data(char_props: PrimalDinoCharacter, overrides: OverrideSettin
     '''Gather color region definitions for a species.'''
     settings = overrides.color_regions
     colors: List[Optional[Dict]] = list()
+    male_colorset_props: PrimalColorSet | None = None
+    female_colorset_props: PrimalColorSet | None = None
 
     try:
-        male_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsMale[0]
+        male_colorset_props = char_props.RandomColorSetsMale[0]
     except ValueError:
-        male_colorset_props = None
+        pass
     try:
-        female_colorset_props: Optional[PrimalColorSet] = char_props.RandomColorSetsFemale[0]
+        female_colorset_props = char_props.RandomColorSetsFemale[0]
     except ValueError:
-        female_colorset_props = None
+        pass
 
     # TODO: Incorporate both male and female colorsets, as well as if multiple colorsets are listed
     colorset_props = male_colorset_props or female_colorset_props
-    if not colorset_props:
+    if not colorset_props or not hasattr(colorset_props, 'ColorSetDefinitions'):
         if not settings.region_names:
             return None
 
