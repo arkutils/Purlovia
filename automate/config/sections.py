@@ -17,6 +17,7 @@ class SettingsSection(BaseModel):
     SkipGit: bool = False
     SkipExtract: bool = False
     SkipInstall: bool = False
+    SkipRunGame: bool = False
 
     class Config:
         extra = Extra.forbid
@@ -31,6 +32,7 @@ class DevSection(BaseModel):
 
 
 class SteamCmdSection(BaseModel):
+    AppId: int = 376030  # Ark Dedicated Server
     RetryCount: int = 5
     UninstallUnusedMods: bool = True
 
@@ -61,6 +63,7 @@ class ErrorsSection(BaseModel):
 
 class ExportDefaultsSection(BaseModel):
     PrettyJson: bool = True
+    RestrictPath: Optional[str] = None
 
 
 class ExportSection(ExportDefaultsSection):

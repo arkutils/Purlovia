@@ -9,7 +9,7 @@ from ark.discovery import initialise_hierarchy
 from ark.types import PrimalItem
 from automate.ark import ArkSteamManager
 from automate.jsonutils import _format_json
-from config import get_global_config
+from config import ConfigFile, get_global_config, switch_config
 from export.wiki.stage_items import get_item_name
 from ue.asset import ExportTableItem, UAsset
 from ue.gathering import gather_properties
@@ -29,6 +29,7 @@ args: argparse.Namespace
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("uegrep", description=DESCRIPTION, epilog=EPILOG)
 
+    parser.add_argument('--config', type=str, default='config/config.ini', help='config file to use')
     parser.add_argument('--dir', nargs=1, help='output to a directory')
     parser.add_argument('--output', '-o', nargs=1, help='output to a specific file')
     parser.add_argument('--all', '-a', action='store_true', help='include all exports')
@@ -54,8 +55,7 @@ def find_asset(assetname, loader):
     return assetname
 
 
-def collect_asset(assetname: str) -> UAsset:
-    config = get_global_config()
+def collect_asset(assetname: str, config: ConfigFile) -> UAsset:
     config.settings.SkipInstall = True
     arkman = ArkSteamManager(config=config)
 
@@ -245,7 +245,11 @@ def main():
         print("Cannot specify both --dir and --output:", file=sys.stderr)
         sys.exit(1)
 
-    asset = collect_asset(args.assetname)
+    config = get_global_config()
+    if args.config:
+        config = switch_config(args.config)
+
+    asset = collect_asset(args.assetname, config)
     filename, data = collect_data(asset)
     json = _format_json(data, pretty=True)
     with manage_output_file(filename) as handle:

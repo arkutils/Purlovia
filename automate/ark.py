@@ -39,8 +39,10 @@ class ArkSteamManager:
         self.config = config
         self.basepath: Path = Path(config.settings.DataDir).absolute()
 
+        self.appid = config.steamcmd.AppId
+
         self.steamcmd_path: Path = self.basepath / 'Steam'
-        self.gamedata_path: Path = self.basepath / 'game'
+        self.gamedata_path: Path = self.basepath / f'app-{self.appid}'
         self.asset_path: Path = self.gamedata_path / 'ShooterGame'
         self.mods_path: Path = self.asset_path / 'Content' / 'Mods'
 
@@ -128,12 +130,12 @@ class ArkSteamManager:
         self.gamedata_path.mkdir(parents=True, exist_ok=True)
 
         if not self.config.settings.SkipInstall:
-            self.steamcmd.install_gamefiles(ARK_SERVER_APP_ID, self.gamedata_path)
+            self.steamcmd.install_gamefiles(self.appid, self.gamedata_path)
         else:
             logger.info('(skipped)')
 
-        self.game_version = fetchGameVersion(self.gamedata_path)
-        self.game_buildid = getGameBuildId(self.gamedata_path)
+        self.game_version = fetchGameVersion(self.gamedata_path, skip_exe=self.config.settings.SkipRunGame)
+        self.game_buildid = getGameBuildId(self.gamedata_path, self.config.steamcmd.AppId)
 
     def ensureModsUpdated(self, modids: Union[Sequence[str], Sequence[int]]):
         '''
@@ -377,9 +379,9 @@ def _fetchGameVersionFromFile(gamedata_path: Path) -> Optional[str]:
     return version
 
 
-def fetchGameVersion(gamedata_path: Path) -> str:
+def fetchGameVersion(gamedata_path: Path, skip_exe=False) -> str:
     # Try to run the server itself and grab its version output
-    exe_version = getGameVersionFromServerExe(gamedata_path)
+    exe_version = getGameVersionFromServerExe(gamedata_path) if not skip_exe else None
     if exe_version:
         if not re.fullmatch(r"\d+(\.\d+)*", exe_version, re.I):
             logger.warning("Invalid version number returned from running Ark server: %s", exe_version)
@@ -434,12 +436,12 @@ def getSteamModVersions(game_path: Path, modids) -> Dict[str, int]:
     return newModVersions
 
 
-def getGameBuildId(game_path: Path) -> str:
+def getGameBuildId(game_path: Path, app_id: str | int) -> str:
     '''
     Collect the buildid of the game from Steam's metadata files.
     This will be updated even if the version number doesn't change.
     '''
-    filename: Path = game_path / 'steamapps' / f'appmanifest_{ARK_SERVER_APP_ID}.acf'
+    filename: Path = game_path / 'steamapps' / f'appmanifest_{app_id}.acf'
     data = readACFFile(filename)
     buildid = data['AppState']['buildid']
     return buildid
@@ -533,11 +535,11 @@ def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
     local_app_path_str = str(Path(getcwd()).resolve().absolute())
     local_livedata_path_str = str(get_global_config().settings.DataDir.resolve().absolute())
     remote_app_path_str = '/app' if docker else local_app_path_str
-    game_path_str = '/app/livedata/game' if docker else str(game_path)
+    game_path_str = f'/app/livedata/{game_path.name}' if docker else str(game_path)
 
     cmd = ''
     if docker:
-        cmd += 'docker run -it --rm '
+        cmd += 'docker run -it --rm --name purlovia-version-collector '
         cmd += f'-v \"{local_app_path_str}:/app\" '
         cmd += f'-v \"{local_livedata_path_str}:/app/livedata\" '
         cmd += 'debian:10 bash -c "'
@@ -551,9 +553,11 @@ def getGameVersionFromServerExe(game_path: Path) -> Optional[str]:
 
     # Run with timeout
     try:
-        result = run(cmd, shell=not docker, capture_output=True, text=True, timeout=180)
+        result = run(cmd, shell=not docker, capture_output=True, text=True, timeout=90)
     except (TimeoutError, TimeoutExpired):
         logger.warning("Collecting version by running Ark server timed out")
+        if docker:
+            run('docker kill purlovia-version-collector', capture_output=True, text=True, timeout=10)
         return None
     except FileNotFoundError:
         logger.warning("Unable to run docker command")
