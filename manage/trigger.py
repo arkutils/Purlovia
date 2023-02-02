@@ -88,13 +88,13 @@ def update_cache(name: str, run: Run, cache: dict[str, RunStatus]):
 
 def _get_live_buildids_for_appids(appids: Iterable[int]) -> dict[int, int]:
     logger.info('Fetching live buildids from Steam')
-    steamcmd = Steamcmd('livedata/Steam')
+    steamcmd = Steamcmd(Path('livedata/Steam').absolute())
     data = steamcmd.get_app_info(appids)
     return {int(appid): int(data[str(appid)]['depots']['branches']['public']['buildid']) for appid in appids}
 
 
 def _get_used_buildid_for_appid(appid: int) -> int:
     # Read the buildid from the appmanifest file
-    game_path = Path(f'livedata/app-{appid}')
+    game_path = Path(f'livedata/app-{appid}').absolute()
     buildid = getGameBuildId(game_path, appid)
     return int(buildid)
