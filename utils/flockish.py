@@ -3,6 +3,7 @@ from __future__ import annotations
 import atexit
 import os
 import signal
+import sys
 from pathlib import Path
 from time import sleep
 
@@ -61,7 +62,13 @@ def ensure_process_lock():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGABRT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGBREAK, signal_handler)
+    signal.signal(signal.SIGSEGV, signal_handler)
+    if sys.platform == 'win32':
+        signal.signal(signal.SIGBREAK, signal_handler)
+    elif sys.platform == 'linux':
+        signal.signal(signal.SIGILL, signal_handler)
+        signal.signal(signal.SIGBUS, signal_handler)
+        signal.signal(signal.SIGQUIT, signal_handler)
 
 
 def _create_lock() -> bool:
