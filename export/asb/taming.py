@@ -52,7 +52,7 @@ def gather_taming_data(char_props: PrimalDinoCharacter, dcsc_props: PrimalDinoSt
 
         if adultFoodConsumptionMult != 1:
             data['adultFoodConsumptionMult'] = cf(adultFoodConsumptionMult)
-            
+
         if eats is not None:
             data['eats'] = eats
         if special_food_values is not None:
