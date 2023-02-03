@@ -14,9 +14,9 @@ sotf:
     stages:
         - asb
         - wiki
-    triggers:
-        buildid: true
-        frequency: P2D
+    # triggers:
+    #     buildid: true
+    #     frequency: P2D
     mods: []
     # maps: (allows all)
 
