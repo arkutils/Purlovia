@@ -6,7 +6,10 @@
         "**/.mypy_cache": true,
         "**/.pytest_cache": true,
         "livedata/game": true,
-        "livedata/Steam": true
+        "livedata/app-*": true,
+        "livedata/hierarchy-*": true,
+        "livedata/Steam": true,
+        "tmp": true,
     },
 
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
