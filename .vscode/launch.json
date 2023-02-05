@@ -38,9 +38,12 @@
             "name": "Run schedule",
             "type": "python",
             "request": "launch",
-            "module": "manage.schedule",
+            "module": "manage",
             "console": "integratedTerminal",
-            "args": []
+            "args": [
+                "ark_core_fast",
+                "--force",
+            ]
         },
         {
             "name": "Run uegrep",

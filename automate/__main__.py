@@ -1,4 +1,8 @@
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('automate')
+
     from utils.flockish import ensure_process_lock, set_lock_path
     set_lock_path("livedata/automate.lock")
     ensure_process_lock()
@@ -7,4 +11,7 @@ if __name__ == '__main__':
     ue.context.disable_metadata()
 
     from .cli import main
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.error('Interrupted by Ctrl-C')

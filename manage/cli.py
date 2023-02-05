@@ -68,11 +68,9 @@ def main():
             print(f'  {name}')
         return
 
-    setup_logging()
-
     if args.pause:
         print('Pausing before running anything...')
-        input('Press enter to continue...')
+        input('Press enter to continue...\n')
 
     cache = load_status_cache()
     collect_trigger_values(run_config, fake_buildids=args.fake_buildids)
