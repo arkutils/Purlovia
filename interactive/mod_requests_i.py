@@ -5,7 +5,10 @@
 
 from interactive_utils import *  # pylint: disable=wrong-import-order
 
+import sys
 import csv
+import yaml
+from pathlib import Path
 from datetime import datetime, timedelta
 from math import ceil
 from operator import itemgetter
@@ -39,36 +42,39 @@ modids = set([
     # '2016338122',  # Shiny! Dinos - uses buffs
     # '1278441218',  # GunSmoke - this is the map
     # '1112780816',  # Insects-Plus - discontinued
+    # '1967035140',  # AramoorePlus (locked to specific servers - probably don't support)
 
     # Unable to process currently
     # '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
     # '833379388',  # Pugnacia Dinos
 
+    # Removed from Steam?
+    # '1840936777',  # Prometheus
+    # '2672233461',  # Ark Supreme
+
     # Candidates
     '843960973',  # Dragontail
     '1679826889',  # Caballus Custom Map - The Equestrian Lan
-    '1754846792',  # Zytharian Critters
     '1880357240',  # Sanctuary Overhaul
-    '1989252120',  # ARK: Reclamation
     '1558114752',  # Dino hybrids & more (Radioactive tag?)
-    '1967035140',  # AramoorePlus
-    '2212177129',  # Sid's Hybrids
     '1912090921',  # Scratchy Claws' Improved Flyers
-    '1840936777',  # Prometheus
     '1511268523',  # Gunsmoke Animals
     '2251437896',  # TheBurningLoop Community Mod
     '908817184',  # Nightmare Pegasus
-    '2337840412',  # RR StarFarmanimals
-    '2360410335',  # RR StarExoticAnimals
     '1592652278',  # Random Egg Spawner 2.0
-    '710880648',  # DinoOverhaul X
     '1416912482',  # Bunn3h's extras
     '2117433951',  # Galvanized Wolf
     '2472371628',  # MilicrocaWarriors CommunityMod
     '1534108504',  # VWSR - Dino Rebalance, Tameable Alphas, Sub Species and More
     '1852495701',  # Shad's Better Gigas Rebalance
     '1134797219',  # Breedable Griffins
-    '1838617463',  # Fjordur
+    '1838617463',  # Fjordur (renamed Fjell to separate from Fjordur DLC)
+    '1230977449',  # Exiles of the ARK
+    '1314441674',  # ARK: Parados
+    '1788616268',  # Argentavis Darting Saddle
+    '1979037318',  # Shad's Critter Reworks
+    '1989252120',  # ARK: Reclamation
+    '2676028144',  # TaeniaStella (large map that also requires CrystalIsles)
 ])
 
 #%% Conversion function
@@ -96,12 +102,18 @@ def data_from_mod(data):
 
 
 #%% Check for mods already enabled
-already_enabled = set(config.mods).intersection(modids)
+runs = yaml.safe_load(Path('config/runs.yaml').read_text())
+runs = {k: v for k, v in runs.items() if not k.startswith('_')}
+mods_from_runs = {str(modid) for run in runs.values() for modid in run.get('mods', [])}
+mods_from_config = set(config.mods)
+all_existing_mods = mods_from_runs | mods_from_config
+print(f'Pre-existing mods: {len(all_existing_mods)}')
+already_enabled = all_existing_mods.intersection(modids)
 if already_enabled:
     print('Already in config:')
     for modid in already_enabled:
         print(modid)
-    print()
+    sys.exit(0)
 
 #%% Fetch data for them all
 mod_data = SteamApi.GetPublishedFileDetails(list(modids))
