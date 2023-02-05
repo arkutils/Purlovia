@@ -4,12 +4,18 @@ import atexit
 import os
 import signal
 import sys
+from datetime import datetime
 from pathlib import Path
 from time import sleep
 
 import psutil
 
 from utils.log import get_logger
+
+__all__ = (
+    'set_lock_path',
+    'ensure_process_lock',
+)
 
 LOCK_FILE: Path = None  # type: ignore # we verify this is set before use
 
@@ -26,6 +32,9 @@ we_claimed_lock = False
 '''True if this process claimed its process lock'''
 already_released = False
 '''True if we have already released the lock'''
+
+_lock_file_handle = None
+_our_details: tuple[int, int] | None = None
 
 
 def set_lock_path(path: str) -> None:
@@ -46,17 +55,16 @@ def ensure_process_lock():
     if we_claimed_lock:
         return
 
-    logger.info('Trying to claim lock file %s for PID %s', LOCK_FILE, os.getpid())
     if not _create_lock():
-        logger.debug("Lock already exists - checking if it's stale")
-        if _should_retry_lock():
-            logger.debug("Lock is stale, retrying")
-            if not _create_lock():
-                raise RuntimeError("Failed to claim process lock")
-        else:
-            raise RuntimeError("Failed to claim process lock")
+        locked_pid, locked_create_time = _read_lock_file()
+        logger.error("Lock %s already exists for PID %s @ %d (%s)", LOCK_FILE, locked_pid, locked_create_time,
+                     datetime.fromtimestamp(locked_create_time))
+        raise RuntimeError("Failed to claim process lock")
 
     we_claimed_lock = True
+
+    our_pid, our_create_time = _our_details
+    logger.info("Claimed %s for PID %s @ %d (%s)", LOCK_FILE, our_pid, our_create_time, datetime.fromtimestamp(our_create_time))
 
     atexit.register(_release_lock)
     signal.signal(signal.SIGINT, signal_handler)
@@ -72,18 +80,22 @@ def ensure_process_lock():
 
 
 def _create_lock() -> bool:
+    global _lock_file_handle, _our_details
+    assert _lock_file_handle is None
+
     logger.debug("Attempting to create lock file")
     try:
-        with LOCK_FILE.open('xt') as f:
-            f.writelines([
-                f'{os.getpid()}\n',
-                f'{int(psutil.Process(os.getpid()).create_time())}\n',
-            ])
-            f.write('\n')
-        logger.info("Process lock claimed")
+        f = LOCK_FILE.open('xt')
+        _our_details = (os.getpid(), int(psutil.Process(os.getpid()).create_time()))
+        f.writelines([f'{line}\n' for line in _our_details])
+        f.flush()
+        os.fsync(f.fileno())
+        logger.debug("Process lock claimed")
     except FileExistsError:
-        logger.warning("Process lock already exists")
+        logger.debug("Process lock already exists")
         return False
+
+    _lock_file_handle = f
 
     return True
 
@@ -98,61 +110,39 @@ def _read_lock_file() -> tuple[int, int]:
     return pid, create_time
 
 
-def _should_retry_lock() -> bool:
-    '''
-    Returns True if a lock either does not exist or is stale.
-    '''
-    try:
-        locked_pid, create_time = _read_lock_file()
-        logger.info(f"Existing lock is for PID {locked_pid} @ {create_time}")
-
-        # Lock is stale if the process with this PID does not exist or match the create_time
-        proc = psutil.Process(locked_pid)
-        if int(proc.create_time()) != create_time:
-            logger.info("Locked PID does not match recorded create_time - it is stale")
-            LOCK_FILE.unlink()
-            return True
-        logger.info("Locked PID matches create_time - it is valid")
-        return False
-    except FileNotFoundError:
-        logger.debug("Lock file does not exist")
-        return True
-    except ValueError:
-        logger.info("Lock file is empty or invalid, removing")
-        LOCK_FILE.unlink()
-        return True
-    except psutil.NoSuchProcess:
-        logger.info("Process does not exist, removing lock")
-        LOCK_FILE.unlink()
-        return True
-    except Exception as ex:
-        logger.info("Unknown exception during lock check", exc_info=ex)
-        return False
-
-
 def _release_lock():
     '''
     Release the lock file if we claimed it, first checking we still own it.
     It is safe to call this method multiple times.
     '''
-    global already_released, we_claimed_lock
+    global already_released, we_claimed_lock, _lock_file_handle
 
-    # Siletly bail if we never claimed the lock or have already released it
+    # Silently bail if we never claimed the lock or have already released it
     if already_released or not we_claimed_lock:
         return
 
+    assert _lock_file_handle is not None
+
     # Verify we still own the lock
     try:
-        locked_pid, _ = _read_lock_file()
-        if locked_pid != os.getpid():
-            logger.debug("Lock is for another process")
-            raise RuntimeError("Our process lock was stolen while we ran")
+        our_pid, our_create_time = _our_details
+        locked_pid, locked_create_time = _read_lock_file()
+        if locked_pid != our_pid:
+            logger.debug("Lock is for another process (pid=%s, create_time=%s)", locked_pid, locked_create_time)
+            raise RuntimeError("Our process lock was stolen while we ran (PID mismatch)")
+        if locked_create_time != our_create_time:
+            logger.debug("Lock is for our process but create time does not match (pid=%s, create_time=%s)", locked_pid,
+                         locked_create_time)
+            raise RuntimeError("Our process lock was stolen while we ran (create time mismatch)")
     except FileNotFoundError:
-        logger.debug("Lock file does not exist, not releasing")
+        logger.error("Lock file does not exist, not releasing")
         return
 
+    # Close the lock file handle and remove the file
+    _lock_file_handle.close()
+    _lock_file_handle = None
     LOCK_FILE.unlink()
-    logger.info("Process lock released")
+    logger.info("Lock %s verified and released", LOCK_FILE)
     already_released = True
 
 

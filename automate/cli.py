@@ -52,6 +52,7 @@ def create_parser() -> argparse.ArgumentParser:
     exclusive.add_argument('--live', action='store_true', help='enable live mode [requires git identity]')
 
     parser.add_argument('--remove-cache', action='store_true', help='remove the (dev only) asset tree cache')
+    parser.add_argument('--pause', help=argparse.SUPPRESS, action='store_true')
 
     parser.add_argument('--skip-install', action='store_true', help='skip install/update of game and mods')
     parser.add_argument('--skip-extract', action='store_true', help='skip extracting all data completely')
@@ -98,6 +99,10 @@ def handle_args(args: Any, parser: argparse.ArgumentParser) -> ConfigFile:
     if args.list_stages:
         config.display_sections = True
         return config
+
+    if args.pause:
+        print('Pausing before running anything...')
+        input('Press enter to continue...\n')
 
     # Logging can be setup now we know we're not aborting
     setup_logging()
