@@ -104,6 +104,9 @@ class UEProxyStructure:
     def __contains__(self, name):
         return hasattr(self, name)
 
+    def get_all(self):
+        return {k: v for k, v in vars(self).items() if not k.startswith('_')}
+
     def get(self, field_name: str, field_index: int = 0, fallback=NO_FALLBACK) -> Any:
         field_value = getattr(self, field_name, None)
         result = field_value
