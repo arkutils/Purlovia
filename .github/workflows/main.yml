@@ -60,7 +60,7 @@ jobs:
 
     - name: Publishing live Docker image
       if: github.event_name == 'push' && github.ref == 'refs/heads/live'
-      uses: elgohr/Publish-Docker-Github-Action@v4
+      uses: elgohr/Publish-Docker-Github-Action@v5
       env:
         COMMIT: ${{ github.sha }}
         BRANCH: ${{ github.repository }}@${{ github.ref_name }}
