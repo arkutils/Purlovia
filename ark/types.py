@@ -33,6 +33,10 @@ FLOAT_1_0 = (1.00000000, '0000803f')
 FLOAT_100_0 = (100.00000000, '0000c842')
 
 
+class CoreUEObject(UEProxyStructure, uetype='/Script/CoreUObject.Object'):
+    pass
+
+
 class PrimalCharacterStatusComponent(UEProxyStructure, uetype=PCSC_CLS):
     BabyDinoConsumingFoodRateMultiplier = uefloats((25.50000000, '0000cc41'))
     BabyMaxHealthPercent = uefloats((0.10000000, 'cdcccc3d'))
