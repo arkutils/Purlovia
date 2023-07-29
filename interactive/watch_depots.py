@@ -31,7 +31,11 @@ app_ids = {
     ],
     "445400": [
         ["445401", 'SoTF Server: Content'],
-    ]
+    ],
+    # "238960": [
+    #     ["238961", 'Path of Exile: Content'],
+    #     ["238962", 'Path of Exile: Windows'],
+    # ],
 }
 
 
@@ -111,6 +115,7 @@ def fetchDepotStates():
     cmds = ['steamcmd.exe', '+login', 'anonymous', '+app_info_update', '1']
 
     for app_id in app_ids:
+        cmds.extend(['+app_info_request', app_id])
         cmds.extend(['+app_info_print', app_id])
 
     cmds.append('+quit')
@@ -155,7 +160,7 @@ def printout(state):
 
 
 def main():
-    # alert(376031, 'Server: Content', '7421526770546443422')
+    # alert(376031, 'Test', '1111111111111111111')
     # sys.exit(0)
 
     if not os.getenv('PURLOVIA_WATCHER_WEBHOOK'):

@@ -20,6 +20,7 @@ SHOOTER_CHR_MOVEMENT_CLS = '/Script/ShooterGame.ShooterCharacterMovement'
 PRIMAL_COLOR_SET_CLS = '/Script/ShooterGame.PrimalColorSet'
 PRIMAL_RAFT_CLS = '/Script/ShooterGame.PrimalRaft'
 PRIMAL_WHEELED_VEHICLE_CLS = '/Script/ShooterGame.PrimalWheeledVehicleCharacter'
+PRIMAL_HAVESTING_CMP_CLS = '/Script/ShooterGame.PrimalHarvestingComponent'
 
 DCSC_CLS = '/Game/PrimalEarth/CoreBlueprints/DinoCharacterStatusComponent_BP.DinoCharacterStatusComponent_BP_C'
 DINO_CHR_CLS = '/Game/PrimalEarth/CoreBlueprints/Dino_Character_BP.Dino_Character_BP_C'
@@ -171,6 +172,21 @@ class PrimalColorSet(UEProxyStructure, uetype=PRIMAL_COLOR_SET_CLS):
     # DevKit Unverified
 
 
+class PrimalHarvestingComponent(UEProxyStructure, uetype=PRIMAL_HAVESTING_CMP_CLS):
+    # DevKit Verified
+
+    # DevKit Unverified
+    HarvestResourceEntries: Mapping[int, StructProperty]
+    BaseHarvestResourceEntries: Mapping[int, StructProperty]
+    HarvestDamageTypeEntries: Mapping[int, StructProperty]
+    MaxHarvestHealth = uefloats(20.0)
+    DescriptiveName = uestrings('')
+    UseHarvestString = uestrings('')
+    TamedDinoHarvestGiveHealthMultiplier = uefloats(1.0)
+    DinoHarvestGiveHealthAmount = uefloats(0.0)
+    DinoHarvestGiveHealthSpeed = uefloats(0.0)
+
+
 class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # DevKit Verified
 
@@ -298,6 +314,7 @@ class PrimalDinoCharacter(UEProxyStructure, uetype=PDC_CLS):
     # DevKit Unverified
     bUsesGender = uebools(True)
     MutagenBaseCost = uefloats(-1)
+    DeathHarvestingComponent = LazyReference[PrimalHarvestingComponent]()
 
 
 class PrimalGameData(UEProxyStructure, uetype=PGD_CLS):

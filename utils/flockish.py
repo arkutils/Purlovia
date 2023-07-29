@@ -74,6 +74,7 @@ def ensure_process_lock():
     if sys.platform == 'win32':
         signal.signal(signal.SIGBREAK, signal_handler)
     elif sys.platform == 'linux':
+        signal.signal(signal.SIGHUP, signal_handler)
         signal.signal(signal.SIGILL, signal_handler)
         signal.signal(signal.SIGBUS, signal_handler)
         signal.signal(signal.SIGQUIT, signal_handler)
