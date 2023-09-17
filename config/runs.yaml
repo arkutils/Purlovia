@@ -92,8 +92,11 @@ ark_mods_2d:
     <<: *ark
     stages:
         - asb.species
-        - wiki.species
+        - wiki.spawn_groups
+        - wiki.engrams
         - wiki.items
+        - wiki.drops
+        - wiki.species
     triggers:
         frequency: P2D
     mods:
@@ -120,8 +123,11 @@ ark_mods_7d:
     <<: *ark
     stages:
         - asb.species
-        - wiki.species
+        - wiki.spawn_groups
+        - wiki.engrams
         - wiki.items
+        - wiki.drops
+        - wiki.species
     triggers:
         frequency: P7D
     mods:
@@ -148,8 +154,11 @@ ark_mods_manual_only:
     <<: *ark
     stages:
         - asb.species
-        - wiki.species
+        - wiki.spawn_groups
+        - wiki.engrams
         - wiki.items
+        - wiki.drops
+        - wiki.species
     mods:
         - 1785800853 # Behavorial-Expansion
         - 1498206270 # SmallDragon
