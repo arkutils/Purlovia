@@ -62,30 +62,30 @@ ark_mods_12h:
     triggers:
         frequency: PT12H
     mods:
-        - 1373744537 # AC2
-        - 893735676 # AE
-        - 1090809604 # Pyria
-        - 1565015734 # BetterDinosTest
-        - 1576299694 # ElementalDinos
-        - 1652120435 # AtlasPort
-        - 839162288 # Primal_Fear
-        - 1125442531 # Gaia
-        - 1734595558 # Pyria2
-        - 1675895024 # NoUntameables
-        - 1676159020 # Aquaria
-        - 2135314513 # CI_Dinos
-        - 710880648 # DinoOverhaul X
-        - 1379111008 # Realism Plus
-        - 1754846792 # Zytharian Critters
-        - 2212177129 # Sid's Hybrids
-        - 2247209652 # Monsters and More
-        - 2337840412 # RR-StarFarmAnimals
-        - 2360410335 # RR-StarExoticAnimals
-        - 2362246280 # Giga Full Tame
-        - 2493949846 # Additional Creatures: Endemics (BETA)
-        - 2683373846 # Zaza's Collection
-        - 2804332920 # Paleo Ark: Legends
-        - 2869411055 # SDinoVariants (Svartalfheim)
+        - 1373744537 # [AC2] Additional Creatures 2: Wild Ark
+        - 893735676 # [AE] Ark Eternal
+        - 1090809604 # [Pyria] Pyria: Mythos Evolved
+        - 1565015734 # [BetterDinosTest] Better Dinos
+        - 1576299694 # [ElementalDinos] Elemental Ark
+        - 1652120435 # [AtlasPort] Shad's Atlas Imports
+        - 839162288 # [Primal_Fear] Primal Fear
+        - 1125442531 # [Gaia] Gaia
+        - 1734595558 # [Pyria2] Pyria: The Second Chapter
+        - 1675895024 # [NoUntameables] No Untameables
+        - 1676159020 # [Aquaria] Additional Creatures: Aquaria
+        - 2135314513 # [CI_Dinos] Crystal Isles Dino Addition
+        - 710880648 # [DinoOverHaulMODX] DinoOverhaul X -- Hardcore PvE Experience
+        - 1379111008 # [RealismPlus] Realism Plus by Storm
+        - 1754846792 # [Zythara_Critters] Zythara Critters
+        - 2212177129 # [Hybridthing] Sid's Hybrids
+        - 2247209652 # [MonstersandMore] Monsters and More
+        - 2337840412 # [RRMod_StarFarmAnimals] RRMod StarFarmAnimals
+        - 2360410335 # [RRMod_StarExoticAnimals] RR-StarExoticAnimals
+        - 2362246280 # [GigaFullTame] Giga Full Tame
+        - 2493949846 # [Endemics] Additional Creatures: Endemics
+        - 2683373846 # [ZazaCollection_2] Zaza's Collection
+        - 2804332920 # [PaleoARKlegends] Paleo ARK: Legends Expansion!
+        - 2869411055 # [SDinoVariants] SDinoVariants
 
 
 ark_mods_2d:
@@ -100,23 +100,34 @@ ark_mods_2d:
     triggers:
         frequency: P2D
     mods:
-        - 1729386191 # BonusDinoMod
-        - 2447186973 # ArkOmega
-        - 1270181453 # AdditionalAberrantDinos
-        - 1984129536 # MTSMod
-        - 2112724006 # DarkArk
-        - 1522327484 # Additions_Pack
-        - 1169020368 # Trex
-        - 1083349027 # SpeedyFlyers
-        - 1984936918 # MarniiModsWildlife
-        - 1300713111 # RareSightings
-        - 1654255131 # AtlasImports
-        - 1523045986 # Paranoia
-        - 1356703358 # Primal_Fear_Noxious_Creatures
-        - 1787443195 # ChasmAdditionalDinos
-        - 909297874 # NorwegianVikings
-        - 899987403 # Primal_Fear_Bosses
-        - 1405944717 # Project_Evolution
+        - 1729386191 # [BonusDinoMod] AC: Kami Creations
+        - 2447186973 # [ArkOmega] Ark Omega
+        - 1270181453 # [AdditionalAberrantDinos] Additional Aberrant Dinos
+        - 1984129536 # [MTSMod] MTS.co.uk Community Mod
+        - 2112724006 # [DarkArk] The Hunted
+        - 1522327484 # [Additions_Pack] ARK Additions!
+        - 1169020368 # [Trex] Ark Creature Rebalance (AG Reborn)
+        - 1083349027 # [SpeedyFlyers] Najs Speedy Flyers
+        - 1984936918 # [MarniiModsWildlife] MarniiMods:Wildlife
+        - 1300713111 # [RareSightings] Rare Sightings
+        - 1654255131 # [AtlasImports] Animals of Atlas
+        - 1523045986 # [Paranoia] Additional Creatures 2: Paranoia!
+        - 1356703358 # [Primal_Fear_Noxious_Creatures] Primal Fear Noxious Creatures
+        - 1787443195 # [ChasmAdditionalDinos] The Chasm - Additional Creatures
+        - 899987403 # [Primal_Fear_Bosses] Primal Fear Bosses
+        - 1405944717 # [Project_Evolution] JP's Server Tweaks
+        - 1416912482 # [BunExtras] Bunn3h's Extras
+        - 1558114752 # [Radioactive] Dino Hybrids & more!
+        - 1679826889 # [Cavallus] Caballus Custom Map - The Equestrian Land
+        - 1852495701 # [BetterGiggles] Shad's Better Gigas Rebalance
+        - 1979037318 # [IceWyverns] Shads Critter Reworks
+        - 2453342929 # [MoreDragonsMod] More Dragons Evolved
+        - 2472371628 # [MilicrocaWarriors_MOD] MilicrocaWarriors
+        - 2621340621 # [BreedableGriffins] Breedable Griffins [Conversion]
+        - 2895059095 # [TaeniaStella] TaeniaStella The RenewalAlpha
+        - 2902657380 # [Dinohunterworld] Dino Hunter World
+        - 2953890191 # [ExtraAberrantVariants] Extra Aberrant Variants
+        - 3035755339 # [PortsOfAtlas] Atlas Imports - Parrot
 
 
 ark_mods_7d:
@@ -131,22 +142,23 @@ ark_mods_7d:
     triggers:
         frequency: P7D
     mods:
-        - 2000326197 # ExtraResources
-        - 895711211 # ClassicFlyers
-        - 729352919 # IndomRex
-        - 1821554891 # PurloviaTEST
-        - 1681125667 # Primal_Fear_EX
-        - 1587391872 # FasterFlyers
-        - 1696957410 # MarniimodsTest
-        - 919470289 # SSFlyer
-        - 2110243671 # GrandHunt
-        - 1449927867 # Phoenix
-        - 1445395055 # Indominus
-        - 1092784125 # Gryphons
-        - 814833973 # Wyvern_Mating
-        - 2019846325 # ApexMod
-        - 2003934830 # Beasts
-        - 1783616332 # IceWyvernMating
+        - 2000326197 # [ExtraResources] Event Assets
+        - 895711211 # [ClassicFlyers] Classic Flyers
+        - 729352919 # [IndomRex] Indom Rex Nemesis
+        - 1821554891 # [PurloviaTEST] PurloviaTEST
+        - 1681125667 # [Primal_Fear_EX] Primal Fear Extinction Expansion
+        - 1587391872 # [FasterFlyers] Faster Flyers By EddyChomps
+        - 1696957410 # [MarniimodsTest] Marnii's Equines
+        - 919470289 # [SSFlyer] SSFlyer
+        - 2110243671 # [GrandHunt] Additional Creatures: Grand Hunt
+        - 1449927867 # [Phoenix] Phoenix: Reborn From the Ashes
+        - 1445395055 # [Indominus] ARK Additions: Indominus Rex!
+        - 1092784125 # [Gryphons] Gryphons
+        - 814833973 # [Wyvern_Mating] Wyvern Mating
+        - 2019846325 # [ApexMod] ApexMod
+        - 2003934830 # [Beasts] Prehistoric Beasts
+        - 1783616332 # [IceWyvernMating] Ice Wyvern Mating
+        - 909297874 # [NorwegianVikings] Norwegian Vikings
 
 
 ark_mods_manual_only:
@@ -160,25 +172,24 @@ ark_mods_manual_only:
         - wiki.drops
         - wiki.species
     mods:
-        - 1785800853 # Behavorial-Expansion
-        - 1498206270 # SmallDragon
-        - 1270132511 # GiantGlowpets
-        - 1178308359 # ShadDragon
-        - 2117881804 # FiresFixes
-        - 2034355411 # Roya
-        - 1934081600 # SoloFarmAnky
-        - 1912640902 # MagicShinehorn
-        - 1908568783 # BarbaryLion
-        - 1850732334 # ForestWyvern
-        - 1850728241 # RoyalPhoenix
-        - 1662691167 # Senior
-        - 1633860796 # DE_Breedable_RockDrakes
-        - 1420423699 # ARKaeologyDinos
-        - 1206835819 # AncientEarthModCollection
-        - 1136390783 # PhoenixBreeding
-        - 883957187 # WyvernWorld
-        - 1824174926 # CarnoTLC
-        - 1783308979 # AdditionalDinos_Valguero
-        - 1188224480 # OgAlphas
-        - 1139775728 # Confuciusornis
-
+        - 1785800853 # [Behavorial-Expansion] ArkTranscendence
+        - 1498206270 # [SmallDragon] Small Dragons!
+        - 1270132511 # [GiantGlowpets] Rideable Glowpets
+        - 1178308359 # [ShadDragon] Shad's Tameable Bosses
+        - 2117881804 # [FiresFixes] Fire's Fixes
+        - 2034355411 # [Roya] Additional Creatures: Roya Creations
+        - 1934081600 # [SoloFarmAnky] Solo Farm Mod
+        - 1912640902 # [MagicShinehorn] Magic Shinehorn
+        - 1908568783 # [BarbaryLion] AC: Bonus Content
+        - 1850732334 # [ForestWyvern] Forest Wyvern Remastered
+        - 1850728241 # [RoyalPhoenix] Royal Phoenix Remastered
+        - 1662691167 # [Senior] Additional Creatures: Senior Class
+        - 1633860796 # [DE_Breedable_RockDrakes] Dark Edges Breedable Rock Drakes
+        - 1420423699 # [ARKaeologyDinos] ARKaeology Dinos
+        - 1206835819 # [AncientEarthModCollection] Ancient Dragons and Wyverns
+        - 1136390783 # [PhoenixBreeding] Phoenix Breeding
+        - 883957187 # [WyvernWorld] Wyvern World
+        - 1824174926 # [CarnoTLC] Carnotaurus TLC
+        - 1783308979 # [AdditionalDinos_Valguero] AdditionalDinos_Valguero
+        - 1188224480 # [OgAlphas] OgAlphas
+        - 1139775728 # [Confuciusornis] Confuciusornis
