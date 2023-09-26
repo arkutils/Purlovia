@@ -43,6 +43,9 @@ modids = set([
     # '1278441218',  # GunSmoke - this is the map
     # '1112780816',  # Insects-Plus - discontinued
     # '1967035140',  # AramoorePlus (locked to specific servers - probably don't support)
+    # '2676028144',  # TaeniaStella (large map that also requires CrystalIsles - now replaced with TaeniaStella The RenewalAlpha)
+    # '1558114752',  # Dino hybrids & more [Radioactive]
+    # '1838617463',  # Fjordur (renamed Fjell to separate from Fjordur DLC, but tag still clashes)
 
     # Unable to process currently
     # '632898827',  # Dino Colors Plus - adds copies of vanilla species with more colours
@@ -54,27 +57,19 @@ modids = set([
 
     # Candidates
     '843960973',  # Dragontail
-    '1679826889',  # Caballus Custom Map - The Equestrian Lan
     '1880357240',  # Sanctuary Overhaul
-    '1558114752',  # Dino hybrids & more (Radioactive tag?)
     '1912090921',  # Scratchy Claws' Improved Flyers
     '1511268523',  # Gunsmoke Animals
     '2251437896',  # TheBurningLoop Community Mod
     '908817184',  # Nightmare Pegasus
     '1592652278',  # Random Egg Spawner 2.0
-    '1416912482',  # Bunn3h's extras
     '2117433951',  # Galvanized Wolf
-    '2472371628',  # MilicrocaWarriors CommunityMod
     '1534108504',  # VWSR - Dino Rebalance, Tameable Alphas, Sub Species and More
-    '1852495701',  # Shad's Better Gigas Rebalance
     '1134797219',  # Breedable Griffins
-    '1838617463',  # Fjordur (renamed Fjell to separate from Fjordur DLC)
     '1230977449',  # Exiles of the ARK
     '1314441674',  # ARK: Parados
     '1788616268',  # Argentavis Darting Saddle
-    '1979037318',  # Shad's Critter Reworks
     '1989252120',  # ARK: Reclamation
-    '2676028144',  # TaeniaStella (large map that also requires CrystalIsles)
 ])
 
 #%% Conversion function
