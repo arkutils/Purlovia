@@ -57,8 +57,11 @@ ark_mods_12h:
     <<: *ark
     stages:
         - asb.species
-        - wiki.species
+        - wiki.spawn_groups
+        - wiki.engrams
         - wiki.items
+        - wiki.drops
+        - wiki.species
     triggers:
         frequency: PT12H
     mods:
