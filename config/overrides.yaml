@@ -1601,6 +1601,44 @@ species:
                 4: "Skin Highlights"
                 5: "Body Highlights"
 
+    # Additional Creatures 2: Wild Ark mod creatures colour region names
+    /Game/Mods/AC2/gigas/Gigas_Character_BP.Gigas_Character_BP:
+        color_regions:
+            region_names:
+                0: null
+                1: null
+                2: "Lateral Pattern"
+                3: "Flanks"
+                4: null
+                5: "Underside Pattern"
+    /Game/Mods/AC2/Taco/Taco_Character_bp.Taco_Character_bp:
+        color_regions:
+            region_names:
+                0: "Underside"
+                1: "Quills"
+                2: "Main Body"
+                3: "Eyes"
+                4: "Quill Bands"
+                5: "Body Pattern"
+    /Game/Mods/AC2/pelta/Pelta_Character_BP.Pelta_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: null
+                2: null
+                3: null
+                4: "Tail"
+                5: "Underside"       
+    /Game/Mods/AC2/Torosaurus/Torosaur_Character_BP.Torosaur_Character_BP:
+        color_regions:
+            region_names:
+                0: "Main Body"
+                1: null
+                2: "Face Accents"
+                3: "Stripe Pattern"
+                4: null
+                5: "Underside"                 
+
     # Additional Creatures: Aquaria mod creatures colour region names
     /Game/Mods/Aquaria/FIsh/Tigerfish/GoliathTigerfish_Character_bp:
         color_regions:
