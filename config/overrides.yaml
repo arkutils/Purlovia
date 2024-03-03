@@ -1930,6 +1930,9 @@ species:
     /Game/Genesis2/Dinos/TekStrider/TekStrider_Character_BP:
         taming_method: awake
 
+    # Tameability for ASB, Rhyniognatha can be domesticated indirectly
+    /Game/PrimalEarth/Dinos/Rhyniognatha/Rhynio_Character_BP.Rhynio_Character_BP:
+        taming_method: awake
 
 
     # Mod-specific overrides
