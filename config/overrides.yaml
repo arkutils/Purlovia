@@ -1912,6 +1912,9 @@ species:
             Unused: true
 
     # Tameability overrides for wiki.species
+    /Game/PrimalEarth/Dinos/Rhyniognatha/Rhynio_Character_BP:
+        taming_method: awake
+
     /Game/Aberration/Dinos/Nameless/Xenomorph_Character_BP:
         taming_method: none
 
