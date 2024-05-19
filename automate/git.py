@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 from config import ConfigFile, get_global_config
 from utils.brigit import Git, GitException
@@ -61,7 +61,7 @@ class GitManager:
         # Commit
         self._do_commit(message, relative_path)
 
-    def finish(self, game_version: str):
+    def finish(self, game_version: Optional[str]):
         if self.config.settings.SkipGit:
             return
 
@@ -70,7 +70,8 @@ class GitManager:
             return
 
         # Tag
-        self._do_tag(game_version)
+        if game_version:
+            self._do_tag(game_version)
 
         # Push
         self._do_push()
