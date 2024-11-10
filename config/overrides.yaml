@@ -1281,6 +1281,15 @@ species:
             region_names:
                 1: "Belly"
                 4: "Membrane accents"
+    /Game/ASA/Dinos/Archelon/Dinos/Archelon_Character_BP_ASA.Archelon_Character_BP_ASA:
+        color_regions:
+            region_names:
+                0: "Face, Fins and Body side"
+                1: null
+                2: null
+                3: null
+                4: "Main Body"
+                5: "Spots Neck and Back"
 
     # Kraken's Better Dinos mod creatures colour region names
     /Game/Mods/BetterDinosTest/Stygi/BDStygi_Character_BP:
