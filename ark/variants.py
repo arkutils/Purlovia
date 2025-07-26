@@ -66,8 +66,8 @@ def adjust_name_from_variants(name: str, variants: set, overrides: OverrideSetti
     return name
 
 
-def get_variants_from_species(char: PrimalDinoCharacter, overrides: OverrideSettings) -> Set[str]:
-    variants: Set[str] = set()
+def get_variants_from_species(char: PrimalDinoCharacter, assetname: str, overrides: OverrideSettings) -> Set[str]:
+    variants = get_variants_from_assetname(assetname, overrides)
 
     # Handle flags
     for flag, target in overrides.variants_from_flags.items():
@@ -81,6 +81,11 @@ def get_variants_from_species(char: PrimalDinoCharacter, overrides: OverrideSett
         if re.match(part, descriptive_name, re.DOTALL):
             for label in target if isinstance(target, list) else [target]:
                 variants.add(label)
+
+    # Re-apply removals so they also apply to species names, etc
+    for name, use in overrides.remove_variants.items():
+        if use and name in variants:
+            variants.remove(name)
 
     return variants
 

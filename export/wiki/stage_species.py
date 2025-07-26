@@ -206,7 +206,7 @@ class SpeciesStage(JsonHierarchyExportStage):
 
         name = str(species.DescriptiveName[0])
 
-        variants = get_variants_from_assetname(asset.assetname, overrides) | get_variants_from_species(species, overrides)
+        variants = get_variants_from_species(species, asset.assetname, overrides)
         if variants:
             if should_skip_from_variants(variants, overrides):
                 return None

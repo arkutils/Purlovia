@@ -174,6 +174,11 @@ mods:
             Shapeshifter_Large: true
             Shapeshifter_Small: true
 
+            # Aquatica
+            Offspring: true
+            Abyssal: true
+            Rift: true
+
         pathname_variant_components:
             Genesis: true
             Genesis2: true
@@ -182,6 +187,7 @@ mods:
             LostIsland: true
             ScorchedEarth: true
             Fjordur: true
+            Abyss: true
 
             SummonedDinos: true
 
@@ -202,6 +208,7 @@ mods:
             SummonedDinos: Summoned
             FinalBattleAlt: FinalBattle
             Bone: Skeletal
+            Abyss: Aquatica
 
         remove_variants:
             Gen2: true
@@ -631,6 +638,81 @@ species:
     /Game/ScorchedEarth/Dinos/DodoWyvern/DodoWyvern_Character_BP:
         add_variants:
             Boss: true
+    /Game/Abyss/Dinos/AlphaCorruptTridacna/AlphaCorruptTridacna_Character_BP:
+        remove_variants:
+            Mega: true
+            Alpha: true
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/AlphaCorruptTridacna/AlphaCorruptTridacna_Character_BP_Green:
+        remove_variants:
+            Mega: true
+            Alpha: true
+        add_variants:
+            Easy: true
+    /Game/Abyss/Dinos/AlphaCorruptTridacna/AlphaCorruptTridacna_Character_BP_Blue:
+        remove_variants:
+            Mega: true
+            Alpha: true
+        add_variants:
+            Medium: true
+    /Game/Abyss/Dinos/AlphaCorruptTridacna/AlphaCorruptTridacna_Character_BP_Red:
+        remove_variants:
+            Mega: true
+        add_variants:
+            Hard: true
+    /Game/Abyss/Dinos/Cymathoa/Cymathoa_Character_BP:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Fractalis/Crystals/FractalisCrystal:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Fractalis/Fractalis_Character_BP:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Pygocentrus/Pygocentrus_Character_BP:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Abyssal/Rex/Alpha/MegaRex_Character_BP_Abyssal:
+        remove_variants:
+            Alpha: true
+        add_variants:
+            Mega: true
+    /Game/Abyss/Dinos/Abyssal/Reaper/Reaper_Character_BP_Abyssal:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Dakosaurus/Alpha/Dakosaurus_Character_BP_Alpha:
+        remove_variants:
+            Alpha: true
+        add_variants:
+            Mega: true
+    /Game/Abyss/Dinos/Fractalis/Crystals/FractalisCrystal_Large:
+        add_variants:
+            Base: true
+    /Game/Abyss/Dinos/Fractalis/Crystals/FractalisCrystal_Large_Fire:
+        remove_variants:
+            Boss: true
+        add_variants:
+            Minion: true
+            Fire: true
+    /Game/Abyss/Dinos/Fractalis/Crystals/FractalisCrystal_Large_Stun:
+        remove_variants:
+            Boss: true
+        add_variants:
+            Minion: true
+            Stun: true
+    /Game/Abyss/Dinos/Rift/MegaRex_Character_BP_Abyssal_Rift:
+        add_variants:
+            Mega: true
+    /Game/Abyss/Dinos/Riftcrawler/RiftCrawler_Character_BP:
+        remove_variants:
+            Rift: true
+    /Game/Abyss/Dinos/Vulcanite/Vulcanite_Character_BP_BossAdd:
+        add_variants:
+            Minion: true
+    /Game/Abyss/Dinos/Vulcanithys/Vulcanithys_Character_BP:
+        add_variants:
+            Base: true
 
     # Distinguish between species that share the same names
     /Game/PrimalEarth/Dinos/IceGolem/IceGolem_Character_BP:

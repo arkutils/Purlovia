@@ -33,7 +33,7 @@
     "[python]": {
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         }
     },
     "editor.codeActionsOnSaveTimeout": 10000,
@@ -45,6 +45,7 @@
 
     "cSpell.words": [
         "asdict",
+        "Aquatica",
         "buildid",
         "consts",
         "DCSC",

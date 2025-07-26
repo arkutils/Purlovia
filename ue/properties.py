@@ -85,13 +85,6 @@ class PropertyTable(UEBase):
 
         self._newField('count', len(values))
 
-    def _link(self):
-        '''Override link to link all table entries.'''
-        super()._link()
-        for value in self.values:
-            if isinstance(value, UEBase):
-                value.link()
-
     def _parseField(self):
         # Records the current offset
         saved_offset = self.stream.offset
