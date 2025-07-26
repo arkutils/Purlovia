@@ -70,5 +70,16 @@
             "console": "integratedTerminal",
             "justMyCode": false
         },
+        {
+            "name": "Debug asset loading",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/browseasset.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "/Game/PrimalEarth/Dinos/Dodo/Dodo_Character_BP",
+            ]
+        }
     ]
 }
