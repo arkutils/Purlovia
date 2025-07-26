@@ -80,20 +80,25 @@ class UAsset(UEBase):
         # Remaining header
         self._newField('guid', Guid(self))
         self._newField('generations', Table(self).deserialise(GenerationInfo, self.stream.readUInt32()))
-        self._newField('engine_version_saved', EngineVersion(self))
-        self._newField('compression_flags', self.stream.readUInt32())
-        self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
-        self._newField('package_source', self.stream.readUInt32())
-        if self.licensee_ver >= 10:
-            # This field isn't present in some older ARK mods
-            self._newField('unknown_field', self.stream.readUInt64())
-        self._newField('packages_to_cook', Table(self).deserialise(StringProperty, self.stream.readUInt32()))
-        if self.legacy_ver > -7:
-            # Legacy field that is not used anymore
-            self._newField('texture_allocations', self.stream.readInt32())
-        self._newField('asset_registry_data_offset', self.stream.readUInt32())
-        self._newField('bulk_data_start_offset', self.stream.readUInt64())
-        self._newField('world_tile_info_data_offset', self.stream.readUInt64())
+        if self.ue_ver >= 405:  # AQUATICA
+            self._newField('asset_registry_data_offset', 0) # unknown
+            self._newField('bulk_data_start_offset', 0) # unknown
+            self._newField('world_tile_info_data_offset', 0) # unknown
+        else:
+            self._newField('engine_version_saved', EngineVersion(self))
+            self._newField('compression_flags', self.stream.readUInt32())
+            self._newField('compressed_chunks', Table(self).deserialise(CompressedChunk, self.stream.readUInt32()))
+            self._newField('package_source', self.stream.readUInt32())
+            if self.licensee_ver >= 10:
+                # This field isn't present in some older ARK mods
+                self._newField('unknown_field', self.stream.readUInt64())
+            self._newField('packages_to_cook', Table(self).deserialise(StringProperty, self.stream.readUInt32()))
+            if self.legacy_ver > -7:
+                # Legacy field that is not used anymore
+                self._newField('texture_allocations', self.stream.readInt32())
+            self._newField('asset_registry_data_offset', self.stream.readUInt32())
+            self._newField('bulk_data_start_offset', self.stream.readUInt64())
+            self._newField('world_tile_info_data_offset', self.stream.readUInt64())
 
         # Read the various chunk table contents
         # These tables are not included in the field list so they're not included in pretty printing
@@ -284,8 +289,12 @@ class ExportTableItem(UEBase):
         self._newField('namespace', ObjectIndex(self))  # item namespace
         self._newField('name', NameIndex(self))  # item name
         self._newField('object_flags', self.stream.readUInt32())
-        self._newField('serial_size', self.stream.readUInt32())
-        self._newField('serial_offset', self.stream.readUInt32())
+        if (self.asset.ue_ver >= 405):
+            self._newField('serial_size', self.stream.readUInt64()) # AQUATICA
+            self._newField('serial_offset', self.stream.readUInt64()) # AQUATICA
+        else:
+            self._newField('serial_size', self.stream.readUInt32())
+            self._newField('serial_offset', self.stream.readUInt32())
         self._newField('force_export', self.stream.readBool32())
         self._newField('not_for_client', self.stream.readBool32())
         self._newField('not_for_server', self.stream.readBool32())
